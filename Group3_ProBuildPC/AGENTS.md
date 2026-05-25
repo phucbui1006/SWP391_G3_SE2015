@@ -68,5 +68,5 @@ Always:
 - Do not change database structure unexpectedly.
 - Do not hardcode passwords.
 
--Hieeus
+-Hieeus hieu
 -Phuc phuc

@@ -69,4 +69,4 @@ Always:
 - Do not hardcode passwords.
 
 -Hieeus
--Phuc
+-Phuc phuc

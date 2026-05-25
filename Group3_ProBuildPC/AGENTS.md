@@ -68,4 +68,10 @@ Always:
 - Do not change database structure unexpectedly.
 - Do not hardcode passwords.
 
+<<<<<<< HEAD
 --hoang ne
+=======
+-Hieeus hieu
+-Phuc phuc
+-- Phuc ngu
+>>>>>>> 9f06a8fbfd1f7fc6354eff9d6a6b38350f2d7c3b

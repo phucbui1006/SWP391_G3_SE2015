@@ -67,3 +67,5 @@ Always:
 - Do not delete existing files without explanation.
 - Do not change database structure unexpectedly.
 - Do not hardcode passwords.
+
+-Hieeus

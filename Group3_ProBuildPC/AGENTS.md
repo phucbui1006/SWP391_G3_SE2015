@@ -68,4 +68,4 @@ Always:
 - Do not change database structure unexpectedly.
 - Do not hardcode passwords.
 
--Hieeus hoang
+--hoang ne

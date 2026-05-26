@@ -25,6 +25,7 @@ Customer:
 - Search products
 - Add to cart
 - Checkout
+- check warranty
 - View order history
 
 Admin:
@@ -32,7 +33,8 @@ Admin:
 - Manage categories
 - Manage brands
 - Manage users
-- Manage orders
+- view all orders
+
 
 ## Coding Rules
 

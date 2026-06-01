@@ -5,11 +5,87 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
 -->
 <html>
     <head>
-        <title>TODO supply a title</title>
+        <title>Trang chủ - ProBuildPC</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body {
+                margin: 0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f4f4f9;
+            }
+            header {
+                background-color: #2c3e50;
+                color: white;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px 40px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .logo h1 {
+                margin: 0;
+                font-size: 26px;
+                color: #3498db;
+            }
+            .logo h1 span {
+                color: white;
+            }
+            nav ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                gap: 25px;
+            }
+            nav a {
+                color: white;
+                text-decoration: none;
+                font-size: 16px;
+                font-weight: 500;
+                transition: color 0.3s;
+            }
+            nav a:hover {
+                color: #3498db;
+            }
+            .user-actions a {
+                color: white;
+                text-decoration: none;
+                margin-left: 15px;
+                padding: 8px 16px;
+                background-color: #e74c3c;
+                border-radius: 5px;
+                font-weight: bold;
+                transition: background-color 0.3s;
+            }
+            .user-actions a:hover {
+                background-color: #c0392b;
+            }
+        </style>
     </head>
     <body>
-        <div>TODO write content</div>
+        <header>
+            <div class="logo">
+                <h1>ProBuild<span>PC</span></h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#">Trang chủ</a></li>
+                    <li><a href="#">Sản phẩm</a></li>
+                    <li><a href="#">Build PC</a></li>
+                    <li><a href="#">Tin tức</a></li>
+                    <li><a href="#">Liên hệ</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <a href="#">🛒 Giỏ hàng</a>
+                <a href="#">👤 Đăng nhập</a>
+            </div>
+        </header>
+
+        <main style="padding: 40px;">
+            <h2>Chào mừng bạn đến với ProBuildPC!</h2>
+            <p>Bắt đầu xây dựng cấu hình máy tính mơ ước của bạn ngay hôm nay.</p>
+        </main>
     </body>
 </html>

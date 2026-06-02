@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-TECH Login</title>
     
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
@@ -38,7 +38,7 @@
             </div>
 
             <div class="forgot-password-container">
-                <a href="forgot-password.jsp" class="forgot-link">Quên mật khẩu?</a>
+                <a href="forget-password.jsp" class="forgot-link">Quên mật khẩu?</a>
             </div>
 
             <button type="submit" class="btn-submit">Đăng nhập</button>

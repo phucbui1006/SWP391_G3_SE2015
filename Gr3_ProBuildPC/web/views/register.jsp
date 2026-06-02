@@ -17,7 +17,7 @@
 
         body {
             background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), 
-                        url('images/background.jpg');
+                         url('../images/background.jpg');
             background-size: cover;
             display: flex;
             flex-direction: column;

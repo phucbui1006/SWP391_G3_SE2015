@@ -1,6 +1,6 @@
 /* ==================== 1. ĐỊNH DẠNG CHUNG KHUNG HÌNH VÀ NỀN ==================== */
 * {
-    box-shrink: 0;
+    flex-shrink: 0;
     box-sizing: border-box;
     margin: 0;
     padding: 0;

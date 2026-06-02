@@ -13,7 +13,8 @@ public class Users {
     }
 
     public Users(int userId, int roleId, String fullName,
-                String status, String email, String password) {
+            String status, String email, String password) {
+
         this.userId = userId;
         this.roleId = roleId;
         this.fullName = fullName;

@@ -1,6 +1,6 @@
 package model;
 
-public class Users {
+public class User {
 
     private int userId;
     private int roleId;
@@ -9,10 +9,10 @@ public class Users {
     private String email;
     private String password;
 
-    public Users() {
+    public User() {
     }
 
-    public Users(int userId, int roleId, String fullName,
+    public User(int userId, int roleId, String fullName,
             String status, String email, String password) {
 
         this.userId = userId;

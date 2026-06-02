@@ -19,7 +19,7 @@
     <div class="card-container">
         <h2 class="card-title">Chào mừng trở lại !</h2>
         
-        <form action="LoginServlet" method="POST">
+        <form action="login" method="POST">
             <div class="form-group">
                 <label for="email">Email</label>
                 <div class="input-group">
@@ -49,19 +49,6 @@
         </div>
     </div>
 
-    <script>
-        function togglePass(inputId, icon) {
-            const inputField = document.getElementById(inputId);
-            if (inputField.type === "password") {
-                inputField.type = "text";
-                icon.classList.remove("fa-eye");
-                icon.classList.add("fa-eye-slash");
-            } else {
-                inputField.type = "password";
-                icon.classList.remove("fa-eye-slash");
-                icon.classList.add("fa-eye");
-            }
-        }
-    </script>
+    
 </body>
 </html>

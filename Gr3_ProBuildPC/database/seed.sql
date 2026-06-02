@@ -45,11 +45,11 @@ VALUES
 INSERT INTO users
 (user_id, role_id, full_name, status, email, password)
 VALUES
-(1, 3, 'Bui Phuc', 1, 'bui.phuc.admin@gmail.com', '123456'),
-(2, 2, 'Nguyen Van Nam', 1, 'nguyenvannam@gmail.com', '123456'),
-(3, 4, 'Tran Minh Quan', 1, 'tranminhquan@gmail.com', '123456'),
-(4, 1, 'Le Hoang Anh', 1, 'lehoanganh@gmail.com', '123456'),
-(5, 1, 'Pham Thu Trang', 1, 'phamthutrang@gmail.com', '123456');
+(1, 3, 'Bui Phuc', 'ACTIVE', 'bui.phuc.admin@gmail.com', '123456'),
+(2, 2, 'Nguyen Van Nam', 'ACTIVE', 'nguyenvannam@gmail.com', '123456'),
+(3, 4, 'Tran Minh Quan', 'ACTIVE', 'tranminhquan@gmail.com', '123456'),
+(4, 1, 'Le Hoang Anh', 'ACTIVE', 'lehoanganh@gmail.com', '123456'),
+(5, 1, 'Pham Thu Trang', 'ACTIVE', 'phamthutrang@gmail.com', '123456');
 
 INSERT INTO batch (batch_id, batch_name, brand_id, category_id)
 VALUES

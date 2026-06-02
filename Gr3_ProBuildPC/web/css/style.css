@@ -1,0 +1,783 @@
+/* ==================== 1. ĐỊNH DẠNG CHUNG KHUNG HÌNH VÀ NỀN ==================== */
+* {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), 
+                url('../images/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Tên thương hiệu E-TECH */
+.brand-title-link {
+    text-decoration: none; 
+    display: inline-block;
+}
+
+.brand-title {
+    color: #ffffff;
+    font-size: 2.2rem;
+    font-weight: bold;
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.9);
+}
+
+/* ==================== 2. KHUNG TRẮNG CHỨA FORM (CARD CONTAINER) ==================== */
+.card-container {
+    background-color: #ffffff; /* Tạo nền trắng bao quanh form */
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 420px;
+    padding: 35px 30px;
+}
+
+.card-title {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #333333; /* Màu chữ Welcome back đen xám */
+    margin-bottom: 25px;
+    font-weight: 500;
+}
+
+/* ==================== 3. Ô NHẬP LIỆU VÀ ICON ==================== */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    color: #333333;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-group i.left-icon {
+    position: absolute;
+    left: 12px;
+    color: #a0a0a0;
+    font-size: 1rem;
+}
+
+.input-group i.toggle-password {
+    position: absolute;
+    right: 12px;
+    color: #a0a0a0;
+    cursor: pointer;
+    padding: 5px;
+    border-left: 1px solid #e0e0e0;
+    padding-left: 10px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px 12px 10px 38px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    color: #333333;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-group input[type="password"], 
+.input-group input[type="text"].pass-input {
+    padding-right: 40px;
+}
+
+/* ==================== 4. NÚT SUBMIT VÀ LINK ĐIỀU HƯỚNG ==================== */
+.forgot-password-container {
+    text-align: right;
+    margin-top: -5px;
+    margin-bottom: 20px;
+}
+
+.forgot-link {
+    font-size: 0.85rem;
+    color: #333333;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.btn-submit {
+    width: 100%;
+    background-color: #800c1e; /* Màu đỏ đô thương hiệu */
+    color: #ffffff;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-submit:hover {
+    background-color: #610714;
+}
+
+.footer-text {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: #555555;
+}
+
+.footer-text a {
+    color: #333333;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+/* Hỗ trợ màn hình nhỏ */
+@media (max-height: 700px) {
+    body {
+    position: relative; /* Thêm dòng này nếu chưa có để làm gốc định vị cho nút Home */
+    background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), 
+                url('../images/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+}
+/* ==================== ĐỊNH DẠNG RIÊNG CHO NÚT HOME ==================== */
+
+/* 1. Khung định vị cố định cho nút Home nằm phía trên form trắng */
+.home-navigation {
+    position: absolute;  /* Định vị tuyệt đối dựa theo khung màn hình */
+    top: 25px;           /* Cách mép trên màn hình 25px */
+    left: 30px;          /* Cách mép trái màn hình 30px */
+    z-index: 100;
+}
+
+/* 2. Định dạng chữ Home: nhỏ lại, màu trắng, có gạch chân */
+.home-link {
+    font-size: 1.1rem;          /* Kích thước vừa phải, không bị quá to */
+    color: #ffffff;             /* Màu chữ trắng nổi bật trên nền tối */
+    text-decoration: underline; /* Tạo đường gạch chân xuống dưới chữ */
+    font-weight: 500;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;  /* Tạo hiệu ứng mượt mà khi hover */
+}
+
+/* 3. Hiệu ứng phát sáng nhẹ khi di chuột vào chữ Home */
+.home-link:hover {
+    color: #e0e0e0;             
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+/* Định dạng dòng chữ mô tả trong trang Forgot Password */
+.card-description {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #444444;
+    line-height: 1.5;
+    margin-top: -10px;
+    margin-bottom: 30px; /* Tạo khoảng cách xuống ô input phía dưới */
+    padding: 0 10px;
+}
+body.profile-body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 60px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.profile-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    
+    /* Ép kích thước cố định bằng thuộc tính width */
+    width: 500px !important; /* Dùng !important để đè hoàn toàn các cấu hình cũ bị kẹt */
+    max-width: 100%;
+    
+    padding: 35px 40px; 
+    box-sizing: border-box;
+}
+
+.profile-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1a120b;
+    margin-bottom: 40px;
+}
+
+/* THAY ĐỔI CHÍNH: Ép Label và Thẻ bao Input xếp thành 2 dòng độc lập */
+.profile-form-group {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start; 
+    margin-bottom: 35px; 
+    position: relative;
+    width: 100%;
+    
+    /* ĐÃ THÊM: Giới hạn chiều rộng tối đa của mỗi hàng nhập liệu */
+    max-width: 650px; 
+}
+
+/* Định dạng lại dòng nhãn phía trên */
+.profile-label {
+    width: 100%;
+    text-align: left; /* Chuyển từ căn lề phải sang căn lề trái */
+    padding-right: 0;
+    margin-bottom: 10px; /* Khoảng cách từ chữ label xuống ô input ngay dưới */
+    font-size: 1.05rem;
+    color: #333333;
+    font-weight: 500;
+    box-sizing: border-box;
+}
+
+/* Khung bọc ô nhập liệu kéo dài full 100% dòng dưới */
+.profile-input-wrapper {
+    width: 100%; /* Chiếm trọn bộ bề ngang */
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-input-wrapper input {
+    width: 100%;
+    padding: 14px 16px; /* Ô nhập cao rộng thoáng đãng */
+    font-size: 1rem;
+    border: 1px solid #486942; 
+    border-radius: 6px;
+    outline: none;
+    background-color: #ffffff;
+    color: #333333;
+    box-sizing: border-box;
+}
+
+.profile-input-wrapper input[readonly] {
+    background-color: #e9ecef;
+    border-color: #cccccc;
+    color: #495057;
+    cursor: not-allowed;
+}
+
+.profile-input-wrapper i.lock-icon,
+.profile-input-wrapper i.toggle-eye {
+    position: absolute;
+    right: 18px;
+    color: #6c757d;
+    font-size: 1.05rem;
+    cursor: pointer;
+    z-index: 2;
+}
+
+/* Chữ Strong nằm ngay dưới đáy của ô input */
+.password-strength-indicator {
+    position: absolute;
+    bottom: -22px;
+    left: 2px;
+    font-size: 0.8rem;
+    color: #486942;
+    font-weight: bold;
+}
+
+/* Cấu trúc nút bấm xếp hàng tự nhiên ở dưới cùng */
+.profile-action-row {
+    display: flex;
+    width: 100%;
+    margin-top: 20px;
+    
+    /* ĐÃ THÊM: Đồng bộ chiều rộng với các ô nhập liệu phía trên */
+    max-width: 650px; 
+}
+
+.profile-btn-save {
+    background-color: #a12323;
+    color: #ffffff;
+    border: none;
+    padding: 14px 45px;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.profile-btn-save:hover {
+    background-color: #7f1a1a;
+}
+
+
+body.dashboard-body {
+    background-color: #f4f5f7;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow-x: auto;
+}
+
+/* 1. Thanh điều hướng phía trên (Top Navigation) */
+.top-navbar {
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    padding: 10px 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border-bottom: 1px solid #eef0f3;
+}
+
+.user-avatar-top {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 40px;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 25px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    color: #555555;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.nav-item:hover {
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+.nav-item.active {
+    background-color: #e8effe;
+    color: #1a73e8;
+}
+
+/* 2. Phần nội dung chính (Main Content) */
+.dashboard-container {
+    padding: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* 3. Khu vực bộ lọc tìm kiếm (Filter & Search) */
+.filter-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.search-box-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    max-width: 400px;
+}
+
+.filter-group-right {
+    display: flex;
+    gap: 15px;
+}
+
+.filter-box-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.filter-label {
+    font-size: 0.85rem;
+    color: #666666;
+    font-weight: 500;
+}
+
+.search-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input-group input {
+    width: 100%;
+    padding: 8px 12px 8px 35px;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    outline: none;
+    background-color: #ffffff;
+}
+
+.search-input-group i {
+    position: absolute;
+    left: 12px;
+    color: #999999;
+    font-size: 0.9rem;
+}
+
+.filter-select {
+    padding: 8px 30px 8px 12px;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    outline: none;
+    background-color: #ffffff;
+    min-width: 160px;
+    cursor: pointer;
+}
+
+/* 4. Khung chứa Bảng (Management Card) */
+.management-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    border: 1px solid #eef0f3;
+    padding: 20px;
+    overflow-x: auto;
+}
+
+.card-header-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #222222;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.user-table th {
+    background-color: #ffffff;
+    color: #111111;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 12px 10px;
+    border-bottom: 2px solid #eef0f3;
+}
+
+.user-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #eef0f3;
+    font-size: 0.9rem;
+    color: #333333;
+    vertical-align: middle;
+}
+
+/* Cột thông tin người dùng */
+.user-info-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.table-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.table-role-select {
+    padding: 6px 20px 6px 10px;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background-color: #ffffff;
+    outline: none;
+    cursor: pointer;
+}
+
+/* 5. Nhãn trạng thái (Status Badges) */
+.status-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.status-badge.active {
+    background-color: #28a745;
+    color: #ffffff;
+}
+
+.status-badge.banned {
+    background-color: #dc3545;
+    color: #ffffff;
+}
+
+/* 6. Các nút hành động (Action Buttons) */
+.action-cell-text {
+    color: #666666;
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+.action-btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    color: #ffffff;
+}
+
+.btn-action.btn-active {
+    background-color: #004085;
+}
+
+.btn-action.btn-active:hover {
+    background-color: #002752;
+}
+
+.btn-action.btn-ban {
+    background-color: #c82333;
+}
+
+.btn-action.btn-ban:hover {
+    background-color: #bd2130;
+}
+
+.btn-action:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* 7. Phân trang dưới chân bảng (Footer & Pagination) */
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: #666666;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pagination-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #555555;
+    transition: all 0.2s;
+}
+
+.pagination-link:hover {
+    background-color: #eef0f3;
+}
+
+.pagination-link.active {
+    background-color: #1a73e8;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.pagination-link.disabled {
+    color: #cccccc;
+    cursor: not-allowed;
+}
+body.profile-body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 60px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.profile-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    
+    /* Ép kích thước cố định bằng thuộc tính width */
+    width: 500px !important; /* Dùng !important để đè hoàn toàn các cấu hình cũ bị kẹt */
+    max-width: 100%;
+    
+    padding: 35px 40px; 
+    box-sizing: border-box;
+}
+
+.profile-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1a120b;
+    margin-bottom: 40px;
+}
+
+/* THAY ĐỔI CHÍNH: Ép Label và Thẻ bao Input xếp thành 2 dòng độc lập */
+.profile-form-group {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start; 
+    margin-bottom: 35px; 
+    position: relative;
+    width: 100%;
+    
+    /* ĐÃ THÊM: Giới hạn chiều rộng tối đa của mỗi hàng nhập liệu */
+    max-width: 650px; 
+}
+
+/* Định dạng lại dòng nhãn phía trên */
+.profile-label {
+    width: 100%;
+    text-align: left; /* Chuyển từ căn lề phải sang căn lề trái */
+    padding-right: 0;
+    margin-bottom: 10px; /* Khoảng cách từ chữ label xuống ô input ngay dưới */
+    font-size: 1.05rem;
+    color: #333333;
+    font-weight: 500;
+    box-sizing: border-box;
+}
+
+/* Khung bọc ô nhập liệu kéo dài full 100% dòng dưới */
+.profile-input-wrapper {
+    width: 100%; /* Chiếm trọn bộ bề ngang */
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-input-wrapper input {
+    width: 100%;
+    padding: 14px 16px; /* Ô nhập cao rộng thoáng đãng */
+    font-size: 1rem;
+    border: 1px solid #486942; 
+    border-radius: 6px;
+    outline: none;
+    background-color: #ffffff;
+    color: #333333;
+    box-sizing: border-box;
+}
+
+.profile-input-wrapper input[readonly] {
+    background-color: #e9ecef;
+    border-color: #cccccc;
+    color: #495057;
+    cursor: not-allowed;
+}
+
+.profile-input-wrapper i.lock-icon,
+.profile-input-wrapper i.toggle-eye {
+    position: absolute;
+    right: 18px;
+    color: #6c757d;
+    font-size: 1.05rem;
+    cursor: pointer;
+    z-index: 2;
+}
+
+/* Chữ Strong nằm ngay dưới đáy của ô input */
+.password-strength-indicator {
+    position: absolute;
+    bottom: -22px;
+    left: 2px;
+    font-size: 0.8rem;
+    color: #486942;
+    font-weight: bold;
+}
+
+/* Cấu trúc nút bấm xếp hàng tự nhiên ở dưới cùng */
+.profile-action-row {
+    display: flex;
+    width: 100%;
+    margin-top: 20px;
+    
+    /* ĐÃ THÊM: Đồng bộ chiều rộng với các ô nhập liệu phía trên */
+    max-width: 650px; 
+}
+
+.profile-btn-save {
+    background-color: #a12323;
+    color: #ffffff;
+    border: none;
+    padding: 14px 45px;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.profile-btn-save:hover {
+    background-color: #7f1a1a;
+}

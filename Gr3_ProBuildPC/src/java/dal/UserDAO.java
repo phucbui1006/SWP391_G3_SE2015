@@ -3,11 +3,11 @@ package dal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import model.Users;
+import model.User;
 
 public class UserDAO extends DBContext {
 
-    public Users login(String email, String password) {
+    public User login(String email, String password) {
 
         String sql = "SELECT * FROM USERS "
                 + "WHERE email = ? "
@@ -25,7 +25,7 @@ public class UserDAO extends DBContext {
 
             if (rs.next()) {
 
-                return new Users(
+                return new User(
                         rs.getInt("user_id"),
                         rs.getInt("role_id"),
                         rs.getString("full_name"),

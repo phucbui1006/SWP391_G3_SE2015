@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import model.Users;
+import model.User;
 
 @WebServlet(name = "LoginServlet", urlPatterns = {"/login"})
 public class LoginServlet extends HttpServlet {
@@ -27,7 +27,7 @@ public class LoginServlet extends HttpServlet {
         String password = request.getParameter("password");
 
         UserDAO dao = new UserDAO();
-        Users user = dao.login(email, password);
+        User user = dao.login(email, password);
 
         if (user == null) {
             request.setAttribute("error", "Email hoặc mật khẩu không đúng!");

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="model.User" %>
 
@@ -75,9 +76,40 @@
                     <% } %>
 
                 </nav>
-            </div>
-        </header>
+=======
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-TECH - Forgot Password</title>
+    
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    
+    <link rel="stylesheet" href="../css/style.css"><!-- comment -->
+</head>
+<body>
 
+   
+
+    <div class="card-container">
+        <h2 class="card-title">Quên mật khẩu?</h2>
+        
+        <p class="card-description">            
+            Nhập email đã đăng ký để nhận đường liên kết đặt lại mật khẩu
+        </p>
+        
+        <form action="ForgotPasswordServlet" method="POST">
+            <div class="form-group" style="margin-bottom: 25px;">
+                <div class="input-group">
+                    <i class="fa-regular fa-envelope left-icon"></i>
+                    <input type="email" id="email" name="email" placeholder="Nhập email" required>
+                </div>
+>>>>>>> 09f2d0e7b3c45b62d39fb275cfb2a06644824cca
+            </div>
+
+<<<<<<< HEAD
         <nav class="main-nav">
             <a class="active" href="<%= ctx %>/home">🏠 Trang chủ</a>
             <a href="#">Sản phẩm ▾</a>
@@ -313,4 +345,13 @@
         </main>
 
     </body>
+=======
+            <button type="submit" class="btn-submit">Xác nhận</button>
+        </form>
+
+       
+    </div>
+
+</body>
+>>>>>>> 09f2d0e7b3c45b62d39fb275cfb2a06644824cca
 </html>

@@ -4,7 +4,7 @@ public class User {
     private int userId;
     private int roleId;
     private String fullName;
-    private int status;
+    private String status;
     private String email;
     private String password;
     private String roleName;
@@ -12,7 +12,7 @@ public class User {
     public User() {
     }
 
-    public User(int userId, int roleId, String fullName, int status, String email, String password, String roleName) {
+    public User(int userId, int roleId, String fullName, String status, String email, String password, String roleName) {
         this.userId = userId;
         this.roleId = roleId;
         this.fullName = fullName;
@@ -34,7 +34,7 @@ public class User {
         return fullName;
     }
 
-    public int getStatus() {
+    public String getStatus() {
         return status;
     }
 
@@ -62,7 +62,7 @@ public class User {
         this.fullName = fullName;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 

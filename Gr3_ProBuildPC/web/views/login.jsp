@@ -13,13 +13,7 @@
     <body>
 
         <div class="home-navigation">
-<<<<<<< HEAD
-            <a href="${pageContext.request.contextPath}/Home" class="home-link">Home</a>
-
-            <a href="home.jsp" class="home-link">Home</a>
-=======
-            <a href="index.html" class="home-link">Home</a>
->>>>>>> 09f2d0e7b3c45b62d39fb275cfb2a06644824cca
+            <a href="${pageContext.request.contextPath}/home" class="home-link">Home</a>
         </div>
 
         <div class="card-container">

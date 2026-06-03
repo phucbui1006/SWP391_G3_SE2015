@@ -15,7 +15,7 @@ public class UserDAO {
                      JOIN Roles r ON u.role_id = r.role_id
                      WHERE u.email = ?
                        AND u.password = ?
-                       AND u.status = 1
+                       AND u.status = 'ACTIVE'
                      """;
 
         try {
@@ -33,7 +33,7 @@ public class UserDAO {
                 u.setUserId(rs.getInt("user_id"));
                 u.setRoleId(rs.getInt("role_id"));
                 u.setFullName(rs.getString("full_name"));
-                u.setStatus(rs.getInt("status"));
+                u.setStatus(rs.getString("status"));
                 u.setEmail(rs.getString("email"));
                 u.setPassword(rs.getString("password"));
                 u.setRoleName(rs.getString("role_name"));
@@ -82,7 +82,7 @@ public class UserDAO {
 
             ps.setInt(1, 1);
             ps.setString(2, fullName);
-            ps.setInt(3, 1);
+            ps.setString(3, "ACTIVE");
             ps.setString(4, email);
             ps.setString(5, password);
 

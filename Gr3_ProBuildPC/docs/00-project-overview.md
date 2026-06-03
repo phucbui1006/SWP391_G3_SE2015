@@ -8,5 +8,5 @@ Purpose:
 
 Tech Stack:
 - JSP/Servlet
-- SQL Server
+- My SQL 
 - Bootstrap

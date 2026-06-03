@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-TECH - Forgot Password</title>
+    <title>E-TECH - Forget Password</title>
     
     <link rel="stylesheet" type="text/css" href="css/style.css">
     
@@ -21,7 +21,7 @@
             Nhập email đã đăng ký để nhận đường liên kết đặt lại mật khẩu
         </p>
         
-        <form action="ForgotPasswordServlet" method="POST">
+        <form action="ForgetPasswordServlet" method="POST">
             <div class="form-group" style="margin-bottom: 25px;">
                 <div class="input-group">
                     <i class="fa-regular fa-envelope left-icon"></i>

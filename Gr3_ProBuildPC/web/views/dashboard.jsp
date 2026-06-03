@@ -23,7 +23,7 @@
         <meta charset="UTF-8">
         <title>Dashboard</title>
 
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/header.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 
         <style>
             .dashboard-content {
@@ -76,7 +76,7 @@
             }
         </style>
     </head>
-    <body>
+    <body class="dashboard-body">
 
         <jsp:include page="/includes/header.jsp" />
 

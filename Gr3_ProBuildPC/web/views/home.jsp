@@ -1,12 +1,10 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="model.User" %>
 <%@ page import="java.util.List" %>
 <%@ page import="model.Category" %>
 <%@ page import="model.Product" %>
 <%@ page import="dal.ProductDAO" %>
 
 <%
-    User account = (User) session.getAttribute("account");
     String ctx = request.getContextPath();
     List<Category> categories = (List<Category>) request.getAttribute("categories");
     List<Product> products = (List<Product>) request.getAttribute("products");
@@ -25,72 +23,7 @@
 
     <body class="home-page">
 
-        <div class="top-strip"></div>
-
-        <header class="site-header">
-            <div class="header-inner">
-
-                <a class="brand" href="<%= ctx %>/home">
-                    <span class="brand-mark">P</span>
-
-                    <span class="brand-text">
-                        <strong><span>ProBuild</span> PC</strong>
-                        <small>BUILD YOUR PERFECT PC</small>
-                    </span>
-                </a>
-
-                <form class="home-search-box" action="#" method="get">
-                    <input type="text" name="q" placeholder="Tìm kiếm sản phẩm, danh mục, thương hiệu...">
-                    <button type="submit">🔍</button>
-                </form>
-
-                <nav class="header-actions">
-
-                    <a href="#" class="header-link">
-                        <span>🛡</span>
-                        <b>Dịch vụ bảo hành</b>
-                    </a>
-
-                    <a href="#" class="header-link cart-link">
-                        <span>🛒</span>
-                        <b>Giỏ hàng</b>
-                        <em>0</em>
-                    </a>
-
-                    <% if (account == null) { %>
-
-                    <a href="<%= ctx %>/Login" class="header-link">
-                        <span>👤</span>
-                        <b>Đăng nhập</b>
-                    </a>
-
-                    <a href="<%= ctx %>/Register" class="register-btn">
-                        Đăng ký
-                    </a>
-
-                    <% } else { %>
-
-                    <a href="<%= ctx %>/Dashboard" class="header-link">
-                        <span>👤</span>
-                        <b><%= account.getFullName() %></b>
-                    </a>
-
-                    <a href="<%= ctx %>/Logout" class="register-btn">
-                        Đăng xuất
-                    </a>
-
-                    <% } %>
-
-                </nav>
-            </div>
-        </header>
-
-        <nav class="main-nav">
-            <a class="active" href="<%= ctx %>/home">🏠 Trang chủ</a>
-            <a href="#">Sản phẩm ▾</a>
-            <a href="#">Build PC</a>
-            <a href="#">Đơn hàng</a>
-        </nav>
+        <jsp:include page="/includes/header.jsp" />
 
         <main class="page-shell">
 

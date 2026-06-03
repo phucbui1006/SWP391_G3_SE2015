@@ -122,6 +122,24 @@ public class ProductDAO extends DBContext {
         return false;
     }
 
+    public double getAverageRating(int productId) {
+        String sql = "SELECT COALESCE(AVG(rating), 0) as avg_rating FROM reviews WHERE product_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("avg_rating");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
     private Product mapProduct(ResultSet rs) throws SQLException {
         return new Product(
                 rs.getInt("product_id"),

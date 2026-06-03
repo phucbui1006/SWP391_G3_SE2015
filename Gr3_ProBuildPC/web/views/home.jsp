@@ -1,9 +1,16 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="model.User" %>
+<%@ page import="java.util.List" %>
+<%@ page import="model.Category" %>
+<%@ page import="model.Product" %>
+<%@ page import="dal.ProductDAO" %>
 
 <%
     User account = (User) session.getAttribute("account");
     String ctx = request.getContextPath();
+    List<Category> categories = (List<Category>) request.getAttribute("categories");
+    List<Product> products = (List<Product>) request.getAttribute("products");
+    ProductDAO productDAO = (ProductDAO) request.getAttribute("productDAO");
 %>
 
 <!DOCTYPE html>
@@ -82,7 +89,7 @@
             <a class="active" href="<%= ctx %>/home">🏠 Trang chủ</a>
             <a href="#">Sản phẩm ▾</a>
             <a href="#">Build PC</a>
-            <a href="#">Thương hiệu</a>
+            <a href="#">Đơn hàng</a>
         </nav>
 
         <main class="page-shell">
@@ -91,18 +98,11 @@
                 <h2>DANH MỤC SẢN PHẨM</h2>
 
                 <ul class="category-list">
-                    <li><span>▣ CPU - Bộ vi xử lý</span><em>120</em></li>
-                    <li><span>▣ Mainboard</span><em>98</em></li>
-                    <li><span>▣ VGA - Card màn hình</span><em>85</em></li>
-                    <li><span>▣ RAM - Bộ nhớ trong</span><em>64</em></li>
-                    <li><span>▣ SSD - Ổ cứng</span><em>42</em></li>
-                    <li><span>▣ HDD - Ổ cứng</span><em>36</em></li>
-                    <li><span>▣ Nguồn PSU</span><em>28</em></li>
-                    <li><span>▣ Vỏ case</span><em>55</em></li>
-                    <li><span>▣ Tản nhiệt</span><em>50</em></li>
-                    <li><span>▣ Fan - Quạt tản nhiệt</span><em>72</em></li>
-                    <li><span>▣ Màn hình</span><em>34</em></li>
-                    <li><span>▣ Phụ kiện</span><em>90</em></li>
+                    <% if (categories != null && !categories.isEmpty()) {
+                        for (Category cat : categories) {
+                    %>
+                    <li><span>▣ <%= cat.getCategoryName() %></span></li>
+                    <% }} %>
                 </ul>
 
                 <a class="all-categories" href="#">▦ Xem tất cả danh mục</a>
@@ -169,10 +169,11 @@
                             Danh mục:
                             <select>
                                 <option>Tất cả</option>
-                                <option>CPU</option>
-                                <option>Mainboard</option>
-                                <option>VGA</option>
-                                <option>RAM</option>
+                                <% if (categories != null && !categories.isEmpty()) {
+                                    for (Category cat : categories) {
+                                %>
+                                <option><%= cat.getCategoryName() %></option>
+                                <% }} %>
                             </select>
                         </label>
 
@@ -210,90 +211,40 @@
                 </section>
 
                 <section class="product-grid">
-
+                    <% if (products != null && !products.isEmpty()) {
+                        for (Product product : products) {
+                            double rating = productDAO.getAverageRating(product.getProductId());
+                            int fullStars = (int) rating;
+                            boolean hasHalfStar = (rating - fullStars) >= 0.5;
+                    %>
                     <article class="product-card">
                         <button class="wish-btn">♡</button>
                         <figure>
-                            <img src="<%= ctx %>/images/products/intel-core-i5-12400f.jpg" alt="Intel Core i5">
+                            <img src="<%= ctx %>/<%= product.getImageUrl() %>" alt="<%= product.getProductName() %>">
                         </figure>
-                        <h3>Intel Core i5-14600KF</h3>
-                        <strong>6.890.000đ</strong>
+                        <h3><%= product.getProductName() %></h3>
+                        <strong><%= String.format("%,d", product.getPrice().longValue()) %>đ</strong>
+                        
+                        <!-- Rating Stars -->
+                        <div class="product-rating" style="margin: 5px 0; font-size: 14px;">
+                            <% for (int i = 0; i < 5; i++) {
+                                if (i < fullStars) { %>
+                                    ★
+                                <% } else if (i == fullStars && hasHalfStar) { %>
+                                    ☆
+                                <% } else { %>
+                                    ☆
+                                <% }
+                            } %>
+                            <span style="margin-left: 5px;"><%= String.format("%.1f", rating) %></span>
+                        </div>
 
                         <div class="product-actions">
                             <a href="#">Xem chi tiết</a>
                             <button type="button">🛒</button>
                         </div>
                     </article>
-
-                    <article class="product-card">
-                        <button class="wish-btn">♡</button>
-                        <figure>
-                            <img src="<%= ctx %>/images/products/msi-rtx-4060-ventus-2x.jpg" alt="RTX 4060">
-                        </figure>
-                        <h3>ASUS TUF RTX 4060 8GB</h3>
-                        <strong>8.990.000đ</strong>
-
-                        <div class="product-actions">
-                            <a href="#">Xem chi tiết</a>
-                            <button type="button">🛒</button>
-                        </div>
-                    </article>
-
-                    <article class="product-card">
-                        <button class="wish-btn">♡</button>
-                        <figure>
-                            <img src="<%= ctx %>/images/products/kingston-fury-beast-16gb-ddr5.jpg" alt="RAM DDR5">
-                        </figure>
-                        <h3>G.Skill Ripjaws S5 16GB DDR5 6000MHz</h3>
-                        <strong>2.490.000đ</strong>
-
-                        <div class="product-actions">
-                            <a href="#">Xem chi tiết</a>
-                            <button type="button">🛒</button>
-                        </div>
-                    </article>
-
-                    <article class="product-card">
-                        <button class="wish-btn">♡</button>
-                        <figure>
-                            <img src="<%= ctx %>/images/products/kingston-fury-beast-16gb-ddr5.jpg" alt="SSD">
-                        </figure>
-                        <h3>Kingston NV2 1TB NVMe PCIe 4.0</h3>
-                        <strong>1.690.000đ</strong>
-
-                        <div class="product-actions">
-                            <a href="#">Xem chi tiết</a>
-                            <button type="button">🛒</button>
-                        </div>
-                    </article>
-
-                    <article class="product-card">
-                        <button class="wish-btn">♡</button>
-                        <figure>
-                            <img src="<%= ctx %>/images/products/asus-prime-b650m-a.jpg" alt="Mainboard">
-                        </figure>
-                        <h3>MSI B760M Mortar WiFi DDR5</h3>
-                        <strong>4.590.000đ</strong>
-
-                        <div class="product-actions">
-                            <a href="#">Xem chi tiết</a>
-                            <button type="button">🛒</button>
-                        </div>
-                    </article>
-
-                    <article class="product-card">
-                        <button class="wish-btn">♡</button>
-                        <figure class="psu-demo">
-                            ⚡
-                        </figure>
-                        <h3>Corsair RM750e 750W 80 Plus Gold</h3>
-                        <strong>1.990.000đ</strong>
-
-                        <div class="product-actions">
-                            <a href="#">Xem chi tiết</a>
-                            <button type="button">🛒</button>
-                        </div>
-                    </article>
+                    <% }} %>
 
                 </section>
 

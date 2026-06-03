@@ -52,7 +52,7 @@
         </form>
 
         <div class="footer-text">
-            Đã có tài khoản? <a href="login.jsp">Đăng nhập</a>
+            Bạn đã có tài khoản? <a href="login.jsp">Đăng nhập</a>
         </div>
     </div>
 

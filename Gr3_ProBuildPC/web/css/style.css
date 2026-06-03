@@ -13,7 +13,6 @@ body {
     overflow-x: hidden;
 }
 
-<<<<<<< HEAD
 a {
     text-decoration: none;
 }
@@ -29,11 +28,6 @@ select {
 body:not(.home-page):not(.dashboard-body):not(.profile-body) {
     background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
         url('../images/background.jpg') no-repeat center center fixed;
-=======
-body {
-    background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), 
-                url('../images/background.jpg') no-repeat center center fixed;
->>>>>>> 09f2d0e7b3c45b62d39fb275cfb2a06644824cca
     background-size: cover;
     display: flex;
     flex-direction: column;
@@ -44,7 +38,7 @@ body {
 }
 
 .brand-title-link {
-    text-decoration: none; 
+    text-decoration: none;
     display: inline-block;
 }
 
@@ -130,15 +124,11 @@ body {
     transition: border-color 0.2s;
 }
 
-<<<<<<< HEAD
 .input-group input:focus {
     border-color: #a12323;
 }
 
 .input-group input[type="password"],
-=======
-.input-group input[type="password"], 
->>>>>>> 09f2d0e7b3c45b62d39fb275cfb2a06644824cca
 .input-group input[type="text"].pass-input {
     padding-right: 40px;
 }
@@ -186,30 +176,6 @@ body {
     font-weight: bold;
 }
 
-<<<<<<< HEAD
-=======
-/* Hỗ trợ màn hình nhỏ */
-@media (max-height: 700px) {
-    body {
-    position: relative; /* Thêm dòng này nếu chưa có để làm gốc định vị cho nút Home */
-    background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), 
-                url('../images/background.jpg') no-repeat center center fixed;
-    background-size: cover;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100vw;
-    height: 100vh;
-    margin: 0;
-    padding: 20px;
-    box-sizing: border-box;
-}
-}
-/* ==================== ĐỊNH DẠNG RIÊNG CHO NÚT HOME ==================== */
-
-/* 1. Khung định vị cố định cho nút Home nằm phía trên form trắng */
->>>>>>> 09f2d0e7b3c45b62d39fb275cfb2a06644824cca
 .home-navigation {
     position: absolute;
     top: 25px;
@@ -227,7 +193,7 @@ body {
 }
 
 .home-link:hover {
-    color: #e0e0e0;             
+    color: #e0e0e0;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
 }
 
@@ -247,19 +213,9 @@ body.profile-body {
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-<<<<<<< HEAD
     width: 500px;
     max-width: 100%;
     padding: 35px 40px;
-=======
-    
-    /* Ép kích thước cố định bằng thuộc tính width */
-    width: 500px !important; /* Dùng !important để đè hoàn toàn các cấu hình cũ bị kẹt */
-    max-width: 100%;
-    
-    padding: 35px 40px; 
-    box-sizing: border-box;
->>>>>>> 09f2d0e7b3c45b62d39fb275cfb2a06644824cca
 }
 
 .profile-title {
@@ -271,18 +227,12 @@ body.profile-body {
 
 .profile-form-group {
     display: flex;
-    flex-direction: column; 
-    align-items: flex-start; 
-    margin-bottom: 35px; 
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 35px;
     position: relative;
     width: 100%;
-<<<<<<< HEAD
     max-width: 650px;
-=======
-    
-    /* ĐÃ THÊM: Giới hạn chiều rộng tối đa của mỗi hàng nhập liệu */
-    max-width: 650px; 
->>>>>>> 09f2d0e7b3c45b62d39fb275cfb2a06644824cca
 }
 
 .profile-label {
@@ -306,7 +256,7 @@ body.profile-body {
     width: 100%;
     padding: 14px 16px;
     font-size: 1rem;
-    border: 1px solid #486942; 
+    border: 1px solid #486942;
     border-radius: 6px;
     outline: none;
     background-color: #ffffff;
@@ -343,13 +293,7 @@ body.profile-body {
     display: flex;
     width: 100%;
     margin-top: 20px;
-<<<<<<< HEAD
     max-width: 650px;
-=======
-    
-    /* ĐÃ THÊM: Đồng bộ chiều rộng với các ô nhập liệu phía trên */
-    max-width: 650px; 
->>>>>>> 09f2d0e7b3c45b62d39fb275cfb2a06644824cca
 }
 
 .profile-btn-save {
@@ -673,7 +617,6 @@ body.dashboard-body {
     color: #cccccc;
     cursor: not-allowed;
 }
-<<<<<<< HEAD
 
 /* ==================== HOME PAGE - PROBUILD PC ==================== */
 
@@ -1409,136 +1352,3 @@ body.home-page .home-pagination a.active {
         width: 100%;
     }
 }
-=======
-body.profile-body {
-    background-color: #f8f9fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 60px 20px;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    box-sizing: border-box;
-}
-
-.profile-card {
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-    
-    /* Ép kích thước cố định bằng thuộc tính width */
-    width: 500px !important; /* Dùng !important để đè hoàn toàn các cấu hình cũ bị kẹt */
-    max-width: 100%;
-    
-    padding: 35px 40px; 
-    box-sizing: border-box;
-}
-
-.profile-title {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #1a120b;
-    margin-bottom: 40px;
-}
-
-/* THAY ĐỔI CHÍNH: Ép Label và Thẻ bao Input xếp thành 2 dòng độc lập */
-.profile-form-group {
-    display: flex;
-    flex-direction: column; 
-    align-items: flex-start; 
-    margin-bottom: 35px; 
-    position: relative;
-    width: 100%;
-    
-    /* ĐÃ THÊM: Giới hạn chiều rộng tối đa của mỗi hàng nhập liệu */
-    max-width: 650px; 
-}
-
-/* Định dạng lại dòng nhãn phía trên */
-.profile-label {
-    width: 100%;
-    text-align: left; /* Chuyển từ căn lề phải sang căn lề trái */
-    padding-right: 0;
-    margin-bottom: 10px; /* Khoảng cách từ chữ label xuống ô input ngay dưới */
-    font-size: 1.05rem;
-    color: #333333;
-    font-weight: 500;
-    box-sizing: border-box;
-}
-
-/* Khung bọc ô nhập liệu kéo dài full 100% dòng dưới */
-.profile-input-wrapper {
-    width: 100%; /* Chiếm trọn bộ bề ngang */
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.profile-input-wrapper input {
-    width: 100%;
-    padding: 14px 16px; /* Ô nhập cao rộng thoáng đãng */
-    font-size: 1rem;
-    border: 1px solid #486942; 
-    border-radius: 6px;
-    outline: none;
-    background-color: #ffffff;
-    color: #333333;
-    box-sizing: border-box;
-}
-
-.profile-input-wrapper input[readonly] {
-    background-color: #e9ecef;
-    border-color: #cccccc;
-    color: #495057;
-    cursor: not-allowed;
-}
-
-.profile-input-wrapper i.lock-icon,
-.profile-input-wrapper i.toggle-eye {
-    position: absolute;
-    right: 18px;
-    color: #6c757d;
-    font-size: 1.05rem;
-    cursor: pointer;
-    z-index: 2;
-}
-
-/* Chữ Strong nằm ngay dưới đáy của ô input */
-.password-strength-indicator {
-    position: absolute;
-    bottom: -22px;
-    left: 2px;
-    font-size: 0.8rem;
-    color: #486942;
-    font-weight: bold;
-}
-
-/* Cấu trúc nút bấm xếp hàng tự nhiên ở dưới cùng */
-.profile-action-row {
-    display: flex;
-    width: 100%;
-    margin-top: 20px;
-    
-    /* ĐÃ THÊM: Đồng bộ chiều rộng với các ô nhập liệu phía trên */
-    max-width: 650px; 
-}
-
-.profile-btn-save {
-    background-color: #a12323;
-    color: #ffffff;
-    border: none;
-    padding: 14px 45px;
-    font-size: 1rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.profile-btn-save:hover {
-    background-color: #7f1a1a;
-}
->>>>>>> 09f2d0e7b3c45b62d39fb275cfb2a06644824cca

@@ -3,20 +3,17 @@ package controller;
 import dal.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.*;
 import java.io.IOException;
 import model.User;
 
-@WebServlet(name = "LoginServlet", urlPatterns = {"/login"})
+@WebServlet(name = "LoginServlet", urlPatterns = {"/Login"})
 public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("views/login.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/login.jsp").forward(request, response);
     }
 
     @Override
@@ -31,12 +28,33 @@ public class LoginServlet extends HttpServlet {
 
         if (user == null) {
             request.setAttribute("error", "Email hoặc mật khẩu không đúng!");
-            request.getRequestDispatcher("views/login.jsp").forward(request, response);
-        } else {
-            HttpSession session = request.getSession();
-            session.setAttribute("user", user);
+            request.getRequestDispatcher("/views/login.jsp").forward(request, response);
+            return;
+        }
 
-            response.sendRedirect(request.getContextPath() + "/views/home.jsp");
+        HttpSession session = request.getSession();
+        session.setAttribute("account", user);
+
+        switch (user.getRoleName()) {
+            case "ADMIN":
+                response.sendRedirect(request.getContextPath() + "/Dashboard");
+                break;
+
+            case "CUSTOMER":
+                response.sendRedirect(request.getContextPath() + "/Dashboard");
+                break;
+
+            case "EMPLOYEE":
+                response.sendRedirect(request.getContextPath() + "/Dashboard");
+                break;
+
+            case "SHIPMENT":
+                response.sendRedirect(request.getContextPath() + "/Dashboard");
+                break;
+
+            default:
+                response.sendRedirect(request.getContextPath() + "/Login");
+                break;
         }
     }
 }

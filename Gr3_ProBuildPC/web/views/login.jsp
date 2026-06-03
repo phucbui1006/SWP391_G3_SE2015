@@ -13,7 +13,7 @@
     <body>
 
         <div class="home-navigation">
-            <a href="index.html" class="home-link">Home</a>
+            <a href="home.jsp" class="home-link">Home</a>
         </div>
 
         <div class="card-container">

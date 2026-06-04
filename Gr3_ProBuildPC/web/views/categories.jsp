@@ -29,11 +29,11 @@
         <meta charset="UTF-8">
         <title>Danh mục sản phẩm - ProBuild PC</title>
 
-        <link rel="stylesheet" href="<%= ctx %>/css/header.css">
+        <link rel="stylesheet" href="<%= ctx %>/css/style.css">
         <link rel="stylesheet" href="<%= ctx %>/css/categories.css">
     </head>
 
-    <body>
+    <body class="categories-page">
 
         <jsp:include page="/includes/header.jsp" />
 

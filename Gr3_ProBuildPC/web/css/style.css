@@ -25,7 +25,7 @@ select {
 
 /* ==================== LOGIN / REGISTER / FORGOT PASSWORD ==================== */
 
-body:not(.home-page):not(.dashboard-body):not(.profile-body):not(.cart-page) {
+body:not(.home-page):not(.dashboard-body):not(.profile-body):not(.cart-page):not(.categories-page):not(.product-detail-body) {
     background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
         url('../images/background.jpg') no-repeat center center fixed;
     background-size: cover;

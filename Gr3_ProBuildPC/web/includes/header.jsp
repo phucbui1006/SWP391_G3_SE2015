@@ -52,7 +52,9 @@
         <a href="#" class="menu-item">🛠 BUILD PC</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">📦 Danh mục sản phẩm</a>
+        <a href="<%= ctx %>/categories" class="menu-item">
+            📦 Danh mục sản phẩm
+        </a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">📋 Lịch sử đơn hàng</a>

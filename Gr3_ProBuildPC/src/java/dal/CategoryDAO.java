@@ -2,7 +2,6 @@ package dal;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Category;
@@ -10,40 +9,57 @@ import model.Category;
 public class CategoryDAO extends DBContext {
 
     public List<Category> getAllCategories() {
-        List<Category> categories = new ArrayList<>();
-        String sql = "SELECT * FROM categories ORDER BY category_id";
+        List<Category> list = new ArrayList<>();
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        String sql = """
+            SELECT category_id, category_name
+            FROM categories
+            ORDER BY category_name ASC
+        """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                Category category = new Category();
-                category.setCategoryId(rs.getInt("category_id"));
-                category.setCategoryName(rs.getString("category_name"));
-                categories.add(category);
+                Category c = new Category();
+
+                c.setCategoryId(rs.getInt("category_id"));
+                c.setCategoryName(rs.getString("category_name"));
+
+                list.add(c);
             }
-        } catch (SQLException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return categories;
+        return list;
     }
 
     public Category getCategoryById(int categoryId) {
-        String sql = "SELECT * FROM categories WHERE category_id = ?";
+        String sql = """
+            SELECT category_id, category_name
+            FROM categories
+            WHERE category_id = ?
+        """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, categoryId);
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    Category category = new Category();
-                    category.setCategoryId(rs.getInt("category_id"));
-                    category.setCategoryName(rs.getString("category_name"));
-                    return category;
-                }
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Category c = new Category();
+
+                c.setCategoryId(rs.getInt("category_id"));
+                c.setCategoryName(rs.getString("category_name"));
+
+                return c;
             }
-        } catch (SQLException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

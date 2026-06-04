@@ -9,15 +9,14 @@ public class UserDAO {
 
     public User login(String email, String password) {
         String sql = """
-                     SELECT u.user_id, u.role_id, u.full_name, u.status,
-                            u.email, u.password, r.role_name
-                     FROM users u
-                     JOIN Roles r ON u.role_id = r.role_id
-                     WHERE u.email = ?
-                       AND u.password = ?
-                       AND u.status = 'ACTIVE'
-                     """;
-
+             SELECT u.user_id, u.role_id, u.full_name, u.status,
+                    u.email, u.password, r.role_name
+             FROM users u
+             JOIN Roles r ON u.role_id = r.role_id
+             WHERE u.email = ?
+               AND u.password = ?
+               AND u.status = 1
+             """;
         try {
             Connection conn = new DBContext().getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);

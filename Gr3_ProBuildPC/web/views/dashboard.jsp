@@ -104,10 +104,12 @@
                         <p>Thêm, sửa, xóa và cập nhật sản phẩm.</p>
                     </div>
 
-                    <div class="role-item">
-                        <h3>Lô hàng</h3>
-                        <p>Quản lý lô hàng nhập vào hệ thống.</p>
-                    </div>
+                    <div class="role-item"
+     onclick="location.href='${pageContext.request.contextPath}/batch'"
+     style="cursor:pointer;">
+    <h3>Lô hàng</h3>
+    <p>Quản lý lô hàng nhập vào hệ thống.</p>
+</div>
 
                     <div class="role-item">
                         <h3>Bảo hành</h3>

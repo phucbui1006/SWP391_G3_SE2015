@@ -6,6 +6,11 @@ public class Batch {
     private int brandId;
     private String batchName;
 
+    private String categoryName;
+    private String brandName;
+    private int quantity;
+    private String stockStatus;
+
     public Batch() {
     }
 
@@ -46,5 +51,38 @@ public class Batch {
 
     public void setBatchName(String batchName) {
         this.batchName = batchName;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+
+    public String getStockStatus() {
+        return stockStatus;
+    }
+
+    public void setStockStatus(String stockStatus) {
+        this.stockStatus = stockStatus;
     }
 }

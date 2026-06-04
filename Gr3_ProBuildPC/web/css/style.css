@@ -2032,3 +2032,13 @@ body.cart-page .checkout-btn:hover {
         width: 100%;
     }
 }
+.reset-btn {
+    height: 44px;
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 0 22px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}

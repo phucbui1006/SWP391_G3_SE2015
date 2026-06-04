@@ -30,11 +30,11 @@
         <meta charset="UTF-8">
         <title><%= product.getProductName() %> - ProBuild PC</title>
 
-        <link rel="stylesheet" href="<%= contextPath %>/css/header.css">
+        <link rel="stylesheet" href="<%= contextPath %>/css/style.css">
         <link rel="stylesheet" href="<%= contextPath %>/css/product-detail.css">
     </head>
 
-    <body>
+    <body class="product-detail-body">
 
         <jsp:include page="/includes/header.jsp" />
 

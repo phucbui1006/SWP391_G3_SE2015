@@ -1,8 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="model.User" %>
 <%@ page import="java.util.List" %>
 <%@ page import="model.Category" %>
 <%@ page import="model.Product" %>
+<%@ page import="model.User" %>
 <%@ page import="dal.ProductDAO" %>
 
 <%
@@ -17,93 +17,34 @@
 
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProBuild PC</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ProBuild PC</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+        <link rel="stylesheet" href="<%= ctx %>/css/style.css">
+    </head>
 
-    <link rel="stylesheet" href="<%= ctx %>/css/style.css">
-</head>
+    <body class="home-page">
 
-<body class="home-page">
+        <jsp:include page="/includes/header.jsp" />
 
-    <div class="top-strip"></div>
+<!--        <nav class="main-nav">
+            <a class="active" href="<%= ctx %>/home">🏠 Trang chủ</a>
+            <a href="<%= ctx %>/categories">Sản phẩm ▾</a>
+            <a href="#">Build PC</a>
+            <a href="#">Đơn hàng</a>
+        </nav>-->
 
-    <header class="site-header">
-        <div class="header-inner">
+        <main class="page-shell">
 
-            <a class="brand" href="<%= ctx %>/home">
-                <span class="brand-mark">P</span>
+            <aside class="sidebar">
+                <h2>DANH MỤC SẢN PHẨM</h2>
 
-                <span class="brand-text">
-                    <strong><span>ProBuild</span> PC</strong>
-                    <small>BUILD YOUR PERFECT PC</small>
-                </span>
-            </a>
-
-            <form class="home-search-box" action="<%= ctx %>/categories" method="get">
-                <input type="text" name="keyword" placeholder="Tìm kiếm sản phẩm, danh mục, thương hiệu...">
-                <button type="submit">🔍</button>
-            </form>
-
-            <nav class="header-actions">
-
-                <a href="#" class="header-link">
-                    <span>🛡</span>
-                    <b>Dịch vụ bảo hành</b>
-                </a>
-
-                <a href="#" class="header-link cart-link">
-                    <span>🛒</span>
-                    <b>Giỏ hàng</b>
-                    <em>0</em>
-                </a>
-
-                <% if (account == null) { %>
-
-                    <a href="<%= ctx %>/Login" class="header-link">
-                        <span>👤</span>
-                        <b>Đăng nhập</b>
-                    </a>
-
-                    <a href="<%= ctx %>/Register" class="register-btn">
-                        Đăng ký
-                    </a>
-
-                <% } else { %>
-
-                    <a href="<%= ctx %>/Dashboard" class="header-link">
-                        <span>👤</span>
-                        <b><%= account.getFullName() %></b>
-                    </a>
-
-                    <a href="<%= ctx %>/Logout" class="register-btn">
-                        Đăng xuất
-                    </a>
-
-                <% } %>
-
-            </nav>
-
-        </div>
-    </header>
-
-    <nav class="main-nav">
-        <a class="active" href="<%= ctx %>/home">🏠 Trang chủ</a>
-        <a href="<%= ctx %>/categories">Sản phẩm ▾</a>
-        <a href="#">Build PC</a>
-        <a href="#">Đơn hàng</a>
-    </nav>
-
-    <main class="page-shell">
-
-        <aside class="sidebar">
-            <h2>DANH MỤC SẢN PHẨM</h2>
-
-            <ul class="category-list">
-                <% if (categories != null && !categories.isEmpty()) {
-                    for (Category cat : categories) {
-                %>
+                <ul class="category-list">
+                    <% if (categories != null && !categories.isEmpty()) {
+                        for (Category cat : categories) {
+                    %>
 
                     <li>
                         <a href="<%= ctx %>/categories?id=<%= cat.getCategoryId() %>">
@@ -111,140 +52,140 @@
                         </a>
                     </li>
 
-                <% 
+                    <%
+                        }
                     }
-                } 
-                %>
-            </ul>
+                    %>
+                </ul>
 
-            <a class="all-categories" href="<%= ctx %>/categories">
-                ▦ Xem tất cả danh mục
-            </a>
-        </aside>
+                <a class="all-categories" href="<%= ctx %>/categories">
+                    ▦ Xem tất cả danh mục
+                </a>
+            </aside>
 
-        <section class="content">
+            <section class="content">
 
-            <section class="hero-banner">
-                <div class="hero-copy">
-                    <p>BUILD PC</p>
+                <section class="hero-banner">
+                    <div class="hero-copy">
+                        <p>BUILD PC</p>
 
-                    <h1>
-                        ĐỈNH CAO HIỆU NĂNG<br>
-                        NÂNG TẦM TRẢI NGHIỆM
-                    </h1>
+                        <h1>
+                            ĐỈNH CAO HIỆU NĂNG<br>
+                            NÂNG TẦM TRẢI NGHIỆM
+                        </h1>
 
-                    <span>
-                        Linh kiện chính hãng - Giá tốt nhất<br>
-                        Bảo hành uy tín - Hỗ trợ tận tâm
-                    </span>
+                        <span>
+                            Linh kiện chính hãng - Giá tốt nhất<br>
+                            Bảo hành uy tín - Hỗ trợ tận tâm
+                        </span>
 
-                    <a href="<%= ctx %>/categories">MUA NGAY</a>
-                </div>
-            </section>
-
-            <section class="service-row">
-                <article>
-                    <span>🛡</span>
-                    <div>
-                        <strong>Hàng chính hãng</strong>
-                        <small>100% chính hãng</small>
+                        <a href="<%= ctx %>/categories">MUA NGAY</a>
                     </div>
-                </article>
+                </section>
 
-                <article>
-                    <span>🔄</span>
-                    <div>
-                        <strong>Bảo hành uy tín</strong>
-                        <small>Bảo hành chính hãng</small>
-                    </div>
-                </article>
+                <section class="service-row">
+                    <article>
+                        <span>🛡</span>
+                        <div>
+                            <strong>Hàng chính hãng</strong>
+                            <small>100% chính hãng</small>
+                        </div>
+                    </article>
 
-                <article>
-                    <span>🚚</span>
-                    <div>
-                        <strong>Giao hàng toàn Thạch Thất</strong>
-                        <small>Miễn phí đơn từ 1 triệu</small>
-                    </div>
-                </article>
+                    <article>
+                        <span>🔄</span>
+                        <div>
+                            <strong>Bảo hành uy tín</strong>
+                            <small>Bảo hành chính hãng</small>
+                        </div>
+                    </article>
 
-                <article>
-                    <span>🎧</span>
-                    <div>
-                        <strong>Hỗ trợ 24/7</strong>
-                        <small>Tư vấn tận tâm</small>
-                    </div>
-                </article>
-            </section>
+                    <article>
+                        <span>🚚</span>
+                        <div>
+                            <strong>Giao hàng toàn Thạch Thất</strong>
+                            <small>Miễn phí đơn từ 1 triệu</small>
+                        </div>
+                    </article>
 
-            <section class="filter-row">
-                <div class="filters">
+                    <article>
+                        <span>🎧</span>
+                        <div>
+                            <strong>Hỗ trợ 24/7</strong>
+                            <small>Tư vấn tận tâm</small>
+                        </div>
+                    </article>
+                </section>
 
-                    <label>
-                        Danh mục:
-                        <select onchange="location.href=this.value">
-                            <option value="<%= ctx %>/categories">Tất cả</option>
+                <section class="filter-row">
+                    <div class="filters">
 
-                            <% if (categories != null && !categories.isEmpty()) {
-                                for (Category cat : categories) {
-                            %>
+                        <label>
+                            Danh mục:
+                            <select onchange="location.href=this.value">
+                                <option value="<%= ctx %>/categories">Tất cả</option>
+
+                                <% if (categories != null && !categories.isEmpty()) {
+                                    for (Category cat : categories) {
+                                %>
 
                                 <option value="<%= ctx %>/categories?id=<%= cat.getCategoryId() %>">
                                     <%= cat.getCategoryName() %>
                                 </option>
 
-                            <% 
+                                <%
+                                    }
                                 }
-                            } 
-                            %>
+                                %>
+                            </select>
+                        </label>
+
+                        <label>
+                            Thương hiệu:
+                            <select>
+                                <option>Tất cả</option>
+                                <option>Intel</option>
+                                <option>AMD</option>
+                                <option>ASUS</option>
+                                <option>MSI</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Khoảng giá:
+                            <select>
+                                <option>Tất cả</option>
+                                <option>Dưới 2 triệu</option>
+                                <option>2 - 5 triệu</option>
+                                <option>Trên 5 triệu</option>
+                            </select>
+                        </label>
+
+                    </div>
+
+                    <label class="sort-box">
+                        Sắp xếp:
+                        <select onchange="location.href='<%= ctx %>/categories?sort=' + this.value">
+                            <option value="newest">Mới nhất</option>
+                            <option value="price_asc">Giá tăng dần</option>
+                            <option value="price_desc">Giá giảm dần</option>
                         </select>
                     </label>
+                </section>
 
-                    <label>
-                        Thương hiệu:
-                        <select>
-                            <option>Tất cả</option>
-                            <option>Intel</option>
-                            <option>AMD</option>
-                            <option>ASUS</option>
-                            <option>MSI</option>
-                        </select>
-                    </label>
+                <section class="product-grid">
 
-                    <label>
-                        Khoảng giá:
-                        <select>
-                            <option>Tất cả</option>
-                            <option>Dưới 2 triệu</option>
-                            <option>2 - 5 triệu</option>
-                            <option>Trên 5 triệu</option>
-                        </select>
-                    </label>
+                    <% if (products != null && !products.isEmpty()) {
+                        for (Product product : products) {
 
-                </div>
+                            double rating = 0;
 
-                <label class="sort-box">
-                    Sắp xếp:
-                    <select onchange="location.href='<%= ctx %>/categories?sort=' + this.value">
-                        <option value="newest">Mới nhất</option>
-                        <option value="price_asc">Giá tăng dần</option>
-                        <option value="price_desc">Giá giảm dần</option>
-                    </select>
-                </label>
-            </section>
+                            if (productDAO != null) {
+                                rating = productDAO.getAverageRating(product.getProductId());
+                            }
 
-            <section class="product-grid">
-
-                <% if (products != null && !products.isEmpty()) {
-                    for (Product product : products) {
-
-                        double rating = 0;
-
-                        if (productDAO != null) {
-                            rating = productDAO.getAverageRating(product.getProductId());
-                        }
-
-                        int fullStars = (int) rating;
-                %>
+                            int fullStars = (int) rating;
+                    %>
 
                     <article class="product-card">
 
@@ -263,7 +204,7 @@
 
                         <div class="product-rating">
                             <% for (int i = 1; i <= 5; i++) { %>
-                                <%= i <= fullStars ? "★" : "☆" %>
+                            <%= i <= fullStars ? "★" : "☆" %>
                             <% } %>
 
                             <span><%= String.format("%.1f", rating) %></span>
@@ -280,35 +221,29 @@
 
                     </article>
 
-                <% 
-                    }
-                } else { 
-                %>
+                    <%
+                        }
+                    } else {
+                    %>
+                    <p>Không có sản phẩm nào để hiển thị.</p>
+                    <% } %>
+                </section>
 
-                    <div class="empty-box">
-                        <h3>Không có sản phẩm nào.</h3>
-                        <p>Vui lòng kiểm tra lại dữ liệu trong bảng products.</p>
-                    </div>
-
-                <% } %>
-
+                <nav class="home-pagination">
+                    <a href="#">‹</a>
+                    <a href="#" class="active">1</a>
+                    <a href="#">2</a>
+                    <a href="#">3</a>
+                    <a href="#">4</a>
+                    <a href="#">5</a>
+                    <span>...</span>
+                    <a href="#">10</a>
+                    <a href="#">›</a>
+                </nav>
             </section>
+        </main>
 
-            <nav class="home-pagination">
-                <a href="#">‹</a>
-                <a href="#" class="active">1</a>
-                <a href="#">2</a>
-                <a href="#">3</a>
-                <a href="#">4</a>
-                <a href="#">5</a>
-                <span>...</span>
-                <a href="#">10</a>
-                <a href="#">›</a>
-            </nav>
+        <jsp:include page="/includes/footer.jsp" />
 
-        </section>
-
-    </main>
-
-</body>
+    </body>
 </html>

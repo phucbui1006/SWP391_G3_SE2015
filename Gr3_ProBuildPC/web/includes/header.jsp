@@ -28,19 +28,25 @@
         } else if ("SHIPMENT".equals(roleName)) {
             placeholder = "Tìm kiếm mã đơn hàng...";
         }
+    } else {
+        roleName = "CUSTOMER";
+        placeholder = "Tìm kiếm linh kiện...";
     }
 
     String ctx = request.getContextPath();
+    Integer cartItemCount = (Integer) request.getAttribute("cartItemCount");
+    if (cartItemCount == null) {
+        cartItemCount = 0;
+    }
 %>
 
 <header class="main-header">
     <div class="header-top-line"></div>
 
     <nav class="header-menu">
-
         <% if ("CUSTOMER".equals(roleName)) { %>
 
-        <a href="<%= ctx %>/Dashboard" class="menu-item active">🏠 Trang chủ</a>
+        <a href="<%= ctx %>/home" class="menu-item active">🏠 Trang chủ</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🛠 BUILD PC</a>
@@ -55,7 +61,6 @@
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🛡 Tra cứu bảo hành</a>
-
         <% } else if ("ADMIN".equals(roleName)) { %>
 
         <a href="<%= ctx %>/Dashboard" class="menu-item active">🛡 Dashboard</a>
@@ -77,7 +82,6 @@
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">📊 Thống kê doanh thu</a>
-
         <% } else if ("EMPLOYEE".equals(roleName)) { %>
 
         <a href="<%= ctx %>/Dashboard" class="menu-item active">🏠 Dashboard</a>
@@ -94,16 +98,16 @@
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🚚 Lịch sử giao hàng</a>
-
         <% } %>
 
+        <% if (account != null) { %>
         <a href="<%= ctx %>/Logout" class="menu-item logout">Đăng xuất</a>
+        <% } %>
     </nav>
 
     <div class="header-bottom">
         <div class="logo-box">
             <div class="logo-icon">P</div>
-
             <div>
                 <h2>ProBuild <span>PC</span></h2>
                 <p>BUILD YOUR PERFECT PC</p>
@@ -120,34 +124,54 @@
         </form>
 
         <div class="right-box">
-
-            <% if ("CUSTOMER".equals(roleName)) { %>
-            <div class="cart-box">
+            <% if ("CUSTOMER".equals(roleName) && account != null) { %>
+            <a class="cart-box" href="<%= ctx %>/cart">
                 <div class="cart-icon">
                     🛒
-                    <span>2</span>
+                    <span><%= cartItemCount %></span>
                 </div>
                 <p>Giỏ hàng</p>
-            </div>
+            </a>
             <% } %>
 
-            <div class="user-box">
-                <div class="user-icon">👤</div>
-
-                <div>
-                    <h4><%= fullName %></h4>
-
-                    <% if ("SHIPMENT".equals(roleName)) { %>
-                    <p>Tài xế vận chuyển</p>
-                    <% } else if ("ADMIN".equals(roleName)) { %>
-                    <p>Admin</p>
-                    <% } else if ("EMPLOYEE".equals(roleName)) { %>
-                    <p>Nhân viên</p>
-                    <% } else if ("CUSTOMER".equals(roleName)) { %>
-                    <p>Khách hàng</p>
+            <% if (account != null) { %>
+            <div class="user-dropdown">
+                <button class="dropdown-toggle" type="button">
+                    <div class="user-icon">👤</div>
+                    <div>
+                        <h4><%= fullName %></h4>
+                        <p>
+                            <% if ("SHIPMENT".equals(roleName)) { %>
+                            Tài xế vận chuyển
+                            <% } else if ("ADMIN".equals(roleName)) { %>
+                            Admin
+                            <% } else if ("EMPLOYEE".equals(roleName)) { %>
+                            Nhân viên
+                            <% } else if ("CUSTOMER".equals(roleName)) { %>
+                            Khách hàng
+                            <% } %>
+                        </p>
+                    </div>
+                </button>
+                <div class="dropdown-menu">
+                    <a href="<%= ctx %>/views/profile.jsp">📋 Thông tin cá nhân</a>
+                    <% if ("CUSTOMER".equals(roleName)) { %>
+                    <a href="#">📍 Địa chỉ giao hàng</a>
                     <% } %>
                 </div>
+                
             </div>
+            <% } else { %>
+            <!-- Nếu chưa đăng nhập -->
+            <div class="login-buttons">
+                <a href="<%= ctx %>/Login" class="login-btn">
+                    👤 Đăng nhập
+                </a>
+                <a href="<%= ctx %>/Register" class="register-btn1">
+                    Đăng ký
+                </a>
+            </div>
+            <% } %>
         </div>
     </div>
 </header>

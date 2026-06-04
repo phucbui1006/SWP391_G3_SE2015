@@ -1,10 +1,13 @@
 package model;
 
+import java.math.BigDecimal;
+
 public class CartItem {
     private int cartItemId;
     private int cartId;
     private int productId;
     private int quantity;
+    private Product product;
 
     public CartItem() {
     }
@@ -46,5 +49,20 @@ public class CartItem {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public BigDecimal getLineTotal() {
+        if (product == null || product.getPrice() == null) {
+            return BigDecimal.ZERO;
+        }
+        return product.getPrice().multiply(BigDecimal.valueOf(quantity));
     }
 }

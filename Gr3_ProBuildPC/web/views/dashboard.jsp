@@ -23,7 +23,7 @@
         <meta charset="UTF-8">
         <title>Dashboard</title>
 
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/header.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 
         <style>
             .dashboard-content {
@@ -76,7 +76,7 @@
             }
         </style>
     </head>
-    <body>
+    <body class="dashboard-body">
 
         <jsp:include page="/includes/header.jsp" />
 
@@ -120,37 +120,6 @@
                     </div>
                 </div>
 
-                <% } else if ("CUSTOMER".equals(roleName)) { %>
-
-                <h1>Customer Dashboard</h1>
-                <p>Xin chào <b><%= account.getFullName() %></b>. Bạn đang đăng nhập với quyền <b>CUSTOMER</b>.</p>
-
-                <div class="role-box">
-                    <div class="role-item">
-                        <h3>Trang chủ</h3>
-                        <p>Xem danh sách sản phẩm và linh kiện.</p>
-                    </div>
-
-                    <div class="role-item">
-                        <h3>Build PC</h3>
-                        <p>Tự chọn linh kiện để build PC theo nhu cầu.</p>
-                    </div>
-
-                    <div class="role-item">
-                        <h3>Giỏ hàng</h3>
-                        <p>Xem và cập nhật sản phẩm trong giỏ hàng.</p>
-                    </div>
-
-                    <div class="role-item">
-                        <h3>Lịch sử đơn hàng</h3>
-                        <p>Theo dõi các đơn hàng đã đặt.</p>
-                    </div>
-
-                    <div class="role-item">
-                        <h3>Tra cứu bảo hành</h3>
-                        <p>Kiểm tra trạng thái bảo hành sản phẩm.</p>
-                    </div>
-                </div>
 
                 <% } else if ("EMPLOYEE".equals(roleName)) { %>
 
@@ -179,7 +148,6 @@
                         <h3>Đơn hàng giao</h3>
                         <p>Xem danh sách đơn hàng cần vận chuyển.</p>
                     </div>
-
                     <div class="role-item">
                         <h3>Lịch sử giao hàng</h3>
                         <p>Theo dõi các đơn hàng đã giao.</p>
@@ -200,6 +168,7 @@
 
             </div>
         </div>
+        <jsp:include page="/includes/footer.jsp" />
 
     </body>
 </html>

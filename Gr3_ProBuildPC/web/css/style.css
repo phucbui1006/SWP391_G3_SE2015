@@ -25,7 +25,7 @@ select {
 
 /* ==================== LOGIN / REGISTER / FORGOT PASSWORD ==================== */
 
-body:not(.home-page):not(.dashboard-body):not(.profile-body) {
+body:not(.home-page):not(.dashboard-body):not(.profile-body):not(.cart-page):not(.categories-page):not(.product-detail-body) {
     background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
         url('../images/background.jpg') no-repeat center center fixed;
     background-size: cover;
@@ -1349,6 +1349,787 @@ body.home-page .home-pagination a.active {
     body.home-page .filter-row label,
     body.home-page .filter-row select,
     body.home-page .sort-box {
+        width: 100%;
+    }
+}
+
+/* ==================== HEADER STYLES (From header.jsp) ==================== */
+
+.main-header {
+    width: 100%;
+    background: white;
+    border-bottom: 1px solid #eee;
+}
+
+.header-top-line {
+    height: 6px;
+    background: #ed1c24;
+}
+
+.header-menu {
+    height: 58px;
+    background: #000;
+    display: flex;
+    align-items: center;
+    padding: 0 36px;
+    gap: 18px;
+    overflow-x: auto;
+}
+
+.header-menu .menu-item {
+    color: #FFFFFF !important;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color 0.3s ease;
+}
+
+.header-menu .menu-item:hover,
+.header-menu .menu-item.active {
+    color: #ed1c24 !important;
+}
+
+.logout {
+    margin-left: auto;
+    color: #ed1c24;
+}
+
+.menu-divider {
+    width: 1px;
+    height: 28px;
+    background: #333;
+}
+
+.header-bottom {
+    min-height: 92px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    padding: 18px 38px;
+    gap: 36px;
+}
+
+.logo-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 260px;
+}
+
+.logo-icon {
+    width: 48px;
+    height: 48px;
+    color: #ed1c24;
+    font-size: 42px;
+    font-weight: 900;
+    line-height: 48px;
+}
+
+.logo-box h2 {
+    margin: 0;
+    font-size: 28px;
+    color: #ed1c24;
+    font-weight: 800;
+}
+
+.logo-box h2 span {
+    color: #111;
+}
+
+.logo-box p {
+    margin: 0;
+    font-size: 12px;
+    color: #777;
+    font-weight: 600;
+}
+
+.search-box {
+    flex: 1;
+    max-width: 520px;
+    height: 48px;
+    display: flex;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.search-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 0 18px;
+    font-size: 14px;
+}
+
+.search-box button {
+    width: 58px;
+    border: none;
+    background: #ed1c24;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.right-box {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.cart-box {
+    text-align: center;
+    font-size: 13px;
+}
+
+.cart-icon {
+    position: relative;
+    font-size: 28px;
+}
+
+.cart-icon span {
+    position: absolute;
+    top: -8px;
+    right: -12px;
+    background: #ed1c24;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: bold;
+}
+
+.cart-box p {
+    margin: 3px 0 0;
+}
+
+.user-box {
+    min-width: 150px;
+    border-left: 1px solid #ddd;
+    padding-left: 26px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-icon {
+    color: #ed1c24;
+    font-size: 30px;
+}
+
+.user-box h4 {
+    margin: 0;
+    font-size: 14px;
+    color: #111;
+}
+
+.user-box p {
+    margin: 3px 0 0;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Dropdown Menu Styles */
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.user-dropdown .dropdown-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+}
+
+.dropdown-menu {
+    display: none; /* Mặc định ẩn hoàn toàn */
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    padding: 0;
+    z-index: 9999 !important; 
+    top: 100%;
+    right: 0;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+.dropdown-menu.show {
+    display: none; /* Ép hiện lên khi được click */
+}
+
+.dropdown-menu a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-menu a:first-child {
+    border-radius: 4px 4px 0 0;
+}
+
+.dropdown-menu a:last-child {
+    border-radius: 0 0 4px 4px;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f1f1f1;
+}
+
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+    z-index: 10000;
+}
+.dropdown-menu {
+    display: block;
+}
+
+.login-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.login-buttons a {
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.login-btn {
+    background: #ed1c24;
+    color: white !important;
+}
+
+.register-btn1 {
+    background: #ed1c24;
+    color: white;
+    min-width: 120px;
+    border: 2px solid #ed1c24;
+    text-align: center;
+}
+/* ==========================================footer=======================*/
+.site-footer {
+    width: 100%;
+    background-color: #050505;
+    color: #f5f5f5;
+    padding: 38px 40px;
+    margin-top: 40px;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.site-footer-container {
+    max-width: 1450px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.1fr 1.2fr 1.4fr 1.6fr 1.7fr;
+    gap: 36px;
+}
+
+.footer-column h3 {
+    margin: 0 0 16px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.footer-column h3 span {
+    color: #cccccc;
+    font-weight: 400;
+}
+
+.footer-column a {
+    display: block;
+    color: #d8d8d8;
+    text-decoration: none;
+    font-size: 15px;
+    margin-bottom: 12px;
+    transition: 0.2s;
+}
+
+.footer-column a:hover {
+    color: #ff2b2b;
+}
+
+.footer-support p {
+    margin: 0 0 12px;
+    color: #d8d8d8;
+    font-size: 15px;
+}
+
+.footer-support p a {
+    display: inline;
+    color: #ff3b3b;
+    font-weight: 700;
+    margin-left: 4px;
+}
+
+.footer-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.footer-badge-row span,
+.footer-payment-grid span {
+    background: #ffffff;
+    color: #111111;
+    border-radius: 5px;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 64px;
+    text-align: center;
+}
+
+.footer-payment-title {
+    margin-top: 10px !important;
+}
+
+.footer-payment-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(70px, 1fr));
+    gap: 9px;
+}
+
+@media (max-width: 1000px) {
+    .site-footer-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .site-footer {
+        padding: 30px 20px;
+    }
+
+    .site-footer-container {
+        grid-template-columns: 1fr;
+    }
+}
+/* ==========================================================================
+   CSS SPLIT LAYOUT CHO PROFILE (ĐÃ GỘP VÀO Cuối STYLE.CSS)
+   ========================================================================== */
+
+/* Chỉ áp dụng chống cuộn và căn giữa khi ở trang Profile */
+.profile-body {
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 0;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden; /* Triệt tiêu thanh cuộn dọc */
+}
+
+.profile-container {
+    display: flex;
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 1050px; 
+    height: 650px; /* Chiều cao cố định để không sinh ra scroll */
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    overflow: hidden;   
+}
+
+.profile-left {
+    flex: 1.1; 
+    /* Vì file style.css nằm sẵn trong thư mục css, nên đi ra ngoài để vào images lấy ảnh */
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)), 
+                url('../images/background.jpg') no-repeat center center;
+    background-size: cover;
+    display: flex;
+    align-items: flex-end;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+.overlay-text {
+    color: #ffffff;
+    text-shadow: 1px 1px 8px rgba(0,0,0,0.8);
+}
+
+.overlay-text h2 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+}
+
+.profile-right {
+    flex: 0.9; 
+    padding: 40px 45px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    box-sizing: border-box;
+    background-color: #ffffff;
+}
+
+.profile-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #1a120b;
+    margin-bottom: 25px;
+}
+
+.profile-form-group {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start; 
+    margin-bottom: 22px; 
+    position: relative;
+    width: 100%;
+}
+
+.profile-label {
+    width: 100%;
+    text-align: left; 
+    margin-bottom: 6px; 
+    font-size: 0.95rem; 
+    color: #333333;
+    font-weight: 500;
+}
+
+.profile-input-wrapper {
+    width: 100%; 
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-input-wrapper input {
+    width: 100%;
+    padding: 11px 14px; 
+    font-size: 0.95rem;
+    border: 1px solid #486942; 
+    border-radius: 6px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.profile-input-wrapper input[readonly] {
+    background-color: #e9ecef;
+    border-color: #cccccc;
+    color: #495057;
+    cursor: not-allowed;
+}
+
+.profile-input-wrapper i.lock-icon,
+.profile-input-wrapper i.toggle-eye {
+    position: absolute;
+    right: 15px;
+    color: #6c757d;
+    cursor: pointer;
+}
+
+/* ==================== MERGE CONFLICT FIX OVERRIDES ==================== */
+
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+    z-index: 10000;
+}
+
+.user-dropdown .dropdown-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+}
+
+.dropdown-menu {
+    display: none !important;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 200px;
+    margin-top: 10px;
+    padding: 0;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 9999 !important;
+}
+
+.dropdown-menu.show,
+.user-dropdown:hover .dropdown-menu,
+.user-dropdown:focus-within .dropdown-menu {
+    display: block !important;
+}
+
+body.profile-body {
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 0;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* ==================== CART PAGE ==================== */
+
+body.cart-page {
+    background-color: #f5f6fa;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: block;
+}
+
+body.cart-page .main-header {
+    margin-bottom: 0;
+}
+
+body.cart-page .cart-container {
+    width: min(1180px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 28px 0 56px;
+}
+
+body.cart-page .breadcrumb {
+    margin-bottom: 24px;
+    color: #555;
+    font-size: 15px;
+}
+
+body.cart-page .breadcrumb .active {
+    color: #111;
+    font-weight: 700;
+}
+
+body.cart-page .cart-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+body.cart-page .cart-header,
+body.cart-page .cart-item {
+    display: grid;
+    grid-template-columns: minmax(360px, 1.9fr) minmax(140px, 0.7fr) minmax(120px, 0.7fr) minmax(150px, 0.8fr);
+    align-items: center;
+    gap: 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    padding: 28px 32px;
+}
+
+body.cart-page .cart-header {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+body.cart-page .cart-item {
+    min-height: 150px;
+}
+
+body.cart-page .col-product {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+body.cart-page .remove-btn {
+    width: 26px;
+    height: 26px;
+    border: none;
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    margin-right: 14px;
+    flex-shrink: 0;
+}
+
+body.cart-page .col-product img {
+    width: 132px;
+    height: 132px;
+    object-fit: contain;
+    margin-right: 18px;
+    flex-shrink: 0;
+    background: #fff;
+}
+
+body.cart-page .product-name {
+    font-size: 20px;
+    line-height: 1.45;
+    color: #111;
+    word-break: break-word;
+}
+
+body.cart-page .col-price,
+body.cart-page .col-total {
+    font-size: 20px;
+    color: #111;
+    white-space: nowrap;
+}
+
+body.cart-page .col-qty {
+    display: flex;
+    justify-content: center;
+}
+
+body.cart-page .quantity-input-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+body.cart-page .col-qty input {
+    width: 110px;
+    height: 54px;
+    border: 1px solid #c8ccd3;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 18px;
+    background: #fff;
+    outline: none;
+}
+
+body.cart-page .empty-cart .col-product {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+body.cart-page .cart-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+body.cart-page .cart-total-box {
+    width: min(520px, 100%);
+    background: #fff;
+    border: 1px solid #111;
+    border-radius: 12px;
+    padding: 32px 30px 24px;
+}
+
+body.cart-page .cart-total-box h3 {
+    margin: 0 0 28px;
+    font-size: 22px;
+    color: #111;
+}
+
+body.cart-page .summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 0;
+    font-size: 18px;
+    color: #222;
+}
+
+body.cart-page .divider {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 0;
+}
+
+body.cart-page .checkout-btn {
+    width: 100%;
+    margin-top: 26px;
+    height: 58px;
+    border: none;
+    border-radius: 8px;
+    background: #e53935;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+body.cart-page .checkout-btn:hover {
+    background: #d32f2f;
+}
+
+@media (max-width: 992px) {
+    body.cart-page .cart-container {
+        width: min(100%, calc(100% - 24px));
+        padding: 20px 0 36px;
+    }
+
+    body.cart-page .cart-header {
+        display: none;
+    }
+
+    body.cart-page .cart-item {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        min-height: auto;
+        padding: 22px 18px;
+    }
+
+    body.cart-page .col-product {
+        align-items: flex-start;
+    }
+
+    body.cart-page .col-product img {
+        width: 96px;
+        height: 96px;
+    }
+
+    body.cart-page .product-name,
+    body.cart-page .col-price,
+    body.cart-page .col-total {
+        font-size: 18px;
+    }
+
+    body.cart-page .col-price,
+    body.cart-page .col-qty,
+    body.cart-page .col-total {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    body.cart-page .col-price::before {
+        content: "Giá";
+        font-weight: 700;
+    }
+
+    body.cart-page .col-qty::before {
+        content: "Số lượng";
+        font-weight: 700;
+    }
+
+    body.cart-page .col-total::before {
+        content: "Tổng tiền";
+        font-weight: 700;
+    }
+
+    body.cart-page .cart-footer {
+        justify-content: stretch;
+    }
+
+    body.cart-page .cart-total-box {
         width: 100%;
     }
 }

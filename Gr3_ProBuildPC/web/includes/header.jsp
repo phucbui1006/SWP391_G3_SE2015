@@ -110,8 +110,12 @@
             </div>
         </div>
 
-        <form class="search-box" action="#" method="get">
-            <input type="text" name="keyword" placeholder="<%= placeholder %>">
+        <form class="search-box" action="<%= ctx %>/categories" method="get">
+            <input 
+                type="text" 
+                name="keyword" 
+                placeholder="<%= placeholder %>"
+                value="<%= request.getParameter("keyword") != null ? request.getParameter("keyword") : "" %>">
             <button type="submit">🔍</button>
         </form>
 

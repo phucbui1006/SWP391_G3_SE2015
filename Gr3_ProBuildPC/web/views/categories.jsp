@@ -21,6 +21,11 @@
     if (selectedCategory != null) {
         title = "Danh mục: " + selectedCategory.getCategoryName();
     }
+     String keyword = (String) request.getAttribute("keyword");
+
+    if (keyword == null) {
+        keyword = "";
+    }
 %>
 
 <!DOCTYPE html>
@@ -73,8 +78,13 @@
 
                     <div class="category-title-row">
                         <div>
-                            <h2><%= title %></h2>
-
+                            <h2>
+                                <% if (!keyword.isEmpty()) { %>
+                                Kết quả tìm kiếm: "<%= keyword %>"
+                                <% } else { %>
+                                <%= title %>
+                                <% } %>
+                            </h2>
                             <p>
                                 Hiện có
                                 <strong><%= products == null ? 0 : products.size() %></strong>
@@ -86,6 +96,10 @@
 
                             <% if (selectedCategory != null) { %>
                             <input type="hidden" name="id" value="<%= selectedCategory.getCategoryId() %>">
+                            <% } %>
+
+                            <% if (keyword != null && !keyword.isEmpty()) { %>
+                            <input type="hidden" name="keyword" value="<%= keyword %>">
                             <% } %>
 
                             <select name="sort" onchange="this.form.submit()">

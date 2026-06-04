@@ -29,12 +29,12 @@
 
         <jsp:include page="/includes/header.jsp" />
 
-        <nav class="main-nav">
+<!--        <nav class="main-nav">
             <a class="active" href="<%= ctx %>/home">🏠 Trang chủ</a>
             <a href="<%= ctx %>/categories">Sản phẩm ▾</a>
             <a href="#">Build PC</a>
             <a href="#">Đơn hàng</a>
-        </nav>
+        </nav>-->
 
         <main class="page-shell">
 

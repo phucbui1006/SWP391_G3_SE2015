@@ -29,7 +29,6 @@
             placeholder = "Tìm kiếm mã đơn hàng...";
         }
     } else {
-        // Nếu chưa đăng nhập, xem như CUSTOMER
         roleName = "CUSTOMER";
         placeholder = "Tìm kiếm linh kiện...";
     }
@@ -45,9 +44,7 @@
     <div class="header-top-line"></div>
 
     <nav class="header-menu">
-
         <% if ("CUSTOMER".equals(roleName)) { %>
-
         <a href="<%= ctx %>/home" class="menu-item active">🏠 Trang chủ</a>
         <span class="menu-divider"></span>
 
@@ -61,9 +58,7 @@
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🛡 Tra cứu bảo hành</a>
-
         <% } else if ("ADMIN".equals(roleName)) { %>
-
         <a href="<%= ctx %>/Dashboard" class="menu-item active">🛡 Dashboard</a>
         <span class="menu-divider"></span>
 
@@ -83,16 +78,12 @@
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">📊 Thống kê doanh thu</a>
-
         <% } else if ("EMPLOYEE".equals(roleName)) { %>
-
         <a href="<%= ctx %>/Dashboard" class="menu-item active">🏠 Dashboard</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🛡 Dịch vụ bảo hành</a>
-
         <% } else if ("SHIPMENT".equals(roleName)) { %>
-
         <a href="<%= ctx %>/Dashboard" class="menu-item active">🏠 Dashboard</a>
         <span class="menu-divider"></span>
 
@@ -100,7 +91,6 @@
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🚚 Lịch sử giao hàng</a>
-
         <% } %>
 
         <% if (account != null) { %>
@@ -111,7 +101,6 @@
     <div class="header-bottom">
         <div class="logo-box">
             <div class="logo-icon">P</div>
-
             <div>
                 <h2>ProBuild <span>PC</span></h2>
                 <p>BUILD YOUR PERFECT PC</p>
@@ -124,7 +113,6 @@
         </form>
 
         <div class="right-box">
-
             <% if ("CUSTOMER".equals(roleName) && account != null) { %>
             <a class="cart-box" href="<%= ctx %>/cart">
                 <div class="cart-icon">
@@ -136,10 +124,8 @@
             <% } %>
 
             <% if (account != null) { %>
-<<<<<<< HEAD
-            <!-- Dropdown menu: Thông tin cá nhân + Địa chỉ giao hàng (giống cho tất cả role) -->
             <div class="user-dropdown">
-                <button class="dropdown-toggle">
+                <button class="dropdown-toggle" type="button">
                     <div class="user-icon">👤</div>
                     <div>
                         <h4><%= fullName %></h4>
@@ -154,52 +140,19 @@
                             Khách hàng
                             <% } %>
                         </p>
-=======
-                <!-- Dropdown menu: Thông tin cá nhân + Địa chỉ giao hàng (giống cho tất cả role) -->
-                <div class="user-dropdown">
-                    <button class="dropdown-toggle">
-                        <div class="user-icon">👤</div>
-                        <div>
-                            <h4><%= fullName %></h4>
-                            <p>
-                                <% if ("SHIPMENT".equals(roleName)) { %>
-                                    Tài xế vận chuyển
-                                <% } else if ("ADMIN".equals(roleName)) { %>
-                                    Admin
-                                <% } else if ("EMPLOYEE".equals(roleName)) { %>
-                                    Nhân viên
-                                <% } else if ("CUSTOMER".equals(roleName)) { %>
-                                    Khách hàng
-                                <% } %>
-                            </p>
-                        </div>
-                    </button>
-                    <!-- Dropdown menu: Thông tin cá nhân cho tất cả role, Địa chỉ giao hàng chỉ cho Customer -->
-                    <div class="dropdown-menu">
-                       <a href="<%= ctx %>/views/profile.jsp">📋 Thông tin cá nhân</a>
-                        <% if ("CUSTOMER".equals(roleName)) { %>
-                            <a href="#">📍 Địa chỉ giao hàng</a>
-                        <% } %>
->>>>>>> f597e3ef9190f0c67289f2ef5749fb96f048539b
                     </div>
                 </button>
-                <!-- Dropdown menu: Thông tin cá nhân cho tất cả role, Địa chỉ giao hàng chỉ cho Customer -->
                 <div class="dropdown-menu">
-                    <a href="#">📋 Thông tin cá nhân</a>
+                    <a href="<%= ctx %>/views/profile.jsp">📋 Thông tin cá nhân</a>
                     <% if ("CUSTOMER".equals(roleName)) { %>
                     <a href="#">📍 Địa chỉ giao hàng</a>
                     <% } %>
                 </div>
             </div>
             <% } else { %>
-            <!-- Nếu chưa đăng nhập -->
             <div class="login-buttons">
-                <a href="<%= ctx %>/Login" class="login-btn">
-                    👤 Đăng nhập
-                </a>
-                <a href="<%= ctx %>/Register" class="register-btn1">
-                    Đăng ký
-                </a>
+                <a href="<%= ctx %>/Login" class="login-btn">👤 Đăng nhập</a>
+                <a href="<%= ctx %>/Register" class="register-btn1">Đăng ký</a>
             </div>
             <% } %>
         </div>

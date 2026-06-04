@@ -17,7 +17,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ProBuild PC</title>
-
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
         <link rel="stylesheet" href="<%= ctx %>/css/style.css">
     </head>
 
@@ -35,7 +35,7 @@
                         for (Category cat : categories) {
                     %>
                     <li><span>▣ <%= cat.getCategoryName() %></span></li>
-                    <% }} %>
+                        <% }} %>
                 </ul>
 
                 <a class="all-categories" href="#">▦ Xem tất cả danh mục</a>
@@ -157,17 +157,17 @@
                         </figure>
                         <h3><%= product.getProductName() %></h3>
                         <strong><%= String.format("%,d", product.getPrice().longValue()) %>đ</strong>
-                        
+
                         <!-- Rating Stars -->
                         <div class="product-rating" style="margin: 5px 0; font-size: 14px;">
                             <% for (int i = 0; i < 5; i++) {
                                 if (i < fullStars) { %>
-                                    ★
-                                <% } else if (i == fullStars && hasHalfStar) { %>
-                                    ☆
-                                <% } else { %>
-                                    ☆
-                                <% }
+                            ★
+                            <% } else if (i == fullStars && hasHalfStar) { %>
+                            ☆
+                            <% } else { %>
+                            ☆
+                            <% }
                             } %>
                             <span style="margin-left: 5px;"><%= String.format("%.1f", rating) %></span>
                         </div>
@@ -180,21 +180,9 @@
                     <% }} %>
 
                 </section>
-
-                <nav class="home-pagination">
-                    <a href="#">‹</a>
-                    <a href="#" class="active">1</a>
-                    <a href="#">2</a>
-                    <a href="#">3</a>
-                    <a href="#">4</a>
-                    <a href="#">5</a>
-                    <span>...</span>
-                    <a href="#">10</a>
-                    <a href="#">›</a>
-                </nav>
-
             </section>
         </main>
+        <jsp:include page="/includes/footer.jsp" />
 
     </body>
 </html>

@@ -1614,3 +1614,104 @@ body.home-page .home-pagination a.active {
     border: 2px solid #ed1c24;
     text-align: center;
 }
+/* ==========================================footer=======================*/
+.site-footer {
+    width: 100%;
+    background-color: #050505;
+    color: #f5f5f5;
+    padding: 38px 40px;
+    margin-top: 40px;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.site-footer-container {
+    max-width: 1450px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.1fr 1.2fr 1.4fr 1.6fr 1.7fr;
+    gap: 36px;
+}
+
+.footer-column h3 {
+    margin: 0 0 16px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.footer-column h3 span {
+    color: #cccccc;
+    font-weight: 400;
+}
+
+.footer-column a {
+    display: block;
+    color: #d8d8d8;
+    text-decoration: none;
+    font-size: 15px;
+    margin-bottom: 12px;
+    transition: 0.2s;
+}
+
+.footer-column a:hover {
+    color: #ff2b2b;
+}
+
+.footer-support p {
+    margin: 0 0 12px;
+    color: #d8d8d8;
+    font-size: 15px;
+}
+
+.footer-support p a {
+    display: inline;
+    color: #ff3b3b;
+    font-weight: 700;
+    margin-left: 4px;
+}
+
+.footer-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.footer-badge-row span,
+.footer-payment-grid span {
+    background: #ffffff;
+    color: #111111;
+    border-radius: 5px;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 64px;
+    text-align: center;
+}
+
+.footer-payment-title {
+    margin-top: 10px !important;
+}
+
+.footer-payment-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(70px, 1fr));
+    gap: 9px;
+}
+
+@media (max-width: 1000px) {
+    .site-footer-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .site-footer {
+        padding: 30px 20px;
+    }
+
+    .site-footer-container {
+        grid-template-columns: 1fr;
+    }
+}

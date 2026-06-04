@@ -151,10 +151,12 @@
                             </p>
                         </div>
                     </button>
-                    <!-- Dropdown menu: Luôn hiển thị 2 mục này cho tất cả role -->
+                    <!-- Dropdown menu: Thông tin cá nhân cho tất cả role, Địa chỉ giao hàng chỉ cho Customer -->
                     <div class="dropdown-menu">
                         <a href="#">📋 Thông tin cá nhân</a>
-                        <a href="#">📍 Địa chỉ giao hàng</a>
+                        <% if ("CUSTOMER".equals(roleName)) { %>
+                            <a href="#">📍 Địa chỉ giao hàng</a>
+                        <% } %>
                     </div>
                 </div>
             <% } else { %>

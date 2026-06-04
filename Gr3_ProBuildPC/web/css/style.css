@@ -1620,3 +1620,119 @@ body.home-page .home-pagination a.active {
     border: 2px solid #ed1c24;
     text-align: center;
 }
+/* ==========================================================================
+   CSS SPLIT LAYOUT CHO PROFILE (ĐÃ GỘP VÀO Cuối STYLE.CSS)
+   ========================================================================== */
+
+/* Chỉ áp dụng chống cuộn và căn giữa khi ở trang Profile */
+.profile-body {
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 0;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden; /* Triệt tiêu thanh cuộn dọc */
+}
+
+.profile-container {
+    display: flex;
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 1050px; 
+    height: 650px; /* Chiều cao cố định để không sinh ra scroll */
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    overflow: hidden;   
+}
+
+.profile-left {
+    flex: 1.1; 
+    /* Vì file style.css nằm sẵn trong thư mục css, nên đi ra ngoài để vào images lấy ảnh */
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)), 
+                url('../images/background.jpg') no-repeat center center;
+    background-size: cover;
+    display: flex;
+    align-items: flex-end;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+.overlay-text {
+    color: #ffffff;
+    text-shadow: 1px 1px 8px rgba(0,0,0,0.8);
+}
+
+.overlay-text h2 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+}
+
+.profile-right {
+    flex: 0.9; 
+    padding: 40px 45px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    box-sizing: border-box;
+    background-color: #ffffff;
+}
+
+.profile-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #1a120b;
+    margin-bottom: 25px;
+}
+
+.profile-form-group {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start; 
+    margin-bottom: 22px; 
+    position: relative;
+    width: 100%;
+}
+
+.profile-label {
+    width: 100%;
+    text-align: left; 
+    margin-bottom: 6px; 
+    font-size: 0.95rem; 
+    color: #333333;
+    font-weight: 500;
+}
+
+.profile-input-wrapper {
+    width: 100%; 
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-input-wrapper input {
+    width: 100%;
+    padding: 11px 14px; 
+    font-size: 0.95rem;
+    border: 1px solid #486942; 
+    border-radius: 6px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.profile-input-wrapper input[readonly] {
+    background-color: #e9ecef;
+    border-color: #cccccc;
+    color: #495057;
+    cursor: not-allowed;
+}
+
+.profile-input-wrapper i.lock-icon,
+.profile-input-wrapper i.toggle-eye {
+    position: absolute;
+    right: 15px;
+    color: #6c757d;
+    cursor: pointer;
+}

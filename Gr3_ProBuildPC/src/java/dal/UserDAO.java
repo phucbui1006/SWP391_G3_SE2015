@@ -115,4 +115,33 @@ public class UserDAO {
 
         return false;
     }
+
+    public boolean updateProfile(String email, String fullName, String password) {
+        // SỬA: Đổi [User] thành users, [fullName] thành full_name cho khớp với Database của bạn
+        String sql = "UPDATE users SET full_name = ?, password = ? WHERE email = ?";
+
+        try {
+            // SỬA: Khởi tạo kết nối conn thông qua lớp DBContext() giống các hàm bên trên của bạn
+            Connection conn = new DBContext().getConnection();
+            PreparedStatement st = conn.prepareStatement(sql);
+
+            st.setString(1, fullName);
+            st.setString(2, password);
+            st.setString(3, email);
+
+            int rowsAffected = st.executeUpdate();
+
+            System.out.println("====== DEBUG UPDATE PROFILE ======");
+            System.out.println("Email truyen vao: " + email);
+            System.out.println("So dong duoc cap nhat trong DB: " + rowsAffected);
+            System.out.println("==================================");
+
+            return rowsAffected > 0;
+
+        } catch (Exception e) { // SỬA: Đổi sang Exception để bắt toàn bộ lỗi kết nối nếu có
+            System.out.println("LOI UPDATE PROFILE:");
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

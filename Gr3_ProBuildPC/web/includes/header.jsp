@@ -153,7 +153,7 @@
                     </button>
                     <!-- Dropdown menu: Thông tin cá nhân cho tất cả role, Địa chỉ giao hàng chỉ cho Customer -->
                     <div class="dropdown-menu">
-                        <a href="#">📋 Thông tin cá nhân</a>
+                       <a href="<%= ctx %>/views/profile.jsp">📋 Thông tin cá nhân</a>
                         <% if ("CUSTOMER".equals(roleName)) { %>
                             <a href="#">📍 Địa chỉ giao hàng</a>
                         <% } %>

@@ -1373,7 +1373,7 @@ body.home-page .home-pagination a.active {
     align-items: center;
     padding: 0 36px;
     gap: 18px;
-    overflow-x: auto;
+    overflow: visible;
 }
 
 .header-menu .menu-item {
@@ -1388,6 +1388,61 @@ body.home-page .home-pagination a.active {
 .header-menu .menu-item:hover,
 .header-menu .menu-item.active {
     color: #ed1c24 !important;
+}
+
+.menu-dropdown {
+    position: relative;
+    height: 58px;
+    display: flex;
+    align-items: center;
+}
+
+.menu-dropdown-toggle {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+}
+
+.menu-dropdown-arrow {
+    margin-left: 4px;
+    font-size: 11px;
+}
+
+.menu-dropdown-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 230px;
+    padding: 8px 0;
+    background: #111;
+    border: 1px solid #2b2b2b;
+    border-radius: 4px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+    z-index: 10001;
+}
+
+.menu-dropdown:hover .menu-dropdown-list,
+.menu-dropdown:focus-within .menu-dropdown-list {
+    display: block;
+}
+
+.menu-dropdown-list a {
+    display: block;
+    padding: 11px 16px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.menu-dropdown-list a:hover,
+.menu-dropdown-list a:focus {
+    background: #ed1c24;
+    color: #fff;
 }
 
 .logout {
@@ -1906,6 +1961,372 @@ body.cart-page .cart-container {
     width: min(1180px, calc(100% - 48px));
     margin: 0 auto;
     padding: 28px 0 56px;
+}
+
+/* ==================== ADMIN BRAND MANAGEMENT ==================== */
+
+.admin-brand-body {
+    background: #f6f7fb;
+}
+
+.admin-brand-page {
+    width: min(1440px, calc(100% - 56px));
+    margin: 0 auto;
+    padding: 28px 0 40px;
+}
+
+.admin-page-heading {
+    margin-bottom: 22px;
+}
+
+.admin-page-heading h1 {
+    margin: 0 0 12px;
+    color: #222;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.admin-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #8b8f99;
+    font-size: 14px;
+}
+
+.admin-breadcrumb a {
+    color: #6d7280;
+    text-decoration: none;
+}
+
+.admin-breadcrumb strong {
+    color: #6d7280;
+    font-weight: 600;
+}
+
+.brand-management-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 28px;
+    align-items: start;
+}
+
+.brand-table-panel,
+.brand-form-card {
+    background: #fff;
+    border: 1px solid #eceff4;
+    border-radius: 6px;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+}
+
+.brand-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #eceff4;
+}
+
+.brand-search-form {
+    width: min(360px, 100%);
+    height: 42px;
+    display: flex;
+    border: 1px solid #e1e5ec;
+    border-radius: 5px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.brand-search-form input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    padding: 0 14px;
+    color: #333;
+    font-size: 14px;
+}
+
+.brand-search-form button {
+    width: 46px;
+    border: 0;
+    background: #fff;
+    color: #8c95a3;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.brand-add-button,
+.brand-primary-button {
+    border: 0;
+    border-radius: 5px;
+    background: #ed1c24;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.brand-add-button {
+    height: 42px;
+    padding: 0 18px;
+}
+
+.brand-table-wrap {
+    overflow-x: auto;
+}
+
+.brand-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #30333a;
+    font-size: 14px;
+}
+
+.brand-table th,
+.brand-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #eceff4;
+    border-right: 1px solid #eceff4;
+    vertical-align: middle;
+}
+
+.brand-table th:last-child,
+.brand-table td:last-child {
+    border-right: 0;
+}
+
+.brand-table th {
+    background: #fafbfe;
+    color: #252932;
+    font-weight: 800;
+    text-align: left;
+}
+
+.brand-table th:first-child,
+.brand-table td:first-child,
+.brand-table th:nth-child(5),
+.brand-table td:nth-child(5),
+.brand-table th:last-child,
+.brand-table td:last-child {
+    text-align: center;
+}
+
+.brand-table td:first-child {
+    width: 54px;
+    color: #555b66;
+    font-weight: 700;
+}
+
+.brand-logo {
+    width: 86px;
+    height: 34px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+.brand-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.brand-action {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.brand-action.edit {
+    background: #ff9f0a;
+}
+
+.brand-action.delete {
+    background: #ed1c24;
+}
+
+.brand-form-column {
+    display: grid;
+    gap: 22px;
+}
+
+.brand-form-card {
+    padding: 18px;
+}
+
+.brand-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.brand-form-header h2 {
+    margin: 0;
+    color: #222;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.brand-form-header button {
+    border: 0;
+    background: transparent;
+    color: #8b8f99;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.brand-form-card form {
+    display: grid;
+    gap: 11px;
+}
+
+.brand-form-card label {
+    color: #2f333b;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.brand-form-card label span {
+    color: #ed1c24;
+}
+
+.brand-form-card input,
+.brand-form-card textarea {
+    width: 100%;
+    border: 1px solid #e1e5ec;
+    border-radius: 5px;
+    outline: 0;
+    color: #333;
+    font: inherit;
+}
+
+.brand-form-card input {
+    height: 40px;
+    padding: 0 12px;
+}
+
+.brand-form-card textarea {
+    resize: vertical;
+    min-height: 76px;
+    padding: 11px 12px;
+}
+
+.brand-upload-box {
+    min-height: 76px;
+    display: grid;
+    place-items: center;
+    gap: 4px;
+    padding: 14px;
+    border: 1px dashed #d9dee8;
+    border-radius: 5px;
+    text-align: center;
+    background: #fbfcff;
+    color: #6b7280;
+}
+
+.upload-icon {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #f0f2f7;
+    color: #9aa3b2;
+    font-weight: 800;
+}
+
+.brand-upload-box strong {
+    color: #3f4550;
+    font-size: 13px;
+}
+
+.brand-upload-box small {
+    color: #8a92a0;
+    font-size: 11px;
+}
+
+.brand-current-logo {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 14px;
+    align-items: center;
+}
+
+.brand-current-logo img {
+    width: 110px;
+    height: 48px;
+    object-fit: contain;
+    padding: 8px;
+    border: 1px solid #e1e5ec;
+    border-radius: 5px;
+}
+
+.brand-current-logo button,
+.brand-secondary-button {
+    height: 36px;
+    border: 1px solid #e1e5ec;
+    border-radius: 5px;
+    background: #fff;
+    color: #4d5562;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.brand-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.brand-secondary-button,
+.brand-primary-button {
+    min-width: 76px;
+    height: 38px;
+    padding: 0 16px;
+}
+
+@media (max-width: 1180px) {
+    .brand-management-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .brand-form-column {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .admin-brand-page {
+        width: min(100% - 28px, 1440px);
+        padding-top: 18px;
+    }
+
+    .brand-toolbar,
+    .admin-breadcrumb {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .brand-search-form {
+        width: 100%;
+    }
+
+    .brand-add-button {
+        width: 100%;
+    }
+
+    .brand-form-column {
+        grid-template-columns: 1fr;
+    }
 }
 
 body.cart-page .breadcrumb {

@@ -72,7 +72,17 @@
         <a href="#" class="menu-item">👥 Tài khoản người dùng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">📦 Sản phẩm</a>
+        <div class="menu-dropdown">
+            <button class="menu-item menu-dropdown-toggle" type="button">
+                📦 Sản phẩm
+                <span class="menu-dropdown-arrow">▾</span>
+            </button>
+            <div class="menu-dropdown-list">
+                <a href="#">Quản lý sản phẩm</a>
+                <a href="<%= ctx %>/AdminBrands">Quản lý thương hiệu</a>
+                <a href="#">Quản lý các loại sản phẩm</a>
+            </div>
+        </div>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🏬 Lô hàng</a>

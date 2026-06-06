@@ -36,10 +36,7 @@
 
         fullName = account.getFullName();
 
-        if ("ADMIN".equals(roleName)) {
-            placeholder = "Tìm kiếm thương hiệu...";
-            searchAction = request.getContextPath() + "/AdminBrands";
-        } else if ("CUSTOMER".equals(roleName)) {
+         if ("CUSTOMER".equals(roleName)) {
             placeholder = "Tìm kiếm linh kiện...";
         } else if ("EMPLOYEE".equals(roleName)) {
             placeholder = "Tìm kiếm yêu cầu bảo hành...";
@@ -147,12 +144,12 @@
                 <p>BUILD YOUR PERFECT PC</p>
             </div>
         </div>
-
+        <% if (!"ADMIN".equals(roleName)) { %>
         <form class="search-box" action="<%= searchAction %>" method="get">
             <input type="text" name="keyword" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
             <button type="submit">🔍</button>
         </form>
-
+        <% } %>
         <div class="right-box">
             <% if ("CUSTOMER".equals(roleName) && account != null) { %>
             <a class="cart-box" href="<%= ctx %>/cart">
@@ -189,7 +186,7 @@
                     <a href="#">📍 Địa chỉ giao hàng</a>
                     <% } %>
                 </div>
-                
+
             </div>
             <% } else { %>
             <!-- Nếu chưa đăng nhập -->

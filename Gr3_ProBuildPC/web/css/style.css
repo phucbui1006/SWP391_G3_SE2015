@@ -25,7 +25,7 @@ select {
 
 /* ==================== LOGIN / REGISTER / FORGOT PASSWORD ==================== */
 
-body:not(.home-page):not(.dashboard-body):not(.profile-body):not(.cart-page):not(.categories-page):not(.product-detail-body) {
+body:not(.home-page):not(.dashboard-body):not(.profile-body):not(.cart-page):not(.categories-page):not(.product-detail-body):not(.admin-brand-body) {
     background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
         url('../images/background.jpg') no-repeat center center fixed;
     background-size: cover;
@@ -1965,8 +1965,10 @@ body.cart-page .cart-container {
 
 /* ==================== ADMIN BRAND MANAGEMENT ==================== */
 
-.admin-brand-body {
+body.admin-brand-body {
     background: #f6f7fb;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
 .admin-brand-page {
@@ -2004,15 +2006,33 @@ body.cart-page .cart-container {
     font-weight: 600;
 }
 
+.brand-alert {
+    margin-bottom: 18px;
+    padding: 12px 16px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.brand-alert.success {
+    border: 1px solid #b7e2c0;
+    background: #ecf9ef;
+    color: #16742d;
+}
+
+.brand-alert.error {
+    border: 1px solid #f2b8bd;
+    background: #fff0f1;
+    color: #b4232c;
+}
+
 .brand-management-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 330px;
-    gap: 28px;
-    align-items: start;
+    display: block;
 }
 
 .brand-table-panel,
 .brand-form-card {
+    min-width: 0;
     background: #fff;
     border: 1px solid #eceff4;
     border-radius: 6px;
@@ -2029,7 +2049,7 @@ body.cart-page .cart-container {
 }
 
 .brand-search-form {
-    width: min(360px, 100%);
+    width: min(560px, 100%);
     height: 42px;
     display: flex;
     border: 1px solid #e1e5ec;
@@ -2049,11 +2069,12 @@ body.cart-page .cart-container {
 }
 
 .brand-search-form button {
-    width: 46px;
+    width: 112px;
     border: 0;
-    background: #fff;
-    color: #8c95a3;
-    font-size: 22px;
+    background: #252932;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
 }
 
@@ -2069,7 +2090,11 @@ body.cart-page .cart-container {
 
 .brand-add-button {
     height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 0 18px;
+    white-space: nowrap;
 }
 
 .brand-table-wrap {
@@ -2078,6 +2103,7 @@ body.cart-page .cart-container {
 
 .brand-table {
     width: 100%;
+    min-width: 920px;
     border-collapse: collapse;
     color: #30333a;
     font-size: 14px;
@@ -2089,6 +2115,26 @@ body.cart-page .cart-container {
     border-bottom: 1px solid #eceff4;
     border-right: 1px solid #eceff4;
     vertical-align: middle;
+}
+
+.brand-table th:nth-child(2),
+.brand-table td:nth-child(2) {
+    width: 130px;
+}
+
+.brand-table th:nth-child(4),
+.brand-table td:nth-child(4) {
+    min-width: 260px;
+}
+
+.brand-table th:nth-child(5),
+.brand-table td:nth-child(5) {
+    width: 150px;
+}
+
+.brand-table th:last-child,
+.brand-table td:last-child {
+    width: 120px;
 }
 
 .brand-table th:last-child,
@@ -2132,15 +2178,24 @@ body.cart-page .cart-container {
     gap: 10px;
 }
 
+.brand-actions form {
+    margin: 0;
+}
+
 .brand-action {
-    width: 34px;
+    min-width: 54px;
     height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 0;
     border-radius: 5px;
     color: #fff;
-    font-size: 16px;
-    font-weight: 800;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .brand-action.edit {
@@ -2149,6 +2204,67 @@ body.cart-page .cart-container {
 
 .brand-action.delete {
     background: #ed1c24;
+}
+
+.brand-empty-state {
+    height: 120px;
+    color: #7a808c;
+    font-weight: 700;
+    text-align: center !important;
+}
+
+.brand-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    place-items: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.brand-modal-overlay:target {
+    display: grid;
+}
+
+.brand-modal {
+    width: min(460px, 100%);
+    padding: 20px;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.26);
+}
+
+.brand-modal-form {
+    display: grid;
+    gap: 12px;
+}
+
+.brand-modal-form label {
+    color: #2f333b;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.brand-modal-form label span {
+    color: #ed1c24;
+}
+
+.brand-modal-form input {
+    width: 100%;
+    height: 40px;
+    border: 1px solid #e1e5ec;
+    border-radius: 5px;
+    outline: 0;
+    padding: 0 12px;
+    color: #333;
+    font: inherit;
+}
+
+.brand-file-note {
+    margin-top: -6px;
+    color: #7a808c;
+    font-size: 12px;
 }
 
 .brand-form-column {
@@ -2174,7 +2290,8 @@ body.cart-page .cart-container {
     font-weight: 800;
 }
 
-.brand-form-header button {
+.brand-form-header button,
+.brand-form-header a {
     border: 0;
     background: transparent;
     color: #8b8f99;
@@ -2272,12 +2389,16 @@ body.cart-page .cart-container {
 .brand-current-logo button,
 .brand-secondary-button {
     height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 1px solid #e1e5ec;
     border-radius: 5px;
     background: #fff;
     color: #4d5562;
     font-weight: 700;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .brand-form-actions {
@@ -2292,6 +2413,7 @@ body.cart-page .cart-container {
     min-width: 76px;
     height: 38px;
     padding: 0 16px;
+    white-space: nowrap;
 }
 
 @media (max-width: 1180px) {

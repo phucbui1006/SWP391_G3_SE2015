@@ -19,7 +19,10 @@
         cartTotal = BigDecimal.ZERO;
     }
 
-    NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US);
+    Locale vietnameseLocale = new Locale("vi", "VN");
+    NumberFormat currencyFormatter = NumberFormat.getNumberInstance(vietnameseLocale);
+    currencyFormatter.setMinimumFractionDigits(0);
+    currencyFormatter.setMaximumFractionDigits(0);
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -37,110 +40,114 @@
                 <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a> / <span class="active">gi&#7887; h&#224;ng</span>
             </div>
 
-            <div class="cart-list">
-                <div class="cart-header">
-                    <div class="col-select">Ch&#7885;n</div>
-                    <div class="col-product">S&#7843;n ph&#7849;m</div>
-                    <div class="col-price">Gi&#225;</div>
-                    <div class="col-qty">S&#7889; l&#432;&#7907;ng</div>
-                    <div class="col-total">T&#7893;ng ti&#7873;n</div>
-                    <div class="col-action">Thao t&#225;c</div>
-                </div>
-
-                <% if (cartItems.isEmpty()) { %>
-                <div class="cart-item empty-cart">
-                    <div class="empty-cart-message">Gi&#7887; h&#224;ng c&#7911;a b&#7841;n &#273;ang tr&#7889;ng.</div>
-                </div>
-                <% } else { %>
-                <% for (CartItem item : cartItems) { %>
-                <%
-                    BigDecimal unitPrice = BigDecimal.ZERO;
-                    if (item.getProduct() != null && item.getProduct().getPrice() != null) {
-                        unitPrice = item.getProduct().getPrice();
-                    }
-
-                    BigDecimal lineTotal = item.getLineTotal();
-                    if (lineTotal == null) {
-                        lineTotal = unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
-                    }
-                %>
-                <div
-                    class="cart-item"
-                    data-cart-item-id="<%= item.getCartItemId() %>"
-                    data-unit-price="<%= unitPrice.toPlainString() %>">
-                    <div class="col-select">
-                        <input
-                            class="cart-select-checkbox"
-                            type="checkbox"
-                            name="selectedCartItemIds"
-                            value="<%= item.getCartItemId() %>"
-                            aria-label="Ch&#7885;n s&#7843;n ph&#7849;m">
-                    </div>
-                    <div class="col-product">
-                        <img src="<%= (item.getProduct() != null && item.getProduct().getImageUrl() != null && !item.getProduct().getImageUrl().trim().isEmpty())
-                                ? item.getProduct().getImageUrl()
-                                : "https://via.placeholder.com/72x72?text=PC" %>"
-                             alt="<%= item.getProduct() != null ? item.getProduct().getProductName() : "Product" %>">
-                        <span class="product-name"><%= item.getProduct() != null ? item.getProduct().getProductName() : "S&#7843;n ph&#7849;m" %></span>
-                    </div>
-                    <div class="col-price line-price-value"><%= currencyFormatter.format(unitPrice) %></div>
-                    <div class="col-qty">
-                        <div class="quantity-input-wrapper">
-                            <input
-                                class="cart-qty-input"
-                                type="number"
-                                value="<%= item.getQuantity() %>"
-                                min="1"
-                                step="1"
-                                inputmode="numeric"
-                                name="quantity_<%= item.getCartItemId() %>">
+            <div class="cart-layout">
+                <div class="cart-main-column">
+                    <div class="cart-list">
+                        <div class="cart-header">
+                            <div class="col-select">Ch&#7885;n</div>
+                            <div class="col-product">S&#7843;n ph&#7849;m</div>
+                            <div class="col-price">Gi&#225;</div>
+                            <div class="col-qty">S&#7889; l&#432;&#7907;ng</div>
+                            <div class="col-total">T&#7893;ng ti&#7873;n</div>
+                            <div class="col-action">Thao t&#225;c</div>
                         </div>
-                    </div>
-                    <div class="col-total line-total-value"><%= currencyFormatter.format(lineTotal) %></div>
-                    <div class="col-action">
-                        <form class="cart-action-form" action="${pageContext.request.contextPath}/cart" method="post">
-                            <input type="hidden" name="action" value="removeCartItem">
-                            <input type="hidden" name="cartItemId" value="<%= item.getCartItemId() %>">
-                            <button class="cart-action-btn" type="submit" title="X&#243;a s&#7843;n ph&#7849;m">
-                                <span class="cart-action-icon" aria-hidden="true">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M3 6h18"></path>
-                                        <path d="M8 6V4h8v2"></path>
-                                        <path d="M19 6l-1 14H6L5 6"></path>
-                                        <path d="M10 11v6"></path>
-                                        <path d="M14 11v6"></path>
-                                    </svg>
-                                </span>
-                                <span class="cart-action-label">X&#243;a</span>
-                            </button>
-                        </form>
+
+                        <% if (cartItems.isEmpty()) { %>
+                        <div class="cart-item empty-cart">
+                            <div class="empty-cart-message">Gi&#7887; h&#224;ng c&#7911;a b&#7841;n &#273;ang tr&#7889;ng.</div>
+                        </div>
+                        <% } else { %>
+                        <% for (CartItem item : cartItems) { %>
+                        <%
+                            BigDecimal unitPrice = BigDecimal.ZERO;
+                            if (item.getProduct() != null && item.getProduct().getPrice() != null) {
+                                unitPrice = item.getProduct().getPrice();
+                            }
+
+                            BigDecimal lineTotal = item.getLineTotal();
+                            if (lineTotal == null) {
+                                lineTotal = unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+                            }
+                        %>
+                        <div
+                            class="cart-item"
+                            data-cart-item-id="<%= item.getCartItemId() %>"
+                            data-unit-price="<%= unitPrice.toPlainString() %>">
+                            <div class="col-select">
+                                <input
+                                    class="cart-select-checkbox"
+                                    type="checkbox"
+                                    name="selectedCartItemIds"
+                                    value="<%= item.getCartItemId() %>"
+                                    aria-label="Ch&#7885;n s&#7843;n ph&#7849;m">
+                            </div>
+                            <div class="col-product">
+                                <img src="<%= (item.getProduct() != null && item.getProduct().getImageUrl() != null && !item.getProduct().getImageUrl().trim().isEmpty())
+                                        ? item.getProduct().getImageUrl()
+                                        : "https://via.placeholder.com/72x72?text=PC" %>"
+                                     alt="<%= item.getProduct() != null ? item.getProduct().getProductName() : "Product" %>">
+                                <span class="product-name"><%= item.getProduct() != null ? item.getProduct().getProductName() : "S&#7843;n ph&#7849;m" %></span>
+                            </div>
+                            <div class="col-price line-price-value"><%= currencyFormatter.format(unitPrice) %>&#273;</div>
+                            <div class="col-qty">
+                                <div class="quantity-input-wrapper">
+                                    <input
+                                        class="cart-qty-input"
+                                        type="number"
+                                        value="<%= item.getQuantity() %>"
+                                        min="1"
+                                        step="1"
+                                        inputmode="numeric"
+                                        name="quantity_<%= item.getCartItemId() %>">
+                                </div>
+                            </div>
+                            <div class="col-total line-total-value"><%= currencyFormatter.format(lineTotal) %>&#273;</div>
+                            <div class="col-action">
+                                <form class="cart-action-form" action="${pageContext.request.contextPath}/cart" method="post">
+                                    <input type="hidden" name="action" value="removeCartItem">
+                                    <input type="hidden" name="cartItemId" value="<%= item.getCartItemId() %>">
+                                    <button class="cart-action-btn" type="submit" title="X&#243;a s&#7843;n ph&#7849;m">
+                                        <span class="cart-action-icon" aria-hidden="true">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 6h18"></path>
+                                                <path d="M8 6V4h8v2"></path>
+                                                <path d="M19 6l-1 14H6L5 6"></path>
+                                                <path d="M10 11v6"></path>
+                                                <path d="M14 11v6"></path>
+                                            </svg>
+                                        </span>
+                                        <span class="cart-action-label">X&#243;a</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <% } %>
+                        <% } %>
                     </div>
                 </div>
-                <% } %>
-                <% } %>
-            </div>
 
-            <div class="cart-footer">
-                <div class="cart-total-box">
-                    <h3>Cart Total</h3>
+                <aside class="cart-summary-column">
+                    <div class="cart-total-box">
+                        <h3>T&#7893;ng gi&#7887; h&#224;ng</h3>
 
-                    <div class="summary-row">
-                        <span>Subtotal:</span>
-                        <span data-cart-subtotal><%= currencyFormatter.format(BigDecimal.ZERO) %></span>
-                    </div>
-                    <hr class="divider">
-                    <div class="summary-row">
-                        <span>Shipping:</span>
-                        <span>Free</span>
-                    </div>
-                    <hr class="divider">
-                    <div class="summary-row">
-                        <span>Total:</span>
-                        <span data-cart-total><%= currencyFormatter.format(BigDecimal.ZERO) %></span>
-                    </div>
+                        <div class="summary-row">
+                            <span>T&#7841;m t&#237;nh:</span>
+                            <span data-cart-subtotal><%= currencyFormatter.format(BigDecimal.ZERO) %>&#273;</span>
+                        </div>
+                        <hr class="divider">
+                        <div class="summary-row">
+                            <span>Ph&#237; v&#7853;n chuy&#7875;n:</span>
+                            <span>Mi&#7877;n ph&#237;</span>
+                        </div>
+                        <hr class="divider">
+                        <div class="summary-row summary-row-total">
+                            <span>T&#7893;ng c&#7897;ng:</span>
+                            <span data-cart-total><%= currencyFormatter.format(BigDecimal.ZERO) %>&#273;</span>
+                        </div>
 
-                    <button type="button" class="checkout-btn">Proceed to checkout</button>
-                </div>
+                        <button type="button" class="checkout-btn">Ti&#7871;n h&#224;nh thanh to&#225;n</button>
+                    </div>
+                </aside>
             </div>
         </div>
 
@@ -157,12 +164,14 @@
                     return;
                 }
 
-                const currencyFormatter = new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
+                const currencyFormatter = new Intl.NumberFormat('vi-VN', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
                 });
+
+                const formatCurrency = function (amount) {
+                    return currencyFormatter.format(amount) + '\u0111';
+                };
 
                 const normalizeQuantity = function (input) {
                     let quantity = parseInt(input.value, 10);
@@ -176,7 +185,7 @@
                 };
 
                 const normalizeAmount = function (amount) {
-                    return Math.round((amount + Number.EPSILON) * 100) / 100;
+                    return Math.round(amount);
                 };
 
                 const updateCartTotals = function () {
@@ -190,14 +199,14 @@
                         const quantity = normalizeQuantity(quantityInput);
                         const lineTotal = normalizeAmount(unitPrice * quantity);
 
-                        lineTotalElement.textContent = currencyFormatter.format(lineTotal);
+                        lineTotalElement.textContent = formatCurrency(lineTotal);
 
                         if (selectCheckbox.checked) {
                             selectedSubtotal = normalizeAmount(selectedSubtotal + lineTotal);
                         }
                     });
 
-                    const formattedTotal = currencyFormatter.format(selectedSubtotal);
+                    const formattedTotal = formatCurrency(selectedSubtotal);
                     subtotalElement.textContent = formattedTotal;
                     totalElement.textContent = formattedTotal;
                 };

@@ -75,8 +75,8 @@
                     <div class="profile-form-group">
                         <label class="profile-label" for="oldPassword">Mật khẩu cũ</label>
                         <div class="profile-input-wrapper">
-                            <input type="password" id="currentPassword" name="oldPassword" placeholder="•••••••••" required>
-                        <i class="fa-regular fa-eye toggle-eye" onclick="toggleProfilePass('currentPassword', this)"></i>
+                            <input type="password" id="currentPassword" name="currentPassword" placeholder="•••••••••">                        
+                            <i class="fa-regular fa-eye toggle-eye" onclick="toggleProfilePass('currentPassword', this)"></i>
                         </div>
                     </div>
 

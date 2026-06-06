@@ -1729,12 +1729,12 @@ body.home-page .home-pagination a.active {
 .profile-body {
     background-color: #f0f2f5;
     margin: 0;
-    padding: 0;
+    padding: 40px 20px;          /* Thêm khoảng trống trên dưới cho thoáng khi cuộn */
     display: flex !important;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    overflow: hidden; /* Triệt tiêu thanh cuộn dọc */
+    min-height: 100vh;
+    overflow-y: auto; /* Triệt tiêu thanh cuộn dọc */
 }
 
 .profile-container {
@@ -1742,15 +1742,15 @@ body.home-page .home-pagination a.active {
     background-color: #ffffff;
     width: 100%;
     max-width: 1050px; 
-    height: 650px; /* Chiều cao cố định để không sinh ra scroll */
+    height: auto;                /* SỬA: Đổi từ chiều cao cố định 650px sang auto để tự giãn theo nội dung */
+    min-height: 600px;           /* THÊM: Giữ bộ khung có độ cao tối thiểu vừa vặn, đẹp mắt */
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-    overflow: hidden;   
+    overflow: hidden;  
 }
 
 .profile-left {
     flex: 1.1; 
-    /* Vì file style.css nằm sẵn trong thư mục css, nên đi ra ngoài để vào images lấy ảnh */
     background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)), 
                 url('../images/background.jpg') no-repeat center center;
     background-size: cover;
@@ -1785,14 +1785,14 @@ body.home-page .home-pagination a.active {
     font-size: 1.8rem;
     font-weight: bold;
     color: #1a120b;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .profile-form-group {
     display: flex;
     flex-direction: column; 
     align-items: flex-start; 
-    margin-bottom: 22px; 
+    margin-bottom: 18px; 
     position: relative;
     width: 100%;
 }
@@ -1803,7 +1803,7 @@ body.home-page .home-pagination a.active {
     margin-bottom: 6px; 
     font-size: 0.95rem; 
     color: #333333;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .profile-input-wrapper {
@@ -1815,8 +1815,8 @@ body.home-page .home-pagination a.active {
 
 .profile-input-wrapper input {
     width: 100%;
-    padding: 11px 14px; 
-    font-size: 0.95rem;
+    padding: 12px 14px; 
+    font-size: 1rem;
     border: 1px solid #486942; 
     border-radius: 6px;
     outline: none;

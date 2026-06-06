@@ -68,6 +68,23 @@ public class CartDAO extends DBContext {
         return subtotal;
     }
 
+    public boolean removeCartItemByUserId(int userId, int cartItemId) {
+        String sql = "DELETE ci "
+                + "FROM cart_items ci "
+                + "INNER JOIN cart c ON c.cart_id = ci.cart_id "
+                + "WHERE c.user_id = ? AND ci.cart_item_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, cartItemId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     private CartItem mapCartItem(ResultSet rs) throws SQLException {
         CartItem item = new CartItem(
                 rs.getInt("cart_item_id"),

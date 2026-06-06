@@ -35,6 +35,12 @@
 
     String ctx = request.getContextPath();
     Integer cartItemCount = (Integer) request.getAttribute("cartItemCount");
+    Integer sessionCartItemCount = (Integer) session.getAttribute("sessionCartItemCount");
+
+    if (sessionCartItemCount != null) {
+        cartItemCount = sessionCartItemCount;
+    }
+
     if (cartItemCount == null) {
         cartItemCount = 0;
     }

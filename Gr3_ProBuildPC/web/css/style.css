@@ -1928,7 +1928,7 @@ body.cart-page .cart-list {
 body.cart-page .cart-header,
 body.cart-page .cart-item {
     display: grid;
-    grid-template-columns: minmax(360px, 1.9fr) minmax(140px, 0.7fr) minmax(120px, 0.7fr) minmax(150px, 0.8fr);
+    grid-template-columns: 72px minmax(280px, 1.7fr) minmax(140px, 0.7fr) minmax(120px, 0.65fr) minmax(150px, 0.8fr) 110px;
     align-items: center;
     gap: 24px;
     background: #fff;
@@ -1946,24 +1946,70 @@ body.cart-page .cart-item {
     min-height: 150px;
 }
 
+body.cart-page .col-select {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.cart-page .col-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.cart-page .cart-select-checkbox {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #e53935;
+}
+
 body.cart-page .col-product {
     display: flex;
     align-items: center;
     min-width: 0;
 }
 
-body.cart-page .remove-btn {
-    width: 26px;
-    height: 26px;
+body.cart-page .cart-action-form {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+body.cart-page .cart-action-btn {
     border: none;
     background: transparent;
+    color: #ef4444;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 0;
+}
+
+body.cart-page .cart-action-icon {
+    width: 52px;
+    height: 52px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    padding: 0;
-    margin-right: 14px;
-    flex-shrink: 0;
+    border: 1px solid #f2d6d6;
+    border-radius: 12px;
+    background: #fff;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+body.cart-page .cart-action-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+body.cart-page .cart-action-btn:hover .cart-action-icon {
+    background: #fff5f5;
+    border-color: #efb4b4;
+    transform: translateY(-1px);
 }
 
 body.cart-page .col-product img {
@@ -2012,6 +2058,16 @@ body.cart-page .col-qty input {
 }
 
 body.cart-page .empty-cart .col-product {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+body.cart-page .empty-cart {
+    grid-template-columns: 1fr;
+    min-height: 0;
+}
+
+body.cart-page .empty-cart-message {
     font-size: 18px;
     font-weight: 600;
 }
@@ -2086,6 +2142,47 @@ body.cart-page .checkout-btn:hover {
         padding: 22px 18px;
     }
 
+    body.cart-page .col-select {
+        justify-content: flex-start;
+    }
+
+    body.cart-page .cart-item .col-select::after {
+        content: "Chon";
+        margin-left: 12px;
+        font-weight: 700;
+        color: #111;
+    }
+
+    body.cart-page .cart-item .col-action {
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    body.cart-page .cart-item .col-action::before {
+        content: "Thao tac";
+        font-weight: 700;
+        color: #111;
+    }
+
+    body.cart-page .cart-action-form {
+        width: auto;
+    }
+
+    body.cart-page .cart-action-btn {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    body.cart-page .cart-action-icon {
+        width: 46px;
+        height: 46px;
+    }
+
+    body.cart-page .empty-cart .col-select::after,
+    body.cart-page .empty-cart .col-action::before {
+        content: none;
+    }
+
     body.cart-page .col-product {
         align-items: flex-start;
     }
@@ -2103,7 +2200,8 @@ body.cart-page .checkout-btn:hover {
 
     body.cart-page .col-price,
     body.cart-page .col-qty,
-    body.cart-page .col-total {
+    body.cart-page .col-total,
+    body.cart-page .col-action {
         display: flex;
         align-items: center;
         justify-content: space-between;

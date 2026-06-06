@@ -24,68 +24,56 @@ public class CategoryServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
 
-   
+        String sort = request.getParameter("sort");
+        if (sort == null || sort.trim().isEmpty()) {
+            sort = "newest";
+        }
 
-            request.setCharacterEncoding("UTF-8");
-            response.setContentType("text/html;charset=UTF-8");
+        String keyword = request.getParameter("keyword");
+        if (keyword != null) {
+            keyword = keyword.trim();
+        }
 
-            String sort = request.getParameter("sort");
-            if (sort == null || sort.trim().isEmpty()) {
-                sort = "newest";
-            }
+        String idRaw = request.getParameter("id");
 
-            String keyword = request.getParameter("keyword");
-            if (keyword != null) {
-                keyword = keyword.trim();
-            }
+        List<Category> categories = categoryDAO.getAllCategories();
+        List<Product> products;
+        Category selectedCategory = null;
 
-            String idRaw = request.getParameter("id");
+        if (idRaw != null && !idRaw.trim().isEmpty()) {
+            try {
+                int categoryId = Integer.parseInt(idRaw);
 
-            List<Category> categories = categoryDAO.getAllCategories();
-            List<Product> products;
-            Category selectedCategory = null;
+                selectedCategory = categoryDAO.getCategoryById(categoryId);
 
-            if (idRaw != null && !idRaw.trim().isEmpty()) {
-                try {
-                    int categoryId = Integer.parseInt(idRaw);
-
-                    selectedCategory = categoryDAO.getCategoryById(categoryId);
-
-                    if (keyword != null && !keyword.isEmpty()) {
-                        products = productDAO.getProductsByCategoryAndKeyword(categoryId, keyword, sort);
-                    } else {
-                        products = productDAO.getProductsByCategoryId(categoryId, sort);
-                    }
-
-                } catch (NumberFormatException e) {
-                    if (keyword != null && !keyword.isEmpty()) {
-                        products = productDAO.getProductsByKeyword(keyword, sort);
-                    } else {
-                        products = productDAO.getAllProducts(sort);
-                    }
+                if (keyword != null && !keyword.isEmpty()) {
+                    products = productDAO.getProductsByCategoryAndKeyword(categoryId, keyword, sort);
+                } else {
+                    products = productDAO.getProductsByCategoryId(categoryId, sort);
                 }
-            } else {
+            } catch (NumberFormatException e) {
                 if (keyword != null && !keyword.isEmpty()) {
                     products = productDAO.getProductsByKeyword(keyword, sort);
                 } else {
                     products = productDAO.getAllProducts(sort);
                 }
             }
-
-            request.setAttribute("categories", categories);
-            request.setAttribute("products", products);
-            request.setAttribute("selectedCategory", selectedCategory);
-            request.setAttribute("selectedSort", sort);
-            request.setAttribute("keyword", keyword);
-
-            request.getRequestDispatcher("/views/categories.jsp").forward(request, response);
-        
+        } else {
+            if (keyword != null && !keyword.isEmpty()) {
+                products = productDAO.getProductsByKeyword(keyword, sort);
+            } else {
+                products = productDAO.getAllProducts(sort);
+            }
+        }
 
         request.setAttribute("categories", categories);
         request.setAttribute("products", products);
         request.setAttribute("selectedCategory", selectedCategory);
         request.setAttribute("selectedSort", sort);
+        request.setAttribute("keyword", keyword);
 
         HttpSession session = request.getSession(false);
         if (session != null) {

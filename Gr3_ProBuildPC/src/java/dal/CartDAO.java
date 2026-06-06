@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import model.CartItem;
@@ -83,6 +84,84 @@ public class CartDAO extends DBContext {
         }
 
         return false;
+    }
+
+    public boolean updateCartItemQuantity(int cartItemId, int quantity) {
+        String sql = "UPDATE cart_items SET quantity = ? WHERE cart_item_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, cartItemId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public int addCartItemForUser(int userId, int productId, int quantity) {
+        int cartId = getOrCreateCartIdByUserId(userId);
+        if (cartId <= 0) {
+            return -1;
+        }
+
+        String sql = "INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?, ?, ?)";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, cartId);
+            ps.setInt(2, productId);
+            ps.setInt(3, quantity);
+
+            int affectedRows = ps.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
+    private int getOrCreateCartIdByUserId(int userId) {
+        String selectSql = "SELECT cart_id FROM cart WHERE user_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(selectSql)) {
+            ps.setInt(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("cart_id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+
+        String insertSql = "INSERT INTO cart (user_id) VALUES (?)";
+
+        try (PreparedStatement ps = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, userId);
+
+            int affectedRows = ps.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
     }
 
     private CartItem mapCartItem(ResultSet rs) throws SQLException {

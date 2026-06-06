@@ -34,7 +34,7 @@
 
         <div class="cart-container">
             <div class="breadcrumb">
-                <span>Trang ch&#7911;</span> / <span class="active">gi&#7887; h&#224;ng</span>
+                <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a> / <span class="active">gi&#7887; h&#224;ng</span>
             </div>
 
             <div class="cart-list">
@@ -202,10 +202,17 @@
                     totalElement.textContent = formattedTotal;
                 };
 
-                const persistQuantityToSession = function (cartItemId, quantity) {
+                const persistQuantityToDatabase = function (row, quantity) {
+                    const cartItemId = row.dataset.cartItemId;
+                    const quantityInput = row.querySelector('.cart-qty-input');
+
+                    if (!cartItemId || !quantityInput) {
+                        return Promise.resolve();
+                    }
+
                     const payload = new URLSearchParams();
-                    payload.set('action', 'updateSessionQuantity');
-                    payload.set('cartItemId', String(cartItemId));
+                    payload.set('action', 'updateCartQuantity');
+                    payload.set('cartItemId', cartItemId);
                     payload.set('quantity', String(quantity));
 
                     return fetch(cartUpdateUrl, {
@@ -217,18 +224,27 @@
                         body: payload.toString()
                     })
                             .then(function (response) {
-                                if (!response.ok) {
-                                    throw new Error('Failed to persist cart quantity');
-                                }
-                                return response.json();
+                                return response.json().then(function (data) {
+                                    if (!response.ok) {
+                                        throw new Error(data.message || 'Failed to persist cart quantity');
+                                    }
+                                    return data;
+                                });
                             })
                             .then(function (data) {
+                                if (typeof data.quantity === 'number' && data.quantity > 0) {
+                                    quantityInput.value = data.quantity;
+                                }
+
                                 if (headerCartCountElement && typeof data.cartItemCount === 'number') {
                                     headerCartCountElement.textContent = data.cartItemCount;
                                 }
+
+                                updateCartTotals();
                             })
                             .catch(function (error) {
                                 console.error(error);
+                                updateCartTotals();
                             });
                 };
 
@@ -245,7 +261,7 @@
 
                     const newTimer = window.setTimeout(function () {
                         persistTimers.delete(cartItemId);
-                        persistQuantityToSession(cartItemId, quantity);
+                        persistQuantityToDatabase(row, quantity);
                     }, 300);
 
                     persistTimers.set(cartItemId, newTimer);

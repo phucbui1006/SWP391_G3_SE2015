@@ -1,12 +1,29 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.User" %>
 
+<%!
+    private String h(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+%>
+
 <%
     User account = (User) session.getAttribute("account");
 
     String roleName = "";
     String fullName = "";
     String placeholder = "Tìm kiếm...";
+    String searchAction = "#";
+    String searchKeyword = request.getParameter("keyword");
 
     if (account != null) {
         roleName = account.getRoleName();
@@ -20,7 +37,8 @@
         fullName = account.getFullName();
 
         if ("ADMIN".equals(roleName)) {
-            placeholder = "Tìm kiếm đơn hàng, khách hàng, sản phẩm...";
+            placeholder = "Tìm kiếm thương hiệu...";
+            searchAction = request.getContextPath() + "/AdminBrands";
         } else if ("CUSTOMER".equals(roleName)) {
             placeholder = "Tìm kiếm linh kiện...";
         } else if ("EMPLOYEE".equals(roleName)) {
@@ -78,7 +96,17 @@
         <a href="#" class="menu-item">👥 Tài khoản người dùng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">📦 Sản phẩm</a>
+        <div class="menu-dropdown">
+            <button class="menu-item menu-dropdown-toggle" type="button">
+                📦 Sản phẩm
+                <span class="menu-dropdown-arrow">▾</span>
+            </button>
+            <div class="menu-dropdown-list">
+                <a href="#">Quản lý sản phẩm</a>
+                <a href="<%= ctx %>/AdminBrands">Quản lý thương hiệu</a>
+                <a href="#">Quản lý các loại sản phẩm</a>
+            </div>
+        </div>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🏬 Lô hàng</a>
@@ -120,8 +148,8 @@
             </div>
         </div>
 
-        <form class="search-box" action="#" method="get">
-            <input type="text" name="keyword" placeholder="<%= placeholder %>">
+        <form class="search-box" action="<%= searchAction %>" method="get">
+            <input type="text" name="keyword" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
             <button type="submit">🔍</button>
         </form>
 

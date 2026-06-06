@@ -1,5 +1,6 @@
 package controller;
 
+import dal.CartDAO;
 import dal.CategoryDAO;
 import dal.ProductDAO;
 import jakarta.servlet.ServletException;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import model.Category;
 import model.Product;
+import model.User;
 
 @WebServlet(name = "HomeServlet", urlPatterns = {"/home", "/Home"})
 public class HomeServlet extends HttpServlet {
@@ -33,6 +35,12 @@ public class HomeServlet extends HttpServlet {
         request.setAttribute("categories", categories);
         request.setAttribute("products", products);
         request.setAttribute("productDAO", productDAO);
+
+        User account = (User) request.getSession().getAttribute("account");
+        if (account != null) {
+            CartDAO cartDAO = new CartDAO();
+            request.setAttribute("cartItemCount", cartDAO.getCartItemCountByUserId(account.getUserId()));
+        }
 
         request.getRequestDispatcher("/views/home.jsp").forward(request, response);
     }

@@ -41,10 +41,10 @@
         <main class="product-detail-page">
 
             <div class="breadcrumb">
-                <a href="<%= contextPath %>/home">Trang chủ</a>
+                <a href="<%= contextPath %>/home">Trang ch&#7911;</a>
                 <span>&gt;</span>
 
-                <a href="<%= contextPath %>/categories">Sản phẩm</a>
+                <a href="<%= contextPath %>/categories">S&#7843;n ph&#7849;m</a>
                 <span>&gt;</span>
 
                 <strong><%= product.getProductName() %></strong>
@@ -67,48 +67,48 @@
                     <div class="rating-row">
                         <span class="stars">
                             <% for (int i = 1; i <= 5; i++) { %>
-                            <%= i <= fullStars ? "★" : "☆" %>
+                            <%= i <= fullStars ? "&#9733;" : "&#9734;" %>
                             <% } %>
                         </span>
 
                         <span><%= String.format("%.1f", avgRating) %></span>
-                        <span class="review-count">| <%= totalReviews %> đánh giá</span>
+                        <span class="review-count">| <%= totalReviews %> danh gia</span>
                     </div>
 
                     <div class="price">
-                        <%= String.format("%,d", product.getPrice().longValue()) %>đ
+                        <%= String.format("%,d", product.getPrice().longValue()) %>&#273;
                     </div>
 
                     <div class="stock-status">
                         <% if (product.getQuantity() > 0) { %>
-                        <span class="in-stock">Còn hàng</span>
-                        <small>Số lượng: <%= product.getQuantity() %></small>
+                        <span class="in-stock">Con hang</span>
+                        <small>So luong: <%= product.getQuantity() %></small>
                         <% } else { %>
-                        <span class="out-stock">Hết hàng</span>
+                        <span class="out-stock">Het hang</span>
                         <% } %>
                     </div>
 
                     <div class="option-box">
-                        <p>Màu sắc</p>
+                        <p>Mau sac</p>
 
-                        <button type="button" class="color-option active" data-color="Đen">Đen</button>
-                        <button type="button" class="color-option" data-color="Trắng">Trắng</button>
+                        <button type="button" class="color-option active" data-color="Den">Den</button>
+                        <button type="button" class="color-option" data-color="Trang">Trang</button>
                         <button type="button" class="color-option" data-color="Xanh">Xanh</button>
                     </div>
 
                     <div class="purchase-panel" style="width: 500px">
 
                         <div class="warranty-box">
-                            <div class="warranty-icon">🛡</div>
+                            <div class="warranty-icon">&#128737;</div>
 
                             <div>
-                                <span>Chính sách bảo hành</span>
-                                <strong>Bảo hành chính hãng <%= product.getWarrantyMonths() %> tháng</strong>
+                                <span>Chinh sach bao hanh</span>
+                                <strong>Bao hanh chinh hang <%= product.getWarrantyMonths() %> thang</strong>
                             </div>
                         </div>
 
                         <div class="quantity-box">
-                            <span>Số lượng:</span>
+                            <span>So luong:</span>
 
                             <div class="quantity-control">
                                 <button type="button" onclick="changeQty(-1)">-</button>
@@ -126,12 +126,13 @@
 
                         <div class="action-buttons">
 
-                            <form action="<%= contextPath %>/cart" method="post">
+                            <form class="detail-add-cart-form" action="<%= contextPath %>/cart" method="post">
+                                <input type="hidden" name="action" value="addToCart">
                                 <input type="hidden" name="productId" value="<%= product.getProductId() %>">
                                 <input type="hidden" name="quantity" id="cartQuantity" value="1">
 
-                                <button type="submit" class="add-cart-btn">
-                                    🛒 Thêm vào giỏ
+                                <button type="submit" class="add-cart-btn" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
+                                    &#128722; Them vao gio
                                 </button>
                             </form>
 
@@ -153,53 +154,53 @@
             </section>
 
             <section class="description-card">
-                <h2>Đặc điểm nổi bật</h2>
+                <h2>Dac diem noi bat</h2>
 
                 <p><%= product.getDescription() %></p>
 
                 <div class="spec-grid">
 
                     <div>
-                        <strong>Tên sản phẩm</strong>
+                        <strong>Ten san pham</strong>
                         <span><%= product.getProductName() %></span>
                     </div>
 
                     <div>
-                        <strong>Bảo hành</strong>
-                        <span><%= product.getWarrantyMonths() %> tháng</span>
+                        <strong>Bao hanh</strong>
+                        <span><%= product.getWarrantyMonths() %> thang</span>
                     </div>
 
                     <div>
-                        <strong>Tình trạng</strong>
-                        <span><%= product.getQuantity() > 0 ? "Còn hàng" : "Hết hàng" %></span>
+                        <strong>Tinh trang</strong>
+                        <span><%= product.getQuantity() > 0 ? "Con hang" : "Het hang" %></span>
                     </div>
 
                     <div>
-                        <strong>Giá bán</strong>
-                        <span><%= String.format("%,d", product.getPrice().longValue()) %>đ</span>
+                        <strong>Gia ban</strong>
+                        <span><%= String.format("%,d", product.getPrice().longValue()) %>&#273;</span>
                     </div>
 
                 </div>
             </section>
 
             <section class="review-section">
-                <h2>Đánh giá sản phẩm</h2>
+                <h2>Danh gia san pham</h2>
 
                 <div class="review-summary">
 
                     <div class="score">
                         <strong><%= String.format("%.1f", avgRating) %></strong>
-                        <span>trên 5</span>
+                        <span>tren 5</span>
 
                         <p>
                             <% for (int i = 1; i <= 5; i++) { %>
-                            <%= i <= fullStars ? "★" : "☆" %>
+                            <%= i <= fullStars ? "&#9733;" : "&#9734;" %>
                             <% } %>
                         </p>
                     </div>
 
                     <div class="review-filter">
-                        <button type="button" class="review-filter-btn active" data-rating="0">Tất cả</button>
+                        <button type="button" class="review-filter-btn active" data-rating="0">Tat ca</button>
                         <button type="button" class="review-filter-btn" data-rating="5">5 sao</button>
                         <button type="button" class="review-filter-btn" data-rating="4">4 sao</button>
                         <button type="button" class="review-filter-btn" data-rating="3">3 sao</button>
@@ -223,11 +224,11 @@
 
                         <div class="review-content">
 
-                            <h4>Người dùng #<%= review.getUserId() %></h4>
+                            <h4>Nguoi dung #<%= review.getUserId() %></h4>
 
                             <div class="review-stars">
                                 <% for (int i = 1; i <= 5; i++) { %>
-                                <%= i <= review.getRating() ? "★" : "☆" %>
+                                <%= i <= review.getRating() ? "&#9733;" : "&#9734;" %>
                                 <% } %>
                             </div>
 
@@ -251,7 +252,7 @@
                          class="empty-review"
                          style="<%= totalReviews == 0 ? "display:block;" : "display:none;" %>">
                         <% if (totalReviews == 0) { %>
-                        Không có đánh giá nào tính đến hiện tại.
+                        Khong co danh gia nao tinh den hien tai.
                         <% } %>
                     </div>
 
@@ -259,6 +260,11 @@
             </section>
 
         </main>
+
+        <div id="detailToast" class="detail-toast" role="status" aria-live="polite" aria-atomic="true">
+            <span class="detail-toast-icon">✓</span>
+            <span class="detail-toast-message">Da them san pham vao gio hang.</span>
+        </div>
 
         <script>
             function changeQty(value) {
@@ -269,9 +275,9 @@
                 if (!input)
                     return;
 
-                let current = parseInt(input.value);
-                let min = parseInt(input.getAttribute("min"));
-                let max = parseInt(input.getAttribute("max"));
+                let current = parseInt(input.value, 10);
+                let min = parseInt(input.getAttribute("min"), 10);
+                let max = parseInt(input.getAttribute("max"), 10);
 
                 if (isNaN(current)) {
                     current = 1;
@@ -322,9 +328,9 @@
                         emptyReviewMessage.style.display = "block";
 
                         if (selectedRating === "0") {
-                            emptyReviewMessage.innerText = "Không có đánh giá nào tính đến hiện tại.";
+                            emptyReviewMessage.innerText = "Khong co danh gia nao tinh den hien tai.";
                         } else {
-                            emptyReviewMessage.innerText = "Không có đánh giá " + selectedRating + " sao tính đến hiện tại.";
+                            emptyReviewMessage.innerText = "Khong co danh gia " + selectedRating + " sao tinh den hien tai.";
                         }
                     } else {
                         emptyReviewMessage.style.display = "none";
@@ -332,8 +338,7 @@
                     }
                 });
             });
-        </script>
-        <script>
+
             const colorOptions = document.querySelectorAll(".color-option");
             const cartColor = document.getElementById("cartColor");
             const buyColor = document.getElementById("buyColor");
@@ -357,6 +362,99 @@
                     }
                 });
             });
+
+            (function () {
+                const addToCartForm = document.querySelector(".detail-add-cart-form");
+                const addToCartButton = addToCartForm ? addToCartForm.querySelector(".add-cart-btn") : null;
+                const detailToast = document.getElementById("detailToast");
+                const detailToastMessage = detailToast ? detailToast.querySelector(".detail-toast-message") : null;
+                const headerCartCountElement = document.querySelector(".cart-box .cart-icon span");
+                const cartApiUrl = addToCartForm ? addToCartForm.getAttribute("action") : "";
+                let toastTimer = null;
+
+                if (!addToCartForm || !addToCartButton || !detailToast || !detailToastMessage || !cartApiUrl) {
+                    return;
+                }
+
+                const showToast = function (message, type) {
+                    detailToastMessage.textContent = message;
+                    detailToast.classList.remove("is-success", "is-error", "show");
+                    detailToast.classList.add(type === "error" ? "is-error" : "is-success");
+                    detailToast.offsetWidth;
+                    detailToast.classList.add("show");
+
+                    if (toastTimer) {
+                        window.clearTimeout(toastTimer);
+                    }
+
+                    toastTimer = window.setTimeout(function () {
+                        detailToast.classList.remove("show");
+                    }, 2600);
+                };
+
+                const parseJsonSafely = function (response) {
+                    return response.text().then(function (text) {
+                        if (!text) {
+                            return {};
+                        }
+
+                        try {
+                            return JSON.parse(text);
+                        } catch (error) {
+                            return {};
+                        }
+                    });
+                };
+
+                addToCartForm.addEventListener("submit", function (event) {
+                    event.preventDefault();
+
+                    if (addToCartButton.disabled) {
+                        showToast("San pham hien tam het hang.", "error");
+                        return;
+                    }
+
+                    addToCartButton.classList.add("is-adding");
+                    addToCartButton.classList.remove("is-added");
+
+                    const payload = new URLSearchParams(new FormData(addToCartForm));
+
+                    fetch(cartApiUrl, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        body: payload.toString()
+                    })
+                            .then(function (response) {
+                                return parseJsonSafely(response).then(function (data) {
+                                    if (!response.ok) {
+                                        throw new Error(data.message || "Khong the them san pham vao gio hang.");
+                                    }
+                                    return data;
+                                });
+                            })
+                            .then(function (data) {
+                                if (headerCartCountElement && typeof data.cartItemCount === "number") {
+                                    headerCartCountElement.textContent = data.cartItemCount;
+                                }
+
+                                addToCartButton.classList.add("is-added");
+                                window.setTimeout(function () {
+                                    addToCartButton.classList.remove("is-added");
+                                }, 1400);
+
+                                showToast(data.message || "Da them san pham vao gio hang.", "success");
+                            })
+                            .catch(function (error) {
+                                showToast(error.message || "Khong the them san pham vao gio hang.", "error");
+                            })
+                            .finally(function () {
+                                addToCartButton.classList.remove("is-adding");
+                            });
+                });
+            })();
         </script>
     </body>
 </html>

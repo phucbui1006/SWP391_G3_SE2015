@@ -191,8 +191,14 @@ VALUES
 (1, 4, 'Le Van C', '0901234567',
 'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội'),
 
-(2, 5, 'Pham Thi D', '0912345678',
-'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội');
+(2, 5, 'Pham Thu Trang', '0123456789',
+'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội'),
+
+(3, 5, 'Cong ty TNHH ABC', '0987654321',
+'Khu CNC Hòa Lạc, Thạch Thất, Hà Nội'),
+
+(4, 5, 'Nha cua bo me', '0912345678',
+'Khu CNC Hòa Lạc, Thạch Thất, Hà Nội');
 
 INSERT INTO cart (cart_id, user_id)
 VALUES

@@ -30,7 +30,7 @@ CREATE TABLE USERS (
 CREATE TABLE Address (
     address_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
-    recipient_name VARCHAR(100) UNIQUE,
+    recipient_name VARCHAR(100),
     phoneNumber VARCHAR(20) NULL,
     Address_detail VARCHAR(255),
 

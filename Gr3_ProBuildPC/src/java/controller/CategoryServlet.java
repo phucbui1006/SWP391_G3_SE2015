@@ -1,5 +1,6 @@
 package controller;
 
+import dal.CartDAO;
 import dal.CategoryDAO;
 import dal.ProductDAO;
 import jakarta.servlet.ServletException;
@@ -7,10 +8,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import model.Category;
 import model.Product;
+import model.User;
 
 @WebServlet(name = "CategoryServlet", urlPatterns = {"/categories"})
 public class CategoryServlet extends HttpServlet {
@@ -58,6 +61,15 @@ public class CategoryServlet extends HttpServlet {
         request.setAttribute("products", products);
         request.setAttribute("selectedCategory", selectedCategory);
         request.setAttribute("selectedSort", sort);
+
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            User account = (User) session.getAttribute("account");
+            if (account != null) {
+                CartDAO cartDAO = new CartDAO();
+                request.setAttribute("cartItemCount", cartDAO.getCartItemCountByUserId(account.getUserId()));
+            }
+        }
 
         request.getRequestDispatcher("/views/categories.jsp").forward(request, response);
     }

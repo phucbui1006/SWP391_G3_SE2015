@@ -183,7 +183,7 @@
                 <div class="dropdown-menu">
                     <a href="<%= ctx %>/views/profile.jsp">📋 Thông tin cá nhân</a>
                     <% if ("CUSTOMER".equals(roleName)) { %>
-                    <a href="#">📍 Địa chỉ giao hàng</a>
+                    <a href="<%= ctx %>/shipping-address">📍 Địa chỉ giao hàng</a>
                     <% } %>
                 </div>
 

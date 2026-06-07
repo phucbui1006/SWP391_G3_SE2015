@@ -171,6 +171,60 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
+    public List<Product> getProductsByBrand(Integer brandId, String priceRange, String sort) {
+        List<Product> list = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+
+        String sql
+                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
+                + "p.description, p.image_url, p.warranty_months "
+                + "FROM products p "
+                + "JOIN batch b ON p.batch_id = b.batch_id "
+                + "WHERE 1 = 1 ";
+
+        if (brandId != null) {
+            sql += "AND b.brand_id = ? ";
+            params.add(brandId);
+        }
+
+        if ("under5".equals(priceRange)) {
+            sql += "AND p.price < ? ";
+            params.add(5000000);
+        } else if ("5to10".equals(priceRange)) {
+            sql += "AND p.price BETWEEN ? AND ? ";
+            params.add(5000000);
+            params.add(10000000);
+        } else if ("10to20".equals(priceRange)) {
+            sql += "AND p.price BETWEEN ? AND ? ";
+            params.add(10000000);
+            params.add(20000000);
+        } else if ("over20".equals(priceRange)) {
+            sql += "AND p.price > ? ";
+            params.add(20000000);
+        }
+
+        sql += getOrderBy(sort);
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapProduct(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     public double getAverageRating(int productId) {
         String sql = """
             SELECT AVG(rating) AS avg_rating

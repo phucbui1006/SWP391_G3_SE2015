@@ -73,9 +73,16 @@
         <a href="#" class="menu-item">🛠 BUILD PC</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/categories" class="menu-item">
-            📦 Danh mục sản phẩm
-        </a>
+        <div class="menu-dropdown">
+            <button class="menu-item menu-dropdown-toggle" type="button">
+                📦 Danh mục sản phẩm
+                <span class="menu-dropdown-arrow">▾</span>
+            </button>
+            <div class="menu-dropdown-list">
+                <a href="<%= ctx %>/categories">Sản phẩm</a>
+                <a href="<%= ctx %>/brands">Các thương hiệu sản phẩm</a>
+            </div>
+        </div>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">📋 Lịch sử đơn hàng</a>

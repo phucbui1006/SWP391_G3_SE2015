@@ -2,14 +2,10 @@
 <%@ page import="java.util.List" %>
 <%@ page import="model.Category" %>
 <%@ page import="model.Product" %>
-<%@ page import="model.User" %>
 <%@ page import="dal.ProductDAO" %>
 
 <%
     String ctx = request.getContextPath();
-
-    User account = (User) session.getAttribute("account");
-
     List<Category> categories = (List<Category>) request.getAttribute("categories");
     List<Product> products = (List<Product>) request.getAttribute("products");
     ProductDAO productDAO = (ProductDAO) request.getAttribute("productDAO");
@@ -21,41 +17,26 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ProBuild PC</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
         <link rel="stylesheet" href="<%= ctx %>/css/style.css">
     </head>
 
     <body class="home-page">
-
         <jsp:include page="/includes/header.jsp" />
 
-<!--        <nav class="main-nav">
-            <a class="active" href="<%= ctx %>/home">🏠 Trang chủ</a>
-            <a href="<%= ctx %>/categories">Sản phẩm ▾</a>
-            <a href="#">Build PC</a>
-            <a href="#">Đơn hàng</a>
-        </nav>-->
-
         <main class="page-shell">
-
             <aside class="sidebar">
                 <h2>DANH MỤC SẢN PHẨM</h2>
 
                 <ul class="category-list">
-                    <% if (categories != null && !categories.isEmpty()) {
-                        for (Category cat : categories) {
+                    <% if (categories != null) {
+                        for (Category category : categories) {
                     %>
-
                     <li>
-                        <a href="<%= ctx %>/categories?id=<%= cat.getCategoryId() %>">
-                            ▣ <%= cat.getCategoryName() %>
+                        <a href="<%= ctx %>/categories?id=<%= category.getCategoryId() %>">
+                            ▣ <%= category.getCategoryName() %>
                         </a>
                     </li>
-
-                    <%
-                        }
-                    }
-                    %>
+                    <% }} %>
                 </ul>
 
                 <a class="all-categories" href="<%= ctx %>/categories">
@@ -64,21 +45,17 @@
             </aside>
 
             <section class="content">
-
                 <section class="hero-banner">
                     <div class="hero-copy">
                         <p>BUILD PC</p>
-
                         <h1>
                             ĐỈNH CAO HIỆU NĂNG<br>
                             NÂNG TẦM TRẢI NGHIỆM
                         </h1>
-
                         <span>
                             Linh kiện chính hãng - Giá tốt nhất<br>
                             Bảo hành uy tín - Hỗ trợ tận tâm
                         </span>
-
                         <a href="<%= ctx %>/categories">MUA NGAY</a>
                     </div>
                 </section>
@@ -118,79 +95,43 @@
                 </section>
 
                 <section class="filter-row">
-                    <div class="filters">
-
+                    <form class="filters" action="<%= ctx %>/categories" method="get">
                         <label>
                             Danh mục:
-                            <select onchange="location.href=this.value">
-                                <option value="<%= ctx %>/categories">Tất cả</option>
-
-                                <% if (categories != null && !categories.isEmpty()) {
-                                    for (Category cat : categories) {
+                            <select name="id">
+                                <option value="">Tất cả</option>
+                                <% if (categories != null) {
+                                    for (Category category : categories) {
                                 %>
-
-                                <option value="<%= ctx %>/categories?id=<%= cat.getCategoryId() %>">
-                                    <%= cat.getCategoryName() %>
+                                <option value="<%= category.getCategoryId() %>">
+                                    <%= category.getCategoryName() %>
                                 </option>
-
-                                <%
-                                    }
-                                }
-                                %>
+                                <% }} %>
                             </select>
                         </label>
+                        <button class="home-filter-btn" type="submit">Lọc</button>
+                    </form>
 
+                    <form class="sort-box" action="<%= ctx %>/categories" method="get">
                         <label>
-                            Thương hiệu:
-                            <select>
-                                <option>Tất cả</option>
-                                <option>Intel</option>
-                                <option>AMD</option>
-                                <option>ASUS</option>
-                                <option>MSI</option>
+                            Sắp xếp:
+                            <select name="sort">
+                                <option value="newest">Mới nhất</option>
+                                <option value="price_asc">Giá tăng dần</option>
+                                <option value="price_desc">Giá giảm dần</option>
                             </select>
                         </label>
-
-                        <label>
-                            Khoảng giá:
-                            <select>
-                                <option>Tất cả</option>
-                                <option>Dưới 2 triệu</option>
-                                <option>2 - 5 triệu</option>
-                                <option>Trên 5 triệu</option>
-                            </select>
-                        </label>
-
-                    </div>
-
-                    <label class="sort-box">
-                        Sắp xếp:
-                        <select onchange="location.href='<%= ctx %>/categories?sort=' + this.value">
-                            <option value="newest">Mới nhất</option>
-                            <option value="price_asc">Giá tăng dần</option>
-                            <option value="price_desc">Giá giảm dần</option>
-                        </select>
-                    </label>
+                        <button class="home-filter-btn" type="submit">Áp dụng</button>
+                    </form>
                 </section>
 
                 <section class="product-grid">
-
                     <% if (products != null && !products.isEmpty()) {
                         for (Product product : products) {
-
-                            double rating = 0;
-
-                            if (productDAO != null) {
-                                rating = productDAO.getAverageRating(product.getProductId());
-                            }
-
+                            double rating = productDAO == null ? 0 : productDAO.getAverageRating(product.getProductId());
                             int fullStars = (int) rating;
                     %>
-
                     <article class="product-card">
-
-                        <button class="wish-btn" type="button">♡</button>
-
                         <figure>
                             <img src="<%= ctx %>/<%= product.getImageUrl() %>"
                                  alt="<%= product.getProductName() %>">
@@ -206,25 +147,25 @@
                             <% for (int i = 1; i <= 5; i++) { %>
                             <%= i <= fullStars ? "★" : "☆" %>
                             <% } %>
-
                             <span><%= String.format("%.1f", rating) %></span>
                         </div>
 
                         <div class="product-actions">
-                            <a class="detail-btn"
-                               href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
+                            <a class="detail-btn" href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
                                 Xem chi tiết
                             </a>
 
-                            <button type="button" class="cart-btn">🛒</button>
+                            <form class="cart-form" action="<%= ctx %>/cart" method="post">
+                                <input type="hidden" name="action" value="addToCart">
+                                <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                                <input type="hidden" name="quantity" value="1">
+                                <button class="cart-btn" type="submit" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
+                                    🛒
+                                </button>
+                            </form>
                         </div>
-
                     </article>
-
-                    <%
-                        }
-                    } else {
-                    %>
+                    <% }} else { %>
                     <p>Không có sản phẩm nào để hiển thị.</p>
                     <% } %>
                 </section>
@@ -244,6 +185,5 @@
         </main>
 
         <jsp:include page="/includes/footer.jsp" />
-
     </body>
 </html>

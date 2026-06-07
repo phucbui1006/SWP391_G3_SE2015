@@ -1091,6 +1091,18 @@ body.home-page .filter-row select {
     outline: none;
 }
 
+body.home-page .home-filter-btn {
+    height: 38px;
+    border: 0;
+    border-radius: 5px;
+    padding: 0 15px;
+    background: #ed1c24;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
 body.home-page .product-grid {
     margin-top: 16px;
     display: grid;
@@ -1168,8 +1180,21 @@ body.home-page .product-actions button {
     font-weight: 700;
 }
 
+body.home-page .product-actions .cart-form {
+    margin: 0;
+}
+
+body.home-page .product-actions .cart-form button {
+    width: 34px;
+}
+
 body.home-page .product-actions button {
     cursor: pointer;
+}
+
+body.home-page .product-actions button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
 }
 
 body.home-page .product-psu {
@@ -1373,7 +1398,7 @@ body.home-page .home-pagination a.active {
     align-items: center;
     padding: 0 36px;
     gap: 18px;
-    overflow-x: auto;
+    overflow: visible;
 }
 
 .header-menu .menu-item {
@@ -1388,6 +1413,61 @@ body.home-page .home-pagination a.active {
 .header-menu .menu-item:hover,
 .header-menu .menu-item.active {
     color: #ed1c24 !important;
+}
+
+.menu-dropdown {
+    position: relative;
+    height: 58px;
+    display: flex;
+    align-items: center;
+}
+
+.menu-dropdown-toggle {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+}
+
+.menu-dropdown-arrow {
+    margin-left: 4px;
+    font-size: 11px;
+}
+
+.menu-dropdown-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 230px;
+    padding: 8px 0;
+    background: #111;
+    border: 1px solid #2b2b2b;
+    border-radius: 4px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+    z-index: 10001;
+}
+
+.menu-dropdown:hover .menu-dropdown-list,
+.menu-dropdown:focus-within .menu-dropdown-list {
+    display: block;
+}
+
+.menu-dropdown-list a {
+    display: block;
+    padding: 11px 16px;
+    color: #fff !important;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.menu-dropdown-list a:hover,
+.menu-dropdown-list a:focus {
+    background: #ed1c24;
+    color: #fff !important;
 }
 
 .logout {

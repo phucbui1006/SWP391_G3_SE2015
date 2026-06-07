@@ -83,10 +83,10 @@
         <div class="dashboard-content">
             <div class="dashboard-card">
 
-                <% if ("ADMIN".equals(roleName)) { %>
+                <% if ("ADMIN".equals(roleName)) {%>
 
                 <h1>Admin Dashboard</h1>
-                <p>Xin chào <b><%= account.getFullName() %></b>. Bạn đang đăng nhập với quyền <b>ADMIN</b>.</p>
+                <p>Xin chào <b><%= account.getFullName()%></b>. Bạn đang đăng nhập với quyền <b>ADMIN</b>.</p>
 
                 <div class="role-box">
                     <div class="role-item">
@@ -105,27 +105,31 @@
                     </div>
 
                     <div class="role-item"
-     onclick="location.href='${pageContext.request.contextPath}/batch'"
-     style="cursor:pointer;">
-    <h3>Lô hàng</h3>
-    <p>Quản lý lô hàng nhập vào hệ thống.</p>
-</div>
+                         onclick="location.href = '${pageContext.request.contextPath}/batch'"
+                         style="cursor:pointer;">
+                        <h3>Lô hàng</h3>
+                        <p>Quản lý lô hàng nhập vào hệ thống.</p>
+                    </div>
 
-                    <div class="role-item">
+                    <div class="role-item"
+                         onclick="location.href = '${pageContext.request.contextPath}/warranty-manage'"
+                         style="cursor:pointer;">
                         <h3>Bảo hành</h3>
                         <p>Theo dõi và xử lý thông tin bảo hành.</p>
                     </div>
 
-                    <div class="role-item">
+                    <div class="role-item"
+                         onclick="location.href = '${pageContext.request.contextPath}/revenue'"
+                         style="cursor:pointer;">
                         <h3>Thống kê doanh thu</h3>
                         <p>Xem báo cáo và thống kê doanh thu.</p>
                     </div>
                 </div>
 
-                <% } else if ("CUSTOMER".equals(roleName)) { %>
+                <% } else if ("CUSTOMER".equals(roleName)) {%>
 
                 <h1>Customer Dashboard</h1>
-                <p>Xin chào <b><%= account.getFullName() %></b>. Bạn đang đăng nhập với quyền <b>CUSTOMER</b>.</p>
+                <p>Xin chào <b><%= account.getFullName()%></b>. Bạn đang đăng nhập với quyền <b>CUSTOMER</b>.</p>
 
                 <div class="role-box">
                     <div class="role-item">
@@ -148,60 +152,65 @@
                         <p>Theo dõi các đơn hàng đã đặt.</p>
                     </div>
 
-                    <div class="role-item">
+                    <div class="role-item"
+                         onclick="location.href = '${pageContext.request.contextPath}/warranty'"
+                         style="cursor:pointer;">
                         <h3>Tra cứu bảo hành</h3>
                         <p>Kiểm tra trạng thái bảo hành sản phẩm.</p>
                     </div>
+
+                    <% } else if ("EMPLOYEE".equals(roleName)) {%>
+
+                    <h1>Employee Dashboard</h1>
+                    <p>Xin chào <b><%= account.getFullName()%></b>. Bạn đang đăng nhập với quyền <b>EMPLOYEE</b>.</p>
+
+                    <div class="role-box">
+                        <div class="role-item"
+                             onclick="location.href = '${pageContext.request.contextPath}/warranty-manage'"
+                             style="cursor:pointer;">
+                            <h3>Dịch vụ bảo hành</h3>
+                            <p>Tiếp nhận và xử lý yêu cầu bảo hành.</p>
+                        </div>
+
+                        <div class="role-item"
+                             onclick="location.href = '${pageContext.request.contextPath}/warranty-manage'"
+                             style="cursor:pointer;">
+                            <h3>Cập nhật trạng thái</h3>
+                            <p>Cập nhật tiến trình xử lý bảo hành.</p>
+                        </div>
+                    </div>
+
+                    <% } else if ("SHIPMENT".equals(roleName)) {%>
+
+                    <h1>Transport Dashboard</h1>
+                    <p>Xin chào <b><%= account.getFullName()%></b>. Bạn đang đăng nhập với quyền <b>SHIPMENT</b>.</p>
+
+                    <div class="role-box">
+                        <div class="role-item">
+                            <h3>Đơn hàng giao</h3>
+                            <p>Xem danh sách đơn hàng cần vận chuyển.</p>
+                        </div>
+
+                        <div class="role-item">
+                            <h3>Lịch sử giao hàng</h3>
+                            <p>Theo dõi các đơn hàng đã giao.</p>
+                        </div>
+
+                        <div class="role-item">
+                            <h3>Cập nhật trạng thái</h3>
+                            <p>Cập nhật trạng thái giao hàng.</p>
+                        </div>
+                    </div>
+
+                    <% } else { %>
+
+                    <h1>Không có quyền truy cập</h1>
+                    <p>Tài khoản của bạn chưa được gán vai trò hợp lệ.</p>
+
+                    <% }%>
+
                 </div>
-
-                <% } else if ("EMPLOYEE".equals(roleName)) { %>
-
-                <h1>Employee Dashboard</h1>
-                <p>Xin chào <b><%= account.getFullName() %></b>. Bạn đang đăng nhập với quyền <b>EMPLOYEE</b>.</p>
-
-                <div class="role-box">
-                    <div class="role-item">
-                        <h3>Dịch vụ bảo hành</h3>
-                        <p>Tiếp nhận và xử lý yêu cầu bảo hành.</p>
-                    </div>
-
-                    <div class="role-item">
-                        <h3>Cập nhật trạng thái</h3>
-                        <p>Cập nhật tiến trình xử lý bảo hành.</p>
-                    </div>
-                </div>
-
-                <% } else if ("SHIPMENT".equals(roleName)) { %>
-
-                <h1>Transport Dashboard</h1>
-                <p>Xin chào <b><%= account.getFullName() %></b>. Bạn đang đăng nhập với quyền <b>SHIPMENT</b>.</p>
-
-                <div class="role-box">
-                    <div class="role-item">
-                        <h3>Đơn hàng giao</h3>
-                        <p>Xem danh sách đơn hàng cần vận chuyển.</p>
-                    </div>
-
-                    <div class="role-item">
-                        <h3>Lịch sử giao hàng</h3>
-                        <p>Theo dõi các đơn hàng đã giao.</p>
-                    </div>
-
-                    <div class="role-item">
-                        <h3>Cập nhật trạng thái</h3>
-                        <p>Cập nhật trạng thái giao hàng.</p>
-                    </div>
-                </div>
-
-                <% } else { %>
-
-                <h1>Không có quyền truy cập</h1>
-                <p>Tài khoản của bạn chưa được gán vai trò hợp lệ.</p>
-
-                <% } %>
-
             </div>
-        </div>
 
     </body>
 </html>

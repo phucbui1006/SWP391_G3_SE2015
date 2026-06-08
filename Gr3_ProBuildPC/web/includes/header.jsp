@@ -154,7 +154,7 @@
         <% if (!"ADMIN".equals(roleName)) { %>
         <form class="search-box" action="<%= searchAction %>" method="get">
             <input type="text" name="keyword" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
-            <button type="submit">🔍</button>
+            <button class="search" type="submit" style="width: 80px;">Tìm kiếm</button>
         </form>
         <% } %>
         <div class="right-box">

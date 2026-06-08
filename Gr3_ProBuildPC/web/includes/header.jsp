@@ -99,7 +99,7 @@
         <a href="#" class="menu-item">📦 Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="${pageContext.request.contextPath}/views/account-management.jsp" class="menu-item">👥 Tài khoản người dùng</a>
+        <a href="<%= ctx %>/account-manager" class="menu-item">👥 Tài khoản người dùng</a>
         <span class="menu-divider"></span>
 
         <div class="menu-dropdown">

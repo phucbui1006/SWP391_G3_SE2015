@@ -3,6 +3,9 @@ package dal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+import model.Role;
 import model.User;
 
 public class UserDAO {
@@ -12,7 +15,7 @@ public class UserDAO {
                      SELECT u.user_id, u.role_id, u.full_name, u.status,
                             u.email, u.password, r.role_name
                      FROM users u
-                     JOIN Roles r ON u.role_id = r.role_id
+                     JOIN roles r ON u.role_id = r.role_id
                      WHERE u.email = ?
                        AND u.password = ?
                        AND u.status = 'ACTIVE'
@@ -117,11 +120,9 @@ public class UserDAO {
     }
 
     public boolean updateProfile(String email, String fullName, String password) {
-        // SỬA: Đổi [User] thành users, [fullName] thành full_name cho khớp với Database của bạn
         String sql = "UPDATE users SET full_name = ?, password = ? WHERE email = ?";
 
         try {
-            // SỬA: Khởi tạo kết nối conn thông qua lớp DBContext() giống các hàm bên trên của bạn
             Connection conn = new DBContext().getConnection();
             PreparedStatement st = conn.prepareStatement(sql);
 
@@ -138,10 +139,200 @@ public class UserDAO {
 
             return rowsAffected > 0;
 
-        } catch (Exception e) { // SỬA: Đổi sang Exception để bắt toàn bộ lỗi kết nối nếu có
+        } catch (Exception e) {
             System.out.println("LOI UPDATE PROFILE:");
             e.printStackTrace();
         }
         return false;
+    }
+
+    public List<User> getUsers(String keyword, Integer roleId, String status, int offset, int pageSize) {
+        List<User> users = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+
+        String sql = """
+                     SELECT u.user_id, u.role_id, u.full_name, u.status,
+                            u.email, u.password, r.role_name
+                     FROM users u
+                     JOIN roles r ON u.role_id = r.role_id
+                     """
+                + buildUserFilterClause(keyword, roleId, status, params)
+                + """
+                     ORDER BY u.user_id ASC
+                     LIMIT ? OFFSET ?
+                     """;
+
+        params.add(pageSize);
+        params.add(offset);
+
+        try {
+            Connection conn = new DBContext().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            bindParameters(ps, params);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                User user = new User();
+                user.setUserId(rs.getInt("user_id"));
+                user.setRoleId(rs.getInt("role_id"));
+                user.setFullName(rs.getString("full_name"));
+                user.setStatus(rs.getString("status"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setRoleName(rs.getString("role_name"));
+                users.add(user);
+            }
+        } catch (Exception e) {
+            System.out.println("Loi getUsers:");
+            e.printStackTrace();
+        }
+
+        return users;
+    }
+
+    public int countUsers(String keyword, Integer roleId, String status) {
+        List<Object> params = new ArrayList<>();
+
+        String sql = """
+                     SELECT COUNT(*)
+                     FROM users u
+                     JOIN roles r ON u.role_id = r.role_id
+                     """
+                + buildUserFilterClause(keyword, roleId, status, params);
+
+        try {
+            Connection conn = new DBContext().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            bindParameters(ps, params);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            System.out.println("Loi countUsers:");
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    public List<Role> getRoles() {
+        List<Role> roles = new ArrayList<>();
+        String sql = """
+                     SELECT role_id, role_name
+                     FROM roles
+                     ORDER BY role_id ASC
+                     """;
+
+        try {
+            Connection conn = new DBContext().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                roles.add(new Role(
+                        rs.getInt("role_id"),
+                        rs.getString("role_name")
+                ));
+            }
+        } catch (Exception e) {
+            System.out.println("Loi getRoles:");
+            e.printStackTrace();
+        }
+
+        return roles;
+    }
+
+    public boolean updateUserRole(int userId, int roleId) {
+        String sql = """
+                     UPDATE users u
+                     JOIN roles current_role ON u.role_id = current_role.role_id
+                     SET u.role_id = ?
+                     WHERE u.user_id = ?
+                       AND UPPER(current_role.role_name) <> 'ADMIN'
+                       AND EXISTS (
+                           SELECT 1
+                           FROM roles target_role
+                           WHERE target_role.role_id = ?
+                       )
+                     """;
+
+        try {
+            Connection conn = new DBContext().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, roleId);
+            ps.setInt(2, userId);
+            ps.setInt(3, roleId);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("Loi updateUserRole:");
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean updateUserStatus(int userId, String status) {
+        String sql = """
+                     UPDATE users u
+                     JOIN roles r ON u.role_id = r.role_id
+                     SET u.status = ?
+                     WHERE u.user_id = ?
+                       AND UPPER(r.role_name) <> 'ADMIN'
+                     """;
+
+        try {
+            Connection conn = new DBContext().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, status);
+            ps.setInt(2, userId);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("Loi updateUserStatus:");
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    private String buildUserFilterClause(String keyword, Integer roleId, String status, List<Object> params) {
+        StringBuilder sql = new StringBuilder(" WHERE 1 = 1 ");
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String searchValue = "%" + keyword.trim().toLowerCase() + "%";
+            sql.append(" AND (LOWER(u.full_name) LIKE ? OR LOWER(u.email) LIKE ?) ");
+            params.add(searchValue);
+            params.add(searchValue);
+        }
+
+        if (roleId != null) {
+            sql.append(" AND u.role_id = ? ");
+            params.add(roleId);
+        }
+
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND UPPER(u.status) = ? ");
+            params.add(status.trim().toUpperCase());
+        }
+
+        return sql.toString();
+    }
+
+    private void bindParameters(PreparedStatement ps, List<Object> params) throws Exception {
+        for (int i = 0; i < params.size(); i++) {
+            Object value = params.get(i);
+            int index = i + 1;
+
+            if (value instanceof Integer integerValue) {
+                ps.setInt(index, integerValue);
+            } else {
+                ps.setString(index, String.valueOf(value));
+            }
+        }
     }
 }

@@ -24,6 +24,7 @@
     String placeholder = "Tìm kiếm...";
     String searchAction = "#";
     String searchKeyword = request.getParameter("keyword");
+    String ctx = request.getContextPath();
 
     if (account != null) {
         roleName = account.getRoleName();
@@ -38,6 +39,7 @@
 
          if ("CUSTOMER".equals(roleName)) {
             placeholder = "Tìm kiếm linh kiện...";
+            searchAction = ctx + "/home";
         } else if ("EMPLOYEE".equals(roleName)) {
             placeholder = "Tìm kiếm yêu cầu bảo hành...";
         } else if ("SHIPMENT".equals(roleName)) {
@@ -46,9 +48,9 @@
     } else {
         roleName = "CUSTOMER";
         placeholder = "Tìm kiếm linh kiện...";
+        searchAction = ctx + "/home";
     }
 
-    String ctx = request.getContextPath();
     Integer cartItemCount = (Integer) request.getAttribute("cartItemCount");
     Integer sessionCartItemCount = (Integer) session.getAttribute("sessionCartItemCount");
 
@@ -138,9 +140,7 @@
         <a href="#" class="menu-item">🚚 Lịch sử giao hàng</a>
         <% } %>
 
-        <% if (account != null) { %>
-        <a href="<%= ctx %>/Logout" class="menu-item logout">Đăng xuất</a>
-        <% } %>
+
     </nav>
 
     <div class="header-bottom">
@@ -192,6 +192,8 @@
                     <% if ("CUSTOMER".equals(roleName)) { %>
                     <a href="<%= ctx %>/shipping-address">📍 Địa chỉ giao hàng</a>
                     <% } %>
+                    <a href="<%= ctx %>/Logout" class="menu-item logout">Đăng xuất</a>
+
                 </div>
 
             </div>

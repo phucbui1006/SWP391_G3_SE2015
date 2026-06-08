@@ -4,11 +4,28 @@
 <%@ page import="model.Product" %>
 <%@ page import="dal.ProductDAO" %>
 
+<%!
+    private String h(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+%>
+
 <%
     String ctx = request.getContextPath();
     List<Category> categories = (List<Category>) request.getAttribute("categories");
     List<Product> products = (List<Product>) request.getAttribute("products");
     ProductDAO productDAO = (ProductDAO) request.getAttribute("productDAO");
+    String keyword = (String) request.getAttribute("keyword");
+    boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
 %>
 
 <!DOCTYPE html>
@@ -125,6 +142,13 @@
                     </form>
                 </section>
 
+                <% if (hasKeyword) { %>
+                <div class="home-search-result">
+                    <h2>Kết quả tìm kiếm cho "<%= h(keyword) %>"</h2>
+                    <a href="<%= ctx %>/home">Xem tất cả sản phẩm</a>
+                </div>
+                <% } %>
+
                 <section class="product-grid">
                     <% if (products != null && !products.isEmpty()) {
                         for (Product product : products) {
@@ -166,7 +190,9 @@
                         </div>
                     </article>
                     <% }} else { %>
-                    <p>Không có sản phẩm nào để hiển thị.</p>
+                    <p class="home-empty-message">
+                        <%= hasKeyword ? "Không tìm thấy sản phẩm phù hợp." : "Không có sản phẩm nào để hiển thị." %>
+                    </p>
                     <% } %>
                 </section>
             </section>

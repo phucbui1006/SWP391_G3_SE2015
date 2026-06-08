@@ -19,6 +19,7 @@ public class ShippingAddressServlet extends HttpServlet {
     private static final String VIEW_PATH = "/views/shipping-address.jsp";
     private static final String FLASH_SUCCESS = "shippingAddressSuccess";
     private static final String FLASH_ERROR = "shippingAddressError";
+    private static final String FIXED_ADDRESS_SUFFIX = "Xã Hòa Lạc, Hà Nội";
 
     private final AddressDAO addressDAO = new AddressDAO();
 
@@ -60,17 +61,18 @@ public class ShippingAddressServlet extends HttpServlet {
             throws ServletException, IOException {
         String recipientName = safeTrim(request.getParameter("recipientName"));
         String phoneNumber = safeTrim(request.getParameter("phoneNumber"));
-        String addressDetail = safeTrim(request.getParameter("addressDetail"));
+        String addressDetailPart = extractAddressDetailPart(request.getParameter("addressDetail"));
         Integer addressId = parsePositiveInteger(request.getParameter("addressId"));
 
         request.setAttribute("formAction", updateMode ? "update" : "create");
         request.setAttribute("formAddressId", addressId != null ? String.valueOf(addressId) : "");
         request.setAttribute("formRecipientName", recipientName);
         request.setAttribute("formPhoneNumber", phoneNumber);
-        request.setAttribute("formAddressDetail", addressDetail);
+        request.setAttribute("formAddressDetail", addressDetailPart);
         request.setAttribute("activeAddressId", addressId);
+        request.setAttribute("fixedAddressSuffix", FIXED_ADDRESS_SUFFIX);
 
-        if (recipientName.isEmpty() || phoneNumber.isEmpty() || addressDetail.isEmpty()) {
+        if (recipientName.isEmpty() || phoneNumber.isEmpty() || addressDetailPart.isEmpty()) {
             request.setAttribute("errorMsg", "Vui long nhap day du ten nguoi nhan, so dien thoai va dia chi.");
             renderPage(request, response, account);
             return;
@@ -96,7 +98,7 @@ public class ShippingAddressServlet extends HttpServlet {
         address.setUserId(account.getUserId());
         address.setRecipientName(recipientName);
         address.setPhoneNumber(phoneNumber);
-        address.setAddressDetail(addressDetail);
+        address.setAddressDetail(buildFullAddress(addressDetailPart));
 
         boolean saved = updateMode ? addressDAO.updateAddress(address) : addressDAO.addAddress(address);
         if (saved) {
@@ -137,6 +139,7 @@ public class ShippingAddressServlet extends HttpServlet {
             throws ServletException, IOException {
         List<Address> addresses = addressDAO.getAddressesByUserId(account.getUserId());
         request.setAttribute("addresses", addresses);
+        request.setAttribute("fixedAddressSuffix", FIXED_ADDRESS_SUFFIX);
 
         CartDAO cartDAO = new CartDAO();
         request.setAttribute("cartItemCount", cartDAO.getCartItemCountByUserId(account.getUserId()));
@@ -157,7 +160,7 @@ public class ShippingAddressServlet extends HttpServlet {
                 request.setAttribute("formAddressId", String.valueOf(editingAddress.getAddressId()));
                 request.setAttribute("formRecipientName", safeTrim(editingAddress.getRecipientName()));
                 request.setAttribute("formPhoneNumber", safeTrim(editingAddress.getPhoneNumber()));
-                request.setAttribute("formAddressDetail", safeTrim(editingAddress.getAddressDetail()));
+                request.setAttribute("formAddressDetail", extractAddressDetailPart(editingAddress.getAddressDetail()));
                 request.setAttribute("activeAddressId", editingAddress.getAddressId());
                 return;
             }
@@ -215,5 +218,33 @@ public class ShippingAddressServlet extends HttpServlet {
 
     private String safeTrim(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private String extractAddressDetailPart(String rawAddress) {
+        String value = safeTrim(rawAddress);
+        if (value.isEmpty()) {
+            return "";
+        }
+
+        String normalizedSuffix = FIXED_ADDRESS_SUFFIX.toLowerCase();
+        String normalizedValue = value.toLowerCase();
+        if (normalizedValue.endsWith(normalizedSuffix)) {
+            value = value.substring(0, value.length() - FIXED_ADDRESS_SUFFIX.length()).trim();
+        }
+
+        while (value.endsWith(",")) {
+            value = value.substring(0, value.length() - 1).trim();
+        }
+
+        return value;
+    }
+
+    private String buildFullAddress(String addressDetailPart) {
+        String detailPart = extractAddressDetailPart(addressDetailPart);
+        if (detailPart.isEmpty()) {
+            return FIXED_ADDRESS_SUFFIX;
+        }
+
+        return detailPart + ", " + FIXED_ADDRESS_SUFFIX;
     }
 }

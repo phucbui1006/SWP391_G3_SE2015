@@ -3702,6 +3702,60 @@ body.shipping-address-page .shipping-address-field textarea::placeholder {
     color: #9aa4b2;
 }
 
+body.shipping-address-page .shipping-address-detail-composer {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid #d7ddea;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #ffffff;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+body.shipping-address-page .shipping-address-detail-composer:focus-within {
+    border-color: rgba(239, 68, 68, 0.55);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.10);
+    transform: translateY(-1px);
+}
+
+body.shipping-address-page .shipping-address-detail-composer input {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+body.shipping-address-page .shipping-address-detail-composer input:focus {
+    border: 0;
+    box-shadow: none;
+    transform: none;
+}
+
+body.shipping-address-page .shipping-address-detail-suffix {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 16px;
+    border-left: 1px solid #e5eaf2;
+    background: #fff7f7;
+    color: #dc2626;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+body.shipping-address-page .shipping-address-detail-example {
+    margin: 10px 4px 0;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+body.shipping-address-page .shipping-address-detail-example strong {
+    color: #dc2626;
+}
+
 body.shipping-address-page .shipping-address-form-actions {
     padding-top: 6px;
 }
@@ -3811,6 +3865,17 @@ body.shipping-address-page .shipping-address-empty-state p {
     body.shipping-address-page .shipping-address-panel-header h1,
     body.shipping-address-page .shipping-address-panel-header h2 {
         font-size: 24px;
+    }
+
+    body.shipping-address-page .shipping-address-detail-composer {
+        flex-direction: column;
+    }
+
+    body.shipping-address-page .shipping-address-detail-suffix {
+        border-left: 0;
+        border-top: 1px solid #e5eaf2;
+        min-height: 46px;
+        justify-content: flex-start;
     }
 
     body.shipping-address-page .shipping-address-card {

@@ -25,7 +25,7 @@ select {
 
 /* ==================== LOGIN / REGISTER / FORGOT PASSWORD ==================== */
 
-body:not(.home-page):not(.dashboard-body):not(.profile-body):not(.cart-page):not(.categories-page):not(.product-detail-body):not(.admin-brand-body):not(.shipping-address-page) {
+body:not(.home-page):not(.dashboard-body):not(.profile-body):not(.cart-page):not(.categories-page):not(.product-detail-body):not(.admin-brand-body):not(.shipping-address-page):not(.account-management-body) {
     background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
         url('../images/background.jpg') no-repeat center center fixed;
     background-size: cover;
@@ -616,6 +616,202 @@ body.dashboard-body {
 .pagination-link.disabled {
     color: #cccccc;
     cursor: not-allowed;
+}
+
+/* ==================== ACCOUNT MANAGEMENT PAGE ==================== */
+
+body.account-management-body {
+    background: #eef1f6;
+}
+
+.account-management-page {
+    max-width: 1440px;
+    padding: 26px 24px 48px;
+}
+
+.account-filter-section {
+    align-items: flex-end;
+    margin-bottom: 16px;
+}
+
+.account-filter-form {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    width: 100%;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.account-filter-form .search-box-wrapper {
+    max-width: 560px;
+}
+
+.account-filter-form .search-input-group input {
+    height: 42px;
+    border-radius: 8px;
+    border-color: #d8dde7;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.account-filter-form .filter-group-right {
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.account-search-button {
+    height: 38px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 7px;
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.account-management-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.account-management-card .card-header-title {
+    margin: 0;
+    padding: 14px 18px;
+    border-bottom: 1px solid #e5e9f0;
+    background: #ffffff;
+    font-size: 0.95rem;
+}
+
+.account-management-card .user-table th,
+.account-management-card .user-table td {
+    padding: 12px 18px;
+}
+
+.account-management-card .user-table tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+.account-management-card .user-table tbody tr:hover {
+    background: #f1f5f9;
+}
+
+.account-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #243b53 0%, #22c55e 100%);
+    color: #ffffff;
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.account-inline-form {
+    display: inline-flex;
+}
+
+.account-management-card .table-role-select {
+    min-width: 130px;
+    height: 36px;
+    border-color: #cfd6e2;
+    border-radius: 8px;
+    color: #1f2937;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.account-management-card .table-role-select:disabled {
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.account-management-card .status-badge {
+    min-width: 82px;
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.13);
+}
+
+.account-management-card .action-btn-group form {
+    display: inline-flex;
+}
+
+.account-management-card .btn-action {
+    min-width: 86px;
+    justify-content: center;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16);
+}
+
+.account-management-card .btn-action.btn-active {
+    background: #0b6fab;
+}
+
+.account-management-card .btn-action.btn-ban {
+    background: #d71920;
+}
+
+.account-management-card .action-cell-text {
+    font-style: normal;
+    font-weight: 700;
+    color: #475569;
+}
+
+.account-management-card .table-footer {
+    margin: 0;
+    padding: 14px 18px;
+    border-top: 1px solid #e5e9f0;
+    background: #ffffff;
+}
+
+.account-alert {
+    margin-bottom: 14px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.account-alert.success {
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.account-alert.error {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.account-empty-state {
+    padding: 34px 20px !important;
+    text-align: center;
+    color: #64748b !important;
+    font-weight: 700;
+}
+
+@media (max-width: 920px) {
+    .account-filter-form,
+    .account-filter-form .filter-group-right,
+    .account-filter-form .search-box-wrapper {
+        width: 100%;
+        max-width: none;
+    }
+
+    .account-filter-form .filter-box-wrapper,
+    .account-filter-form .filter-select,
+    .account-search-button {
+        width: 100%;
+    }
+
+    .account-management-card {
+        overflow-x: auto;
+    }
+
+    .account-management-card .user-table {
+        min-width: 940px;
+    }
 }
 
 /* ==================== HOME PAGE - PROBUILD PC ==================== */

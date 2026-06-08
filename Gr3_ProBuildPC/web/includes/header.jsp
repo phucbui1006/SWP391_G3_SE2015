@@ -99,7 +99,7 @@
         <a href="#" class="menu-item">📦 Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">👥 Tài khoản người dùng</a>
+        <a href="<%= ctx %>/AccountManagement" class="menu-item">👥 Tài khoản người dùng</a>
         <span class="menu-divider"></span>
 
         <div class="menu-dropdown">

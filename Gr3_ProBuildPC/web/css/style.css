@@ -1500,23 +1500,29 @@ body.home-page .home-pagination a.active {
     border: 1px solid #ddd;
     border-radius: 5px;
     overflow: hidden;
+    background: #fff;
 }
 
-.search-box input {
+.search-box input,
+.search-input {
     flex: 1;
+    min-width: 0;
     border: none;
     outline: none;
     padding: 0 18px;
     font-size: 14px;
 }
 
-.search-box button {
-    width: 58px;
+.search-box button,
+.search-submit {
+    flex: 0 0 92px;
     border: none;
     background: #ed1c24;
     color: white;
-    font-size: 18px;
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .right-box {
@@ -3248,22 +3254,6 @@ body.shipping-address-page .logo-box {
     min-width: 290px;
 }
 
-body.shipping-address-page .search-box {
-    flex: 1 1 760px;
-    max-width: 760px;
-    height: 56px;
-    border-radius: 8px;
-}
-
-body.shipping-address-page .search-box input {
-    font-size: 15px;
-}
-
-body.shipping-address-page .search-box button {
-    width: 74px;
-    font-size: 22px;
-}
-
 body.shipping-address-page .right-box {
     gap: 34px;
     flex-shrink: 0;
@@ -3674,10 +3664,6 @@ body.shipping-address-page .shipping-address-empty-state p {
 @media (max-width: 1080px) {
     body.shipping-address-page .header-bottom {
         gap: 24px;
-    }
-
-    body.shipping-address-page .search-box {
-        max-width: none;
     }
 
     body.shipping-address-page .shipping-address-grid {

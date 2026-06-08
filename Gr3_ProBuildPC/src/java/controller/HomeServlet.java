@@ -27,14 +27,20 @@ public class HomeServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
+        String keyword = request.getParameter("keyword");
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+
         List<Category> categories = categoryDAO.getAllCategories();
-        List<Product> products = productDAO.getAllProducts("newest");
+        List<Product> products = normalizedKeyword.isEmpty()
+                ? productDAO.getAllProducts("newest")
+                : productDAO.searchProducts(normalizedKeyword, "newest");
 
         System.out.println("HOME PRODUCTS SIZE = " + products.size());
 
         request.setAttribute("categories", categories);
         request.setAttribute("products", products);
         request.setAttribute("productDAO", productDAO);
+        request.setAttribute("keyword", normalizedKeyword);
 
         User account = (User) request.getSession().getAttribute("account");
         if (account != null) {

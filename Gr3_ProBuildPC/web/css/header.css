@@ -84,7 +84,7 @@ body {
 .menu-dropdown-list a {
     display: block;
     padding: 11px 16px;
-    color: #fff;
+    color: #fff !important;
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
@@ -94,7 +94,7 @@ body {
 .menu-dropdown-list a:hover,
 .menu-dropdown-list a:focus {
     background: #ed1c24;
-    color: #fff;
+    color: #fff !important;
 }
 
 .logout {

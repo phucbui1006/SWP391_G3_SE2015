@@ -183,7 +183,7 @@
                                 <input type="hidden" name="action" value="addToCart">
                                 <input type="hidden" name="productId" value="<%= product.getProductId() %>">
                                 <input type="hidden" name="quantity" value="1">
-                                <button class="cart-btn" type="submit" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
+                                <button class="cart-btn" type="submit" data-add-to-cart-btn data-product-name="<%= h(product.getProductName()) %>" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
                                     🛒
                                 </button>
                             </form>
@@ -198,6 +198,170 @@
             </section>
         </main>
 
+        <div class="home-toast" data-home-toast hidden>
+            <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
+            <div class="home-toast-message" data-home-toast-message></div>
+        </div>
+
         <jsp:include page="/includes/footer.jsp" />
+
+        <script>
+            (function () {
+                const addToCartForms = document.querySelectorAll('.cart-form');
+                const headerCartCountElement = document.querySelector('.cart-box .cart-icon span');
+                const cartIconElement = document.querySelector('.cart-box .cart-icon');
+                const toastElement = document.querySelector('[data-home-toast]');
+                const toastMessageElement = document.querySelector('[data-home-toast-message]');
+                const toastIconElement = document.querySelector('[data-home-toast-icon]');
+                let toastTimerId = null;
+
+                if (!addToCartForms.length) {
+                    return;
+                }
+
+                const showToast = function (message, isSuccess) {
+                    if (!toastElement || !toastMessageElement || !toastIconElement) {
+                        return;
+                    }
+
+                    if (toastTimerId) {
+                        window.clearTimeout(toastTimerId);
+                    }
+
+                    toastMessageElement.textContent = message;
+                    toastIconElement.textContent = isSuccess ? '+' : '!';
+                    toastElement.hidden = false;
+                    toastElement.classList.remove('is-success', 'is-error');
+                    toastElement.classList.add(isSuccess ? 'is-success' : 'is-error');
+
+                    window.requestAnimationFrame(function () {
+                        toastElement.classList.add('is-visible');
+                    });
+
+                    toastTimerId = window.setTimeout(function () {
+                        toastElement.classList.remove('is-visible');
+                        window.setTimeout(function () {
+                            if (!toastElement.classList.contains('is-visible')) {
+                                toastElement.hidden = true;
+                            }
+                        }, 220);
+                    }, 2600);
+                };
+
+                const animateProductFlyToCart = function (form) {
+                    if (!cartIconElement || !form) {
+                        return;
+                    }
+
+                    const productCard = form.closest('.product-card');
+                    const productImage = productCard ? productCard.querySelector('figure img') : null;
+
+                    if (!productImage) {
+                        cartIconElement.classList.add('is-bumping');
+                        window.setTimeout(function () {
+                            cartIconElement.classList.remove('is-bumping');
+                        }, 520);
+                        return;
+                    }
+
+                    const imageRect = productImage.getBoundingClientRect();
+                    const cartRect = cartIconElement.getBoundingClientRect();
+                    const flyingImage = productImage.cloneNode(true);
+
+                    flyingImage.className = 'home-cart-flight';
+                    flyingImage.alt = '';
+                    flyingImage.setAttribute('aria-hidden', 'true');
+                    flyingImage.style.left = imageRect.left + 'px';
+                    flyingImage.style.top = imageRect.top + 'px';
+                    flyingImage.style.width = imageRect.width + 'px';
+                    flyingImage.style.height = imageRect.height + 'px';
+                    flyingImage.style.setProperty('--cart-flight-x', (cartRect.left - imageRect.left) + 'px');
+                    flyingImage.style.setProperty('--cart-flight-y', (cartRect.top - imageRect.top) + 'px');
+
+                    document.body.appendChild(flyingImage);
+
+                    window.requestAnimationFrame(function () {
+                        flyingImage.classList.add('is-flying');
+                    });
+
+                    window.setTimeout(function () {
+                        cartIconElement.classList.add('is-bumping');
+                    }, 520);
+
+                    window.setTimeout(function () {
+                        cartIconElement.classList.remove('is-bumping');
+                        flyingImage.remove();
+                    }, 980);
+                };
+
+                const handleAddToCart = function (form) {
+                    const submitButton = form.querySelector('[data-add-to-cart-btn]');
+                    if (!submitButton || submitButton.disabled || submitButton.classList.contains('is-adding')) {
+                        return;
+                    }
+
+                    const requestUrl = form.getAttribute('action') || '<%= ctx %>/cart';
+                    submitButton.classList.add('is-adding');
+
+                    fetch(requestUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new URLSearchParams(new FormData(form)).toString()
+                    })
+                            .then(function (response) {
+                                return response.json().catch(function () {
+                                    return {};
+                                }).then(function (data) {
+                                    return {response: response, data: data};
+                                });
+                            })
+                            .then(function (result) {
+                                const response = result.response;
+                                const data = result.data || {};
+
+                                if (response.status === 401) {
+                                    showToast('Vui long dang nhap de them san pham vao gio hang.', false);
+                                    window.setTimeout(function () {
+                                        window.location.href = '<%= ctx %>/Login';
+                                    }, 900);
+                                    return;
+                                }
+
+                                if (!response.ok || !data.success) {
+                                    showToast(data.message || 'Khong the them san pham vao gio hang luc nay.', false);
+                                    return;
+                                }
+
+                                if (headerCartCountElement && typeof data.cartItemCount === 'number') {
+                                    headerCartCountElement.textContent = data.cartItemCount;
+                                }
+
+                                animateProductFlyToCart(form);
+                                submitButton.classList.add('is-added');
+                                showToast(data.message || 'Da them san pham vao gio hang.', true);
+
+                                window.setTimeout(function () {
+                                    submitButton.classList.remove('is-added');
+                                }, 1400);
+                            })
+                            .catch(function () {
+                                showToast('Khong the ket noi den gio hang luc nay.', false);
+                            })
+                            .finally(function () {
+                                submitButton.classList.remove('is-adding');
+                            });
+                };
+
+                addToCartForms.forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        event.preventDefault();
+                        handleAddToCart(form);
+                    });
+                });
+            })();
+        </script>
     </body>
 </html>

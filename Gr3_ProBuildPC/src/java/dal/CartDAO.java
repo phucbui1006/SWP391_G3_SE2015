@@ -124,6 +124,8 @@ public class CartDAO extends DBContext {
                         return rs.getInt(1);
                     }
                 }
+
+                return findCartItemId(cartId, productId);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -160,12 +162,14 @@ public class CartDAO extends DBContext {
                         return rs.getInt(1);
                     }
                 }
+
+                return findCartIdByUserId(userId);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return -1;
+        return findCartIdByUserId(userId);
     }
 
     private CartItem mapCartItem(ResultSet rs) throws SQLException {
@@ -195,5 +199,42 @@ public class CartDAO extends DBContext {
         product.setCategoryName(rs.getString("category_name"));
 
         return product;
+    }
+
+    private int findCartIdByUserId(int userId) {
+        String sql = "SELECT cart_id FROM cart WHERE user_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("cart_id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
+    private int findCartItemId(int cartId, int productId) {
+        String sql = "SELECT cart_item_id FROM cart_items WHERE cart_id = ? AND product_id = ? ORDER BY cart_item_id DESC LIMIT 1";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, cartId);
+            ps.setInt(2, productId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("cart_item_id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
     }
 }

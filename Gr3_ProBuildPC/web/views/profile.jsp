@@ -60,8 +60,7 @@
                     <div class="profile-form-group">
                         <label class="profile-label">Email</label>
                         <div class="profile-input-wrapper">
-                            <input type="email" name="email" value="phamthutrang@gmail.com" readonly>
-                            <i class="fa-solid fa-lock lock-icon"></i>
+                            <input type="email" name="email" value="${sessionScope.account.email}" readonly>                            <i class="fa-solid fa-lock lock-icon"></i>
                         </div>
                     </div>
 

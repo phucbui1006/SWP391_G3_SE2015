@@ -52,6 +52,10 @@ public class LoginServlet extends HttpServlet {
         // 2. Gọi tầng DAL để xác thực tài khoản từ database
         UserDAO dao = new UserDAO();
         User user = dao.login(email, password);
+        if (user != null) {
+    HttpSession session = request.getSession();
+    session.setAttribute("account", user); // Lưu đối tượng user vào session với key là "account"
+}
 
         // Trường hợp đăng nhập thất bại (Sai tài khoản hoặc mật khẩu)
         if (user == null) {

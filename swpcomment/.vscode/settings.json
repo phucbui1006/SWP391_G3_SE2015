@@ -1,9 +1,0 @@
-{
-  "java.project.sourcePaths": [
-    "src/java"
-  ],
-  "java.project.outputPath": "build/classes",
-  "java.project.referencedLibraries": [
-    "lib/**/*.jar"
-  ]
-}

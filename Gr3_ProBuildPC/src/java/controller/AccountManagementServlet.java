@@ -14,7 +14,7 @@ import java.util.List;
 import model.Role;
 import model.User;
 
-@WebServlet(name = "AccountManagementServlet", urlPatterns = {"/account-manager"})
+@WebServlet(name = "AccountManagementServlet", urlPatterns = {"/AccountManagement"})
 public class AccountManagementServlet extends HttpServlet {
 
     private static final int PAGE_SIZE = 10;
@@ -32,42 +32,33 @@ public class AccountManagementServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
-        String keyword = normalizeKeyword(request.getParameter("keyword"));
-        String selectedStatus = normalizeStatus(request.getParameter("status"));
-        Integer selectedRoleId = parsePositiveInt(request.getParameter("roleId"));
-        int currentPage = parsePage(request.getParameter("page"));
+        String keyword = normalizeText(request.getParameter("keyword"));
+        Integer roleId = parseId(request.getParameter("roleId"));
+        String status = normalizeStatus(request.getParameter("status"));
+        int page = parsePositiveInt(request.getParameter("page"), 1);
 
+        int totalUsers = userDAO.countUsers(keyword, roleId, status);
+        int totalPages = Math.max(1, (int) Math.ceil(totalUsers / (double) PAGE_SIZE));
+
+        if (page > totalPages) {
+            page = totalPages;
+        }
+
+        List<User> users = userDAO.getUsers(keyword, roleId, status, page, PAGE_SIZE);
         List<Role> roles = userDAO.getRoles();
-        if (!containsRoleId(roles, selectedRoleId)) {
-            selectedRoleId = null;
-        }
 
-        int totalUsers = userDAO.countUsers(keyword, selectedRoleId, selectedStatus);
-        int totalPages = totalUsers == 0 ? 1 : (int) Math.ceil((double) totalUsers / PAGE_SIZE);
-
-        if (currentPage > totalPages) {
-            currentPage = totalPages;
-        }
-
-        int offset = (currentPage - 1) * PAGE_SIZE;
-        List<User> users = userDAO.getUsers(keyword, selectedRoleId, selectedStatus, offset, PAGE_SIZE);
-        int startUserIndex = totalUsers == 0 ? 0 : offset + 1;
-        int endUserIndex = totalUsers == 0 ? 0 : offset + users.size();
-
-        moveFlashMessage(session, request, "accountManagerSuccess", "success");
-        moveFlashMessage(session, request, "accountManagerError", "error");
-
-        request.setAttribute("activeMenu", "accounts");
         request.setAttribute("users", users);
         request.setAttribute("roles", roles);
         request.setAttribute("keyword", keyword);
-        request.setAttribute("selectedRoleId", selectedRoleId);
-        request.setAttribute("selectedStatus", selectedStatus);
-        request.setAttribute("currentPage", currentPage);
-        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("selectedRoleId", roleId);
+        request.setAttribute("selectedStatus", status);
+        request.setAttribute("page", page);
+        request.setAttribute("pageSize", PAGE_SIZE);
         request.setAttribute("totalUsers", totalUsers);
-        request.setAttribute("startUserIndex", startUserIndex);
-        request.setAttribute("endUserIndex", endUserIndex);
+        request.setAttribute("totalPages", totalPages);
+
+        moveFlashToRequest(session, request, "accountSuccess", "success");
+        moveFlashToRequest(session, request, "accountError", "error");
 
         request.getRequestDispatcher("/views/account-management.jsp").forward(request, response);
     }
@@ -85,51 +76,20 @@ public class AccountManagementServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
 
         String action = request.getParameter("action");
+        Integer userId = parseId(request.getParameter("userId"));
+        User currentAdmin = (User) session.getAttribute("account");
 
-        if ("changeRole".equals(action)) {
-            changeRole(request, session);
-        } else if ("changeStatus".equals(action)) {
-            changeStatus(request, session);
+        if (userId == null) {
+            session.setAttribute("accountError", "Tài khoản cần cập nhật không hợp lệ.");
+        } else if ("updateRole".equals(action)) {
+            updateRole(request, session, currentAdmin, userId);
+        } else if ("updateStatus".equals(action)) {
+            updateStatus(request, session, currentAdmin, userId);
         } else {
-            session.setAttribute("accountManagerError", "Thao tác không hợp lệ.");
+            session.setAttribute("accountError", "Thao tác không hợp lệ.");
         }
 
-        response.sendRedirect(buildRedirectUrl(request));
-    }
-
-    private void changeRole(HttpServletRequest request, HttpSession session) {
-        Integer userId = parsePositiveInt(request.getParameter("userId"));
-        Integer roleId = parsePositiveInt(request.getParameter("roleId"));
-
-        if (userId == null || roleId == null) {
-            session.setAttribute("accountManagerError", "Thông tin cập nhật vai trò không hợp lệ.");
-            return;
-        }
-
-        if (userDAO.updateUserRole(userId, roleId)) {
-            session.setAttribute("accountManagerSuccess", "Cập nhật vai trò người dùng thành công.");
-        } else {
-            session.setAttribute("accountManagerError", "Không thể cập nhật vai trò cho tài khoản này.");
-        }
-    }
-
-    private void changeStatus(HttpServletRequest request, HttpSession session) {
-        Integer userId = parsePositiveInt(request.getParameter("userId"));
-        String targetStatus = normalizeStatus(request.getParameter("targetStatus"));
-
-        if (userId == null || targetStatus == null) {
-            session.setAttribute("accountManagerError", "Thông tin cập nhật trạng thái không hợp lệ.");
-            return;
-        }
-
-        if (userDAO.updateUserStatus(userId, targetStatus)) {
-            String message = "ACTIVE".equals(targetStatus)
-                    ? "Kích hoạt tài khoản thành công."
-                    : "Đã cấm tài khoản thành công.";
-            session.setAttribute("accountManagerSuccess", message);
-        } else {
-            session.setAttribute("accountManagerError", "Không thể cập nhật trạng thái cho tài khoản này.");
-        }
+        response.sendRedirect(request.getContextPath() + "/AccountManagement" + buildQueryString(request));
     }
 
     private HttpSession requireAdmin(HttpServletRequest request, HttpServletResponse response)
@@ -153,7 +113,58 @@ public class AccountManagementServlet extends HttpServlet {
         return session;
     }
 
-    private void moveFlashMessage(HttpSession session, HttpServletRequest request, String sessionKey, String requestKey) {
+    private void updateRole(HttpServletRequest request, HttpSession session, User currentAdmin, int userId) {
+        Integer roleId = parseId(request.getParameter("roleId"));
+
+        if (roleId == null) {
+            session.setAttribute("accountError", "Vai trò cập nhật không hợp lệ.");
+            return;
+        }
+
+        if (currentAdmin != null && currentAdmin.getUserId() == userId) {
+            session.setAttribute("accountError", "Không thể đổi vai trò của chính tài khoản đang đăng nhập.");
+            return;
+        }
+
+        if (userDAO.updateUserRole(userId, roleId)) {
+            session.setAttribute("accountSuccess", "Cập nhật vai trò tài khoản thành công.");
+        } else {
+            session.setAttribute("accountError", "Không thể cập nhật vai trò tài khoản.");
+        }
+    }
+
+    private void updateStatus(HttpServletRequest request, HttpSession session, User currentAdmin, int userId) {
+        String status = normalizeStatus(request.getParameter("status"));
+
+        if (status == null) {
+            session.setAttribute("accountError", "Trạng thái cập nhật không hợp lệ.");
+            return;
+        }
+
+        User targetUser = userDAO.getUserById(userId);
+        if (targetUser == null) {
+            session.setAttribute("accountError", "Không tìm thấy tài khoản cần cập nhật.");
+            return;
+        }
+
+        if (currentAdmin != null && currentAdmin.getUserId() == userId) {
+            session.setAttribute("accountError", "Không thể khóa chính tài khoản đang đăng nhập.");
+            return;
+        }
+
+        if ("ADMIN".equalsIgnoreCase(targetUser.getRoleName()) && "BANNED".equals(status)) {
+            session.setAttribute("accountError", "Không thể khóa tài khoản Admin.");
+            return;
+        }
+
+        if (userDAO.updateUserStatus(userId, status)) {
+            session.setAttribute("accountSuccess", "Cập nhật trạng thái tài khoản thành công.");
+        } else {
+            session.setAttribute("accountError", "Không thể cập nhật trạng thái tài khoản.");
+        }
+    }
+
+    private void moveFlashToRequest(HttpSession session, HttpServletRequest request, String sessionKey, String requestKey) {
         String value = (String) session.getAttribute(sessionKey);
 
         if (value != null) {
@@ -162,92 +173,73 @@ public class AccountManagementServlet extends HttpServlet {
         }
     }
 
-    private Integer parsePositiveInt(String value) {
+    private String buildQueryString(HttpServletRequest request) {
+        StringBuilder query = new StringBuilder();
+        appendQueryParam(query, "keyword", normalizeText(request.getParameter("keyword")));
+        appendQueryParam(query, "roleId", request.getParameter("filterRoleId"));
+        appendQueryParam(query, "status", request.getParameter("filterStatus"));
+        appendQueryParam(query, "page", request.getParameter("page"));
+
+        if (query.length() == 0) {
+            return "";
+        }
+
+        return "?" + query.toString();
+    }
+
+    private void appendQueryParam(StringBuilder query, String name, String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return;
+        }
+
+        if (query.length() > 0) {
+            query.append("&");
+        }
+
+        query.append(name)
+                .append("=")
+                .append(URLEncoder.encode(value.trim(), StandardCharsets.UTF_8));
+    }
+
+    private Integer parseId(String value) {
         try {
-            int parsed = Integer.parseInt(value);
-            return parsed > 0 ? parsed : null;
+            if (value == null || value.trim().isEmpty()) {
+                return null;
+            }
+
+            return Integer.parseInt(value.trim());
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
-    private int parsePage(String value) {
-        Integer page = parsePositiveInt(value);
-        return page == null ? 1 : page;
+    private int parsePositiveInt(String value, int defaultValue) {
+        try {
+            int parsed = Integer.parseInt(value);
+            return parsed > 0 ? parsed : defaultValue;
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 
-    private String normalizeKeyword(String value) {
-        if (value == null) {
+    private String normalizeText(String value) {
+        if (value == null || value.trim().isEmpty()) {
             return null;
         }
 
-        String normalized = value.trim();
-        return normalized.isEmpty() ? null : normalized;
+        return value.trim();
     }
 
     private String normalizeStatus(String value) {
-        if (value == null) {
+        if (value == null || value.trim().isEmpty()) {
             return null;
         }
 
-        String normalized = value.trim().toUpperCase();
-
-        if ("ACTIVE".equals(normalized) || "BANNED".equals(normalized)) {
-            return normalized;
+        String status = value.trim().toUpperCase();
+        if ("ACTIVE".equals(status) || "BANNED".equals(status)) {
+            return status;
         }
 
         return null;
-    }
-
-    private boolean containsRoleId(List<Role> roles, Integer roleId) {
-        if (roleId == null) {
-            return false;
-        }
-
-        for (Role role : roles) {
-            if (role.getRoleId() == roleId) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private String buildRedirectUrl(HttpServletRequest request) {
-        StringBuilder redirectUrl = new StringBuilder(request.getContextPath()).append("/account-manager");
-        String keyword = normalizeKeyword(request.getParameter("keyword"));
-        Integer roleId = parsePositiveInt(request.getParameter("selectedRoleId"));
-        String status = normalizeStatus(request.getParameter("selectedStatus"));
-        Integer page = parsePositiveInt(request.getParameter("page"));
-        String queryPrefix = "?";
-
-        if (keyword != null) {
-            redirectUrl.append(queryPrefix)
-                    .append("keyword=")
-                    .append(URLEncoder.encode(keyword, StandardCharsets.UTF_8));
-            queryPrefix = "&";
-        }
-
-        if (roleId != null) {
-            redirectUrl.append(queryPrefix)
-                    .append("roleId=")
-                    .append(roleId);
-            queryPrefix = "&";
-        }
-
-        if (status != null) {
-            redirectUrl.append(queryPrefix)
-                    .append("status=")
-                    .append(status);
-            queryPrefix = "&";
-        }
-
-        if (page != null) {
-            redirectUrl.append(queryPrefix)
-                    .append("page=")
-                    .append(page);
-        }
-
-        return redirectUrl.toString();
     }
 }

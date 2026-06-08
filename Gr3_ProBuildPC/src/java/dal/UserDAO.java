@@ -146,42 +146,31 @@ public class UserDAO {
         return false;
     }
 
-    public List<User> getUsers(String keyword, Integer roleId, String status, int offset, int pageSize) {
+    public List<User> getUsers(String keyword, Integer roleId, String status, int page, int pageSize) {
         List<User> users = new ArrayList<>();
-        List<Object> params = new ArrayList<>();
-
-        String sql = """
+        StringBuilder sql = new StringBuilder("""
                      SELECT u.user_id, u.role_id, u.full_name, u.status,
                             u.email, u.password, r.role_name
                      FROM users u
-                     JOIN roles r ON u.role_id = r.role_id
-                     """
-                + buildUserFilterClause(keyword, roleId, status, params)
-                + """
-                     ORDER BY u.user_id ASC
-                     LIMIT ? OFFSET ?
-                     """;
+                     JOIN Roles r ON u.role_id = r.role_id
+                     WHERE 1 = 1
+                     """);
 
+        List<Object> params = new ArrayList<>();
+        appendUserFilters(sql, params, keyword, roleId, status);
+        sql.append(" ORDER BY u.user_id ASC LIMIT ? OFFSET ?");
         params.add(pageSize);
-        params.add(offset);
+        params.add((page - 1) * pageSize);
 
-        try {
-            Connection conn = new DBContext().getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-            bindParameters(ps, params);
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
-            ResultSet rs = ps.executeQuery();
+            setParameters(ps, params);
 
-            while (rs.next()) {
-                User user = new User();
-                user.setUserId(rs.getInt("user_id"));
-                user.setRoleId(rs.getInt("role_id"));
-                user.setFullName(rs.getString("full_name"));
-                user.setStatus(rs.getString("status"));
-                user.setEmail(rs.getString("email"));
-                user.setPassword(rs.getString("password"));
-                user.setRoleName(rs.getString("role_name"));
-                users.add(user);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    users.add(mapUser(rs));
+                }
             }
         } catch (Exception e) {
             System.out.println("Loi getUsers:");
@@ -192,24 +181,25 @@ public class UserDAO {
     }
 
     public int countUsers(String keyword, Integer roleId, String status) {
-        List<Object> params = new ArrayList<>();
-
-        String sql = """
-                     SELECT COUNT(*)
+        StringBuilder sql = new StringBuilder("""
+                     SELECT COUNT(*) AS total
                      FROM users u
-                     JOIN roles r ON u.role_id = r.role_id
-                     """
-                + buildUserFilterClause(keyword, roleId, status, params);
+                     JOIN Roles r ON u.role_id = r.role_id
+                     WHERE 1 = 1
+                     """);
 
-        try {
-            Connection conn = new DBContext().getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-            bindParameters(ps, params);
+        List<Object> params = new ArrayList<>();
+        appendUserFilters(sql, params, keyword, roleId, status);
 
-            ResultSet rs = ps.executeQuery();
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
-            if (rs.next()) {
-                return rs.getInt(1);
+            setParameters(ps, params);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
             }
         } catch (Exception e) {
             System.out.println("Loi countUsers:");
@@ -221,22 +211,14 @@ public class UserDAO {
 
     public List<Role> getRoles() {
         List<Role> roles = new ArrayList<>();
-        String sql = """
-                     SELECT role_id, role_name
-                     FROM roles
-                     ORDER BY role_id ASC
-                     """;
+        String sql = "SELECT role_id, role_name FROM Roles ORDER BY role_id ASC";
 
-        try {
-            Connection conn = new DBContext().getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                roles.add(new Role(
-                        rs.getInt("role_id"),
-                        rs.getString("role_name")
-                ));
+                roles.add(new Role(rs.getInt("role_id"), rs.getString("role_name")));
             }
         } catch (Exception e) {
             System.out.println("Loi getRoles:");
@@ -246,26 +228,41 @@ public class UserDAO {
         return roles;
     }
 
-    public boolean updateUserRole(int userId, int roleId) {
+    public User getUserById(int userId) {
         String sql = """
-                     UPDATE users u
-                     JOIN roles current_role ON u.role_id = current_role.role_id
-                     SET u.role_id = ?
+                     SELECT u.user_id, u.role_id, u.full_name, u.status,
+                            u.email, u.password, r.role_name
+                     FROM users u
+                     JOIN Roles r ON u.role_id = r.role_id
                      WHERE u.user_id = ?
-                       AND UPPER(current_role.role_name) <> 'ADMIN'
-                       AND EXISTS (
-                           SELECT 1
-                           FROM roles target_role
-                           WHERE target_role.role_id = ?
-                       )
                      """;
 
-        try {
-            Connection conn = new DBContext().getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapUser(rs);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Loi getUserById:");
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public boolean updateUserRole(int userId, int roleId) {
+        String sql = "UPDATE users SET role_id = ? WHERE user_id = ?";
+
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setInt(1, roleId);
             ps.setInt(2, userId);
-            ps.setInt(3, roleId);
 
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
@@ -277,17 +274,11 @@ public class UserDAO {
     }
 
     public boolean updateUserStatus(int userId, String status) {
-        String sql = """
-                     UPDATE users u
-                     JOIN roles r ON u.role_id = r.role_id
-                     SET u.status = ?
-                     WHERE u.user_id = ?
-                       AND UPPER(r.role_name) <> 'ADMIN'
-                     """;
+        String sql = "UPDATE users SET status = ? WHERE user_id = ?";
 
-        try {
-            Connection conn = new DBContext().getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setString(1, status);
             ps.setInt(2, userId);
 
@@ -300,14 +291,12 @@ public class UserDAO {
         return false;
     }
 
-    private String buildUserFilterClause(String keyword, Integer roleId, String status, List<Object> params) {
-        StringBuilder sql = new StringBuilder(" WHERE 1 = 1 ");
-
+    private void appendUserFilters(StringBuilder sql, List<Object> params, String keyword, Integer roleId, String status) {
         if (keyword != null && !keyword.trim().isEmpty()) {
-            String searchValue = "%" + keyword.trim().toLowerCase() + "%";
             sql.append(" AND (LOWER(u.full_name) LIKE ? OR LOWER(u.email) LIKE ?) ");
-            params.add(searchValue);
-            params.add(searchValue);
+            String search = "%" + keyword.trim().toLowerCase() + "%";
+            params.add(search);
+            params.add(search);
         }
 
         if (roleId != null) {
@@ -319,20 +308,30 @@ public class UserDAO {
             sql.append(" AND UPPER(u.status) = ? ");
             params.add(status.trim().toUpperCase());
         }
-
-        return sql.toString();
     }
 
-    private void bindParameters(PreparedStatement ps, List<Object> params) throws Exception {
+    private void setParameters(PreparedStatement ps, List<Object> params) throws Exception {
         for (int i = 0; i < params.size(); i++) {
             Object value = params.get(i);
-            int index = i + 1;
-
-            if (value instanceof Integer integerValue) {
-                ps.setInt(index, integerValue);
+            if (value instanceof Integer) {
+                ps.setInt(i + 1, (Integer) value);
             } else {
-                ps.setString(index, String.valueOf(value));
+                ps.setString(i + 1, String.valueOf(value));
             }
         }
+    }
+
+    private User mapUser(ResultSet rs) throws Exception {
+        User u = new User();
+
+        u.setUserId(rs.getInt("user_id"));
+        u.setRoleId(rs.getInt("role_id"));
+        u.setFullName(rs.getString("full_name"));
+        u.setStatus(rs.getString("status"));
+        u.setEmail(rs.getString("email"));
+        u.setPassword(rs.getString("password"));
+        u.setRoleName(rs.getString("role_name"));
+
+        return u;
     }
 }

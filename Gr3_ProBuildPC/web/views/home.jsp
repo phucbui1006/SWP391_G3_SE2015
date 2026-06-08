@@ -300,9 +300,10 @@
                         return;
                     }
 
+                    const requestUrl = form.getAttribute('action') || '<%= ctx %>/cart';
                     submitButton.classList.add('is-adding');
 
-                    fetch(form.action, {
+                    fetch(requestUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',

@@ -43,9 +43,9 @@ public class HomeServlet extends HttpServlet {
         request.setAttribute("keyword", normalizedKeyword);
 
         User account = (User) request.getSession().getAttribute("account");
-        if (account != null) {
+        if (account != null && account.isCustomer()) {
             CartDAO cartDAO = new CartDAO();
-            request.setAttribute("cartItemCount", cartDAO.getCartItemCountByUserId(account.getUserId()));
+            request.setAttribute("cartItemCount", cartDAO.getCartItemCountByCustomerId(account.getCustomerId()));
         }
 
         request.getRequestDispatcher("/views/home.jsp").forward(request, response);

@@ -12,7 +12,7 @@ public class ReviewDAO extends DBContext {
         List<Review> list = new ArrayList<>();
 
         String sql = """
-            SELECT review_id, user_id, rating, product_id, img, comment, date
+            SELECT review_id, customer_id, rating, product_id, img, comment, date
             FROM reviews
             WHERE product_id = ?
             ORDER BY date DESC
@@ -28,7 +28,7 @@ public class ReviewDAO extends DBContext {
                 Review r = new Review();
 
                 r.setReviewId(rs.getInt("review_id"));
-                r.setUserId(rs.getInt("user_id"));
+                r.setCustomerId(rs.getInt("customer_id"));
                 r.setRating(rs.getInt("rating"));
                 r.setProductId(rs.getInt("product_id"));
                 r.setImg(rs.getString("img"));

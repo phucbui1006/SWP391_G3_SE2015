@@ -13,13 +13,38 @@ CREATE TABLE ROLES (
 -- =========================
 CREATE TABLE USERS (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
-    role_id INT,
     full_name VARCHAR(100) NOT NULL,
     status VARCHAR(20) DEFAULT 'ACTIVE',
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
+    account_type VARCHAR(20) NOT NULL
+);
 
-    CONSTRAINT FK_USERS_ROLES
+-- =========================
+-- CUSTOMERS
+-- =========================
+CREATE TABLE CUSTOMERS (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+
+    CONSTRAINT FK_CUSTOMERS_USERS
+        FOREIGN KEY (user_id)
+        REFERENCES USERS(user_id)
+);
+
+-- =========================
+-- STAFFS
+-- =========================
+CREATE TABLE STAFFS (
+    staff_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    role_id INT NOT NULL,
+
+    CONSTRAINT FK_STAFFS_USERS
+        FOREIGN KEY (user_id)
+        REFERENCES USERS(user_id),
+
+    CONSTRAINT FK_STAFFS_ROLES
         FOREIGN KEY (role_id)
         REFERENCES ROLES(role_id)
 );
@@ -29,14 +54,14 @@ CREATE TABLE USERS (
 -- =========================
 CREATE TABLE Address (
     address_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
+    customer_id INT NOT NULL,
     recipient_name VARCHAR(100),
     phoneNumber VARCHAR(20) NULL,
     Address_detail VARCHAR(255),
 
-    CONSTRAINT FK_ADDRESS_USERS
-        FOREIGN KEY (user_id)
-        REFERENCES USERS(user_id)
+    CONSTRAINT FK_ADDRESS_CUSTOMERS
+        FOREIGN KEY (customer_id)
+        REFERENCES CUSTOMERS(customer_id)
 );
 
 -- =========================
@@ -131,11 +156,11 @@ CREATE TABLE COMPATIBILITY_RULES (
 -- =========================
 CREATE TABLE Cart (
     cart_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNIQUE,
+    customer_id INT NOT NULL UNIQUE,
 
-    CONSTRAINT FK_CART_USERS
-        FOREIGN KEY (user_id)
-        REFERENCES USERS(user_id)
+    CONSTRAINT FK_CART_CUSTOMERS
+        FOREIGN KEY (customer_id)
+        REFERENCES CUSTOMERS(customer_id)
 );
 
 -- =========================
@@ -161,16 +186,16 @@ CREATE TABLE CART_ITEMS (
 -- =========================
 CREATE TABLE REVIEWS (
     review_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    customer_id INT NOT NULL,
     rating INT NOT NULL,
     product_id INT NOT NULL,
     img VARCHAR(255),
     comment TEXT NULL,
     date DATETIME,
 
-    CONSTRAINT FK_REVIEWS_USERS
-        FOREIGN KEY (user_id)
-        REFERENCES USERS(user_id),
+    CONSTRAINT FK_REVIEWS_CUSTOMERS
+        FOREIGN KEY (customer_id)
+        REFERENCES CUSTOMERS(customer_id),
 
     CONSTRAINT FK_REVIEWS_PRODUCTS
         FOREIGN KEY (product_id)
@@ -190,7 +215,7 @@ CREATE TABLE ORDERS_STATUS (
 -- =========================
 CREATE TABLE ORDERS (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    customer_id INT NOT NULL,
     status_id INT,
     order_date DATETIME,
     total_amount DECIMAL(18,2),
@@ -199,9 +224,9 @@ CREATE TABLE ORDERS (
     payment_status VARCHAR(50) DEFAULT 'UNPAID',
     note TEXT NULL,
 
-    CONSTRAINT FK_ORDERS_USERS
-        FOREIGN KEY (user_id)
-        REFERENCES USERS(user_id),
+    CONSTRAINT FK_ORDERS_CUSTOMERS
+        FOREIGN KEY (customer_id)
+        REFERENCES CUSTOMERS(customer_id),
 
     CONSTRAINT FK_ORDERS_STATUS
         FOREIGN KEY (status_id)
@@ -272,7 +297,7 @@ CREATE TABLE WARRANTY_STATUS (
 CREATE TABLE WARRANTIES (
     warranty_id INT AUTO_INCREMENT PRIMARY KEY,
     order_detail_id INT NOT NULL,
-    user_id INT NOT NULL,
+    customer_id INT NOT NULL,
     product_id INT NOT NULL,
     status_id INT,
     request_date DATETIME NOT NULL,
@@ -282,9 +307,9 @@ CREATE TABLE WARRANTIES (
         FOREIGN KEY (order_detail_id)
         REFERENCES ORDER_DETAILS(order_detail_id),
 
-    CONSTRAINT FK_WARRANTIES_USERS
-        FOREIGN KEY (user_id)
-        REFERENCES USERS(user_id),
+    CONSTRAINT FK_WARRANTIES_CUSTOMERS
+        FOREIGN KEY (customer_id)
+        REFERENCES CUSTOMERS(customer_id),
 
     CONSTRAINT FK_WARRANTIES_PRODUCTS
         FOREIGN KEY (product_id)

@@ -65,9 +65,9 @@ public class CategoryServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         if (session != null) {
             User account = (User) session.getAttribute("account");
-            if (account != null) {
+            if (account != null && account.isCustomer()) {
                 CartDAO cartDAO = new CartDAO();
-                request.setAttribute("cartItemCount", cartDAO.getCartItemCountByUserId(account.getUserId()));
+                request.setAttribute("cartItemCount", cartDAO.getCartItemCountByCustomerId(account.getCustomerId()));
             }
         }
 

@@ -30,7 +30,7 @@
             case "SHIPMENT":
                 return "Shipment";
             case "CUSTOMER":
-                return "User";
+                return "Customer";
             default:
                 return roleName;
         }
@@ -148,6 +148,52 @@
             <% } %>
 
             <section class="management-card account-management-card">
+                <h1 class="card-header-title">Create Staff Account</h1>
+                <form class="account-filter-form" action="<%= ctx %>/AccountManagement" method="post">
+                    <input type="hidden" name="action" value="createStaff">
+                    <input type="hidden" name="keyword" value="<%= h(keyword) %>">
+                    <input type="hidden" name="filterRoleId" value="<%= selectedRoleId == null ? "" : selectedRoleId %>">
+                    <input type="hidden" name="filterStatus" value="<%= h(selectedStatus) %>">
+                    <input type="hidden" name="page" value="<%= pageNumber %>">
+
+                    <div class="search-box-wrapper">
+                        <label class="filter-label" for="newStaffName">Name</label>
+                        <div class="search-input-group">
+                            <input id="newStaffName" type="text" name="fullName" placeholder="Staff full name" required>
+                        </div>
+                    </div>
+
+                    <div class="search-box-wrapper">
+                        <label class="filter-label" for="newStaffEmail">Email</label>
+                        <div class="search-input-group">
+                            <input id="newStaffEmail" type="email" name="email" placeholder="staff@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="search-box-wrapper">
+                        <label class="filter-label" for="newStaffPassword">Password</label>
+                        <div class="search-input-group">
+                            <input id="newStaffPassword" type="password" name="password" placeholder="Password" required>
+                        </div>
+                    </div>
+
+                    <div class="filter-group-right">
+                        <div class="filter-box-wrapper">
+                            <label class="filter-label" for="newStaffRole">Role</label>
+                            <select id="newStaffRole" class="filter-select" name="roleId" required>
+                                <% if (roles != null) { %>
+                                <% for (Role role : roles) { %>
+                                <option value="<%= role.getRoleId() %>"><%= h(roleLabel(role.getRoleName())) %></option>
+                                <% } %>
+                                <% } %>
+                            </select>
+                        </div>
+                        <button class="account-search-button" type="submit">Tao nhan vien</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="management-card account-management-card">
                 <h1 class="card-header-title">User Management</h1>
 
                 <table class="user-table">
@@ -170,6 +216,7 @@
                         <% for (int i = 0; i < users.size(); i++) {
                                 User user = users.get(i);
                                 boolean isAdmin = user.getRoleName() != null && "ADMIN".equalsIgnoreCase(user.getRoleName().trim());
+                                boolean isStaff = user.isStaff();
                                 boolean isCurrentAccount = account.getUserId() == user.getUserId();
                                 String status = user.getStatus() == null ? "" : user.getStatus().trim().toUpperCase();
                                 String avatarText = user.getFullName() == null || user.getFullName().trim().isEmpty()
@@ -186,6 +233,9 @@
                             </td>
                             <td><%= h(user.getEmail()) %></td>
                             <td>
+                                <% if (!isStaff) { %>
+                                <span class="status-badge active"><%= h(roleLabel(user.getRoleName())) %></span>
+                                <% } else { %>
                                 <form action="<%= ctx %>/AccountManagement" method="post" class="account-inline-form">
                                     <input type="hidden" name="action" value="updateRole">
                                     <input type="hidden" name="userId" value="<%= user.getUserId() %>">
@@ -203,6 +253,7 @@
                                         <% } %>
                                     </select>
                                 </form>
+                                <% } %>
                             </td>
                             <td>
                                 <span class="status-badge <%= "BANNED".equals(status) ? "banned" : "active" %>">

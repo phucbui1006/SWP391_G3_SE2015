@@ -5,7 +5,7 @@ import java.util.Date;
 
 public class Order {
     private int orderId;
-    private int userId;
+    private int customerId;
     private int statusId;
     private Date orderDate;
     private BigDecimal totalAmount;
@@ -17,10 +17,10 @@ public class Order {
     public Order() {
     }
 
-    public Order(int orderId, int userId, int statusId, Date orderDate, BigDecimal totalAmount,
+    public Order(int orderId, int customerId, int statusId, Date orderDate, BigDecimal totalAmount,
                  String shippingAddress, String paymentMethod, String paymentStatus, String note) {
         this.orderId = orderId;
-        this.userId = userId;
+        this.customerId = customerId;
         this.statusId = statusId;
         this.orderDate = orderDate;
         this.totalAmount = totalAmount;
@@ -39,11 +39,19 @@ public class Order {
     }
 
     public int getUserId() {
-        return userId;
+        return customerId;
     }
 
     public void setUserId(int userId) {
-        this.userId = userId;
+        this.customerId = userId;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 
     public int getStatusId() {

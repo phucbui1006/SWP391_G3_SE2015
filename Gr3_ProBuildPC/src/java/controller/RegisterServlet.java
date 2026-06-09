@@ -26,10 +26,18 @@ public class RegisterServlet extends HttpServlet {
 
         UserDAO dao = new UserDAO();
         if (password == null || password.trim().isEmpty()) {
-        request.setAttribute("error", "Mật khẩu không được để trống hoặc chỉ chứa dấu cách!");
-        request.getRequestDispatcher("/views/register.jsp").forward(request, response);
-        return;
-    }
+            request.setAttribute("error", "Mật khẩu không được để trống hoặc chỉ chứa dấu cách!");
+            request.getRequestDispatcher("/views/register.jsp").forward(request, response);
+            return;
+        }
+        // Chuỗi Regex định dạng cấu trúc Email tiêu chuẩn
+        String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+
+        if (email == null || !email.matches(emailRegex)) {
+            request.setAttribute("error", "Định dạng Email không hợp lệ! Vui lòng kiểm tra lại.");
+            request.getRequestDispatcher("/views/register.jsp").forward(request, response);
+            return;
+        }
 
         if (!password.equals(confirmPassword)) {
             request.setAttribute("error", "Mật khẩu xác nhận không khớp!");

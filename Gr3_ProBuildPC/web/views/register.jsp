@@ -31,10 +31,11 @@
 
                 <div class="form-group">
                     <label for="email">Email</label>
-
                     <div class="input-group">
                         <i class="fa-regular fa-envelope left-icon"></i>
-                        <input type="email" id="email" name="email" placeholder="Nhập email" required>
+                        <input type="email" id="email" name="email" placeholder="Nhập email" required
+                               pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                               title="Vui lòng nhập đúng định dạng email (Ví dụ: abc@gmail.com)">
                     </div>
                 </div>
 

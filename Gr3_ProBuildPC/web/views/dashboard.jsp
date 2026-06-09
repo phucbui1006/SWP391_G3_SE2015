@@ -24,64 +24,13 @@
         <title>Dashboard</title>
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-
-        <style>
-            .dashboard-content {
-                padding: 30px;
-                background: #f5f5f5;
-                min-height: calc(100vh - 150px);
-            }
-
-            .dashboard-card {
-                background: #fff;
-                padding: 25px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            }
-
-            .dashboard-card h1 {
-                margin-top: 0;
-                color: #ed1c24;
-            }
-
-            .role-box {
-                margin-top: 20px;
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 20px;
-            }
-
-            .role-item {
-                background: #fff;
-                border: 1px solid #ddd;
-                border-left: 5px solid #ed1c24;
-                padding: 18px;
-                border-radius: 6px;
-            }
-
-            .role-item h3 {
-                margin: 0 0 10px;
-                color: #111;
-            }
-
-            .role-item p {
-                margin: 0;
-                color: #666;
-            }
-
-            @media (max-width: 900px) {
-                .role-box {
-                    grid-template-columns: 1fr;
-                }
-            }
-        </style>
     </head>
     <body class="dashboard-body">
 
         <jsp:include page="/includes/header.jsp" />
 
         <div class="dashboard-content">
-            <div class="dashboard-card">
+            <div class="dashboard-card <%= "EMPLOYEE".equals(roleName) ? "employee-shell" : "" %>">
 
                 <% if ("ADMIN".equals(roleName)) { %>
 
@@ -123,19 +72,112 @@
 
                 <% } else if ("EMPLOYEE".equals(roleName)) { %>
 
-                <h1>Employee Dashboard</h1>
-                <p>Xin chào <b><%= account.getFullName() %></b>. Bạn đang đăng nhập với quyền <b>EMPLOYEE</b>.</p>
+                <div class="employee-dashboard">
+                    <div class="employee-summary-grid" aria-label="Thống kê yêu cầu bảo hành">
+                        <div class="employee-summary-card">
+                            <span class="summary-icon today">📚</span>
+                            <div class="summary-copy">
+                                <p class="summary-title">Tất cả yêu cầu</p>
+                                <div class="summary-value-row">
+                                    <span class="summary-number">8</span>
+                                    <span class="summary-unit">yêu cầu</span>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="role-box">
-                    <div class="role-item">
-                        <h3>Dịch vụ bảo hành</h3>
-                        <p>Tiếp nhận và xử lý yêu cầu bảo hành.</p>
+                        <div class="employee-summary-card">
+                            <span class="summary-icon waiting">⏳</span>
+                            <div class="summary-copy">
+                                <p class="summary-title">Chờ xác nhận</p>
+                                <div class="summary-value-row">
+                                    <span class="summary-number">5</span>
+                                    <span class="summary-unit">yêu cầu</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="employee-summary-card">
+                            <span class="summary-icon received">📥</span>
+                            <div class="summary-copy">
+                                <p class="summary-title">Đã tiếp nhận</p>
+                                <div class="summary-value-row">
+                                    <span class="summary-number">2</span>
+                                    <span class="summary-unit">yêu cầu</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="employee-summary-card">
+                            <span class="summary-icon rejected">❌</span>
+                            <div class="summary-copy">
+                                <p class="summary-title">Từ chối</p>
+                                <div class="summary-value-row">
+                                    <span class="summary-number">1</span>
+                                    <span class="summary-unit">yêu cầu</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="role-item">
-                        <h3>Cập nhật trạng thái</h3>
-                        <p>Cập nhật tiến trình xử lý bảo hành.</p>
-                    </div>
+                    <section class="employee-request-panel">
+                        <h2 class="employee-request-title">Danh sách yêu cầu bảo hành</h2>
+
+                        <div class="employee-request-tabs" role="tablist" aria-label="Lọc yêu cầu bảo hành">
+                            <a class="employee-request-tab active" href="#">Tất cả yêu cầu</a>
+                            <a class="employee-request-tab" href="#">Chờ xác nhận</a>
+                            <a class="employee-request-tab" href="#">Đã tiếp nhận</a>
+                            <a class="employee-request-tab" href="#">Từ chối</a>
+                        </div>
+
+                        <table class="employee-request-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã yêu cầu</th>
+                                    <th>Khách hàng</th>
+                                    <th>Sản phẩm</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Nguyễn Văn A</td>
+                                    <td>ASUS TUF B760M-PLUS WIFI DDR5</td>
+                                    <td>26/05/2024</td>
+                                    <td><span class="request-status waiting">Chờ xác nhận</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Trần Văn B</td>
+                                    <td>Intel Core i5-14600KF</td>
+                                    <td>26/05/2024</td>
+                                    <td><span class="request-status received">Đã tiếp nhận</span></td>
+                                </tr>
+                                <tr>
+                                    <td>10</td>
+                                    <td>Lê Minh C</td>
+                                    <td>G.Skill Ripjaws S5 16GB DDR5</td>
+                                    <td>25/05/2024</td>
+                                    <td><span class="request-status waiting">Chờ xác nhận</span></td>
+                                </tr>
+                                <tr>
+                                    <td>8</td>
+                                    <td>Phạm Hữu D</td>
+                                    <td>ASUS Dual RTX 4060 8GB</td>
+                                    <td>25/05/2024</td>
+                                    <td><span class="request-status received">Đã tiếp nhận</span></td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>Hoàng Gia E</td>
+                                    <td>Kingston NV2 1TB NVMe</td>
+                                    <td>24/05/2024</td>
+                                    <td><span class="request-status rejected">Từ chối</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
                 </div>
 
                 <% } else if ("SHIPMENT".equals(roleName)) { %>

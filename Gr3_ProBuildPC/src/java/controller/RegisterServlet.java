@@ -25,6 +25,11 @@ public class RegisterServlet extends HttpServlet {
         String confirmPassword = request.getParameter("confirmPassword");
 
         UserDAO dao = new UserDAO();
+        if (password == null || password.trim().isEmpty()) {
+        request.setAttribute("error", "Mật khẩu không được để trống hoặc chỉ chứa dấu cách!");
+        request.getRequestDispatcher("/views/register.jsp").forward(request, response);
+        return;
+    }
 
         if (!password.equals(confirmPassword)) {
             request.setAttribute("error", "Mật khẩu xác nhận không khớp!");

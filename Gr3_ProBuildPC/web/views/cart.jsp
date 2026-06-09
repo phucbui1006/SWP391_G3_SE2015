@@ -58,6 +58,18 @@
                 <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a> / <span class="active">gi&#7887; h&#224;ng</span>
             </div>
 
+            <% if (request.getAttribute("cartSuccessMsg") != null) { %>
+            <div class="alert-message alert-success cart-feedback">
+                <%= request.getAttribute("cartSuccessMsg") %>
+            </div>
+            <% } %>
+
+            <% if (request.getAttribute("cartErrorMsg") != null) { %>
+            <div class="alert-message alert-danger cart-feedback">
+                <%= request.getAttribute("cartErrorMsg") %>
+            </div>
+            <% } %>
+
             <div class="cart-page-heading">
                 <div class="cart-page-title">Gi&#7887; h&#224;ng c&#7911;a b&#7841;n</div>
 
@@ -625,6 +637,32 @@
                     if (event.key === 'Escape' && quickViewBackdrop && !quickViewBackdrop.hidden) {
                         closeQuickView();
                     }
+                });
+
+                checkoutButton.addEventListener('click', function () {
+                    if (checkoutButton.disabled) {
+                        return;
+                    }
+
+                    const selectedIds = [];
+
+                    cartRows.forEach(function (row) {
+                        const checkbox = row.querySelector('.cart-select-checkbox');
+                        if (checkbox && checkbox.checked) {
+                            selectedIds.push(checkbox.value);
+                        }
+                    });
+
+                    if (!selectedIds.length) {
+                        return;
+                    }
+
+                    const params = new URLSearchParams();
+                    selectedIds.forEach(function (cartItemId) {
+                        params.append('selectedCartItemIds', cartItemId);
+                    });
+
+                    window.location.href = cartUpdateUrl.replace('/cart', '/checkout') + '?' + params.toString();
                 });
 
                 setActiveGroupButton('brand');

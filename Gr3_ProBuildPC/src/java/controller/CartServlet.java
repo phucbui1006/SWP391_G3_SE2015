@@ -21,6 +21,8 @@ public class CartServlet extends HttpServlet {
 
     private static final String LEGACY_SESSION_CART_QUANTITIES = "sessionCartQuantities";
     private static final String SESSION_CART_ITEM_COUNT = "sessionCartItemCount";
+    private static final String CART_SUCCESS_FLASH = "cartSuccessMsg";
+    private static final String CART_ERROR_FLASH = "cartErrorMsg";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -43,6 +45,8 @@ public class CartServlet extends HttpServlet {
             session.removeAttribute(SESSION_CART_ITEM_COUNT);
         }
 
+        moveFlashMessage(session, request, CART_SUCCESS_FLASH, "cartSuccessMsg");
+        moveFlashMessage(session, request, CART_ERROR_FLASH, "cartErrorMsg");
         request.setAttribute("cartItems", cartItems);
         request.setAttribute("cartSubtotal", subtotal);
         request.setAttribute("cartTotal", subtotal);
@@ -332,5 +336,19 @@ public class CartServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(jsonBody);
+    }
+
+    private void moveFlashMessage(HttpSession session, HttpServletRequest request, String sessionKey, String requestKey) {
+        if (session == null) {
+            return;
+        }
+
+        Object flashMessage = session.getAttribute(sessionKey);
+        if (flashMessage == null) {
+            return;
+        }
+
+        request.setAttribute(requestKey, flashMessage);
+        session.removeAttribute(sessionKey);
     }
 }

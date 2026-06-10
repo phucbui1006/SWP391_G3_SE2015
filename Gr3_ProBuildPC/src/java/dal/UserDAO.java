@@ -22,8 +22,7 @@ public class UserDAO {
                        )
                      """;
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
             ps.setString(2, password);
@@ -44,8 +43,7 @@ public class UserDAO {
     public boolean checkEmailExist(String email) {
         String sql = "SELECT user_id FROM users WHERE email = ?";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
 
@@ -122,8 +120,7 @@ public class UserDAO {
     public boolean updatePassword(String email, String newPassword) {
         String sql = "UPDATE users SET password = ? WHERE email = ?";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, newPassword);
             ps.setString(2, email);
@@ -140,8 +137,7 @@ public class UserDAO {
     public boolean updateProfile(String email, String fullName, String password) {
         String sql = "UPDATE users SET full_name = ?, password = ? WHERE email = ?";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement st = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
 
             st.setString(1, fullName);
             st.setString(2, password);
@@ -167,8 +163,7 @@ public class UserDAO {
         params.add(pageSize);
         params.add((page - 1) * pageSize);
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             setParameters(ps, params);
 
@@ -198,8 +193,7 @@ public class UserDAO {
         List<Object> params = new ArrayList<>();
         appendUserFilters(sql, params, keyword, roleId, status);
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             setParameters(ps, params);
 
@@ -220,9 +214,7 @@ public class UserDAO {
         List<Role> roles = new ArrayList<>();
         String sql = "SELECT role_id, role_name FROM roles ORDER BY role_id ASC";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 roles.add(new Role(rs.getInt("role_id"), rs.getString("role_name")));
@@ -238,8 +230,7 @@ public class UserDAO {
     public User getUserById(int userId) {
         String sql = baseUserSelect() + " WHERE u.user_id = ?";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, userId);
 
@@ -287,8 +278,7 @@ public class UserDAO {
     public boolean updateUserStatus(int userId, String status) {
         String sql = "UPDATE users SET status = ? WHERE user_id = ?";
 
-        try (Connection conn = new DBContext().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, status);
             ps.setInt(2, userId);
@@ -367,8 +357,14 @@ public class UserDAO {
         }
 
         if (roleId != null) {
-            sql.append(" AND UPPER(u.account_type) = 'STAFF' AND s.role_id = ? ");
-            params.add(roleId);
+            if (roleId == -1) {
+                // Nếu chọn lọc Customer (mã -1 định nghĩa trên JSP), lọc theo account_type
+                sql.append(" AND UPPER(u.account_type) = 'CUSTOMER' ");
+            } else {
+                // Nếu chọn lọc các vai trò nhân viên thông thường (1, 2, 3...)
+                sql.append(" AND UPPER(u.account_type) = 'STAFF' AND s.role_id = ? ");
+                params.add(roleId);
+            }
         }
 
         if (status != null && !status.trim().isEmpty()) {

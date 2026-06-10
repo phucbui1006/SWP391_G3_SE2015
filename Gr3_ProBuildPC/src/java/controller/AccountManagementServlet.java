@@ -143,36 +143,37 @@ public class AccountManagementServlet extends HttpServlet {
         }
     }
 
-    private void updateRole(HttpServletRequest request, HttpSession session, User currentAdmin, int userId) {
-        Integer roleId = parseId(request.getParameter("roleId"));
+private void updateRole(HttpServletRequest request, HttpSession session, User currentAdmin, int userId) {
+    Integer roleId = parseId(request.getParameter("roleId"));
 
-        if (roleId == null) {
-            session.setAttribute("accountError", "Vai tro cap nhat khong hop le.");
-            return;
-        }
-
-        User targetUser = userDAO.getUserById(userId);
-        if (targetUser == null) {
-            session.setAttribute("accountError", "Khong tim thay tai khoan can cap nhat.");
-            return;
-        }
-
-        if (!targetUser.isStaff()) {
-            session.setAttribute("accountError", "Khach hang khong su dung vai tro nhan vien.");
-            return;
-        }
-
-        if (currentAdmin != null && currentAdmin.getUserId() == userId) {
-            session.setAttribute("accountError", "Khong the doi vai tro cua chinh tai khoan dang dang nhap.");
-            return;
-        }
-
-        if (userDAO.updateUserRole(userId, roleId)) {
-            session.setAttribute("accountSuccess", "Cap nhat vai tro tai khoan thanh cong.");
-        } else {
-            session.setAttribute("accountError", "Khong the cap nhat vai tro tai khoan.");
-        }
+    // BỔ SUNG ĐIỀU KIỆN: Chặn không cho phép đổi vai trò nhân viên thành Customer (-1)
+    if (roleId == null || roleId == -1) {
+        session.setAttribute("accountError", "Vai tro cap nhat khong hop le.");
+        return;
     }
+
+    User targetUser = userDAO.getUserById(userId);
+    if (targetUser == null) {
+        session.setAttribute("accountError", "Khong tim thay tai khoan can cap nhat.");
+        return;
+    }
+
+    if (!targetUser.isStaff()) {
+        session.setAttribute("accountError", "Khach hang khong su dung vai tro nhan vien.");
+        return;
+    }
+
+    if (currentAdmin != null && currentAdmin.getUserId() == userId) {
+        session.setAttribute("accountError", "Khong the doi vai tro cua chinh tai khoan dang dang nhap.");
+        return;
+    }
+
+    if (userDAO.updateUserRole(userId, roleId)) {
+        session.setAttribute("accountSuccess", "Cap nhat vai tro tai khoan thanh cong.");
+    } else {
+        session.setAttribute("accountError", "Khong the cap nhat vai tro tai khoan.");
+    }
+}
 
     private void updateStatus(HttpServletRequest request, HttpSession session, User currentAdmin, int userId) {
         String status = normalizeStatus(request.getParameter("status"));

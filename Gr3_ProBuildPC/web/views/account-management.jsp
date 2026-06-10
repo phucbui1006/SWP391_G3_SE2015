@@ -115,6 +115,7 @@
                             <label class="filter-label" for="roleFilter">Vai trò</label>
                             <select id="roleFilter" class="filter-select" name="roleId">
                                 <option value="">Tất cả vai trò</option>
+                                <option value="-1" <%= selectedRoleId != null && selectedRoleId == -1 ? "selected" : "" %>>Customer</option>
                                 <% if (roles != null) { %>
                                 <% for (Role role : roles) { %>
                                 <option value="<%= role.getRoleId() %>" <%= selectedRoleId != null && selectedRoleId == role.getRoleId() ? "selected" : "" %>>

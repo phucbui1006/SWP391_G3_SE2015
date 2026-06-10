@@ -5,7 +5,7 @@ import java.util.Date;
 public class Warranty {
     private int warrantyId;
     private int orderDetailId;
-    private int userId;
+    private int customerId;
     private int productId;
     private int statusId;
     private Date requestDate;
@@ -14,11 +14,11 @@ public class Warranty {
     public Warranty() {
     }
 
-    public Warranty(int warrantyId, int orderDetailId, int userId, int productId,
+    public Warranty(int warrantyId, int orderDetailId, int customerId, int productId,
                     int statusId, Date requestDate, String request) {
         this.warrantyId = warrantyId;
         this.orderDetailId = orderDetailId;
-        this.userId = userId;
+        this.customerId = customerId;
         this.productId = productId;
         this.statusId = statusId;
         this.requestDate = requestDate;
@@ -42,11 +42,19 @@ public class Warranty {
     }
 
     public int getUserId() {
-        return userId;
+        return customerId;
     }
 
     public void setUserId(int userId) {
-        this.userId = userId;
+        this.customerId = userId;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 
     public int getProductId() {

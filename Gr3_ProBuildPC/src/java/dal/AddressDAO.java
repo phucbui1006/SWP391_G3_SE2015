@@ -15,19 +15,19 @@ public class AddressDAO {
         void bind(PreparedStatement ps) throws SQLException;
     }
 
-    public List<Address> getAddressesByUserId(int userId) {
+    public List<Address> getAddressesByCustomerId(int customerId) {
         List<Address> addresses = new ArrayList<>();
         String sql = """
-                     SELECT address_id, user_id, recipient_name, phoneNumber, Address_detail
+                     SELECT address_id, customer_id, recipient_name, phoneNumber, Address_detail
                      FROM address
-                     WHERE user_id = ?
+                     WHERE customer_id = ?
                      ORDER BY address_id DESC
                      """;
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, userId);
+            ps.setInt(1, customerId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -36,25 +36,25 @@ public class AddressDAO {
             }
 
         } catch (SQLException e) {
-            System.out.println("Loi getAddressesByUserId:");
+            System.out.println("Loi getAddressesByCustomerId:");
             e.printStackTrace();
         }
 
         return addresses;
     }
 
-    public Address getAddressByIdAndUserId(int addressId, int userId) {
+    public Address getAddressByIdAndCustomerId(int addressId, int customerId) {
         String sql = """
-                     SELECT address_id, user_id, recipient_name, phoneNumber, Address_detail
+                     SELECT address_id, customer_id, recipient_name, phoneNumber, Address_detail
                      FROM address
-                     WHERE address_id = ? AND user_id = ?
+                     WHERE address_id = ? AND customer_id = ?
                      """;
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, addressId);
-            ps.setInt(2, userId);
+            ps.setInt(2, customerId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -63,7 +63,7 @@ public class AddressDAO {
             }
 
         } catch (SQLException e) {
-            System.out.println("Loi getAddressByIdAndUserId:");
+            System.out.println("Loi getAddressByIdAndCustomerId:");
             e.printStackTrace();
         }
 
@@ -72,13 +72,13 @@ public class AddressDAO {
 
     public boolean addAddress(Address address) {
         String sql = """
-                     INSERT INTO address(user_id, recipient_name, phoneNumber, Address_detail)
+                     INSERT INTO address(customer_id, recipient_name, phoneNumber, Address_detail)
                      VALUES (?, ?, ?, ?)
                      """;
 
         try (Connection conn = new DBContext().getConnection()) {
             return executeAddressWrite(conn, sql, ps -> {
-                ps.setInt(1, address.getUserId());
+                ps.setInt(1, address.getCustomerId());
                 ps.setString(2, address.getRecipientName());
                 ps.setString(3, address.getPhoneNumber());
                 ps.setString(4, address.getAddressDetail());
@@ -96,7 +96,7 @@ public class AddressDAO {
         String sql = """
                      UPDATE address
                      SET recipient_name = ?, phoneNumber = ?, Address_detail = ?
-                     WHERE address_id = ? AND user_id = ?
+                     WHERE address_id = ? AND customer_id = ?
                      """;
 
         try (Connection conn = new DBContext().getConnection()) {
@@ -105,7 +105,7 @@ public class AddressDAO {
                 ps.setString(2, address.getPhoneNumber());
                 ps.setString(3, address.getAddressDetail());
                 ps.setInt(4, address.getAddressId());
-                ps.setInt(5, address.getUserId());
+                ps.setInt(5, address.getCustomerId());
             });
 
         } catch (SQLException e) {
@@ -116,14 +116,14 @@ public class AddressDAO {
         return false;
     }
 
-    public boolean deleteAddress(int addressId, int userId) {
-        String sql = "DELETE FROM address WHERE address_id = ? AND user_id = ?";
+    public boolean deleteAddress(int addressId, int customerId) {
+        String sql = "DELETE FROM address WHERE address_id = ? AND customer_id = ?";
 
         try (Connection conn = new DBContext().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, addressId);
-            ps.setInt(2, userId);
+            ps.setInt(2, customerId);
 
             return ps.executeUpdate() > 0;
 
@@ -138,7 +138,7 @@ public class AddressDAO {
     private Address mapAddress(ResultSet rs) throws SQLException {
         Address address = new Address();
         address.setAddressId(rs.getInt("address_id"));
-        address.setUserId(rs.getInt("user_id"));
+        address.setCustomerId(rs.getInt("customer_id"));
         address.setRecipientName(rs.getString("recipient_name"));
         address.setPhoneNumber(rs.getString("phoneNumber"));
         address.setAddressDetail(rs.getString("Address_detail"));

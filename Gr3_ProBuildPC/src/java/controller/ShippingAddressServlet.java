@@ -19,13 +19,14 @@ public class ShippingAddressServlet extends HttpServlet {
     private static final String VIEW_PATH = "/views/shipping-address.jsp";
     private static final String FLASH_SUCCESS = "shippingAddressSuccess";
     private static final String FLASH_ERROR = "shippingAddressError";
+    private static final String FIXED_ADDRESS_SUFFIX = "Xã Hòa Lạc, Hà Nội";
 
     private final AddressDAO addressDAO = new AddressDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        User account = requireLogin(request, response);
+        User account = requireCustomer(request, response);
         if (account == null) {
             return;
         }
@@ -41,7 +42,7 @@ public class ShippingAddressServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
-        User account = requireLogin(request, response);
+        User account = requireCustomer(request, response);
         if (account == null) {
             return;
         }
@@ -60,17 +61,18 @@ public class ShippingAddressServlet extends HttpServlet {
             throws ServletException, IOException {
         String recipientName = safeTrim(request.getParameter("recipientName"));
         String phoneNumber = safeTrim(request.getParameter("phoneNumber"));
-        String addressDetail = safeTrim(request.getParameter("addressDetail"));
+        String addressDetailPart = extractAddressDetailPart(request.getParameter("addressDetail"));
         Integer addressId = parsePositiveInteger(request.getParameter("addressId"));
 
         request.setAttribute("formAction", updateMode ? "update" : "create");
         request.setAttribute("formAddressId", addressId != null ? String.valueOf(addressId) : "");
         request.setAttribute("formRecipientName", recipientName);
         request.setAttribute("formPhoneNumber", phoneNumber);
-        request.setAttribute("formAddressDetail", addressDetail);
+        request.setAttribute("formAddressDetail", addressDetailPart);
         request.setAttribute("activeAddressId", addressId);
+        request.setAttribute("fixedAddressSuffix", FIXED_ADDRESS_SUFFIX);
 
-        if (recipientName.isEmpty() || phoneNumber.isEmpty() || addressDetail.isEmpty()) {
+        if (recipientName.isEmpty() || phoneNumber.isEmpty() || addressDetailPart.isEmpty()) {
             request.setAttribute("errorMsg", "Vui long nhap day du ten nguoi nhan, so dien thoai va dia chi.");
             renderPage(request, response, account);
             return;
@@ -83,7 +85,7 @@ public class ShippingAddressServlet extends HttpServlet {
                 return;
             }
 
-            Address currentAddress = addressDAO.getAddressByIdAndUserId(addressId, account.getUserId());
+            Address currentAddress = addressDAO.getAddressByIdAndCustomerId(addressId, account.getCustomerId());
             if (currentAddress == null) {
                 request.setAttribute("errorMsg", "Dia chi khong ton tai hoac khong thuoc tai khoan nay.");
                 renderPage(request, response, account);
@@ -93,10 +95,10 @@ public class ShippingAddressServlet extends HttpServlet {
 
         Address address = new Address();
         address.setAddressId(addressId != null ? addressId : 0);
-        address.setUserId(account.getUserId());
+        address.setCustomerId(account.getCustomerId());
         address.setRecipientName(recipientName);
         address.setPhoneNumber(phoneNumber);
-        address.setAddressDetail(addressDetail);
+        address.setAddressDetail(buildFullAddress(addressDetailPart));
 
         boolean saved = updateMode ? addressDAO.updateAddress(address) : addressDAO.addAddress(address);
         if (saved) {
@@ -123,7 +125,7 @@ public class ShippingAddressServlet extends HttpServlet {
             return;
         }
 
-        boolean deleted = addressDAO.deleteAddress(addressId, account.getUserId());
+        boolean deleted = addressDAO.deleteAddress(addressId, account.getCustomerId());
         if (deleted) {
             setFlashMessage(request.getSession(), FLASH_SUCCESS, "Da xoa dia chi giao hang.");
         } else {
@@ -135,11 +137,12 @@ public class ShippingAddressServlet extends HttpServlet {
 
     private void renderPage(HttpServletRequest request, HttpServletResponse response, User account)
             throws ServletException, IOException {
-        List<Address> addresses = addressDAO.getAddressesByUserId(account.getUserId());
+        List<Address> addresses = addressDAO.getAddressesByCustomerId(account.getCustomerId());
         request.setAttribute("addresses", addresses);
+        request.setAttribute("fixedAddressSuffix", FIXED_ADDRESS_SUFFIX);
 
         CartDAO cartDAO = new CartDAO();
-        request.setAttribute("cartItemCount", cartDAO.getCartItemCountByUserId(account.getUserId()));
+        request.setAttribute("cartItemCount", cartDAO.getCartItemCountByCustomerId(account.getCustomerId()));
 
         request.getRequestDispatcher(VIEW_PATH).forward(request, response);
     }
@@ -151,13 +154,13 @@ public class ShippingAddressServlet extends HttpServlet {
 
         Integer editId = parsePositiveInteger(request.getParameter("editId"));
         if (editId != null) {
-            Address editingAddress = addressDAO.getAddressByIdAndUserId(editId, account.getUserId());
+            Address editingAddress = addressDAO.getAddressByIdAndCustomerId(editId, account.getCustomerId());
             if (editingAddress != null) {
                 request.setAttribute("formAction", "update");
                 request.setAttribute("formAddressId", String.valueOf(editingAddress.getAddressId()));
                 request.setAttribute("formRecipientName", safeTrim(editingAddress.getRecipientName()));
                 request.setAttribute("formPhoneNumber", safeTrim(editingAddress.getPhoneNumber()));
-                request.setAttribute("formAddressDetail", safeTrim(editingAddress.getAddressDetail()));
+                request.setAttribute("formAddressDetail", extractAddressDetailPart(editingAddress.getAddressDetail()));
                 request.setAttribute("activeAddressId", editingAddress.getAddressId());
                 return;
             }
@@ -193,12 +196,18 @@ public class ShippingAddressServlet extends HttpServlet {
         session.setAttribute(key, message);
     }
 
-    private User requireLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private User requireCustomer(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         User account = session != null ? (User) session.getAttribute("account") : null;
 
         if (account == null) {
             response.sendRedirect(request.getContextPath() + "/Login");
+            return null;
+        }
+
+        if (!account.isCustomer()) {
+            response.sendRedirect(request.getContextPath() + "/Dashboard");
+            return null;
         }
 
         return account;
@@ -215,5 +224,33 @@ public class ShippingAddressServlet extends HttpServlet {
 
     private String safeTrim(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private String extractAddressDetailPart(String rawAddress) {
+        String value = safeTrim(rawAddress);
+        if (value.isEmpty()) {
+            return "";
+        }
+
+        String normalizedSuffix = FIXED_ADDRESS_SUFFIX.toLowerCase();
+        String normalizedValue = value.toLowerCase();
+        if (normalizedValue.endsWith(normalizedSuffix)) {
+            value = value.substring(0, value.length() - FIXED_ADDRESS_SUFFIX.length()).trim();
+        }
+
+        while (value.endsWith(",")) {
+            value = value.substring(0, value.length() - 1).trim();
+        }
+
+        return value;
+    }
+
+    private String buildFullAddress(String addressDetailPart) {
+        String detailPart = extractAddressDetailPart(addressDetailPart);
+        if (detailPart.isEmpty()) {
+            return FIXED_ADDRESS_SUFFIX;
+        }
+
+        return detailPart + ", " + FIXED_ADDRESS_SUFFIX;
     }
 }

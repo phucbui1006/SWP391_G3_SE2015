@@ -2,6 +2,7 @@ package dal;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Product;
@@ -297,5 +298,103 @@ public class ProductDAO extends DBContext {
         }
 
         return 0;
+    }
+
+    public List<Product> getProductsByKeyword(String keyword, String sort) {
+        List<Product> list = new ArrayList<>();
+
+        String orderBy;
+
+        if ("price_asc".equals(sort)) {
+            orderBy = " ORDER BY p.price ASC ";
+        } else if ("price_desc".equals(sort)) {
+            orderBy = " ORDER BY p.price DESC ";
+        } else {
+            orderBy = " ORDER BY p.product_id DESC ";
+        }
+
+        String sql
+                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
+                + "p.description, p.image_url, p.warranty_months "
+                + "FROM products p "
+                + "WHERE LOWER(p.product_name) LIKE LOWER(?) "
+                + orderBy;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, "%" + keyword + "%");
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Product p = new Product();
+
+                p.setProductId(rs.getInt("product_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setPrice(rs.getBigDecimal("price"));
+                p.setQuantity(rs.getInt("quantity"));
+                p.setBatchId(rs.getInt("batch_id"));
+                p.setDescription(rs.getString("description"));
+                p.setImageUrl(rs.getString("image_url"));
+                p.setWarrantyMonths(rs.getInt("warranty_months"));
+
+                list.add(p);
+            }
+
+        } catch (SQLException e) {
+        }
+
+        return list;
+    }
+
+    public List<Product> getProductsByCategoryAndKeyword(int categoryId, String keyword, String sort) {
+        List<Product> list = new ArrayList<>();
+
+        String orderBy;
+
+        if ("price_asc".equals(sort)) {
+            orderBy = " ORDER BY p.price ASC ";
+        } else if ("price_desc".equals(sort)) {
+            orderBy = " ORDER BY p.price DESC ";
+        } else {
+            orderBy = " ORDER BY p.product_id DESC ";
+        }
+
+        String sql
+                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
+                + "p.description, p.image_url, p.warranty_months "
+                + "FROM products p "
+                + "JOIN batch b ON p.batch_id = b.batch_id "
+                + "WHERE b.category_id = ? "
+                + "AND LOWER(p.product_name) LIKE LOWER(?) "
+                + orderBy;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, categoryId);
+            ps.setString(2, "%" + keyword + "%");
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Product p = new Product();
+
+                p.setProductId(rs.getInt("product_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setPrice(rs.getBigDecimal("price"));
+                p.setQuantity(rs.getInt("quantity"));
+                p.setBatchId(rs.getInt("batch_id"));
+                p.setDescription(rs.getString("description"));
+                p.setImageUrl(rs.getString("image_url"));
+                p.setWarrantyMonths(rs.getInt("warranty_months"));
+
+                list.add(p);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 }

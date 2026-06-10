@@ -24,14 +24,17 @@ public class CategoryServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
         String sort = request.getParameter("sort");
-
         if (sort == null || sort.trim().isEmpty()) {
             sort = "newest";
+        }
+
+        String keyword = request.getParameter("keyword");
+        if (keyword != null) {
+            keyword = keyword.trim();
         }
 
         String idRaw = request.getParameter("id");
@@ -45,22 +48,32 @@ public class CategoryServlet extends HttpServlet {
                 int categoryId = Integer.parseInt(idRaw);
 
                 selectedCategory = categoryDAO.getCategoryById(categoryId);
-                products = productDAO.getProductsByCategoryId(categoryId, sort);
 
-                System.out.println("CATEGORY ID = " + categoryId);
-                System.out.println("PRODUCT SIZE = " + products.size());
-
+                if (keyword != null && !keyword.isEmpty()) {
+                    products = productDAO.getProductsByCategoryAndKeyword(categoryId, keyword, sort);
+                } else {
+                    products = productDAO.getProductsByCategoryId(categoryId, sort);
+                }
             } catch (NumberFormatException e) {
-                products = productDAO.getAllProducts(sort);
+                if (keyword != null && !keyword.isEmpty()) {
+                    products = productDAO.getProductsByKeyword(keyword, sort);
+                } else {
+                    products = productDAO.getAllProducts(sort);
+                }
             }
         } else {
-            products = productDAO.getAllProducts(sort);
+            if (keyword != null && !keyword.isEmpty()) {
+                products = productDAO.getProductsByKeyword(keyword, sort);
+            } else {
+                products = productDAO.getAllProducts(sort);
+            }
         }
 
         request.setAttribute("categories", categories);
         request.setAttribute("products", products);
         request.setAttribute("selectedCategory", selectedCategory);
         request.setAttribute("selectedSort", sort);
+        request.setAttribute("keyword", keyword);
 
         HttpSession session = request.getSession(false);
         if (session != null) {

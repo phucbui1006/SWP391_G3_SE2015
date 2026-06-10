@@ -32,7 +32,7 @@ public class CheckoutServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        User account = requireLogin(request, response);
+        User account = requireCustomer(request, response);
         if (account == null) {
             return;
         }
@@ -46,7 +46,7 @@ public class CheckoutServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
-        User account = requireLogin(request, response);
+        User account = requireCustomer(request, response);
         if (account == null) {
             return;
         }
@@ -71,7 +71,8 @@ public class CheckoutServlet extends HttpServlet {
         }
 
         AddressDAO addressDAO = new AddressDAO();
-        List<Address> savedAddresses = addressDAO.getAddressesByUserId(account.getUserId());
+        int customerId = account.getCustomerId();
+        List<Address> savedAddresses = addressDAO.getAddressesByCustomerId(customerId);
         Integer selectedAddressId = parsePositiveInteger(request.getParameter("selectedAddressId"));
         Address selectedAddress = findAddressById(savedAddresses, selectedAddressId);
 
@@ -87,7 +88,7 @@ public class CheckoutServlet extends HttpServlet {
 
         OrderDAO orderDAO = new OrderDAO();
         boolean created = orderDAO.createOrder(
-                account.getUserId(),
+                customerId,
                 selectedAddress,
                 paymentMethod,
                 paymentStatus,
@@ -117,7 +118,8 @@ public class CheckoutServlet extends HttpServlet {
         }
 
         AddressDAO addressDAO = new AddressDAO();
-        List<Address> savedAddresses = addressDAO.getAddressesByUserId(account.getUserId());
+        int customerId = account.getCustomerId();
+        List<Address> savedAddresses = addressDAO.getAddressesByCustomerId(customerId);
         Integer selectedAddressId = parsePositiveInteger(request.getParameter("selectedAddressId"));
         Address selectedAddress = resolveSelectedAddress(savedAddresses, selectedAddressId);
 
@@ -141,7 +143,7 @@ public class CheckoutServlet extends HttpServlet {
         request.setAttribute("canPlaceOrder", selectedAddress != null);
 
         CartDAO cartDAO = new CartDAO();
-        request.setAttribute("cartItemCount", cartDAO.getCartItemCountByUserId(account.getUserId()));
+        request.setAttribute("cartItemCount", cartDAO.getCartItemCountByCustomerId(customerId));
 
         request.getRequestDispatcher(VIEW_PATH).forward(request, response);
     }
@@ -151,7 +153,7 @@ public class CheckoutServlet extends HttpServlet {
 
         if (!selectedCartItemIds.isEmpty()) {
             CartDAO cartDAO = new CartDAO();
-            List<CartItem> allCartItems = cartDAO.getCartItemsByUserId(account.getUserId());
+            List<CartItem> allCartItems = cartDAO.getCartItemsByCustomerId(account.getCustomerId());
             Set<Integer> selectedIdSet = new LinkedHashSet<>(selectedCartItemIds);
             List<CartItem> selectedItems = new ArrayList<>();
             List<Integer> resolvedIds = new ArrayList<>();
@@ -276,12 +278,18 @@ public class CheckoutServlet extends HttpServlet {
         session.setAttribute(key, message);
     }
 
-    private User requireLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private User requireCustomer(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         User account = session != null ? (User) session.getAttribute("account") : null;
 
         if (account == null) {
             response.sendRedirect(request.getContextPath() + "/Login");
+            return null;
+        }
+
+        if (!account.isCustomer()) {
+            response.sendRedirect(request.getContextPath() + "/Dashboard");
+            return null;
         }
 
         return account;

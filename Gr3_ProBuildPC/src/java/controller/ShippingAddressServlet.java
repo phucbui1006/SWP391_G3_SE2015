@@ -26,7 +26,7 @@ public class ShippingAddressServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        User account = requireLogin(request, response);
+        User account = requireCustomer(request, response);
         if (account == null) {
             return;
         }
@@ -42,7 +42,7 @@ public class ShippingAddressServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
-        User account = requireLogin(request, response);
+        User account = requireCustomer(request, response);
         if (account == null) {
             return;
         }
@@ -85,7 +85,7 @@ public class ShippingAddressServlet extends HttpServlet {
                 return;
             }
 
-            Address currentAddress = addressDAO.getAddressByIdAndUserId(addressId, account.getUserId());
+            Address currentAddress = addressDAO.getAddressByIdAndCustomerId(addressId, account.getCustomerId());
             if (currentAddress == null) {
                 request.setAttribute("errorMsg", "Dia chi khong ton tai hoac khong thuoc tai khoan nay.");
                 renderPage(request, response, account);
@@ -95,7 +95,7 @@ public class ShippingAddressServlet extends HttpServlet {
 
         Address address = new Address();
         address.setAddressId(addressId != null ? addressId : 0);
-        address.setUserId(account.getUserId());
+        address.setCustomerId(account.getCustomerId());
         address.setRecipientName(recipientName);
         address.setPhoneNumber(phoneNumber);
         address.setAddressDetail(buildFullAddress(addressDetailPart));
@@ -125,7 +125,7 @@ public class ShippingAddressServlet extends HttpServlet {
             return;
         }
 
-        boolean deleted = addressDAO.deleteAddress(addressId, account.getUserId());
+        boolean deleted = addressDAO.deleteAddress(addressId, account.getCustomerId());
         if (deleted) {
             setFlashMessage(request.getSession(), FLASH_SUCCESS, "Da xoa dia chi giao hang.");
         } else {
@@ -137,12 +137,12 @@ public class ShippingAddressServlet extends HttpServlet {
 
     private void renderPage(HttpServletRequest request, HttpServletResponse response, User account)
             throws ServletException, IOException {
-        List<Address> addresses = addressDAO.getAddressesByUserId(account.getUserId());
+        List<Address> addresses = addressDAO.getAddressesByCustomerId(account.getCustomerId());
         request.setAttribute("addresses", addresses);
         request.setAttribute("fixedAddressSuffix", FIXED_ADDRESS_SUFFIX);
 
         CartDAO cartDAO = new CartDAO();
-        request.setAttribute("cartItemCount", cartDAO.getCartItemCountByUserId(account.getUserId()));
+        request.setAttribute("cartItemCount", cartDAO.getCartItemCountByCustomerId(account.getCustomerId()));
 
         request.getRequestDispatcher(VIEW_PATH).forward(request, response);
     }
@@ -154,7 +154,7 @@ public class ShippingAddressServlet extends HttpServlet {
 
         Integer editId = parsePositiveInteger(request.getParameter("editId"));
         if (editId != null) {
-            Address editingAddress = addressDAO.getAddressByIdAndUserId(editId, account.getUserId());
+            Address editingAddress = addressDAO.getAddressByIdAndCustomerId(editId, account.getCustomerId());
             if (editingAddress != null) {
                 request.setAttribute("formAction", "update");
                 request.setAttribute("formAddressId", String.valueOf(editingAddress.getAddressId()));
@@ -196,12 +196,18 @@ public class ShippingAddressServlet extends HttpServlet {
         session.setAttribute(key, message);
     }
 
-    private User requireLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private User requireCustomer(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         User account = session != null ? (User) session.getAttribute("account") : null;
 
         if (account == null) {
             response.sendRedirect(request.getContextPath() + "/Login");
+            return null;
+        }
+
+        if (!account.isCustomer()) {
+            response.sendRedirect(request.getContextPath() + "/Dashboard");
+            return null;
         }
 
         return account;

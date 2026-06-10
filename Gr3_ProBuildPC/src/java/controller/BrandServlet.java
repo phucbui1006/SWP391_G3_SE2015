@@ -66,8 +66,8 @@ public class BrandServlet extends HttpServlet {
         }
 
         User account = (User) session.getAttribute("account");
-        if (account != null) {
-            request.setAttribute("cartItemCount", new CartDAO().getCartItemCountByUserId(account.getUserId()));
+        if (account != null && account.isCustomer()) {
+            request.setAttribute("cartItemCount", new CartDAO().getCartItemCountByCustomerId(account.getCustomerId()));
         }
     }
 }

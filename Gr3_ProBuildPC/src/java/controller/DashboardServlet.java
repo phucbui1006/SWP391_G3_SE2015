@@ -27,6 +27,11 @@ public class DashboardServlet extends HttpServlet {
             return;
         }
 
+        if (user.isCustomer()) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+
         request.getRequestDispatcher("/views/dashboard.jsp").forward(request, response);
     }
 }

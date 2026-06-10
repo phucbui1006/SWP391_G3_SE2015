@@ -2,14 +2,14 @@ package model;
 
 public class Cart {
     private int cartId;
-    private int userId;
+    private int customerId;
 
     public Cart() {
     }
 
-    public Cart(int cartId, int userId) {
+    public Cart(int cartId, int customerId) {
         this.cartId = cartId;
-        this.userId = userId;
+        this.customerId = customerId;
     }
 
     public int getCartId() {
@@ -21,10 +21,18 @@ public class Cart {
     }
 
     public int getUserId() {
-        return userId;
+        return customerId;
     }
 
     public void setUserId(int userId) {
-        this.userId = userId;
+        this.customerId = userId;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 }

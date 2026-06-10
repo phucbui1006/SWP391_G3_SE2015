@@ -76,17 +76,24 @@ public class AccountManagementServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
 
         String action = request.getParameter("action");
-        Integer userId = parseId(request.getParameter("userId"));
         User currentAdmin = (User) session.getAttribute("account");
 
+        if ("createStaff".equals(action)) {
+            createStaff(request, session);
+            response.sendRedirect(request.getContextPath() + "/AccountManagement" + buildQueryString(request));
+            return;
+        }
+
+        Integer userId = parseId(request.getParameter("userId"));
+
         if (userId == null) {
-            session.setAttribute("accountError", "Tài khoản cần cập nhật không hợp lệ.");
+            session.setAttribute("accountError", "Tai khoan can cap nhat khong hop le.");
         } else if ("updateRole".equals(action)) {
             updateRole(request, session, currentAdmin, userId);
         } else if ("updateStatus".equals(action)) {
             updateStatus(request, session, currentAdmin, userId);
         } else {
-            session.setAttribute("accountError", "Thao tác không hợp lệ.");
+            session.setAttribute("accountError", "Thao tac khong hop le.");
         }
 
         response.sendRedirect(request.getContextPath() + "/AccountManagement" + buildQueryString(request));
@@ -113,23 +120,57 @@ public class AccountManagementServlet extends HttpServlet {
         return session;
     }
 
+    private void createStaff(HttpServletRequest request, HttpSession session) {
+        String fullName = normalizeText(request.getParameter("fullName"));
+        String email = normalizeText(request.getParameter("email"));
+        String password = normalizeText(request.getParameter("password"));
+        Integer roleId = parseId(request.getParameter("roleId"));
+
+        if (fullName == null || email == null || password == null || roleId == null) {
+            session.setAttribute("accountError", "Vui long nhap day du thong tin nhan vien.");
+            return;
+        }
+
+        if (userDAO.checkEmailExist(email)) {
+            session.setAttribute("accountError", "Email nay da ton tai trong he thong.");
+            return;
+        }
+
+        if (userDAO.createStaff(fullName, email, password, roleId)) {
+            session.setAttribute("accountSuccess", "Tao tai khoan nhan vien thanh cong.");
+        } else {
+            session.setAttribute("accountError", "Khong the tao tai khoan nhan vien.");
+        }
+    }
+
     private void updateRole(HttpServletRequest request, HttpSession session, User currentAdmin, int userId) {
         Integer roleId = parseId(request.getParameter("roleId"));
 
         if (roleId == null) {
-            session.setAttribute("accountError", "Vai trò cập nhật không hợp lệ.");
+            session.setAttribute("accountError", "Vai tro cap nhat khong hop le.");
+            return;
+        }
+
+        User targetUser = userDAO.getUserById(userId);
+        if (targetUser == null) {
+            session.setAttribute("accountError", "Khong tim thay tai khoan can cap nhat.");
+            return;
+        }
+
+        if (!targetUser.isStaff()) {
+            session.setAttribute("accountError", "Khach hang khong su dung vai tro nhan vien.");
             return;
         }
 
         if (currentAdmin != null && currentAdmin.getUserId() == userId) {
-            session.setAttribute("accountError", "Không thể đổi vai trò của chính tài khoản đang đăng nhập.");
+            session.setAttribute("accountError", "Khong the doi vai tro cua chinh tai khoan dang dang nhap.");
             return;
         }
 
         if (userDAO.updateUserRole(userId, roleId)) {
-            session.setAttribute("accountSuccess", "Cập nhật vai trò tài khoản thành công.");
+            session.setAttribute("accountSuccess", "Cap nhat vai tro tai khoan thanh cong.");
         } else {
-            session.setAttribute("accountError", "Không thể cập nhật vai trò tài khoản.");
+            session.setAttribute("accountError", "Khong the cap nhat vai tro tai khoan.");
         }
     }
 
@@ -137,30 +178,30 @@ public class AccountManagementServlet extends HttpServlet {
         String status = normalizeStatus(request.getParameter("status"));
 
         if (status == null) {
-            session.setAttribute("accountError", "Trạng thái cập nhật không hợp lệ.");
+            session.setAttribute("accountError", "Trang thai cap nhat khong hop le.");
             return;
         }
 
         User targetUser = userDAO.getUserById(userId);
         if (targetUser == null) {
-            session.setAttribute("accountError", "Không tìm thấy tài khoản cần cập nhật.");
+            session.setAttribute("accountError", "Khong tim thay tai khoan can cap nhat.");
             return;
         }
 
         if (currentAdmin != null && currentAdmin.getUserId() == userId) {
-            session.setAttribute("accountError", "Không thể khóa chính tài khoản đang đăng nhập.");
+            session.setAttribute("accountError", "Khong the khoa chinh tai khoan dang dang nhap.");
             return;
         }
 
         if ("ADMIN".equalsIgnoreCase(targetUser.getRoleName()) && "BANNED".equals(status)) {
-            session.setAttribute("accountError", "Không thể khóa tài khoản Admin.");
+            session.setAttribute("accountError", "Khong the khoa tai khoan Admin.");
             return;
         }
 
         if (userDAO.updateUserStatus(userId, status)) {
-            session.setAttribute("accountSuccess", "Cập nhật trạng thái tài khoản thành công.");
+            session.setAttribute("accountSuccess", "Cap nhat trang thai tai khoan thanh cong.");
         } else {
-            session.setAttribute("accountError", "Không thể cập nhật trạng thái tài khoản.");
+            session.setAttribute("accountError", "Khong the cap nhat trang thai tai khoan.");
         }
     }
 

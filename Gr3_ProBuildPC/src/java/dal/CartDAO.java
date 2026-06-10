@@ -16,8 +16,9 @@ public class CartDAO extends DBContext {
         List<CartItem> cartItems = new ArrayList<>();
         String sql = "SELECT ci.cart_item_id, ci.cart_id, ci.product_id, ci.quantity, "
                 + "p.price, p.quantity AS stock_quantity, p.batch_id, p.description, "
-                + "p.image_url, p.warranty_months, p.product_name, "
-                + "br.brand_name, ca.category_name "
+                + "p.image_url, p.warranty_months, p.product_name, p.status, "
+                + "br.brand_name, br.status AS brand_status, "
+                + "ca.category_name, ca.status AS category_status "
                 + "FROM cart c "
                 + "INNER JOIN cart_items ci ON c.cart_id = ci.cart_id "
                 + "INNER JOIN products p ON ci.product_id = p.product_id "
@@ -197,6 +198,9 @@ public class CartDAO extends DBContext {
 
         product.setBrandName(rs.getString("brand_name"));
         product.setCategoryName(rs.getString("category_name"));
+        product.setStatus(rs.getString("status"));
+        product.setBrandStatus(rs.getString("brand_status"));
+        product.setCategoryStatus(rs.getString("category_status"));
 
         return product;
     }

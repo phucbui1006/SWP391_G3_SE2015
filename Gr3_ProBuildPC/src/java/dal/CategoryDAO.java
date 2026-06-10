@@ -13,8 +13,9 @@ public class CategoryDAO extends DBContext {
         List<Category> list = new ArrayList<>();
 
         String sql = """
-            SELECT category_id, category_name
+            SELECT category_id, category_name, status
             FROM categories
+            WHERE status = 'ACTIVE'
             ORDER BY category_name ASC
         """;
 
@@ -27,6 +28,7 @@ public class CategoryDAO extends DBContext {
 
                 c.setCategoryId(rs.getInt("category_id"));
                 c.setCategoryName(rs.getString("category_name"));
+                c.setStatus(rs.getString("status"));
 
                 list.add(c);
             }
@@ -40,9 +42,9 @@ public class CategoryDAO extends DBContext {
 
     public Category getCategoryById(int categoryId) {
         String sql = """
-            SELECT category_id, category_name
+            SELECT category_id, category_name, status
             FROM categories
-            WHERE category_id = ?
+            WHERE category_id = ? AND status = 'ACTIVE'
         """;
 
         try {
@@ -56,6 +58,7 @@ public class CategoryDAO extends DBContext {
 
                 c.setCategoryId(rs.getInt("category_id"));
                 c.setCategoryName(rs.getString("category_name"));
+                c.setStatus(rs.getString("status"));
 
                 return c;
             }
@@ -69,7 +72,7 @@ public class CategoryDAO extends DBContext {
      public ArrayList<Category> getCategories(String keyword, String sort, int page, int pageSize) {
         ArrayList<Category> list = new ArrayList<>();
 
-        String sql = "SELECT category_id, category_name FROM categories WHERE 1=1 ";
+        String sql = "SELECT category_id, category_name, status FROM categories WHERE 1=1 ";
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql += "AND category_name LIKE ? ";
@@ -107,6 +110,7 @@ public class CategoryDAO extends DBContext {
                         rs.getInt("category_id"),
                         rs.getString("category_name")
                 ));
+                list.get(list.size() - 1).setStatus(rs.getString("status"));
             }
 
         } catch (Exception e) {
@@ -116,31 +120,6 @@ public class CategoryDAO extends DBContext {
         return list;
     }
 
-    public int countCategories(String keyword) {
-        String sql = "SELECT COUNT(*) FROM categories WHERE 1=1 ";
+   
 
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            sql += "AND category_name LIKE ? ";
-        }
-
-        try {
-            Connection conn = getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-
-            if (keyword != null && !keyword.trim().isEmpty()) {
-                ps.setString(1, "%" + keyword.trim() + "%");
-            }
-
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return 0;
-    }
 }

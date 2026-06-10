@@ -5,6 +5,7 @@ public class Brand {
     private String brandName;
     private String img;
     private int productCount;
+    private String status;
 
     public Brand() {
     }
@@ -45,5 +46,13 @@ public class Brand {
 
     public void setProductCount(int productCount) {
         this.productCount = productCount;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

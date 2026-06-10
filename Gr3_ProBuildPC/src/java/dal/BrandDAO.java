@@ -15,27 +15,33 @@ public class BrandDAO extends DBContext {
         b.setBrandName(rs.getString("brand_name"));
         b.setImg(rs.getString("img"));
         b.setProductCount(rs.getInt("product_count"));
+        b.setStatus(rs.getString("status"));
 
         return b;
     }
 
     public List<Brand> getBrands(String keyword) {
+        return getBrands(keyword, null, "newest");
+    }
+
+    public List<Brand> getBrands(String keyword, String status, String sort) {
         List<Brand> list = new ArrayList<>();
 
         String sql = """
-            SELECT br.brand_id, br.brand_name, br.img,
+            SELECT br.brand_id, br.brand_name, br.img, br.status,
                    COUNT(p.product_id) AS product_count
             FROM brands br
             LEFT JOIN batch ba ON br.brand_id = ba.brand_id
             LEFT JOIN products p ON ba.batch_id = p.batch_id
             WHERE (? IS NULL OR br.brand_name LIKE ?)
-            GROUP BY br.brand_id, br.brand_name, br.img
-            ORDER BY br.brand_id DESC
-        """;
+              AND (? IS NULL OR br.status = ?)
+            GROUP BY br.brand_id, br.brand_name, br.img, br.status
+        """ + getAdminOrderBy(sort);
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             String normalizedKeyword = normalizeKeyword(keyword);
+            String normalizedStatus = normalizeStatus(status);
 
             if (normalizedKeyword == null) {
                 ps.setNull(1, java.sql.Types.VARCHAR);
@@ -43,6 +49,14 @@ public class BrandDAO extends DBContext {
             } else {
                 ps.setString(1, normalizedKeyword);
                 ps.setString(2, "%" + normalizedKeyword + "%");
+            }
+
+            if (normalizedStatus == null) {
+                ps.setNull(3, java.sql.Types.VARCHAR);
+                ps.setNull(4, java.sql.Types.VARCHAR);
+            } else {
+                ps.setString(3, normalizedStatus);
+                ps.setString(4, normalizedStatus);
             }
 
             ResultSet rs = ps.executeQuery();
@@ -58,15 +72,45 @@ public class BrandDAO extends DBContext {
         return list;
     }
 
+    public List<Brand> getActiveBrands() {
+        List<Brand> list = new ArrayList<>();
+
+        String sql = """
+            SELECT br.brand_id, br.brand_name, br.img, br.status,
+                   COUNT(p.product_id) AS product_count
+            FROM brands br
+            LEFT JOIN batch ba ON br.brand_id = ba.brand_id
+            LEFT JOIN categories ca ON ba.category_id = ca.category_id AND ca.status = 'ACTIVE'
+            LEFT JOIN products p ON ba.batch_id = p.batch_id AND p.status = 'ACTIVE' AND ca.category_id IS NOT NULL
+            WHERE br.status = 'ACTIVE'
+            GROUP BY br.brand_id, br.brand_name, br.img, br.status
+            ORDER BY br.brand_id DESC
+        """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapBrand(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     public Brand getBrandById(int brandId) {
         String sql = """
-            SELECT br.brand_id, br.brand_name, br.img,
+            SELECT br.brand_id, br.brand_name, br.img, br.status,
                    COUNT(p.product_id) AS product_count
             FROM brands br
             LEFT JOIN batch ba ON br.brand_id = ba.brand_id
             LEFT JOIN products p ON ba.batch_id = p.batch_id
             WHERE br.brand_id = ?
-            GROUP BY br.brand_id, br.brand_name, br.img
+            GROUP BY br.brand_id, br.brand_name, br.img, br.status
         """;
 
         try {
@@ -145,14 +189,24 @@ public class BrandDAO extends DBContext {
     }
 
     public boolean deleteBrand(int brandId) {
+        return updateBrandStatus(brandId, "INACTIVE");
+    }
+
+    public boolean activateBrand(int brandId) {
+        return updateBrandStatus(brandId, "ACTIVE");
+    }
+
+    public boolean updateBrandStatus(int brandId, String status) {
         String sql = """
-            DELETE FROM brands
+            UPDATE brands
+            SET status = ?
             WHERE brand_id = ?
         """;
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, brandId);
+            ps.setString(1, status);
+            ps.setInt(2, brandId);
 
             return ps.executeUpdate() > 0;
 
@@ -193,5 +247,28 @@ public class BrandDAO extends DBContext {
         }
 
         return keyword.trim();
+    }
+
+    private String normalizeStatus(String status) {
+        if (status == null || status.trim().isEmpty() || "ALL".equalsIgnoreCase(status.trim())) {
+            return null;
+        }
+
+        String normalizedStatus = status.trim().toUpperCase();
+        if ("ACTIVE".equals(normalizedStatus) || "INACTIVE".equals(normalizedStatus)) {
+            return normalizedStatus;
+        }
+
+        return null;
+    }
+
+    private String getAdminOrderBy(String sort) {
+        if ("product_count_asc".equals(sort)) {
+            return " ORDER BY product_count ASC, br.brand_id DESC ";
+        } else if ("product_count_desc".equals(sort)) {
+            return " ORDER BY product_count DESC, br.brand_id DESC ";
+        }
+
+        return " ORDER BY br.brand_id DESC ";
     }
 }

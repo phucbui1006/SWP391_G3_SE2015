@@ -13,6 +13,9 @@ public class Product {
     private String productName;
     private String brandName;
     private String categoryName;
+    private String status;
+    private String brandStatus;
+    private String categoryStatus;
 
     public Product() {
     }
@@ -107,5 +110,35 @@ public class Product {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getBrandStatus() {
+        return brandStatus;
+    }
+
+    public void setBrandStatus(String brandStatus) {
+        this.brandStatus = brandStatus;
+    }
+
+    public String getCategoryStatus() {
+        return categoryStatus;
+    }
+
+    public void setCategoryStatus(String categoryStatus) {
+        this.categoryStatus = categoryStatus;
+    }
+
+    public boolean isAvailableForSale() {
+        return "ACTIVE".equalsIgnoreCase(status)
+                && "ACTIVE".equalsIgnoreCase(brandStatus)
+                && "ACTIVE".equalsIgnoreCase(categoryStatus);
     }
 }

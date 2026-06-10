@@ -1,5 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ page import="model.Brand" %>
 <%@ page import="model.Product" %>
 
@@ -16,6 +18,10 @@
                 .replace("\"", "&quot;")
                 .replace("'", "&#39;");
     }
+
+    private String url(String value) {
+        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
+    }
 %>
 
 <%
@@ -26,6 +32,7 @@
     Integer selectedBrandId = (Integer) request.getAttribute("selectedBrandId");
     String selectedPriceRange = (String) request.getAttribute("selectedPriceRange");
     String selectedSort = (String) request.getAttribute("selectedSort");
+    String keyword = (String) request.getAttribute("keyword");
 
     if (selectedPriceRange == null) {
         selectedPriceRange = "all";
@@ -33,6 +40,10 @@
 
     if (selectedSort == null) {
         selectedSort = "newest";
+    }
+
+    if (keyword == null) {
+        keyword = "";
     }
 
     int productCount = products == null ? 0 : products.size();
@@ -71,6 +82,7 @@
                 <aside class="brand-sidebar" aria-label="Bộ lọc thương hiệu">
                     <form class="brand-filter-form" action="<%= ctx %>/brands" method="get">
                         <input type="hidden" name="sort" value="<%= h(selectedSort) %>">
+                        <input type="hidden" name="keyword" value="<%= h(keyword) %>">
 
                         <div class="filter-panel">
                             <div class="filter-title">
@@ -118,7 +130,7 @@
                                 boolean active = selectedBrandId != null && selectedBrandId == brand.getBrandId();
                         %>
                         <a class="brand-card <%= active ? "active" : "" %>"
-                           href="<%= ctx %>/brands?brandId=<%= brand.getBrandId() %>&priceRange=<%= h(selectedPriceRange) %>&sort=<%= h(selectedSort) %>">
+                           href="<%= ctx %>/brands?brandId=<%= brand.getBrandId() %>&priceRange=<%= url(selectedPriceRange) %>&sort=<%= url(selectedSort) %>&keyword=<%= url(keyword) %>">
                             <% if (brand.getImg() != null && !brand.getImg().trim().isEmpty()) { %>
                             <img src="<%= ctx %>/<%= h(brand.getImg()) %>" alt="<%= h(brand.getBrandName()) %>">
                             <% } else { %>
@@ -129,7 +141,7 @@
                         <% }} %>
 
                         <a class="brand-card view-all <%= selectedBrandId == null ? "active" : "" %>"
-                           href="<%= ctx %>/brands?priceRange=<%= h(selectedPriceRange) %>&sort=<%= h(selectedSort) %>">
+                           href="<%= ctx %>/brands?priceRange=<%= url(selectedPriceRange) %>&sort=<%= url(selectedSort) %>&keyword=<%= url(keyword) %>">
                             <span>▦</span>
                             <small>Xem tất cả</small>
                         </a>
@@ -141,11 +153,22 @@
                             <p>Hiển thị <%= productCount %> sản phẩm</p>
                         </div>
 
+                        <form action="<%= ctx %>/brands" method="get" class="brand-product-search-form">
+                            <% if (selectedBrandId != null) { %>
+                            <input type="hidden" name="brandId" value="<%= selectedBrandId %>">
+                            <% } %>
+                            <input type="hidden" name="priceRange" value="<%= h(selectedPriceRange) %>">
+                            <input type="hidden" name="sort" value="<%= h(selectedSort) %>">
+                            <input type="text" name="keyword" value="<%= h(keyword) %>" placeholder="Tìm sản phẩm trong hãng...">
+                            <button type="submit">Tìm kiếm</button>
+                        </form>
+
                         <form action="<%= ctx %>/brands" method="get" class="brand-sort-form">
                             <% if (selectedBrandId != null) { %>
                             <input type="hidden" name="brandId" value="<%= selectedBrandId %>">
                             <% } %>
                             <input type="hidden" name="priceRange" value="<%= h(selectedPriceRange) %>">
+                            <input type="hidden" name="keyword" value="<%= h(keyword) %>">
                             <label>
                                 Sắp xếp:
                                 <select name="sort" onchange="this.form.submit()">
@@ -183,7 +206,7 @@
                         <% }} else { %>
                         <div class="brand-empty">
                             <h3>Chưa có sản phẩm phù hợp</h3>
-                            <p>Vui lòng chọn thương hiệu hoặc khoảng giá khác.</p>
+                            <p>Vui lòng thử từ khóa, thương hiệu hoặc khoảng giá khác.</p>
                         </div>
                         <% } %>
                     </div>

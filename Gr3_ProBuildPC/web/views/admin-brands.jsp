@@ -41,8 +41,18 @@
     String ctx = request.getContextPath();
     List<Brand> brands = (List<Brand>) request.getAttribute("brands");
     String keyword = (String) request.getAttribute("keyword");
+    String selectedStatus = (String) request.getAttribute("selectedStatus");
+    String selectedSort = (String) request.getAttribute("selectedSort");
     String success = (String) request.getAttribute("success");
     String error = (String) request.getAttribute("error");
+
+    if (selectedStatus == null || selectedStatus.isEmpty()) {
+        selectedStatus = "ALL";
+    }
+
+    if (selectedSort == null || selectedSort.isEmpty()) {
+        selectedSort = "newest";
+    }
 %>
 
 <!DOCTYPE html>
@@ -81,6 +91,19 @@
                     <div class="brand-toolbar">
                         <form class="brand-search-form" action="<%= ctx %>/AdminBrands" method="get">
                             <input type="text" name="keyword" value="<%= h(keyword) %>" placeholder="Tìm kiếm thương hiệu theo tên...">
+
+                            <select name="status" onchange="this.form.submit()">
+                                <option value="ALL" <%= "ALL".equals(selectedStatus) ? "selected" : "" %>>Tất cả trạng thái</option>
+                                <option value="ACTIVE" <%= "ACTIVE".equals(selectedStatus) ? "selected" : "" %>>ACTIVE</option>
+                                <option value="INACTIVE" <%= "INACTIVE".equals(selectedStatus) ? "selected" : "" %>>INACTIVE</option>
+                            </select>
+
+                            <select name="sort" onchange="this.form.submit()">
+                                <option value="newest" <%= "newest".equals(selectedSort) ? "selected" : "" %>>Mới nhất</option>
+                                <option value="product_count_asc" <%= "product_count_asc".equals(selectedSort) ? "selected" : "" %>>Số sản phẩm tăng dần</option>
+                                <option value="product_count_desc" <%= "product_count_desc".equals(selectedSort) ? "selected" : "" %>>Số sản phẩm giảm dần</option>
+                            </select>
+
                             <button type="submit">Tìm kiếm</button>
                         </form>
 
@@ -96,13 +119,14 @@
                                     <th>Tên thương hiệu</th>
                                     <th>Đường dẫn logo</th>
                                     <th>Số lượng sản phẩm</th>
+                                    <th>Trạng thái</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <% if (brands == null || brands.isEmpty()) { %>
                                 <tr>
-                                    <td class="brand-empty-state" colspan="6">Không tìm thấy thương hiệu phù hợp.</td>
+                                    <td class="brand-empty-state" colspan="7">Không tìm thấy thương hiệu phù hợp.</td>
                                 </tr>
                                 <% } else { %>
                                 <% for (Brand brand : brands) { %>
@@ -114,6 +138,7 @@
                                     <td><%= h(brand.getBrandName()) %></td>
                                     <td><%= h(brand.getImg()) %></td>
                                     <td><%= brand.getProductCount() %></td>
+                                    <td><%= h(brand.getStatus()) %></td>
                                     <td>
                                         <div class="brand-actions">
                                             <a class="brand-action edit"
@@ -121,9 +146,11 @@
                                                aria-label="Sửa <%= h(brand.getBrandName()) %>">Sửa</a>
 
                                             <form action="<%= ctx %>/AdminBrands" method="post">
-                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="action" value="<%= "ACTIVE".equalsIgnoreCase(brand.getStatus()) ? "delete" : "activate" %>">
                                                 <input type="hidden" name="brandId" value="<%= brand.getBrandId() %>">
-                                                <button class="brand-action delete" type="submit" aria-label="Xóa <%= h(brand.getBrandName()) %>">Xóa</button>
+                                                <button class="brand-action delete" type="submit" aria-label="Đổi trạng thái <%= h(brand.getBrandName()) %>">
+                                                    <%= "ACTIVE".equalsIgnoreCase(brand.getStatus()) ? "Vô hiệu hóa" : "Kích hoạt" %>
+                                                </button>
                                             </form>
                                         </div>
                                     </td>

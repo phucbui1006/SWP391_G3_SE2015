@@ -69,7 +69,8 @@ CREATE TABLE Address (
 -- =========================
 CREATE TABLE CATEGORIES (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
-    category_name VARCHAR(100) UNIQUE NOT NULL
+    category_name VARCHAR(100) UNIQUE NOT NULL,
+    status ENUM('ACTIVE','INACTIVE') DEFAULT 'ACTIVE'
 );
 
 -- =========================
@@ -78,7 +79,8 @@ CREATE TABLE CATEGORIES (
 CREATE TABLE BRANDS (
     brand_id INT AUTO_INCREMENT PRIMARY KEY,
     brand_name VARCHAR(100) UNIQUE NOT NULL,
-    img VARCHAR(255) UNIQUE NOT NULL
+    img VARCHAR(255) UNIQUE NOT NULL,
+    status ENUM('ACTIVE','INACTIVE') DEFAULT 'ACTIVE'
 );
 
 -- =========================
@@ -111,6 +113,7 @@ CREATE TABLE PRODUCTS (
     image_url VARCHAR(255) NULL,
     warranty_months INT,
     product_name VARCHAR(255) NOT NULL,
+    status ENUM('ACTIVE','INACTIVE') DEFAULT 'ACTIVE',
 
     CONSTRAINT FK_PRODUCTS_BATCH
         FOREIGN KEY (batch_id)

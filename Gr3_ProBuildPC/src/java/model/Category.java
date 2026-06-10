@@ -3,6 +3,7 @@ package model;
 public class Category {
     private int categoryId;
     private String categoryName;
+    private String status;
 
     public Category() {
     }
@@ -26,5 +27,13 @@ public class Category {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

@@ -70,6 +70,12 @@ public class CheckoutServlet extends HttpServlet {
             return;
         }
 
+        if (hasUnavailableItems(payload.getItems())) {
+            setFlashMessage(request.getSession(), CART_ERROR_FLASH, "San pham hien khong con kinh doanh.");
+            response.sendRedirect(request.getContextPath() + "/cart");
+            return;
+        }
+
         AddressDAO addressDAO = new AddressDAO();
         int customerId = account.getCustomerId();
         List<Address> savedAddresses = addressDAO.getAddressesByCustomerId(customerId);
@@ -113,6 +119,12 @@ public class CheckoutServlet extends HttpServlet {
 
         if (payload == null || payload.getItems().isEmpty()) {
             setFlashMessage(request.getSession(), CART_ERROR_FLASH, "Vui long chon it nhat mot san pham de thanh toan.");
+            response.sendRedirect(request.getContextPath() + "/cart");
+            return;
+        }
+
+        if (hasUnavailableItems(payload.getItems())) {
+            setFlashMessage(request.getSession(), CART_ERROR_FLASH, "San pham hien khong con kinh doanh.");
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
         }
@@ -215,6 +227,17 @@ public class CheckoutServlet extends HttpServlet {
         }
 
         return totalQuantity;
+    }
+
+    private boolean hasUnavailableItems(List<CartItem> items) {
+        for (CartItem item : items) {
+            Product product = item.getProduct();
+            if (product == null || !product.isAvailableForSale()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Address resolveSelectedAddress(List<Address> addresses, Integer selectedAddressId) {

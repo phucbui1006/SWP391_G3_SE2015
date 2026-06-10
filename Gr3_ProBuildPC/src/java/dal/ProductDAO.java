@@ -20,8 +20,13 @@ public class ProductDAO extends DBContext {
         p.setImageUrl(rs.getString("image_url"));
         p.setWarrantyMonths(rs.getInt("warranty_months"));
         p.setProductName(rs.getString("product_name"));
+        p.setStatus(rs.getString("status"));
 
         return p;
+    }
+
+    private String getActiveProductCondition() {
+        return " p.status = 'ACTIVE' AND br.status = 'ACTIVE' AND c.status = 'ACTIVE' ";
     }
 
     private String getOrderBy(String sort) {
@@ -40,17 +45,22 @@ public class ProductDAO extends DBContext {
         String orderBy;
 
         if ("price_asc".equals(sort)) {
-            orderBy = " ORDER BY price ASC ";
+            orderBy = " ORDER BY p.price ASC ";
         } else if ("price_desc".equals(sort)) {
-            orderBy = " ORDER BY price DESC ";
+            orderBy = " ORDER BY p.price DESC ";
         } else {
-            orderBy = " ORDER BY product_id DESC ";
+            orderBy = " ORDER BY p.product_id DESC ";
         }
 
         String sql
-                = "SELECT product_id, product_name, price, quantity, batch_id, "
-                + "description, image_url, warranty_months "
-                + "FROM products "
+                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
+                + "p.description, p.image_url, p.warranty_months, p.status, "
+                + "br.brand_name, c.category_name "
+                + "FROM products p "
+                + "JOIN batch b ON p.batch_id = b.batch_id "
+                + "JOIN brands br ON b.brand_id = br.brand_id "
+                + "JOIN categories c ON b.category_id = c.category_id "
+                + "WHERE " + getActiveProductCondition()
                 + orderBy;
 
         try {
@@ -58,17 +68,9 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                Product p = new Product();
-
-                p.setProductId(rs.getInt("product_id"));
-                p.setProductName(rs.getString("product_name"));
-                p.setPrice(rs.getBigDecimal("price"));
-                p.setQuantity(rs.getInt("quantity"));
-                p.setBatchId(rs.getInt("batch_id"));
-                p.setDescription(rs.getString("description"));
-                p.setImageUrl(rs.getString("image_url"));
-                p.setWarrantyMonths(rs.getInt("warranty_months"));
-
+                Product p = mapProduct(rs);
+                p.setBrandName(rs.getString("brand_name"));
+                p.setCategoryName(rs.getString("category_name"));
                 list.add(p);
             }
 
@@ -92,15 +94,16 @@ public class ProductDAO extends DBContext {
 
         String sql
                 = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
-                + "p.description, p.image_url, p.warranty_months, "
+                + "p.description, p.image_url, p.warranty_months, p.status, "
                 + "br.brand_name, c.category_name "
                 + "FROM products p "
                 + "JOIN batch b ON p.batch_id = b.batch_id "
                 + "JOIN brands br ON b.brand_id = br.brand_id "
                 + "JOIN categories c ON b.category_id = c.category_id "
-                + "WHERE p.product_name LIKE ? "
+                + "WHERE " + getActiveProductCondition()
+                + "AND (p.product_name LIKE ? "
                 + "OR br.brand_name LIKE ? "
-                + "OR c.category_name LIKE ? "
+                + "OR c.category_name LIKE ?) "
                 + getOrderBy(sort);
 
         try {
@@ -129,10 +132,18 @@ public class ProductDAO extends DBContext {
 
     public Product getProductById(int productId) {
         String sql = """
-            SELECT product_id, price, quantity, batch_id,
-                   description, image_url, warranty_months, product_name
-            FROM products
-            WHERE product_id = ?
+            SELECT p.product_id, p.price, p.quantity, p.batch_id,
+                   p.description, p.image_url, p.warranty_months, p.product_name, p.status,
+                   br.brand_name, br.status AS brand_status,
+                   c.category_name, c.status AS category_status
+            FROM products p
+            JOIN batch b ON p.batch_id = b.batch_id
+            JOIN brands br ON b.brand_id = br.brand_id
+            JOIN categories c ON b.category_id = c.category_id
+            WHERE p.product_id = ?
+              AND p.status = 'ACTIVE'
+              AND br.status = 'ACTIVE'
+              AND c.status = 'ACTIVE'
         """;
 
         try {
@@ -142,16 +153,11 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                Product p = new Product();
-
-                p.setProductId(rs.getInt("product_id"));
-                p.setPrice(rs.getBigDecimal("price"));
-                p.setQuantity(rs.getInt("quantity"));
-                p.setBatchId(rs.getInt("batch_id"));
-                p.setDescription(rs.getString("description"));
-                p.setImageUrl(rs.getString("image_url"));
-                p.setWarrantyMonths(rs.getInt("warranty_months"));
-                p.setProductName(rs.getString("product_name"));
+                Product p = mapProduct(rs);
+                p.setBrandName(rs.getString("brand_name"));
+                p.setBrandStatus(rs.getString("brand_status"));
+                p.setCategoryName(rs.getString("category_name"));
+                p.setCategoryStatus(rs.getString("category_status"));
 
                 return p;
             }
@@ -182,10 +188,12 @@ public class ProductDAO extends DBContext {
 
         String sql
                 = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
-                + "p.description, p.image_url, p.warranty_months "
+                + "p.description, p.image_url, p.warranty_months, p.status "
                 + "FROM products p "
                 + "JOIN batch b ON p.batch_id = b.batch_id "
-                + "WHERE b.category_id = ? "
+                + "JOIN brands br ON b.brand_id = br.brand_id "
+                + "JOIN categories c ON b.category_id = c.category_id "
+                + "WHERE b.category_id = ? AND " + getActiveProductCondition()
                 + orderBy;
 
         try {
@@ -195,18 +203,7 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                Product p = new Product();
-
-                p.setProductId(rs.getInt("product_id"));
-                p.setProductName(rs.getString("product_name"));
-                p.setPrice(rs.getBigDecimal("price"));
-                p.setQuantity(rs.getInt("quantity"));
-                p.setBatchId(rs.getInt("batch_id"));
-                p.setDescription(rs.getString("description"));
-                p.setImageUrl(rs.getString("image_url"));
-                p.setWarrantyMonths(rs.getInt("warranty_months"));
-
-                list.add(p);
+                list.add(mapProduct(rs));
             }
 
         } catch (Exception e) {
@@ -217,19 +214,30 @@ public class ProductDAO extends DBContext {
     }
 
     public List<Product> getProductsByBrand(Integer brandId, String priceRange, String sort) {
+        return getProductsByBrand(brandId, priceRange, sort, null);
+    }
+
+    public List<Product> getProductsByBrand(Integer brandId, String priceRange, String sort, String keyword) {
         List<Product> list = new ArrayList<>();
         List<Object> params = new ArrayList<>();
 
         String sql
                 = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
-                + "p.description, p.image_url, p.warranty_months "
+                + "p.description, p.image_url, p.warranty_months, p.status "
                 + "FROM products p "
                 + "JOIN batch b ON p.batch_id = b.batch_id "
-                + "WHERE 1 = 1 ";
+                + "JOIN brands br ON b.brand_id = br.brand_id "
+                + "JOIN categories c ON b.category_id = c.category_id "
+                + "WHERE " + getActiveProductCondition();
 
         if (brandId != null) {
             sql += "AND b.brand_id = ? ";
             params.add(brandId);
+        }
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql += "AND LOWER(p.product_name) LIKE LOWER(?) ";
+            params.add("%" + keyword.trim() + "%");
         }
 
         if ("under5".equals(priceRange)) {
@@ -315,9 +323,13 @@ public class ProductDAO extends DBContext {
 
         String sql
                 = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
-                + "p.description, p.image_url, p.warranty_months "
+                + "p.description, p.image_url, p.warranty_months, p.status "
                 + "FROM products p "
-                + "WHERE LOWER(p.product_name) LIKE LOWER(?) "
+                + "JOIN batch b ON p.batch_id = b.batch_id "
+                + "JOIN brands br ON b.brand_id = br.brand_id "
+                + "JOIN categories c ON b.category_id = c.category_id "
+                + "WHERE " + getActiveProductCondition()
+                + "AND LOWER(p.product_name) LIKE LOWER(?) "
                 + orderBy;
 
         try {
@@ -327,21 +339,10 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                Product p = new Product();
-
-                p.setProductId(rs.getInt("product_id"));
-                p.setProductName(rs.getString("product_name"));
-                p.setPrice(rs.getBigDecimal("price"));
-                p.setQuantity(rs.getInt("quantity"));
-                p.setBatchId(rs.getInt("batch_id"));
-                p.setDescription(rs.getString("description"));
-                p.setImageUrl(rs.getString("image_url"));
-                p.setWarrantyMonths(rs.getInt("warranty_months"));
-
-                list.add(p);
+                list.add(mapProduct(rs));
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
         }
 
         return list;
@@ -362,10 +363,12 @@ public class ProductDAO extends DBContext {
 
         String sql
                 = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
-                + "p.description, p.image_url, p.warranty_months "
+                + "p.description, p.image_url, p.warranty_months, p.status "
                 + "FROM products p "
                 + "JOIN batch b ON p.batch_id = b.batch_id "
-                + "WHERE b.category_id = ? "
+                + "JOIN brands br ON b.brand_id = br.brand_id "
+                + "JOIN categories c ON b.category_id = c.category_id "
+                + "WHERE b.category_id = ? AND " + getActiveProductCondition()
                 + "AND LOWER(p.product_name) LIKE LOWER(?) "
                 + orderBy;
 
@@ -377,24 +380,42 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                Product p = new Product();
-
-                p.setProductId(rs.getInt("product_id"));
-                p.setProductName(rs.getString("product_name"));
-                p.setPrice(rs.getBigDecimal("price"));
-                p.setQuantity(rs.getInt("quantity"));
-                p.setBatchId(rs.getInt("batch_id"));
-                p.setDescription(rs.getString("description"));
-                p.setImageUrl(rs.getString("image_url"));
-                p.setWarrantyMonths(rs.getInt("warranty_months"));
-
-                list.add(p);
+                list.add(mapProduct(rs));
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return list;
+    }
+
+    public boolean updateProductStatus(int productId, String status) {
+        String sql = """
+            UPDATE products
+            SET status = ?
+            WHERE product_id = ?
+        """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, status);
+            ps.setInt(2, productId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean deleteProduct(int productId) {
+        return updateProductStatus(productId, "INACTIVE");
+    }
+
+    public boolean activateProduct(int productId) {
+        return updateProductStatus(productId, "ACTIVE");
     }
 }

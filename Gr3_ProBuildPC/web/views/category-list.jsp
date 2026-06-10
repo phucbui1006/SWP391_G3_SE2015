@@ -120,6 +120,7 @@
                             <tr>
                                 <th>Mã danh mục</th>
                                 <th>Tên danh mục</th>
+                                <th>Trạng thái</th>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
@@ -127,7 +128,7 @@
                         <tbody>
                             <% if (categories.isEmpty()) { %>
                             <tr>
-                                <td colspan="3" style="text-align:center; padding: 30px;">
+                                <td colspan="4" style="text-align:center; padding: 30px;">
                                     Không có danh mục nào
                                 </td>
                             </tr>
@@ -137,6 +138,7 @@
                             <tr>
                                 <td><%= c.getCategoryId() %></td>
                                 <td><%= c.getCategoryName() %></td>
+                                <td><%= c.getStatus() %></td>
                                 <td>
                                     <div class="category-actions">
 
@@ -150,11 +152,16 @@
                                             <i class="fa-solid fa-pen"></i> Sửa
                                         </a>
 
-                                        <a href="<%= contextPath %>/admin/category/delete?id=<%= c.getCategoryId() %>"
-                                           class="btn-delete"
-                                           onclick="return confirm('Bạn có chắc muốn xóa danh mục này không?')">
-                                            <i class="fa-solid fa-trash"></i> Xóa
-                                        </a>
+                                        <form action="<%= contextPath %>/admin/categories" method="post" style="display:inline;">
+                                            <input type="hidden" name="categoryId" value="<%= c.getCategoryId() %>">
+                                            <input type="hidden" name="action" value="<%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "delete" : "activate" %>">
+                                            <button type="submit"
+                                                    class="btn-delete"
+                                                    onclick="return confirm('Bạn có chắc muốn đổi trạng thái danh mục này không?')">
+                                                <i class="fa-solid fa-power-off"></i>
+                                                <%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "Vô hiệu hóa" : "Kích hoạt" %>
+                                            </button>
+                                        </form>
 
                                     </div>
                                 </td>

@@ -64,304 +64,306 @@
             <section class="content">
                 <section class="hero-banner">
                     <div class="hero-copy">
-                        <p>BUILD PC</p>
+                        <p>ProBUILD PC</p>
                         <h1>
                             ĐỈNH CAO HIỆU NĂNG<br>
                             NÂNG TẦM TRẢI NGHIỆM
                         </h1>
                         <span>
-                            Linh kiện chính hãng - Giá tốt nhất<br>
-                            Bảo hành uy tín - Hỗ trợ tận tâm
+                           TRỐN NẮNG TRONG PHÒNG - 
+                            BUILD PC ĐỈNH DÒNG
                         </span>
-                        <a href="<%= ctx %>/categories">MUA NGAY</a>
-                    </div>
-                </section>
+                        <a href="#" style="
+                           padding-left: 10px;
+                           padding-right: 10px;">BUILD NGAY PC <br> BẠN YÊU THÍCH</a>
+                           </div>
+                           </section>
 
-                <section class="service-row">
-                    <article>
-                        <span>🛡</span>
-                        <div>
-                            <strong>Hàng chính hãng</strong>
-                            <small>100% chính hãng</small>
-                        </div>
-                    </article>
+                           <section class="service-row">
+                            <article>
+                                <span>🛡</span>
+                                <div>
+                                    <strong>Hàng chính hãng</strong>
+                                    <small>100% chính hãng</small>
+                                </div>
+                            </article>
 
-                    <article>
-                        <span>🔄</span>
-                        <div>
-                            <strong>Bảo hành uy tín</strong>
-                            <small>Bảo hành chính hãng</small>
-                        </div>
-                    </article>
+                            <article>
+                                <span>🔄</span>
+                                <div>
+                                    <strong>Bảo hành uy tín</strong>
+                                    <small>Bảo hành chính hãng</small>
+                                </div>
+                            </article>
 
-                    <article>
-                        <span>🚚</span>
-                        <div>
-                            <strong>Giao hàng toàn Thạch Thất</strong>
-                            <small>Miễn phí đơn từ 1 triệu</small>
-                        </div>
-                    </article>
+                            <article>
+                                <span>🚚</span>
+                                <div>
+                                    <strong>Giao hàng toàn Thạch Thất</strong>
+                                    <small>Miễn phí đơn từ 1 triệu</small>
+                                </div>
+                            </article>
 
-                    <article>
-                        <span>🎧</span>
-                        <div>
-                            <strong>Hỗ trợ 24/7</strong>
-                            <small>Tư vấn tận tâm</small>
-                        </div>
-                    </article>
-                </section>
+                            <article>
+                                <span>🎧</span>
+                                <div>
+                                    <strong>Hỗ trợ 24/7</strong>
+                                    <small>Tư vấn tận tâm</small>
+                                </div>
+                            </article>
+                            </section>
 
-                <section class="filter-row">
-                    <form class="filters" action="<%= ctx %>/categories" method="get">
-                        <label>
-                            Danh mục:
-                            <select name="id">
-                                <option value="">Tất cả</option>
-                                <% if (categories != null) {
-                                    for (Category category : categories) {
-                                %>
-                                <option value="<%= category.getCategoryId() %>">
-                                    <%= category.getCategoryName() %>
-                                </option>
-                                <% }} %>
-                            </select>
-                        </label>
-                        <button class="home-filter-btn" type="submit">Lọc</button>
-                    </form>
+                            <section class="filter-row">
+                                <form class="filters" action="<%= ctx %>/categories" method="get">
+                                    <label>
+                                        Danh mục:
+                                        <select name="id">
+                                            <option value="">Tất cả</option>
+                                            <% if (categories != null) {
+                                                for (Category category : categories) {
+                                            %>
+                                            <option value="<%= category.getCategoryId() %>">
+                                                <%= category.getCategoryName() %>
+                                            </option>
+                                            <% }} %>
+                                        </select>
+                                    </label>
+                                    <button class="home-filter-btn" type="submit">Lọc</button>
+                                </form>
 
-                    <form class="sort-box" action="<%= ctx %>/categories" method="get">
-                        <label>
-                            Sắp xếp:
-                            <select name="sort">
-                                <option value="newest">Mới nhất</option>
-                                <option value="price_asc">Giá tăng dần</option>
-                                <option value="price_desc">Giá giảm dần</option>
-                            </select>
-                        </label>
-                        <button class="home-filter-btn" type="submit">Áp dụng</button>
-                    </form>
-                </section>
+                                <form class="sort-box" action="<%= ctx %>/categories" method="get">
+                                    <label>
+                                        Sắp xếp:
+                                        <select name="sort">
+                                            <option value="newest">Mới nhất</option>
+                                            <option value="price_asc">Giá tăng dần</option>
+                                            <option value="price_desc">Giá giảm dần</option>
+                                        </select>
+                                    </label>
+                                    <button class="home-filter-btn" type="submit">Áp dụng</button>
+                                </form>
+                            </section>
 
-                <% if (hasKeyword) { %>
-                <div class="home-search-result">
-                    <h2>Kết quả tìm kiếm cho "<%= h(keyword) %>"</h2>
-                    <a href="<%= ctx %>/home">Xem tất cả sản phẩm</a>
-                </div>
-                <% } %>
-
-                <section class="product-grid">
-                    <% if (products != null && !products.isEmpty()) {
-                        for (Product product : products) {
-                            double rating = productDAO == null ? 0 : productDAO.getAverageRating(product.getProductId());
-                            int fullStars = (int) rating;
-                    %>
-                    <article class="product-card">
-                        <figure>
-                            <img src="<%= ctx %>/<%= product.getImageUrl() %>"
-                                 alt="<%= product.getProductName() %>">
-                        </figure>
-
-                        <h3><%= product.getProductName() %></h3>
-
-                        <strong>
-                            <%= String.format("%,d", product.getPrice().longValue()) %>đ
-                        </strong>
-
-                        <div class="product-rating">
-                            <% for (int i = 1; i <= 5; i++) { %>
-                            <%= i <= fullStars ? "★" : "☆" %>
+                            <% if (hasKeyword) { %>
+                            <div class="home-search-result">
+                                <h2>Kết quả tìm kiếm cho "<%= h(keyword) %>"</h2>
+                                <a href="<%= ctx %>/home">Xem tất cả sản phẩm</a>
+                            </div>
                             <% } %>
-                            <span><%= String.format("%.1f", rating) %></span>
-                        </div>
 
-                        <div class="product-actions">
-                            <a class="detail-btn" href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
-                                Xem chi tiết
-                            </a>
+                            <section class="product-grid">
+                                <% if (products != null && !products.isEmpty()) {
+                                    for (Product product : products) {
+                                        double rating = productDAO == null ? 0 : productDAO.getAverageRating(product.getProductId());
+                                        int fullStars = (int) rating;
+                                %>
+                                <article class="product-card">
+                                    <figure>
+                                        <img src="<%= ctx %>/<%= product.getImageUrl() %>"
+                                             alt="<%= product.getProductName() %>">
+                                    </figure>
 
-                            <form class="cart-form" action="<%= ctx %>/cart" method="post">
-                                <input type="hidden" name="action" value="addToCart">
-                                <input type="hidden" name="productId" value="<%= product.getProductId() %>">
-                                <input type="hidden" name="quantity" value="1">
-                                <button class="cart-btn" type="submit" data-add-to-cart-btn data-product-name="<%= h(product.getProductName()) %>" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
-                                    🛒
-                                </button>
-                            </form>
-                        </div>
-                    </article>
-                    <% }} else { %>
-                    <p class="home-empty-message">
-                        <%= hasKeyword ? "Không tìm thấy sản phẩm phù hợp." : "Không có sản phẩm nào để hiển thị." %>
-                    </p>
-                    <% } %>
-                </section>
-            </section>
-        </main>
+                                    <h3><%= product.getProductName() %></h3>
 
-        <div class="home-toast" data-home-toast hidden>
-            <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
-            <div class="home-toast-message" data-home-toast-message></div>
-        </div>
+                                    <strong>
+                                        <%= String.format("%,d", product.getPrice().longValue()) %>đ
+                                    </strong>
 
-        <jsp:include page="/includes/footer.jsp" />
+                                    <div class="product-rating">
+                                        <% for (int i = 1; i <= 5; i++) { %>
+                                        <%= i <= fullStars ? "★" : "☆" %>
+                                        <% } %>
+                                        <span><%= String.format("%.1f", rating) %></span>
+                                    </div>
 
-        <script>
-            (function () {
-                const addToCartForms = document.querySelectorAll('.cart-form');
-                const headerCartCountElement = document.querySelector('.cart-box .cart-icon span');
-                const cartIconElement = document.querySelector('.cart-box .cart-icon');
-                const toastElement = document.querySelector('[data-home-toast]');
-                const toastMessageElement = document.querySelector('[data-home-toast-message]');
-                const toastIconElement = document.querySelector('[data-home-toast-icon]');
-                let toastTimerId = null;
+                                    <div class="product-actions">
+                                        <a class="detail-btn" href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
+                                            Xem chi tiết
+                                        </a>
 
-                if (!addToCartForms.length) {
-                    return;
-                }
+                                        <form class="cart-form" action="<%= ctx %>/cart" method="post">
+                                            <input type="hidden" name="action" value="addToCart">
+                                            <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                                            <input type="hidden" name="quantity" value="1">
+                                            <button class="cart-btn" type="submit" data-add-to-cart-btn data-product-name="<%= h(product.getProductName()) %>" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
+                                                🛒
+                                            </button>
+                                        </form>
+                                    </div>
+                                </article>
+                                <% }} else { %>
+                                <p class="home-empty-message">
+                                    <%= hasKeyword ? "Không tìm thấy sản phẩm phù hợp." : "Không có sản phẩm nào để hiển thị." %>
+                                </p>
+                                <% } %>
+                            </section>
+                            </section>
+                            </main>
 
-                const showToast = function (message, isSuccess) {
-                    if (!toastElement || !toastMessageElement || !toastIconElement) {
-                        return;
-                    }
+                            <div class="home-toast" data-home-toast hidden>
+                                <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
+                                <div class="home-toast-message" data-home-toast-message></div>
+                            </div>
 
-                    if (toastTimerId) {
-                        window.clearTimeout(toastTimerId);
-                    }
+                            <jsp:include page="/includes/footer.jsp" />
 
-                    toastMessageElement.textContent = message;
-                    toastIconElement.textContent = isSuccess ? '+' : '!';
-                    toastElement.hidden = false;
-                    toastElement.classList.remove('is-success', 'is-error');
-                    toastElement.classList.add(isSuccess ? 'is-success' : 'is-error');
+                            <script>
+                                (function () {
+                                    const addToCartForms = document.querySelectorAll('.cart-form');
+                                    const headerCartCountElement = document.querySelector('.cart-box .cart-icon span');
+                                    const cartIconElement = document.querySelector('.cart-box .cart-icon');
+                                    const toastElement = document.querySelector('[data-home-toast]');
+                                    const toastMessageElement = document.querySelector('[data-home-toast-message]');
+                                    const toastIconElement = document.querySelector('[data-home-toast-icon]');
+                                    let toastTimerId = null;
 
-                    window.requestAnimationFrame(function () {
-                        toastElement.classList.add('is-visible');
-                    });
+                                    if (!addToCartForms.length) {
+                                        return;
+                                    }
 
-                    toastTimerId = window.setTimeout(function () {
-                        toastElement.classList.remove('is-visible');
-                        window.setTimeout(function () {
-                            if (!toastElement.classList.contains('is-visible')) {
-                                toastElement.hidden = true;
-                            }
-                        }, 220);
-                    }, 2600);
-                };
+                                    const showToast = function (message, isSuccess) {
+                                        if (!toastElement || !toastMessageElement || !toastIconElement) {
+                                            return;
+                                        }
 
-                const animateProductFlyToCart = function (form) {
-                    if (!cartIconElement || !form) {
-                        return;
-                    }
+                                        if (toastTimerId) {
+                                            window.clearTimeout(toastTimerId);
+                                        }
 
-                    const productCard = form.closest('.product-card');
-                    const productImage = productCard ? productCard.querySelector('figure img') : null;
+                                        toastMessageElement.textContent = message;
+                                        toastIconElement.textContent = isSuccess ? '+' : '!';
+                                        toastElement.hidden = false;
+                                        toastElement.classList.remove('is-success', 'is-error');
+                                        toastElement.classList.add(isSuccess ? 'is-success' : 'is-error');
 
-                    if (!productImage) {
-                        cartIconElement.classList.add('is-bumping');
-                        window.setTimeout(function () {
-                            cartIconElement.classList.remove('is-bumping');
-                        }, 520);
-                        return;
-                    }
+                                        window.requestAnimationFrame(function () {
+                                            toastElement.classList.add('is-visible');
+                                        });
 
-                    const imageRect = productImage.getBoundingClientRect();
-                    const cartRect = cartIconElement.getBoundingClientRect();
-                    const flyingImage = productImage.cloneNode(true);
+                                        toastTimerId = window.setTimeout(function () {
+                                            toastElement.classList.remove('is-visible');
+                                            window.setTimeout(function () {
+                                                if (!toastElement.classList.contains('is-visible')) {
+                                                    toastElement.hidden = true;
+                                                }
+                                            }, 220);
+                                        }, 2600);
+                                    };
 
-                    flyingImage.className = 'home-cart-flight';
-                    flyingImage.alt = '';
-                    flyingImage.setAttribute('aria-hidden', 'true');
-                    flyingImage.style.left = imageRect.left + 'px';
-                    flyingImage.style.top = imageRect.top + 'px';
-                    flyingImage.style.width = imageRect.width + 'px';
-                    flyingImage.style.height = imageRect.height + 'px';
-                    flyingImage.style.setProperty('--cart-flight-x', (cartRect.left - imageRect.left) + 'px');
-                    flyingImage.style.setProperty('--cart-flight-y', (cartRect.top - imageRect.top) + 'px');
+                                    const animateProductFlyToCart = function (form) {
+                                        if (!cartIconElement || !form) {
+                                            return;
+                                        }
 
-                    document.body.appendChild(flyingImage);
+                                        const productCard = form.closest('.product-card');
+                                        const productImage = productCard ? productCard.querySelector('figure img') : null;
 
-                    window.requestAnimationFrame(function () {
-                        flyingImage.classList.add('is-flying');
-                    });
+                                        if (!productImage) {
+                                            cartIconElement.classList.add('is-bumping');
+                                            window.setTimeout(function () {
+                                                cartIconElement.classList.remove('is-bumping');
+                                            }, 520);
+                                            return;
+                                        }
 
-                    window.setTimeout(function () {
-                        cartIconElement.classList.add('is-bumping');
-                    }, 520);
+                                        const imageRect = productImage.getBoundingClientRect();
+                                        const cartRect = cartIconElement.getBoundingClientRect();
+                                        const flyingImage = productImage.cloneNode(true);
 
-                    window.setTimeout(function () {
-                        cartIconElement.classList.remove('is-bumping');
-                        flyingImage.remove();
-                    }, 980);
-                };
+                                        flyingImage.className = 'home-cart-flight';
+                                        flyingImage.alt = '';
+                                        flyingImage.setAttribute('aria-hidden', 'true');
+                                        flyingImage.style.left = imageRect.left + 'px';
+                                        flyingImage.style.top = imageRect.top + 'px';
+                                        flyingImage.style.width = imageRect.width + 'px';
+                                        flyingImage.style.height = imageRect.height + 'px';
+                                        flyingImage.style.setProperty('--cart-flight-x', (cartRect.left - imageRect.left) + 'px');
+                                        flyingImage.style.setProperty('--cart-flight-y', (cartRect.top - imageRect.top) + 'px');
 
-                const handleAddToCart = function (form) {
-                    const submitButton = form.querySelector('[data-add-to-cart-btn]');
-                    if (!submitButton || submitButton.disabled || submitButton.classList.contains('is-adding')) {
-                        return;
-                    }
+                                        document.body.appendChild(flyingImage);
 
-                    const requestUrl = form.getAttribute('action') || '<%= ctx %>/cart';
-                    submitButton.classList.add('is-adding');
+                                        window.requestAnimationFrame(function () {
+                                            flyingImage.classList.add('is-flying');
+                                        });
 
-                    fetch(requestUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: new URLSearchParams(new FormData(form)).toString()
-                    })
-                            .then(function (response) {
-                                return response.json().catch(function () {
-                                    return {};
-                                }).then(function (data) {
-                                    return {response: response, data: data};
-                                });
-                            })
-                            .then(function (result) {
-                                const response = result.response;
-                                const data = result.data || {};
+                                        window.setTimeout(function () {
+                                            cartIconElement.classList.add('is-bumping');
+                                        }, 520);
 
-                                if (response.status === 401) {
-                                    showToast('Vui long dang nhap de them san pham vao gio hang.', false);
-                                    window.setTimeout(function () {
-                                        window.location.href = '<%= ctx %>/Login';
-                                    }, 900);
-                                    return;
-                                }
+                                        window.setTimeout(function () {
+                                            cartIconElement.classList.remove('is-bumping');
+                                            flyingImage.remove();
+                                        }, 980);
+                                    };
 
-                                if (!response.ok || !data.success) {
-                                    showToast(data.message || 'Khong the them san pham vao gio hang luc nay.', false);
-                                    return;
-                                }
+                                    const handleAddToCart = function (form) {
+                                        const submitButton = form.querySelector('[data-add-to-cart-btn]');
+                                        if (!submitButton || submitButton.disabled || submitButton.classList.contains('is-adding')) {
+                                            return;
+                                        }
 
-                                if (headerCartCountElement && typeof data.cartItemCount === 'number') {
-                                    headerCartCountElement.textContent = data.cartItemCount;
-                                }
+                                        const requestUrl = form.getAttribute('action') || '<%= ctx %>/cart';
+                                        submitButton.classList.add('is-adding');
 
-                                animateProductFlyToCart(form);
-                                submitButton.classList.add('is-added');
-                                showToast(data.message || 'Da them san pham vao gio hang.', true);
+                                        fetch(requestUrl, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                                                'X-Requested-With': 'XMLHttpRequest'
+                                            },
+                                            body: new URLSearchParams(new FormData(form)).toString()
+                                        })
+                                                .then(function (response) {
+                                                    return response.json().catch(function () {
+                                                        return {};
+                                                    }).then(function (data) {
+                                                        return {response: response, data: data};
+                                                    });
+                                                })
+                                                .then(function (result) {
+                                                    const response = result.response;
+                                                    const data = result.data || {};
 
-                                window.setTimeout(function () {
-                                    submitButton.classList.remove('is-added');
-                                }, 1400);
-                            })
-                            .catch(function () {
-                                showToast('Khong the ket noi den gio hang luc nay.', false);
-                            })
-                            .finally(function () {
-                                submitButton.classList.remove('is-adding');
-                            });
-                };
+                                                    if (response.status === 401) {
+                                                        showToast('Vui long dang nhap de them san pham vao gio hang.', false);
+                                                        window.setTimeout(function () {
+                                                            window.location.href = '<%= ctx %>/Login';
+                                                        }, 900);
+                                                        return;
+                                                    }
 
-                addToCartForms.forEach(function (form) {
-                    form.addEventListener('submit', function (event) {
-                        event.preventDefault();
-                        handleAddToCart(form);
-                    });
-                });
-            })();
-        </script>
-    </body>
-</html>
+                                                    if (!response.ok || !data.success) {
+                                                        showToast(data.message || 'Khong the them san pham vao gio hang luc nay.', false);
+                                                        return;
+                                                    }
+
+                                                    if (headerCartCountElement && typeof data.cartItemCount === 'number') {
+                                                        headerCartCountElement.textContent = data.cartItemCount;
+                                                    }
+
+                                                    animateProductFlyToCart(form);
+                                                    submitButton.classList.add('is-added');
+                                                    showToast(data.message || 'Da them san pham vao gio hang.', true);
+
+                                                    window.setTimeout(function () {
+                                                        submitButton.classList.remove('is-added');
+                                                    }, 1400);
+                                                })
+                                                .catch(function () {
+                                                    showToast('Khong the ket noi den gio hang luc nay.', false);
+                                                })
+                                                .finally(function () {
+                                                    submitButton.classList.remove('is-adding');
+                                                });
+                                    };
+
+                                    addToCartForms.forEach(function (form) {
+                                        form.addEventListener('submit', function (event) {
+                                            event.preventDefault();
+                                            handleAddToCart(form);
+                                        });
+                                    });
+                                })();
+                            </script>
+                            </body>
+                            </html>

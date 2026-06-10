@@ -266,7 +266,6 @@ public class UserDAO {
             System.out.println("Loi updateUserRole:");
             e.printStackTrace();
         }
-    }
 
         return false;
     }

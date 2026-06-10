@@ -141,6 +141,7 @@
                                     : "Khac";
                             int stockQuantity = item.getProduct() != null ? item.getProduct().getQuantity() : 0;
                             int warrantyMonths = item.getProduct() != null ? item.getProduct().getWarrantyMonths() : 0;
+                            boolean availableForSale = item.getProduct() != null && item.getProduct().isAvailableForSale();
                         %>
                         <div
                             class="cart-item"
@@ -154,6 +155,7 @@
                                     type="checkbox"
                                     name="selectedCartItemIds"
                                     value="<%= item.getCartItemId() %>"
+                                    <%= availableForSale ? "" : "disabled" %>
                                     aria-label="Ch&#7885;n s&#7843;n ph&#7849;m">
                             </div>
                             <div class="col-product">
@@ -173,6 +175,9 @@
                                     data-unit-price="<%= unitPrice.toPlainString() %>">
                                     <%= productName %>
                                 </button>
+                                <% if (!availableForSale) { %>
+                                <div class="cart-unavailable-note">Sản phẩm hiện không còn kinh doanh</div>
+                                <% } %>
                             </div>
                             <div class="col-price line-price-value"><%= currencyFormatter.format(unitPrice) %>&#273;</div>
                             <div class="col-qty">
@@ -184,6 +189,7 @@
                                         min="1"
                                         step="1"
                                         inputmode="numeric"
+                                        <%= availableForSale ? "" : "disabled" %>
                                         name="quantity_<%= item.getCartItemId() %>">
                                 </div>
                             </div>

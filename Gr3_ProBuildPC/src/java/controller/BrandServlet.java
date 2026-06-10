@@ -31,10 +31,15 @@ public class BrandServlet extends HttpServlet {
         Integer brandId = parseInt(request.getParameter("brandId"));
         String priceRange = normalize(request.getParameter("priceRange"), "all");
         String sort = normalize(request.getParameter("sort"), "newest");
+        String keyword = normalize(request.getParameter("keyword"), "");
 
-        List<Brand> brands = brandDAO.getBrands(null);
+        List<Brand> brands = brandDAO.getActiveBrands();
         Brand selectedBrand = brandId == null ? null : brandDAO.getBrandById(brandId);
-        List<Product> products = productDAO.getProductsByBrand(brandId, priceRange, sort);
+        if (selectedBrand != null && !"ACTIVE".equalsIgnoreCase(selectedBrand.getStatus())) {
+            selectedBrand = null;
+            brandId = null;
+        }
+        List<Product> products = productDAO.getProductsByBrand(brandId, priceRange, sort, keyword);
 
         request.setAttribute("brands", brands);
         request.setAttribute("products", products);
@@ -42,6 +47,7 @@ public class BrandServlet extends HttpServlet {
         request.setAttribute("selectedBrandId", brandId);
         request.setAttribute("selectedPriceRange", priceRange);
         request.setAttribute("selectedSort", sort);
+        request.setAttribute("keyword", keyword);
 
         setCartCount(request);
         request.getRequestDispatcher("/views/brands.jsp").forward(request, response);

@@ -41,10 +41,14 @@ public class AdminBrandServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
 
         String keyword = request.getParameter("keyword");
-        List<Brand> brands = brandDAO.getBrands(keyword);
+        String status = normalizeStatusFilter(request.getParameter("status"));
+        String sort = normalizeSort(request.getParameter("sort"));
+        List<Brand> brands = brandDAO.getBrands(keyword, status, sort);
 
         request.setAttribute("brands", brands);
         request.setAttribute("keyword", keyword);
+        request.setAttribute("selectedStatus", status);
+        request.setAttribute("selectedSort", sort);
 
         String success = (String) session.getAttribute("brandSuccess");
         String error = (String) session.getAttribute("brandError");
@@ -82,6 +86,8 @@ public class AdminBrandServlet extends HttpServlet {
             updateBrand(request, session);
         } else if ("delete".equals(action)) {
             deleteBrand(request, session);
+        } else if ("activate".equals(action)) {
+            activateBrand(request, session);
         } else {
             session.setAttribute("brandError", "Thao tác không hợp lệ.");
         }
@@ -156,15 +162,25 @@ public class AdminBrandServlet extends HttpServlet {
             return;
         }
 
-        if (brandDAO.hasBatches(brandId)) {
-            session.setAttribute("brandError", "Không thể xóa thương hiệu đang được dùng trong lô hàng hoặc sản phẩm.");
+        if (brandDAO.deleteBrand(brandId)) {
+            session.setAttribute("brandSuccess", "Vô hiệu hóa thương hiệu thành công.");
+        } else {
+            session.setAttribute("brandError", "Không thể vô hiệu hóa thương hiệu.");
+        }
+    }
+
+    private void activateBrand(HttpServletRequest request, HttpSession session) {
+        Integer brandId = parseId(request.getParameter("brandId"));
+
+        if (brandId == null) {
+            session.setAttribute("brandError", "Thương hiệu cần kích hoạt không hợp lệ.");
             return;
         }
 
-        if (brandDAO.deleteBrand(brandId)) {
-            session.setAttribute("brandSuccess", "Xóa thương hiệu thành công.");
+        if (brandDAO.activateBrand(brandId)) {
+            session.setAttribute("brandSuccess", "Kích hoạt thương hiệu thành công.");
         } else {
-            session.setAttribute("brandError", "Không thể xóa thương hiệu.");
+            session.setAttribute("brandError", "Không thể kích hoạt thương hiệu.");
         }
     }
 
@@ -182,6 +198,27 @@ public class AdminBrandServlet extends HttpServlet {
         }
 
         return value.trim();
+    }
+
+    private String normalizeStatusFilter(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return "ALL";
+        }
+
+        String status = value.trim().toUpperCase();
+        if ("ACTIVE".equals(status) || "INACTIVE".equals(status)) {
+            return status;
+        }
+
+        return "ALL";
+    }
+
+    private String normalizeSort(String value) {
+        if ("product_count_asc".equals(value) || "product_count_desc".equals(value)) {
+            return value;
+        }
+
+        return "newest";
     }
 
     private String normalizeImagePath(String value) {

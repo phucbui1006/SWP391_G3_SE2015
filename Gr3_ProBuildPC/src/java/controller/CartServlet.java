@@ -133,6 +133,12 @@ public class CartServlet extends HttpServlet {
             availableStock = targetItem.getProduct().getQuantity();
         }
 
+        if (targetItem.getProduct() == null || !targetItem.getProduct().isAvailableForSale()) {
+            writeJsonResponse(response, HttpServletResponse.SC_CONFLICT,
+                    "{\"success\":false,\"message\":\"San pham hien khong con kinh doanh.\"}");
+            return;
+        }
+
         if (availableStock <= 0) {
             writeJsonResponse(response, HttpServletResponse.SC_CONFLICT,
                     "{\"success\":false,\"message\":\"San pham hien da het hang.\"}");

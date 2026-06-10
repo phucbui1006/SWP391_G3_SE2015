@@ -103,16 +103,16 @@
             <section class="filter-section account-filter-section">
                 <form class="account-filter-form" action="<%= ctx %>/AccountManagement" method="get">
                     <div class="search-box-wrapper">
-                        <label class="filter-label" for="accountKeyword">Search</label>
+                        <label class="filter-label" for="accountKeyword">Tìm kiếm</label>
                         <div class="search-input-group">
                             <i>⌕</i>
-                            <input id="accountKeyword" type="text" name="keyword" value="<%= h(keyword) %>" placeholder="Searching users">
+                            <input id="accountKeyword" type="text" name="keyword" value="<%= h(keyword) %>" placeholder="Tìm kiếm người dùng..">
                         </div>
                     </div>
 
                     <div class="filter-group-right">
                         <div class="filter-box-wrapper">
-                            <label class="filter-label" for="roleFilter">Role</label>
+                            <label class="filter-label" for="roleFilter">Vai trò</label>
                             <select id="roleFilter" class="filter-select" name="roleId">
                                 <option value="">Tất cả vai trò</option>
                                 <% if (roles != null) { %>
@@ -126,7 +126,7 @@
                         </div>
 
                         <div class="filter-box-wrapper">
-                            <label class="filter-label" for="statusFilter">Status</label>
+                            <label class="filter-label" for="statusFilter">Trạng thái</label>
                             <select id="statusFilter" class="filter-select" name="status">
                                 <option value="">Tất cả trạng thái</option>
                                 <option value="ACTIVE" <%= "ACTIVE".equals(selectedStatus) ? "selected" : "" %>>Active</option>
@@ -148,7 +148,7 @@
             <% } %>
 
             <section class="management-card account-management-card">
-                <h1 class="card-header-title">Create Staff Account</h1>
+                <h1 class="card-header-title">Tạo tài khoản nhân viên</h1>
                 <form class="account-filter-form" action="<%= ctx %>/AccountManagement" method="post">
                     <input type="hidden" name="action" value="createStaff">
                     <input type="hidden" name="keyword" value="<%= h(keyword) %>">
@@ -157,7 +157,7 @@
                     <input type="hidden" name="page" value="<%= pageNumber %>">
 
                     <div class="search-box-wrapper">
-                        <label class="filter-label" for="newStaffName">Name</label>
+                        <label class="filter-label" for="newStaffName">Tên</label>
                         <div class="search-input-group">
                             <input id="newStaffName" type="text" name="fullName" placeholder="Staff full name" required>
                         </div>
@@ -171,15 +171,15 @@
                     </div>
 
                     <div class="search-box-wrapper">
-                        <label class="filter-label" for="newStaffPassword">Password</label>
+                        <label class="filter-label" for="newStaffPassword">Mật khẩu</label>
                         <div class="search-input-group">
-                            <input id="newStaffPassword" type="password" name="password" placeholder="Password" required>
+                            <input id="newStaffPassword" type="password" name="password" placeholder="Mật khẩu" required>
                         </div>
                     </div>
 
                     <div class="filter-group-right">
                         <div class="filter-box-wrapper">
-                            <label class="filter-label" for="newStaffRole">Role</label>
+                            <label class="filter-label" for="newStaffRole">Vai trò</label>
                             <select id="newStaffRole" class="filter-select" name="roleId" required>
                                 <% if (roles != null) { %>
                                 <% for (Role role : roles) { %>
@@ -188,23 +188,23 @@
                                 <% } %>
                             </select>
                         </div>
-                        <button class="account-search-button" type="submit">Tao nhan vien</button>
+                        <button class="account-search-button" type="submit">Tạo nhân viên</button>
                     </div>
                 </form>
             </section>
 
             <section class="management-card account-management-card">
-                <h1 class="card-header-title">User Management</h1>
+                <h1 class="card-header-title">Quản lí người dùng</h1>
 
                 <table class="user-table">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Name</th>
+                            <th>Tên</th>
                             <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>

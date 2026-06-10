@@ -3,7 +3,9 @@ package controller;
 import dal.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet(name = "RegisterServlet", urlPatterns = {"/Register"})
@@ -19,21 +21,29 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String fullName = request.getParameter("fullName");
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-        String confirmPassword = request.getParameter("confirmPassword");
+        request.setCharacterEncoding("UTF-8");
+
+        String fullName = safeTrim(request.getParameter("fullName"));
+        String email = safeTrim(request.getParameter("email"));
+        String password = safeTrim(request.getParameter("password"));
+        String confirmPassword = safeTrim(request.getParameter("confirmPassword"));
 
         UserDAO dao = new UserDAO();
 
+        if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            request.setAttribute("error", "Vui long nhap day du thong tin dang ky!");
+            request.getRequestDispatcher("/views/register.jsp").forward(request, response);
+            return;
+        }
+
         if (!password.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu xác nhận không khớp!");
+            request.setAttribute("error", "Mat khau xac nhan khong khop!");
             request.getRequestDispatcher("/views/register.jsp").forward(request, response);
             return;
         }
 
         if (dao.checkEmailExist(email)) {
-            request.setAttribute("error", "Email đã tồn tại!");
+            request.setAttribute("error", "Email da ton tai!");
             request.getRequestDispatcher("/views/register.jsp").forward(request, response);
             return;
         }
@@ -43,8 +53,12 @@ public class RegisterServlet extends HttpServlet {
         if (success) {
             response.sendRedirect(request.getContextPath() + "/Login");
         } else {
-            request.setAttribute("error", "Đăng ký thất bại!");
+            request.setAttribute("error", "Dang ky that bai!");
             request.getRequestDispatcher("/views/register.jsp").forward(request, response);
         }
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? "" : value.trim();
     }
 }

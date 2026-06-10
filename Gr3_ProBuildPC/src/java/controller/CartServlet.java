@@ -21,6 +21,8 @@ public class CartServlet extends HttpServlet {
 
     private static final String LEGACY_SESSION_CART_QUANTITIES = "sessionCartQuantities";
     private static final String SESSION_CART_ITEM_COUNT = "sessionCartItemCount";
+    private static final String CART_SUCCESS_FLASH = "cartSuccessMsg";
+    private static final String CART_ERROR_FLASH = "cartErrorMsg";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -32,8 +34,14 @@ public class CartServlet extends HttpServlet {
         int cartItemCount = 0;
 
         if (account != null) {
+            Integer customerId = getCustomerId(account);
+            if (customerId == null) {
+                response.sendRedirect(request.getContextPath() + "/Dashboard");
+                return;
+            }
+
             CartDAO cartDAO = new CartDAO();
-            cartItems = cartDAO.getCartItemsByUserId(account.getUserId());
+            cartItems = cartDAO.getCartItemsByCustomerId(customerId);
             subtotal = cartDAO.calculateSubtotal(cartItems);
             cartItemCount = calculateCartItemCount(cartItems);
             session.setAttribute(SESSION_CART_ITEM_COUNT, cartItemCount);
@@ -43,6 +51,8 @@ public class CartServlet extends HttpServlet {
             session.removeAttribute(SESSION_CART_ITEM_COUNT);
         }
 
+        moveFlashMessage(session, request, CART_SUCCESS_FLASH, "cartSuccessMsg");
+        moveFlashMessage(session, request, CART_ERROR_FLASH, "cartErrorMsg");
         request.setAttribute("cartItems", cartItems);
         request.setAttribute("cartSubtotal", subtotal);
         request.setAttribute("cartTotal", subtotal);
@@ -88,6 +98,17 @@ public class CartServlet extends HttpServlet {
             return;
         }
 
+        Integer customerId = getCustomerId(account);
+        if (customerId == null) {
+            if (ajaxRequest) {
+                writeJsonResponse(response, HttpServletResponse.SC_FORBIDDEN,
+                        "{\"success\":false,\"message\":\"Tai khoan nhan vien khong the cap nhat gio hang.\"}");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/Dashboard");
+            }
+            return;
+        }
+
         Integer cartItemId = parsePositiveInteger(request.getParameter("cartItemId"));
         Integer requestedQuantity = parsePositiveInteger(request.getParameter("quantity"));
 
@@ -98,7 +119,7 @@ public class CartServlet extends HttpServlet {
         }
 
         CartDAO cartDAO = new CartDAO();
-        List<CartItem> cartItems = cartDAO.getCartItemsByUserId(account.getUserId());
+        List<CartItem> cartItems = cartDAO.getCartItemsByCustomerId(customerId);
         CartItem targetItem = findCartItem(cartItems, cartItemId);
 
         if (targetItem == null) {
@@ -127,7 +148,7 @@ public class CartServlet extends HttpServlet {
             return;
         }
 
-        List<CartItem> refreshedCartItems = cartDAO.getCartItemsByUserId(account.getUserId());
+        List<CartItem> refreshedCartItems = cartDAO.getCartItemsByCustomerId(customerId);
         int cartItemCount = calculateCartItemCount(refreshedCartItems);
         session.setAttribute(SESSION_CART_ITEM_COUNT, cartItemCount);
         session.removeAttribute(LEGACY_SESSION_CART_QUANTITIES);
@@ -153,6 +174,17 @@ public class CartServlet extends HttpServlet {
                         "{\"success\":false,\"message\":\"Vui long dang nhap de them san pham vao gio hang.\"}");
             } else {
                 response.sendRedirect(request.getContextPath() + "/Login");
+            }
+            return;
+        }
+
+        Integer customerId = getCustomerId(account);
+        if (customerId == null) {
+            if (ajaxRequest) {
+                writeJsonResponse(response, HttpServletResponse.SC_FORBIDDEN,
+                        "{\"success\":false,\"message\":\"Tai khoan nhan vien khong the them san pham vao gio hang.\"}");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/Dashboard");
             }
             return;
         }
@@ -194,7 +226,7 @@ public class CartServlet extends HttpServlet {
         }
 
         CartDAO cartDAO = new CartDAO();
-        List<CartItem> cartItems = cartDAO.getCartItemsByUserId(account.getUserId());
+        List<CartItem> cartItems = cartDAO.getCartItemsByCustomerId(customerId);
 
         CartItem existingItem = findCartItemByProductId(cartItems, productId);
         int desiredQuantity = requestedQuantity;
@@ -221,7 +253,7 @@ public class CartServlet extends HttpServlet {
         if (existingItem != null) {
             updateSuccess = cartDAO.updateCartItemQuantity(existingItem.getCartItemId(), desiredQuantity);
         } else {
-            updateSuccess = cartDAO.addCartItemForUser(account.getUserId(), productId, desiredQuantity) > 0;
+            updateSuccess = cartDAO.addCartItemForCustomer(customerId, productId, desiredQuantity) > 0;
         }
 
         if (!updateSuccess) {
@@ -234,7 +266,7 @@ public class CartServlet extends HttpServlet {
             return;
         }
 
-        List<CartItem> refreshedCartItems = cartDAO.getCartItemsByUserId(account.getUserId());
+        List<CartItem> refreshedCartItems = cartDAO.getCartItemsByCustomerId(customerId);
         int cartItemCount = calculateCartItemCount(refreshedCartItems);
         session.setAttribute(SESSION_CART_ITEM_COUNT, cartItemCount);
         session.removeAttribute(LEGACY_SESSION_CART_QUANTITIES);
@@ -258,6 +290,12 @@ public class CartServlet extends HttpServlet {
             return;
         }
 
+        Integer customerId = getCustomerId(account);
+        if (customerId == null) {
+            response.sendRedirect(request.getContextPath() + "/Dashboard");
+            return;
+        }
+
         Integer cartItemId = parsePositiveInteger(request.getParameter("cartItemId"));
         if (cartItemId == null) {
             response.sendRedirect(request.getContextPath() + "/cart");
@@ -265,9 +303,9 @@ public class CartServlet extends HttpServlet {
         }
 
         CartDAO cartDAO = new CartDAO();
-        cartDAO.removeCartItemByUserId(account.getUserId(), cartItemId);
+        cartDAO.removeCartItemByCustomerId(customerId, cartItemId);
 
-        List<CartItem> remainingCartItems = cartDAO.getCartItemsByUserId(account.getUserId());
+        List<CartItem> remainingCartItems = cartDAO.getCartItemsByCustomerId(customerId);
         session.setAttribute(SESSION_CART_ITEM_COUNT, calculateCartItemCount(remainingCartItems));
         session.removeAttribute(LEGACY_SESSION_CART_QUANTITIES);
 
@@ -292,6 +330,10 @@ public class CartServlet extends HttpServlet {
         }
 
         return null;
+    }
+
+    private Integer getCustomerId(User account) {
+        return account != null && account.isCustomer() ? account.getCustomerId() : null;
     }
 
     private CartItem findCartItemByProductId(List<CartItem> cartItems, int productId) {
@@ -332,5 +374,19 @@ public class CartServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(jsonBody);
+    }
+
+    private void moveFlashMessage(HttpSession session, HttpServletRequest request, String sessionKey, String requestKey) {
+        if (session == null) {
+            return;
+        }
+
+        Object flashMessage = session.getAttribute(sessionKey);
+        if (flashMessage == null) {
+            return;
+        }
+
+        request.setAttribute(requestKey, flashMessage);
+        session.removeAttribute(sessionKey);
     }
 }

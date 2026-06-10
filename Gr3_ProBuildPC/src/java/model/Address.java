@@ -2,7 +2,7 @@ package model;
 
 public class Address {
     private int addressId;
-    private int userId;
+    private int customerId;
     private String recipientName;
     private String phoneNumber;
     private String addressDetail;
@@ -10,9 +10,9 @@ public class Address {
     public Address() {
     }
 
-    public Address(int addressId, int userId, String recipientName, String phoneNumber, String addressDetail) {
+    public Address(int addressId, int customerId, String recipientName, String phoneNumber, String addressDetail) {
         this.addressId = addressId;
-        this.userId = userId;
+        this.customerId = customerId;
         this.recipientName = recipientName;
         this.phoneNumber = phoneNumber;
         this.addressDetail = addressDetail;
@@ -27,11 +27,19 @@ public class Address {
     }
 
     public int getUserId() {
-        return userId;
+        return customerId;
     }
 
     public void setUserId(int userId) {
-        this.userId = userId;
+        this.customerId = userId;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 
     public String getRecipientName() {

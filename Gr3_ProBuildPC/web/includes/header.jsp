@@ -24,6 +24,7 @@
     String placeholder = "Tìm kiếm...";
     String searchAction = "#";
     String searchKeyword = request.getParameter("keyword");
+    String ctx = request.getContextPath();
 
     if (account != null) {
         roleName = account.getRoleName();
@@ -38,6 +39,7 @@
 
          if ("CUSTOMER".equals(roleName)) {
             placeholder = "Tìm kiếm linh kiện...";
+            searchAction = ctx + "/home";
         } else if ("EMPLOYEE".equals(roleName)) {
             placeholder = "Tìm kiếm yêu cầu bảo hành...";
         } else if ("SHIPMENT".equals(roleName)) {
@@ -46,9 +48,9 @@
     } else {
         roleName = "CUSTOMER";
         placeholder = "Tìm kiếm linh kiện...";
+        searchAction = ctx + "/home";
     }
 
-    String ctx = request.getContextPath();
     Integer cartItemCount = (Integer) request.getAttribute("cartItemCount");
     Integer sessionCartItemCount = (Integer) session.getAttribute("sessionCartItemCount");
 
@@ -73,9 +75,16 @@
         <a href="#" class="menu-item">🛠 BUILD PC</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/categories" class="menu-item">
-            📦 Danh mục sản phẩm
-        </a>
+        <div class="menu-dropdown">
+            <button class="menu-item menu-dropdown-toggle" type="button">
+                📦 Danh mục sản phẩm
+                <span class="menu-dropdown-arrow">▾</span>
+            </button>
+            <div class="menu-dropdown-list">
+                <a href="<%= ctx %>/categories">Sản phẩm</a>
+                <a href="<%= ctx %>/brands">Các thương hiệu sản phẩm</a>
+            </div>
+        </div>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">📋 Lịch sử đơn hàng</a>
@@ -90,7 +99,7 @@
         <a href="#" class="menu-item">📦 Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">👥 Tài khoản người dùng</a>
+        <a href="<%= ctx %>/AccountManagement" class="menu-item">👥 Tài khoản người dùng</a>
         <span class="menu-divider"></span>
 
         <div class="menu-dropdown">
@@ -131,9 +140,7 @@
         <a href="#" class="menu-item">🚚 Lịch sử giao hàng</a>
         <% } %>
 
-        <% if (account != null) { %>
-        <a href="<%= ctx %>/Logout" class="menu-item logout">Đăng xuất</a>
-        <% } %>
+
     </nav>
 
     <div class="header-bottom">
@@ -147,7 +154,7 @@
         <% if (!"ADMIN".equals(roleName)) { %>
         <form class="search-box" action="<%= searchAction %>" method="get">
             <input type="text" name="keyword" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
-            <button type="submit">🔍</button>
+            <button class="search" type="submit" style="width: 80px;">Tìm kiếm</button>
         </form>
         <% } %>
         <div class="right-box">
@@ -183,8 +190,10 @@
                 <div class="dropdown-menu">
                     <a href="<%= ctx %>/views/profile.jsp">📋 Thông tin cá nhân</a>
                     <% if ("CUSTOMER".equals(roleName)) { %>
-                    <a href="#">📍 Địa chỉ giao hàng</a>
+                    <a href="<%= ctx %>/shipping-address">📍 Địa chỉ giao hàng</a>
                     <% } %>
+                    <a href="<%= ctx %>/Logout" class="menu-item logout">Đăng xuất</a>
+
                 </div>
 
             </div>

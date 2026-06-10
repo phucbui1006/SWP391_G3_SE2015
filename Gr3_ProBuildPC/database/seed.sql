@@ -1,9 +1,8 @@
 INSERT INTO Roles (role_id, role_name)
 VALUES
-(1, 'CUSTOMER'),
+(1, 'ADMIN'),
 (2, 'EMPLOYEE'),
-(3, 'ADMIN'),
-(4, 'SHIPMENT');
+(3, 'SHIPMENT');
 
 INSERT INTO categories (category_id, category_name)
 VALUES
@@ -43,13 +42,26 @@ VALUES
 (3, 'Từ chối');
 
 INSERT INTO users
-(user_id, role_id, full_name, status, email, password)
+(user_id, full_name, status, email, password, account_type)
 VALUES
-(1, 3, 'Bui Phuc', 'ACTIVE', 'bui.phuc.admin@gmail.com', '123456'),
-(2, 2, 'Nguyen Van Nam', 'ACTIVE', 'nguyenvannam@gmail.com', '123456'),
-(3, 4, 'Tran Minh Quan', 'ACTIVE', 'tranminhquan@gmail.com', '123456'),
-(4, 1, 'Le Hoang Anh', 'ACTIVE', 'lehoanganh@gmail.com', '123456'),
-(5, 1, 'Pham Thu Trang', 'ACTIVE', 'phamthutrang@gmail.com', '123456');
+(1, 'Bui Phuc', 'ACTIVE', 'bui.phuc.admin@gmail.com', '123456', 'STAFF'),
+(2, 'Nguyen Van Nam', 'ACTIVE', 'nguyenvannam@gmail.com', '123456', 'STAFF'),
+(3, 'Tran Minh Quan', 'ACTIVE', 'tranminhquan@gmail.com', '123456', 'STAFF'),
+(4, 'Le Hoang Anh', 'ACTIVE', 'lehoanganh@gmail.com', '123456', 'CUSTOMER'),
+(5, 'Pham Thu Trang', 'ACTIVE', 'phamthutrang@gmail.com', '123456', 'CUSTOMER');
+
+INSERT INTO customers
+(customer_id, user_id)
+VALUES
+(1, 4),
+(2, 5);
+
+INSERT INTO staffs
+(staff_id, user_id, role_id)
+VALUES
+(1, 1, 1),
+(2, 2, 2),
+(3, 3, 3);
 
 INSERT INTO batch (batch_id, batch_name, brand_id, category_id)
 VALUES
@@ -116,7 +128,7 @@ VALUES
 6,
 'MSI RTX 4060 Ventus 2X sử dụng kiến trúc NVIDIA Ada Lovelace, hỗ trợ Ray Tracing và DLSS 3, mang lại hiệu năng chơi game vượt trội ở độ phân giải Full HD và 2K.',
 'images/products/msi-rtx-4060-ventus-2x.jpg',
-36)
+36),
 (7, 'AMD Ryzen 9 7900X', 11900000, 10, 1,
 'AMD Ryzen 9 7900X là bộ vi xử lý cao cấp với 12 nhân 24 luồng, phù hợp cho gaming, stream và xử lý đồ họa chuyên nghiệp.',
 'images/products/amd-ryzen-9-7900x.jpg', 36),
@@ -186,18 +198,24 @@ VALUES
 (6, 'Interface', 'PCIe 4.0');
 
 INSERT INTO address
-(address_id, user_id, recipient_name, phoneNumber, Address_detail)
+(address_id, customer_id, recipient_name, phoneNumber, Address_detail)
 VALUES
-(1, 4, 'Le Van C', '0901234567',
+(1, 1, 'Le Van C', '0901234567',
 'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội'),
 
-(2, 5, 'Pham Thi D', '0912345678',
-'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội');
+(2, 2, 'Pham Thu Trang', '0123456789',
+'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội'),
 
-INSERT INTO cart (cart_id, user_id)
+(3, 2, 'Cong ty TNHH ABC', '0987654321',
+'Khu CNC Hòa Lạc, Thạch Thất, Hà Nội'),
+
+(4, 2, 'Nha cua bo me', '0912345678',
+'Khu CNC Hòa Lạc, Thạch Thất, Hà Nội');
+
+INSERT INTO cart (cart_id, customer_id)
 VALUES
-(1, 4),
-(2, 5);
+(1, 1),
+(2, 2);
 
 INSERT INTO cart_items (cart_id, product_id, quantity)
 VALUES
@@ -208,16 +226,16 @@ VALUES
 (2, 6, 1);  -- MSI RTX 4060
 
 INSERT INTO orders
-(order_id, user_id, status_id, order_date, total_amount, shipping_address, payment_method, payment_status, note)
+(order_id, customer_id, status_id, order_date, total_amount, shipping_address, payment_method, payment_status, note)
 VALUES
 
-(1, 4, 5, NOW(), 8500000,
+(1, 1, 5, NOW(), 8500000,
 'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội',
 'COD',
 'Chưa thanh toán',
 'Khách thanh toán khi nhận hàng'),
 
-(2, 5, 4, NOW(), 13700000,
+(2, 2, 4, NOW(), 13700000,
 'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội',
 'VNPAY',
 'Đã thanh toán',
@@ -235,25 +253,25 @@ VALUES
 (2, 6, 1, 9500000, 9500000);
 
 INSERT INTO reviews
-(review_id, user_id, product_id, rating, img, comment, date)
+(review_id, customer_id, product_id, rating, img, comment, date)
 VALUES
 
-(1, 4, 1, 5,
+(1, 1, 1, 5,
 'images/reviews/ryzen7600-review.jpg',
 'CPU hoạt động ổn định, nhiệt độ mát, hiệu năng chơi game rất tốt. Hoàn toàn hài lòng với mức giá.',
 NOW()),
 
-(2, 4, 5, 4,
+(2, 1, 5, 4,
 'images/reviews/kingston-ddr5-review.jpg',
 'RAM chạy ổn định, hỗ trợ XMP tốt. Đóng gói cẩn thận và giao hàng nhanh.',
 NOW()),
 
-(3, 5, 3, 5,
+(3, 2, 3, 5,
 'images/reviews/i512400f-review.jpg',
 'Hiệu năng rất tốt trong tầm giá, phù hợp cho cả học tập và chơi game. Rất đáng mua.',
 NOW()),
 
-(4, 5, 6, 5,
+(4, 2, 6, 5,
 'images/reviews/msi4060-review.jpg',
 'Card đồ họa hoạt động mượt mà, chơi game FPS cao và hỗ trợ DLSS rất hiệu quả.',
 NOW());

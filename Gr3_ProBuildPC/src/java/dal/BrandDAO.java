@@ -87,15 +87,17 @@ public class BrandDAO extends DBContext {
     }
 
     public boolean addBrand(String brandName, String img) {
+        int nextBrandId = getNextBrandId();
         String sql = """
-            INSERT INTO brands (brand_name, img)
-            VALUES (?, ?)
+            INSERT INTO brands (brand_id, brand_name, img)
+            VALUES (?, ?, ?)
         """;
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, brandName);
-            ps.setString(2, img);
+            ps.setInt(1, nextBrandId);
+            ps.setString(2, brandName);
+            ps.setString(3, img);
 
             return ps.executeUpdate() > 0;
 
@@ -104,6 +106,20 @@ public class BrandDAO extends DBContext {
         }
 
         return false;
+    }
+
+    private int getNextBrandId() {
+        String sql = "SELECT COALESCE(MAX(brand_id), 0) + 1 AS next_id FROM brands";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("next_id");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 1;
     }
 
     public boolean updateBrand(int brandId, String brandName, String img) {

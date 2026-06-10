@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class Review {
     private int reviewId;
-    private int userId;
+    private int customerId;
     private int rating;
     private int productId;
     private String img;
@@ -14,9 +14,9 @@ public class Review {
     public Review() {
     }
 
-    public Review(int reviewId, int userId, int rating, int productId, String img, String comment, Date date) {
+    public Review(int reviewId, int customerId, int rating, int productId, String img, String comment, Date date) {
         this.reviewId = reviewId;
-        this.userId = userId;
+        this.customerId = customerId;
         this.rating = rating;
         this.productId = productId;
         this.img = img;
@@ -33,11 +33,19 @@ public class Review {
     }
 
     public int getUserId() {
-        return userId;
+        return customerId;
     }
 
     public void setUserId(int userId) {
-        this.userId = userId;
+        this.customerId = userId;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 
     public int getRating() {

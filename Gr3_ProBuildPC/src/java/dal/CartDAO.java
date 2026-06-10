@@ -12,7 +12,7 @@ import model.Product;
 
 public class CartDAO extends DBContext {
 
-    public List<CartItem> getCartItemsByUserId(int userId) {
+    public List<CartItem> getCartItemsByCustomerId(int customerId) {
         List<CartItem> cartItems = new ArrayList<>();
         String sql = "SELECT ci.cart_item_id, ci.cart_id, ci.product_id, ci.quantity, "
                 + "p.price, p.quantity AS stock_quantity, p.batch_id, p.description, "
@@ -24,11 +24,11 @@ public class CartDAO extends DBContext {
                 + "INNER JOIN batch ba ON p.batch_id = ba.batch_id "
                 + "INNER JOIN brands br ON ba.brand_id = br.brand_id "
                 + "INNER JOIN categories ca ON ba.category_id = ca.category_id "
-                + "WHERE c.user_id = ? "
+                + "WHERE c.customer_id = ? "
                 + "ORDER BY ci.cart_item_id";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, userId);
+            ps.setInt(1, customerId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -42,14 +42,14 @@ public class CartDAO extends DBContext {
         return cartItems;
     }
 
-    public int getCartItemCountByUserId(int userId) {
+    public int getCartItemCountByCustomerId(int customerId) {
         String sql = "SELECT COALESCE(SUM(ci.quantity), 0) AS cart_count "
                 + "FROM cart c "
                 + "LEFT JOIN cart_items ci ON c.cart_id = ci.cart_id "
-                + "WHERE c.user_id = ?";
+                + "WHERE c.customer_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, userId);
+            ps.setInt(1, customerId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -73,14 +73,14 @@ public class CartDAO extends DBContext {
         return subtotal;
     }
 
-    public boolean removeCartItemByUserId(int userId, int cartItemId) {
+    public boolean removeCartItemByCustomerId(int customerId, int cartItemId) {
         String sql = "DELETE ci "
                 + "FROM cart_items ci "
                 + "INNER JOIN cart c ON c.cart_id = ci.cart_id "
-                + "WHERE c.user_id = ? AND ci.cart_item_id = ?";
+                + "WHERE c.customer_id = ? AND ci.cart_item_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, userId);
+            ps.setInt(1, customerId);
             ps.setInt(2, cartItemId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -104,8 +104,8 @@ public class CartDAO extends DBContext {
         return false;
     }
 
-    public int addCartItemForUser(int userId, int productId, int quantity) {
-        int cartId = getOrCreateCartIdByUserId(userId);
+    public int addCartItemForCustomer(int customerId, int productId, int quantity) {
+        int cartId = getOrCreateCartIdByCustomerId(customerId);
         if (cartId <= 0) {
             return -1;
         }
@@ -134,11 +134,11 @@ public class CartDAO extends DBContext {
         return -1;
     }
 
-    private int getOrCreateCartIdByUserId(int userId) {
-        String selectSql = "SELECT cart_id FROM cart WHERE user_id = ?";
+    private int getOrCreateCartIdByCustomerId(int customerId) {
+        String selectSql = "SELECT cart_id FROM cart WHERE customer_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(selectSql)) {
-            ps.setInt(1, userId);
+            ps.setInt(1, customerId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -150,10 +150,10 @@ public class CartDAO extends DBContext {
             return -1;
         }
 
-        String insertSql = "INSERT INTO cart (user_id) VALUES (?)";
+        String insertSql = "INSERT INTO cart (customer_id) VALUES (?)";
 
         try (PreparedStatement ps = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, userId);
+            ps.setInt(1, customerId);
 
             int affectedRows = ps.executeUpdate();
             if (affectedRows > 0) {
@@ -163,13 +163,13 @@ public class CartDAO extends DBContext {
                     }
                 }
 
-                return findCartIdByUserId(userId);
+                return findCartIdByCustomerId(customerId);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return findCartIdByUserId(userId);
+        return findCartIdByCustomerId(customerId);
     }
 
     private CartItem mapCartItem(ResultSet rs) throws SQLException {
@@ -201,11 +201,11 @@ public class CartDAO extends DBContext {
         return product;
     }
 
-    private int findCartIdByUserId(int userId) {
-        String sql = "SELECT cart_id FROM cart WHERE user_id = ?";
+    private int findCartIdByCustomerId(int customerId) {
+        String sql = "SELECT cart_id FROM cart WHERE customer_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, userId);
+            ps.setInt(1, customerId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {

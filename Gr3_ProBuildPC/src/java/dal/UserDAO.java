@@ -10,48 +10,58 @@ import model.User;
 
 public class UserDAO {
 
-public User login(String email, String password) {
-    String sql = """
-         SELECT u.user_id, u.role_id, u.full_name, u.status,
-                u.email, u.password, r.role_name
-         FROM users u
-         JOIN Roles r ON u.role_id = r.role_id
-         WHERE u.email = ?
-           AND u.password = ?
-           AND u.status = 1
-         """;
+    public User login(String email, String password) {
 
-    try {
-        Connection conn = new DBContext().getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
+        String sql = """
+        SELECT
+            u.user_id,
+            u.full_name,
+            u.status,
+            u.email,
+            u.password,
+            u.account_type
+        FROM USERS u
+        WHERE u.email = ?
+          AND u.password = ?
+          AND u.status = 'ACTIVE'
+        """;
 
-        ps.setString(1, email);
-        ps.setString(2, password);
-        ps.setInt(3, 1);
+        try {
+            Connection conn = new DBContext().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
 
-        ResultSet rs = ps.executeQuery();
+            ps.setString(1, email);
+            ps.setString(2, password);
 
-        if (rs.next()) {
-            User u = new User();
+            ResultSet rs = ps.executeQuery();
 
-            u.setUserId(rs.getInt("user_id"));
-            u.setRoleId(rs.getInt("role_id"));
-            u.setFullName(rs.getString("full_name"));
-            u.setStatus(rs.getString("status"));
-            u.setEmail(rs.getString("email"));
-            u.setPassword(rs.getString("password"));
-            u.setRoleName(rs.getString("role_name"));
+            if (rs.next()) {
 
-            return u;
+                User u = new User();
+
+                u.setUserId(rs.getInt("user_id"));
+                u.setFullName(rs.getString("full_name"));
+                u.setStatus(rs.getString("status"));
+                u.setEmail(rs.getString("email"));
+                u.setPassword(rs.getString("password"));
+
+                String accountType = rs.getString("account_type");
+
+                if ("CUSTOMER".equalsIgnoreCase(accountType)) {
+                    u.setRoleName("CUSTOMER");
+                } else {
+                    u.setRoleName("ADMIN");
+                }
+
+                return u;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-    } catch (Exception e) {
-        System.out.println("Loi login:");
-        e.printStackTrace();
+        return null;
     }
-
-    return null;
-}
 
     public boolean checkEmailExist(String email) {
         String sql = "SELECT user_id FROM users WHERE email = ?";

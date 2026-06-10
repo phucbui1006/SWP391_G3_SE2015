@@ -3,7 +3,10 @@ package controller;
 import dal.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import model.User;
 
@@ -13,13 +16,15 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         HttpSession session = request.getSession(false);
-        
-        if (session != null && session.getAttribute("account") != null) {
-            response.sendRedirect(request.getContextPath() + "/home");
+        User account = session != null ? (User) session.getAttribute("account") : null;
+
+        if (account != null) {
+            redirectAfterLogin(request, response, account);
             return;
         }
-        
+
         request.getRequestDispatcher("/views/login.jsp").forward(request, response);
     }
 
@@ -27,41 +32,77 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
+        request.setCharacterEncoding("UTF-8");
+
+        String email = safeTrim(request.getParameter("email"));
+        String password = safeTrim(request.getParameter("password"));
+
+        if (email.isEmpty() || password.isEmpty()) {
+            request.setAttribute("error", "Email va mat khau khong duoc de trong!");
+            request.getRequestDispatcher("/views/login.jsp").forward(request, response);
+            return;
+        }
 
         UserDAO dao = new UserDAO();
         User user = dao.login(email, password);
 
         if (user == null) {
-            request.setAttribute("error", "Email hoặc mật khẩu không đúng!");
+            request.setAttribute("error", "Email hoac mat khau khong dung!");
+            request.setAttribute("enteredEmail", email);
             request.getRequestDispatcher("/views/login.jsp").forward(request, response);
             return;
         }
 
-        HttpSession session = request.getSession();
-        session.setAttribute("account", user);
-
-        switch (user.getRoleName()) {
-            case "ADMIN":
-                response.sendRedirect(request.getContextPath() + "/Dashboard");
-                break;
-
-            case "CUSTOMER":
-                response.sendRedirect(request.getContextPath() + "/home");
-                break;
-
-            case "EMPLOYEE":
-                response.sendRedirect(request.getContextPath() + "/Dashboard");
-                break;
-
-            case "SHIPMENT":
-                response.sendRedirect(request.getContextPath() + "/Dashboard");
-                break;
-
-            default:
-                response.sendRedirect(request.getContextPath() + "/Login");
-                break;
+        if (!"ACTIVE".equalsIgnoreCase(safeTrim(user.getStatus()))) {
+            request.setAttribute("error", "Tai khoan cua ban da bi khoa hoac chua duoc kich hoat!");
+            request.getRequestDispatcher("/views/login.jsp").forward(request, response);
+            return;
         }
+
+        if (!isValidAccountShape(user)) {
+            request.setAttribute("error", "Tai khoan chua duoc cau hinh dung loai truy cap!");
+            request.getRequestDispatcher("/views/login.jsp").forward(request, response);
+            return;
+        }
+
+        HttpSession session = request.getSession(true);
+        session.setAttribute("account", user);
+        redirectAfterLogin(request, response, user);
+    }
+
+    private void redirectAfterLogin(HttpServletRequest request, HttpServletResponse response, User user)
+            throws IOException {
+        if (user.isCustomer()) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+
+        if (user.isStaff()) {
+            response.sendRedirect(request.getContextPath() + "/Dashboard");
+            return;
+        }
+
+        response.sendRedirect(request.getContextPath() + "/Login");
+    }
+
+    private boolean isValidAccountShape(User user) {
+        if (user == null) {
+            return false;
+        }
+
+        if (user.isCustomer()) {
+            return "CUSTOMER".equalsIgnoreCase(user.getRoleName());
+        }
+
+        if (user.isStaff()) {
+            String roleName = safeTrim(user.getRoleName()).toUpperCase();
+            return "ADMIN".equals(roleName) || "EMPLOYEE".equals(roleName) || "SHIPMENT".equals(roleName);
+        }
+
+        return false;
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? "" : value.trim();
     }
 }

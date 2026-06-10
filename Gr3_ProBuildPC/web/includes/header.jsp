@@ -1,12 +1,30 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.User" %>
 
+<%!
+    private String h(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+%>
+
 <%
     User account = (User) session.getAttribute("account");
 
     String roleName = "";
     String fullName = "";
     String placeholder = "Tìm kiếm...";
+    String searchAction = "#";
+    String searchKeyword = request.getParameter("keyword");
+    String ctx = request.getContextPath();
 
     if (account != null) {
         roleName = account.getRoleName();
@@ -19,10 +37,9 @@
 
         fullName = account.getFullName();
 
-        if ("ADMIN".equals(roleName)) {
-            placeholder = "Tìm kiếm đơn hàng, khách hàng, sản phẩm...";
-        } else if ("CUSTOMER".equals(roleName)) {
+         if ("CUSTOMER".equals(roleName)) {
             placeholder = "Tìm kiếm linh kiện...";
+            searchAction = ctx + "/home";
         } else if ("EMPLOYEE".equals(roleName)) {
             placeholder = "Tìm kiếm yêu cầu bảo hành...";
         } else if ("SHIPMENT".equals(roleName)) {
@@ -31,10 +48,16 @@
     } else {
         roleName = "CUSTOMER";
         placeholder = "Tìm kiếm linh kiện...";
+        searchAction = ctx + "/home";
     }
 
-    String ctx = request.getContextPath();
     Integer cartItemCount = (Integer) request.getAttribute("cartItemCount");
+    Integer sessionCartItemCount = (Integer) session.getAttribute("sessionCartItemCount");
+
+    if (sessionCartItemCount != null) {
+        cartItemCount = sessionCartItemCount;
+    }
+
     if (cartItemCount == null) {
         cartItemCount = 0;
     }
@@ -45,13 +68,23 @@
 
     <nav class="header-menu">
         <% if ("CUSTOMER".equals(roleName)) { %>
+
         <a href="<%= ctx %>/home" class="menu-item active">🏠 Trang chủ</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🛠 BUILD PC</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">📦 Danh mục sản phẩm</a>
+        <div class="menu-dropdown">
+            <button class="menu-item menu-dropdown-toggle" type="button">
+                📦 Danh mục sản phẩm
+                <span class="menu-dropdown-arrow">▾</span>
+            </button>
+            <div class="menu-dropdown-list">
+                <a href="<%= ctx %>/categories">Sản phẩm</a>
+                <a href="<%= ctx %>/brands">Các thương hiệu sản phẩm</a>
+            </div>
+        </div>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">📋 Lịch sử đơn hàng</a>
@@ -59,16 +92,27 @@
 
         <a href="#" class="menu-item">🛡 Tra cứu bảo hành</a>
         <% } else if ("ADMIN".equals(roleName)) { %>
+
         <a href="<%= ctx %>/Dashboard" class="menu-item active">🛡 Dashboard</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">📦 Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">👥 Tài khoản người dùng</a>
+        <a href="<%= ctx %>/AccountManagement" class="menu-item">👥 Tài khoản người dùng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">📦 Sản phẩm</a>
+        <div class="menu-dropdown">
+            <button class="menu-item menu-dropdown-toggle" type="button">
+                📦 Sản phẩm
+                <span class="menu-dropdown-arrow">▾</span>
+            </button>
+            <div class="menu-dropdown-list">
+                <a href="#">Quản lý sản phẩm</a>
+                <a href="<%= ctx %>/AdminBrands">Quản lý thương hiệu</a>
+                <a href="#">Quản lý các loại sản phẩm</a>
+            </div>
+        </div>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🏬 Lô hàng</a>
@@ -79,11 +123,14 @@
 
         <a href="#" class="menu-item">📊 Thống kê doanh thu</a>
         <% } else if ("EMPLOYEE".equals(roleName)) { %>
+
         <a href="<%= ctx %>/Dashboard" class="menu-item active">🏠 Dashboard</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🛡 Dịch vụ bảo hành</a>
+
         <% } else if ("SHIPMENT".equals(roleName)) { %>
+
         <a href="<%= ctx %>/Dashboard" class="menu-item active">🏠 Dashboard</a>
         <span class="menu-divider"></span>
 
@@ -93,9 +140,7 @@
         <a href="#" class="menu-item">🚚 Lịch sử giao hàng</a>
         <% } %>
 
-        <% if (account != null) { %>
-        <a href="<%= ctx %>/Logout" class="menu-item logout">Đăng xuất</a>
-        <% } %>
+
     </nav>
 
     <div class="header-bottom">
@@ -106,12 +151,12 @@
                 <p>BUILD YOUR PERFECT PC</p>
             </div>
         </div>
-
-        <form class="search-box" action="#" method="get">
-            <input type="text" name="keyword" placeholder="<%= placeholder %>">
-            <button type="submit">🔍</button>
+        <% if (!"ADMIN".equals(roleName)) { %>
+        <form class="search-box" action="<%= searchAction %>" method="get">
+            <input type="text" name="keyword" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
+            <button class="search" type="submit" style="width: 80px;">Tìm kiếm</button>
         </form>
-
+        <% } %>
         <div class="right-box">
             <% if ("CUSTOMER".equals(roleName) && account != null) { %>
             <a class="cart-box" href="<%= ctx %>/cart">
@@ -145,14 +190,22 @@
                 <div class="dropdown-menu">
                     <a href="<%= ctx %>/views/profile.jsp">📋 Thông tin cá nhân</a>
                     <% if ("CUSTOMER".equals(roleName)) { %>
-                    <a href="#">📍 Địa chỉ giao hàng</a>
+                    <a href="<%= ctx %>/shipping-address">📍 Địa chỉ giao hàng</a>
                     <% } %>
+                    <a href="<%= ctx %>/Logout" class="menu-item logout">Đăng xuất</a>
+
                 </div>
+
             </div>
             <% } else { %>
+            <!-- Nếu chưa đăng nhập -->
             <div class="login-buttons">
-                <a href="<%= ctx %>/Login" class="login-btn">👤 Đăng nhập</a>
-                <a href="<%= ctx %>/Register" class="register-btn1">Đăng ký</a>
+                <a href="<%= ctx %>/Login" class="login-btn">
+                    👤 Đăng nhập
+                </a>
+                <a href="<%= ctx %>/Register" class="register-btn1">
+                    Đăng ký
+                </a>
             </div>
             <% } %>
         </div>

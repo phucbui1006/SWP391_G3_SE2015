@@ -9,147 +9,392 @@ import model.Product;
 
 public class ProductDAO extends DBContext {
 
-    public List<Product> getAllProducts() {
-        List<Product> products = new ArrayList<>();
-        String sql = "SELECT * FROM PRODUCTS ORDER BY product_id";
+    private Product mapProduct(ResultSet rs) throws Exception {
+        Product p = new Product();
 
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        p.setProductId(rs.getInt("product_id"));
+        p.setPrice(rs.getBigDecimal("price"));
+        p.setQuantity(rs.getInt("quantity"));
+        p.setBatchId(rs.getInt("batch_id"));
+        p.setDescription(rs.getString("description"));
+        p.setImageUrl(rs.getString("image_url"));
+        p.setWarrantyMonths(rs.getInt("warranty_months"));
+        p.setProductName(rs.getString("product_name"));
+
+        return p;
+    }
+
+    private String getOrderBy(String sort) {
+        if ("price_asc".equals(sort)) {
+            return " ORDER BY p.price ASC ";
+        } else if ("price_desc".equals(sort)) {
+            return " ORDER BY p.price DESC ";
+        } else {
+            return " ORDER BY p.product_id DESC ";
+        }
+    }
+
+    public List<Product> getAllProducts(String sort) {
+        List<Product> list = new ArrayList<>();
+
+        String orderBy;
+
+        if ("price_asc".equals(sort)) {
+            orderBy = " ORDER BY price ASC ";
+        } else if ("price_desc".equals(sort)) {
+            orderBy = " ORDER BY price DESC ";
+        } else {
+            orderBy = " ORDER BY product_id DESC ";
+        }
+
+        String sql
+                = "SELECT product_id, product_name, price, quantity, batch_id, "
+                + "description, image_url, warranty_months "
+                + "FROM products "
+                + orderBy;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                products.add(mapProduct(rs));
+                Product p = new Product();
+
+                p.setProductId(rs.getInt("product_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setPrice(rs.getBigDecimal("price"));
+                p.setQuantity(rs.getInt("quantity"));
+                p.setBatchId(rs.getInt("batch_id"));
+                p.setDescription(rs.getString("description"));
+                p.setImageUrl(rs.getString("image_url"));
+                p.setWarrantyMonths(rs.getInt("warranty_months"));
+
+                list.add(p);
             }
-        } catch (SQLException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return products;
+        return list;
+    }
+
+    public List<Product> getAllProducts() {
+        return getAllProducts("newest");
+    }
+
+    public List<Product> searchProducts(String keyword, String sort) {
+        List<Product> list = new ArrayList<>();
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getAllProducts(sort);
+        }
+
+        String sql
+                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
+                + "p.description, p.image_url, p.warranty_months, "
+                + "br.brand_name, c.category_name "
+                + "FROM products p "
+                + "JOIN batch b ON p.batch_id = b.batch_id "
+                + "JOIN brands br ON b.brand_id = br.brand_id "
+                + "JOIN categories c ON b.category_id = c.category_id "
+                + "WHERE p.product_name LIKE ? "
+                + "OR br.brand_name LIKE ? "
+                + "OR c.category_name LIKE ? "
+                + getOrderBy(sort);
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            String searchValue = "%" + keyword.trim() + "%";
+
+            ps.setString(1, searchValue);
+            ps.setString(2, searchValue);
+            ps.setString(3, searchValue);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Product p = mapProduct(rs);
+                p.setBrandName(rs.getString("brand_name"));
+                p.setCategoryName(rs.getString("category_name"));
+                list.add(p);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 
     public Product getProductById(int productId) {
-        String sql = "SELECT * FROM PRODUCTS WHERE product_id = ?";
+        String sql = """
+            SELECT product_id, price, quantity, batch_id,
+                   description, image_url, warranty_months, product_name
+            FROM products
+            WHERE product_id = ?
+        """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, productId);
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapProduct(rs);
-                }
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Product p = new Product();
+
+                p.setProductId(rs.getInt("product_id"));
+                p.setPrice(rs.getBigDecimal("price"));
+                p.setQuantity(rs.getInt("quantity"));
+                p.setBatchId(rs.getInt("batch_id"));
+                p.setDescription(rs.getString("description"));
+                p.setImageUrl(rs.getString("image_url"));
+                p.setWarrantyMonths(rs.getInt("warranty_months"));
+                p.setProductName(rs.getString("product_name"));
+
+                return p;
             }
-        } catch (SQLException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return null;
     }
 
-    public List<Product> searchProductsByName(String keyword) {
-        List<Product> products = new ArrayList<>();
-        String sql = "SELECT * FROM PRODUCTS WHERE product_name LIKE ? ORDER BY product_id";
+    public List<Product> getProductsByCategoryId(int categoryId) {
+        return getProductsByCategoryId(categoryId, "newest");
+    }
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, "%" + keyword + "%");
+    public List<Product> getProductsByCategoryId(int categoryId, String sort) {
+        List<Product> list = new ArrayList<>();
 
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    products.add(mapProduct(rs));
-                }
+        String orderBy;
+
+        if ("price_asc".equals(sort)) {
+            orderBy = " ORDER BY p.price ASC ";
+        } else if ("price_desc".equals(sort)) {
+            orderBy = " ORDER BY p.price DESC ";
+        } else {
+            orderBy = " ORDER BY p.product_id DESC ";
+        }
+
+        String sql
+                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
+                + "p.description, p.image_url, p.warranty_months "
+                + "FROM products p "
+                + "JOIN batch b ON p.batch_id = b.batch_id "
+                + "WHERE b.category_id = ? "
+                + orderBy;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, categoryId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Product p = new Product();
+
+                p.setProductId(rs.getInt("product_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setPrice(rs.getBigDecimal("price"));
+                p.setQuantity(rs.getInt("quantity"));
+                p.setBatchId(rs.getInt("batch_id"));
+                p.setDescription(rs.getString("description"));
+                p.setImageUrl(rs.getString("image_url"));
+                p.setWarrantyMonths(rs.getInt("warranty_months"));
+
+                list.add(p);
             }
-        } catch (SQLException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return products;
+        return list;
     }
 
-    public boolean addProduct(Product product) {
-        String sql = "INSERT INTO PRODUCTS "
-                + "(price, quantity, batch_id, description, image_url, warranty_months, product_name) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+    public List<Product> getProductsByBrand(Integer brandId, String priceRange, String sort) {
+        List<Product> list = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setBigDecimal(1, product.getPrice());
-            ps.setInt(2, product.getQuantity());
-            ps.setInt(3, product.getBatchId());
-            ps.setString(4, product.getDescription());
-            ps.setString(5, product.getImageUrl());
-            ps.setInt(6, product.getWarrantyMonths());
-            ps.setString(7, product.getProductName());
+        String sql
+                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
+                + "p.description, p.image_url, p.warranty_months "
+                + "FROM products p "
+                + "JOIN batch b ON p.batch_id = b.batch_id "
+                + "WHERE 1 = 1 ";
 
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
+        if (brandId != null) {
+            sql += "AND b.brand_id = ? ";
+            params.add(brandId);
+        }
+
+        if ("under5".equals(priceRange)) {
+            sql += "AND p.price < ? ";
+            params.add(5000000);
+        } else if ("5to10".equals(priceRange)) {
+            sql += "AND p.price BETWEEN ? AND ? ";
+            params.add(5000000);
+            params.add(10000000);
+        } else if ("10to20".equals(priceRange)) {
+            sql += "AND p.price BETWEEN ? AND ? ";
+            params.add(10000000);
+            params.add(20000000);
+        } else if ("over20".equals(priceRange)) {
+            sql += "AND p.price > ? ";
+            params.add(20000000);
+        }
+
+        sql += getOrderBy(sort);
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapProduct(rs));
+            }
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return false;
-    }
-
-    public boolean updateProduct(Product product) {
-        String sql = "UPDATE PRODUCTS "
-                + "SET price = ?, quantity = ?, batch_id = ?, description = ?, "
-                + "image_url = ?, warranty_months = ?, product_name = ? "
-                + "WHERE product_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setBigDecimal(1, product.getPrice());
-            ps.setInt(2, product.getQuantity());
-            ps.setInt(3, product.getBatchId());
-            ps.setString(4, product.getDescription());
-            ps.setString(5, product.getImageUrl());
-            ps.setInt(6, product.getWarrantyMonths());
-            ps.setString(7, product.getProductName());
-            ps.setInt(8, product.getProductId());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    public boolean deleteProduct(int productId) {
-        String sql = "DELETE FROM PRODUCTS WHERE product_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, productId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return list;
     }
 
     public double getAverageRating(int productId) {
-        String sql = "SELECT COALESCE(AVG(rating), 0) as avg_rating FROM reviews WHERE product_id = ?";
+        String sql = """
+            SELECT AVG(rating) AS avg_rating
+            FROM reviews
+            WHERE product_id = ?
+        """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, productId);
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getDouble("avg_rating");
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                double avg = rs.getDouble("avg_rating");
+
+                if (rs.wasNull()) {
+                    return 0;
                 }
+
+                return avg;
             }
-        } catch (SQLException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return 0;
     }
 
-    private Product mapProduct(ResultSet rs) throws SQLException {
-        return new Product(
-                rs.getInt("product_id"),
-                rs.getBigDecimal("price"),
-                rs.getInt("quantity"),
-                rs.getInt("batch_id"),
-                rs.getString("description"),
-                rs.getString("image_url"),
-                rs.getInt("warranty_months"),
-                rs.getString("product_name")
-        );
+    public List<Product> getProductsByKeyword(String keyword, String sort) {
+        List<Product> list = new ArrayList<>();
+
+        String orderBy;
+
+        if ("price_asc".equals(sort)) {
+            orderBy = " ORDER BY p.price ASC ";
+        } else if ("price_desc".equals(sort)) {
+            orderBy = " ORDER BY p.price DESC ";
+        } else {
+            orderBy = " ORDER BY p.product_id DESC ";
+        }
+
+        String sql
+                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
+                + "p.description, p.image_url, p.warranty_months "
+                + "FROM products p "
+                + "WHERE LOWER(p.product_name) LIKE LOWER(?) "
+                + orderBy;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, "%" + keyword + "%");
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Product p = new Product();
+
+                p.setProductId(rs.getInt("product_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setPrice(rs.getBigDecimal("price"));
+                p.setQuantity(rs.getInt("quantity"));
+                p.setBatchId(rs.getInt("batch_id"));
+                p.setDescription(rs.getString("description"));
+                p.setImageUrl(rs.getString("image_url"));
+                p.setWarrantyMonths(rs.getInt("warranty_months"));
+
+                list.add(p);
+            }
+
+        } catch (SQLException e) {
+        }
+
+        return list;
+    }
+
+    public List<Product> getProductsByCategoryAndKeyword(int categoryId, String keyword, String sort) {
+        List<Product> list = new ArrayList<>();
+
+        String orderBy;
+
+        if ("price_asc".equals(sort)) {
+            orderBy = " ORDER BY p.price ASC ";
+        } else if ("price_desc".equals(sort)) {
+            orderBy = " ORDER BY p.price DESC ";
+        } else {
+            orderBy = " ORDER BY p.product_id DESC ";
+        }
+
+        String sql
+                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
+                + "p.description, p.image_url, p.warranty_months "
+                + "FROM products p "
+                + "JOIN batch b ON p.batch_id = b.batch_id "
+                + "WHERE b.category_id = ? "
+                + "AND LOWER(p.product_name) LIKE LOWER(?) "
+                + orderBy;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, categoryId);
+            ps.setString(2, "%" + keyword + "%");
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Product p = new Product();
+
+                p.setProductId(rs.getInt("product_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setPrice(rs.getBigDecimal("price"));
+                p.setQuantity(rs.getInt("quantity"));
+                p.setBatchId(rs.getInt("batch_id"));
+                p.setDescription(rs.getString("description"));
+                p.setImageUrl(rs.getString("image_url"));
+                p.setWarrantyMonths(rs.getInt("warranty_months"));
+
+                list.add(p);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 }

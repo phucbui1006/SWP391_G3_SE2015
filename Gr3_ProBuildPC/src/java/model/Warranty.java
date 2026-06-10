@@ -1,26 +1,43 @@
 package model;
 
-
 import java.util.Date;
 
 public class Warranty {
+
     private int warrantyId;
     private int orderDetailId;
     private int orderId;
+
     private int userId;
+    private int customerId;
+
     private int productId;
     private int statusId;
 
     private String productName;
     private String customerName;
     private String statusName;
+
     private Date orderDate;
     private int warrantyMonths;
     private Date warrantyEndDate;
+
     private Date requestDate;
     private String request;
 
     public Warranty() {
+    }
+
+    public Warranty(int warrantyId, int orderDetailId, int customerId, int productId,
+                    int statusId, Date requestDate, String request) {
+        this.warrantyId = warrantyId;
+        this.orderDetailId = orderDetailId;
+        this.customerId = customerId;
+        this.userId = customerId;
+        this.productId = productId;
+        this.statusId = statusId;
+        this.requestDate = requestDate;
+        this.request = request;
     }
 
     public int getWarrantyId() {
@@ -53,6 +70,14 @@ public class Warranty {
 
     public void setUserId(int userId) {
         this.userId = userId;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 
     public int getProductId() {

@@ -16,7 +16,7 @@ public class OrderDAO extends DBContext {
     private static final int DEFAULT_STATUS_ID = 1;
 
     public boolean createOrder(
-            int userId,
+            int customerId,
             Address shippingAddress,
             String paymentMethod,
             String paymentStatus,
@@ -34,7 +34,7 @@ public class OrderDAO extends DBContext {
 
         String insertOrderSql = """
                                 INSERT INTO orders (
-                                    user_id,
+                                    customer_id,
                                     status_id,
                                     order_date,
                                     total_amount,
@@ -64,7 +64,7 @@ public class OrderDAO extends DBContext {
             BigDecimal totalAmount = calculateTotalAmount(items);
 
             try (PreparedStatement ps = connection.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS)) {
-                ps.setInt(1, userId);
+                ps.setInt(1, customerId);
                 ps.setInt(2, DEFAULT_STATUS_ID);
                 ps.setBigDecimal(3, totalAmount);
                 ps.setString(4, buildShippingAddressValue(shippingAddress));
@@ -103,7 +103,7 @@ public class OrderDAO extends DBContext {
             }
 
             if (!cartItemIdsToRemove.isEmpty()) {
-                removeSelectedCartItems(userId, cartItemIdsToRemove);
+                removeSelectedCartItems(customerId, cartItemIdsToRemove);
             }
 
             connection.commit();
@@ -140,12 +140,12 @@ public class OrderDAO extends DBContext {
         return total;
     }
 
-    private void removeSelectedCartItems(int userId, List<Integer> cartItemIds) throws SQLException {
+    private void removeSelectedCartItems(int customerId, List<Integer> cartItemIds) throws SQLException {
         StringBuilder sql = new StringBuilder();
         sql.append("DELETE ci ");
         sql.append("FROM cart_items ci ");
         sql.append("INNER JOIN cart c ON c.cart_id = ci.cart_id ");
-        sql.append("WHERE c.user_id = ? AND ci.cart_item_id IN (");
+        sql.append("WHERE c.customer_id = ? AND ci.cart_item_id IN (");
 
         for (int i = 0; i < cartItemIds.size(); i++) {
             if (i > 0) {
@@ -157,7 +157,7 @@ public class OrderDAO extends DBContext {
         sql.append(")");
 
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            ps.setInt(1, userId);
+            ps.setInt(1, customerId);
 
             for (int i = 0; i < cartItemIds.size(); i++) {
                 ps.setInt(i + 2, cartItemIds.get(i));

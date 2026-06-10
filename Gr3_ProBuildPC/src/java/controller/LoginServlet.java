@@ -3,7 +3,10 @@ package controller;
 import dal.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import model.User;
 
@@ -13,102 +16,93 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        // Lấy session hiện tại mà không tạo mới (nếu không tồn tại trả về null)
+
         HttpSession session = request.getSession(false);
-        
-        // Nếu người dùng đã đăng nhập trước đó rồi (Session còn hạn và tồn tại "account")
-        if (session != null && session.getAttribute("account") != null) {
-            // Tự động chuyển hướng thẳng về trang chủ, không bắt họ đăng nhập lại
-            response.sendRedirect(request.getContextPath() + "/home");
+        User account = session != null ? (User) session.getAttribute("account") : null;
+
+        if (account != null) {
+            redirectAfterLogin(request, response, account);
             return;
         }
-        
-        // Nếu chưa đăng nhập, hiển thị giao diện đăng nhập bình thường
+
         request.getRequestDispatcher("/views/login.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        // Thiết lập mã hóa dữ liệu đầu vào tránh lỗi font tiếng Việt (nếu có)
+
         request.setCharacterEncoding("UTF-8");
 
-        // 1. Lấy tham số và xóa khoảng trắng thừa ở đầu/cuối chuỗi bằng .trim()
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
+        String email = safeTrim(request.getParameter("email"));
+        String password = safeTrim(request.getParameter("password"));
 
-        if (email != null) email = email.trim();
-        if (password != null) password = password.trim();
-
-        // Kiểm tra dữ liệu rỗng nhanh trước khi gọi Database
-        if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
-            request.setAttribute("error", "Email và mật khẩu không được để trống!");
+        if (email.isEmpty() || password.isEmpty()) {
+            request.setAttribute("error", "Email va mat khau khong duoc de trong!");
             request.getRequestDispatcher("/views/login.jsp").forward(request, response);
             return;
         }
 
-        // 2. Gọi tầng DAL để xác thực tài khoản từ database
         UserDAO dao = new UserDAO();
         User user = dao.login(email, password);
-        if (user != null) {
-    HttpSession session = request.getSession();
-    session.setAttribute("account", user); // Lưu đối tượng user vào session với key là "account"
-}
 
-        // Trường hợp đăng nhập thất bại (Sai tài khoản hoặc mật khẩu)
         if (user == null) {
-            request.setAttribute("error", "Email hoặc mật khẩu không đúng!");
-            // Giữ lại email người dùng vừa nhập trong ô input để họ không phải gõ lại
-            request.setAttribute("enteredEmail", email); 
+            request.setAttribute("error", "Email hoac mat khau khong dung!");
+            request.setAttribute("enteredEmail", email);
             request.getRequestDispatcher("/views/login.jsp").forward(request, response);
             return;
         }
 
-        // Trường hợp tài khoản bị khóa (Banned) - Nghiệp vụ kiểm tra trạng thái
-        if (user.getStatus() != null && "BANNED".equalsIgnoreCase(user.getStatus().trim())) {
-            request.setAttribute("error", "Tài khoản của bạn đã bị khóa khỏi hệ thống!");
+        if (!"ACTIVE".equalsIgnoreCase(safeTrim(user.getStatus()))) {
+            request.setAttribute("error", "Tai khoan cua ban da bi khoa hoac chua duoc kich hoat!");
             request.getRequestDispatcher("/views/login.jsp").forward(request, response);
             return;
         }
 
-        // 3. Đăng nhập thành công -> Khởi tạo Session và lưu trữ đối tượng User
-        HttpSession session = request.getSession(true); // Đảm bảo tạo mới hoặc lấy session hợp lệ
+        if (!isValidAccountShape(user)) {
+            request.setAttribute("error", "Tai khoan chua duoc cau hinh dung loai truy cap!");
+            request.getRequestDispatcher("/views/login.jsp").forward(request, response);
+            return;
+        }
+
+        HttpSession session = request.getSession(true);
         session.setAttribute("account", user);
+        redirectAfterLogin(request, response, user);
+    }
 
-        // 4. Chuẩn hóa chuỗi Quyền (Role) để ép về chữ IN HOA, loại bỏ khoảng trắng thừa
-        String roleName = user.getRoleName();
-        if (roleName != null) {
-            roleName = roleName.trim().toUpperCase();
-        } else {
-            roleName = "";
+    private void redirectAfterLogin(HttpServletRequest request, HttpServletResponse response, User user)
+            throws IOException {
+        if (user.isCustomer()) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
         }
 
-        // 5. Điều hướng phân quyền màn hình chính xác sau đăng nhập
-        switch (roleName) {
-            case "ADMIN":
-                response.sendRedirect(request.getContextPath() + "/Dashboard");
-                break;
-
-            case "CUSTOMER":
-                response.sendRedirect(request.getContextPath() + "/home");
-                break;
-
-            case "EMPLOYEE":
-                response.sendRedirect(request.getContextPath() + "/Dashboard");
-                break;
-
-            case "SHIPMENT":
-                response.sendRedirect(request.getContextPath() + "/Dashboard");
-                break;
-
-            default:
-                // Nếu dính lỗi Role lạ hoặc lỗi dữ liệu trống, đá ngược lại trang Login kèm cảnh báo
-                session.removeAttribute("account"); // Hủy session lỗi vừa tạo
-                request.setAttribute("error", "Tài khoản chưa được cấp quyền truy cập hợp lệ!");
-                request.getRequestDispatcher("/views/login.jsp").forward(request, response);
-                break;
+        if (user.isStaff()) {
+            response.sendRedirect(request.getContextPath() + "/Dashboard");
+            return;
         }
+
+        response.sendRedirect(request.getContextPath() + "/Login");
+    }
+
+    private boolean isValidAccountShape(User user) {
+        if (user == null) {
+            return false;
+        }
+
+        if (user.isCustomer()) {
+            return "CUSTOMER".equalsIgnoreCase(user.getRoleName());
+        }
+
+        if (user.isStaff()) {
+            String roleName = safeTrim(user.getRoleName()).toUpperCase();
+            return "ADMIN".equals(roleName) || "EMPLOYEE".equals(roleName) || "SHIPMENT".equals(roleName);
+        }
+
+        return false;
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? "" : value.trim();
     }
 }

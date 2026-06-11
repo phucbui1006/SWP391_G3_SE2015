@@ -11,6 +11,7 @@ import java.util.Map;
 import model.OrderHistoryDetail;
 import model.OrderHistoryItem;
 import model.OrderStatus;
+import util.OrderSearchCriteria;
 
 public class OrderHistoryDAO extends DBContext {
 
@@ -114,7 +115,7 @@ public class OrderHistoryDAO extends DBContext {
         return statuses;
     }
 
-    public boolean updateShipmentStatus(int orderId, int statusId) {
+    public boolean updateShipmentStatus(int orderId, int statusId, String shipmentNote) {
         if (orderId <= 0 || statusId <= 0) {
             return false;
         }
@@ -123,16 +124,17 @@ public class OrderHistoryDAO extends DBContext {
             connection.setAutoCommit(false);
 
             String statusName = findOrderStatusName(statusId);
-            if (statusName == null || !orderExists(orderId)) {
+            String currentStatusName = findCurrentOrderStatusName(orderId);
+            if (statusName == null || currentStatusName == null || isLockedShipmentStatus(currentStatusName)) {
                 connection.rollback();
                 return false;
             }
 
             Integer shipmentId = findShipmentId(orderId);
             if (shipmentId == null) {
-                insertShipment(orderId, "PB" + orderId, statusName, null);
+                insertShipment(orderId, "PB" + orderId, statusName, shipmentNote);
             } else {
-                updateShipmentStatusOnly(shipmentId, statusName);
+                updateShipmentStatusAndNote(shipmentId, statusName, shipmentNote);
             }
 
             updateOrderStatus(orderId, statusId);
@@ -245,21 +247,30 @@ public class OrderHistoryDAO extends DBContext {
             params.add(customerUserId);
         }
 
-        String normalizedKeyword = normalizeText(trackingKeyword);
-        if (normalizedKeyword != null) {
-            String likeKeyword = "%" + normalizedKeyword.toLowerCase() + "%";
+        OrderSearchCriteria searchCriteria = OrderSearchCriteria.fromKeyword(trackingKeyword);
+        if (searchCriteria.hasKeyword()) {
+            String likeKeyword = "%" + searchCriteria.getKeyword() + "%";
+            String compactLikeKeyword = "%" + searchCriteria.getCompactKeyword() + "%";
+            sql.append(" AND (");
+
+            if (searchCriteria.getOrderId() != null) {
+                sql.append(" o.order_id = ? OR");
+                params.add(searchCriteria.getOrderId());
+            }
+
             sql.append("""
-                       AND (
-                           LOWER(CONCAT('PB', o.order_id)) LIKE ?
-                           OR LOWER(CAST(o.order_id AS CHAR)) LIKE ?
-                           OR LOWER(COALESCE(sh.tracking_code, '')) LIKE ?
-                           OR LOWER(CONCAT('TRK', o.order_id)) LIKE ?
+                        LOWER(CONCAT('PB', o.order_id)) LIKE ?
+                        OR LOWER(CAST(o.order_id AS CHAR)) LIKE ?
+                        OR LOWER(COALESCE(sh.tracking_code, '')) LIKE ?
+                        OR LOWER(CONCAT('TRK', o.order_id)) LIKE ?
+                        OR LOWER(REPLACE(REPLACE(REPLACE(COALESCE(sh.tracking_code, ''), '-', ''), ' ', ''), '#', '')) LIKE ?
                        )
                        """);
             params.add(likeKeyword);
             params.add(likeKeyword);
             params.add(likeKeyword);
             params.add(likeKeyword);
+            params.add(compactLikeKeyword);
         }
 
         if (statusId != null) {
@@ -398,16 +409,37 @@ public class OrderHistoryDAO extends DBContext {
         return null;
     }
 
-    private boolean orderExists(int orderId) throws SQLException {
-        String sql = "SELECT order_id FROM orders WHERE order_id = ?";
+    private String findCurrentOrderStatusName(int orderId) throws SQLException {
+        String sql = """
+                     SELECT os.status_name
+                     FROM orders o
+                     INNER JOIN orders_status os ON os.status_id = o.status_id
+                     WHERE o.order_id = ?
+                     """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, orderId);
 
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
+                if (rs.next()) {
+                    return rs.getString("status_name");
+                }
             }
         }
+
+        return null;
+    }
+
+    private boolean isLockedShipmentStatus(String statusName) {
+        if (statusName == null) {
+            return false;
+        }
+
+        String normalizedStatus = statusName.trim().toLowerCase();
+        return normalizedStatus.contains("hủy")
+                || normalizedStatus.contains("huy")
+                || normalizedStatus.contains("đã giao")
+                || normalizedStatus.contains("da giao");
     }
 
     private Integer findShipmentId(int orderId) throws SQLException {
@@ -441,16 +473,18 @@ public class OrderHistoryDAO extends DBContext {
         }
     }
 
-    private void updateShipmentStatusOnly(int shipmentId, String shipmentStatus) throws SQLException {
+    private void updateShipmentStatusAndNote(int shipmentId, String shipmentStatus, String note) throws SQLException {
         String sql = """
                      UPDATE shipments
-                     SET shipment_status = ?
+                     SET shipment_status = ?,
+                         note = ?
                      WHERE shipment_id = ?
                      """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, shipmentStatus);
-            ps.setInt(2, shipmentId);
+            ps.setString(2, note);
+            ps.setInt(3, shipmentId);
             ps.executeUpdate();
         }
     }
@@ -485,11 +519,4 @@ public class OrderHistoryDAO extends DBContext {
         return rs.wasNull() ? 0 : value;
     }
 
-    private String normalizeText(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
-
-        return value.trim();
-    }
 }

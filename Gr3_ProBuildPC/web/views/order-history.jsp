@@ -134,6 +134,18 @@
         return (status.contains("chờ") || status.contains("cho "))
                 && (status.contains("xác nhận") || status.contains("xac nhan"));
     }
+
+    private boolean isLockedShipmentOrder(OrderHistoryItem order) {
+        if (order == null) {
+            return false;
+        }
+
+        String status = defaultText(order.getDisplayStatus(), "").toLowerCase(Locale.ROOT);
+        return status.contains("hủy")
+                || status.contains("huy")
+                || status.contains("đã giao")
+                || status.contains("da giao");
+    }
 %>
 <%
     List<OrderHistoryItem> orders = (List<OrderHistoryItem>) request.getAttribute("orders");
@@ -146,6 +158,7 @@
     Integer totalOrdersValue = (Integer) request.getAttribute("totalOrders");
     Boolean canManageShipmentValue = (Boolean) request.getAttribute("canManageShipment");
     Boolean isCustomerViewValue = (Boolean) request.getAttribute("isCustomerView");
+    String shipmentStaffName = (String) request.getAttribute("shipmentStaffName");
 
     if (orders == null) {
         orders = Collections.emptyList();
@@ -164,6 +177,7 @@
             ? Collections.emptyList()
             : selectedOrder.getDetails();
     boolean selectedCanCancel = isCustomerView && canCancelOrder(selectedOrder);
+    boolean selectedCanUpdateShipment = canManageShipment && !isLockedShipmentOrder(selectedOrder);
     String selectedStatusIdValue = selectedStatusId == null ? null : String.valueOf(selectedStatusId);
 
     Locale vietnameseLocale = new Locale("vi", "VN");
@@ -195,7 +209,7 @@
             <section class="order-history-heading">
                 <div>
                     <h1><%= isCustomerView ? "Lịch sử đơn hàng" : "Quản lý giao hàng" %></h1>
-                    <p><%= isCustomerView ? "Theo dõi và quản lý các đơn hàng của bạn" : "Theo dõi đơn hàng, hóa đơn và trạng thái vận chuyển" %></p>
+                    <p><%= isCustomerView ? "Theo dõi và quản lý các đơn hàng của bạn" : "Theo dõi đơn hàng và trạng thái vận chuyển" %></p>
                 </div>
                 <form class="order-history-filter" action="<%= ctx %>/order-history" method="get">
                     <input type="search" name="keyword" value="<%= h(keyword) %>" placeholder="Tìm mã đơn hàng">
@@ -275,7 +289,7 @@
                     <% if (selectedOrder == null) { %>
                     <div class="order-history-empty detail-empty">
                         <strong>Chọn một đơn hàng</strong>
-                        <span>Chi tiết và hóa đơn sẽ hiển thị tại đây.</span>
+                        <span>Chi tiết đơn hàng sẽ hiển thị tại đây.</span>
                     </div>
                     <% } else { %>
                     <div class="order-detail-header">
@@ -291,7 +305,6 @@
                                 <button type="submit" class="order-cancel-btn">Hủy đơn</button>
                             </form>
                             <% } %>
-                            <button type="button" class="order-quick-btn" data-open-modal="invoiceQuickView">Xem hóa đơn</button>
                         </div>
                     </div>
 
@@ -302,7 +315,9 @@
                             <span>Đặt hàng: <%= formatDate(selectedOrder.getOrderDate(), dateFormatter) %> · <%= formatTime(selectedOrder.getOrderDate(), timeFormatter) %></span>
                             <span>Hình thức thanh toán: <%= h(defaultText(selectedOrder.getPaymentMethod(), "Chưa cập nhật")) %></span>
                         </div>
-                        <span class="order-status-pill <%= statusClass(selectedOrder.getDisplayStatus()) %>">
+                        <span class="order-status-pill <%= statusClass(selectedOrder.getDisplayStatus()) %>" style="
+                              margin-right: 300px;
+                              ">
                             <%= h(defaultText(selectedOrder.getDisplayStatus(), "Chờ xác nhận")) %>
                         </span>
                     </article>
@@ -328,7 +343,7 @@
                         </section>
                     </div>
 
-                    <% if (canManageShipment) { %>
+                    <% if (selectedCanUpdateShipment) { %>
                     <form class="shipment-update-form status-only" action="<%= ctx %>/order-history" method="post">
                         <input type="hidden" name="action" value="updateShipmentStatus">
                         <input type="hidden" name="orderId" value="<%= selectedOrder.getOrderId() %>">
@@ -346,6 +361,14 @@
                                 <% } %>
                             </select>
                         </label>
+                        <label>
+                            <span>Tên người giao hàng</span>
+                            <input type="text" name="deliveryName" value="<%= h(defaultText(shipmentStaffName, "")) %>" required>
+                        </label>
+                        <label>
+                            <span>Số điện thoại người giao hàng</span>
+                            <input type="tel" name="deliveryPhone" value="" required>
+                        </label>
                         <button type="submit">Cập nhật</button>
                     </form>
                     <% } %>
@@ -354,7 +377,7 @@
                         <h3>Danh sách sản phẩm</h3>
                         <div class="order-product-list">
                             <% for (OrderHistoryDetail detail : selectedDetails) { %>
-                            <article class="order-product-row">
+                            <a class="order-product-row" href="<%= ctx %>/product-detail?id=<%= detail.getProductId() %>">
                                 <% if (detail.getImageUrl() != null && !detail.getImageUrl().trim().isEmpty()) { %>
                                 <img src="<%= h(assetUrl(ctx, detail.getImageUrl())) %>" alt="<%= h(defaultText(detail.getProductName(), "Sản phẩm")) %>">
                                 <% } else { %>
@@ -366,7 +389,7 @@
                                 </div>
                                 <span>x<%= detail.getQuantity() %></span>
                                 <strong><%= formatMoney(detail.getSubtotal(), currencyFormatter) %></strong>
-                            </article>
+                            </a>
                             <% } %>
                         </div>
                         <div class="order-total-row">
@@ -417,60 +440,6 @@
                             <% } %>
                         </div>
                     </section>
-                </div>
-            </div>
-        </div>
-
-        <div class="order-modal-backdrop" data-modal="invoiceQuickView" hidden>
-            <div class="order-modal invoice-modal" role="dialog" aria-modal="true" aria-labelledby="invoiceQuickViewTitle">
-                <div class="order-modal-header">
-                    <div>
-                        <h2 id="invoiceQuickViewTitle">Hóa đơn PB<%= selectedOrder.getOrderId() %></h2>
-                        <p>ProBuild PC · BUILD YOUR PERFECT PC</p>
-                    </div>
-                    <button type="button" data-close-modal aria-label="Đóng">×</button>
-                </div>
-                <div class="order-modal-content">
-                    <div class="invoice-head">
-                        <div>
-                            <strong>ProBuild PC</strong>
-                            <span>Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc</span>
-                            <span>support@probuildpc.local</span>
-                        </div>
-                        <div>
-                            <span>Ngày lập</span>
-                            <strong><%= formatDate(selectedOrder.getOrderDate(), dateFormatter) %></strong>
-                            <span>Phương thức: <%= h(defaultText(selectedOrder.getPaymentMethod(), "N/A")) %></span>
-                        </div>
-                    </div>
-
-                    <div class="invoice-bill-to">
-                        <span>Khách hàng</span>
-                        <strong><%= h(defaultText(selectedOrder.getCustomerName(), "Khách hàng")) %></strong>
-                        <p><%= h(defaultText(selectedOrder.getShippingAddress(), "Chưa cập nhật địa chỉ")) %></p>
-                    </div>
-
-                    <div class="invoice-lines">
-                        <div class="invoice-line header">
-                            <span>Sản phẩm</span>
-                            <span>SL</span>
-                            <span>Đơn giá</span>
-                            <span>Thành tiền</span>
-                        </div>
-                        <% for (OrderHistoryDetail detail : selectedDetails) { %>
-                        <div class="invoice-line">
-                            <span><%= h(defaultText(detail.getProductName(), "Sản phẩm")) %></span>
-                            <span><%= detail.getQuantity() %></span>
-                            <span><%= formatMoney(detail.getUnitPrice(), currencyFormatter) %></span>
-                            <strong><%= formatMoney(detail.getSubtotal(), currencyFormatter) %></strong>
-                        </div>
-                        <% } %>
-                    </div>
-
-                    <div class="invoice-total">
-                        <span>Tổng thanh toán</span>
-                        <strong><%= formatMoney(selectedOrder.getTotalAmount(), currencyFormatter) %></strong>
-                    </div>
                 </div>
             </div>
         </div>

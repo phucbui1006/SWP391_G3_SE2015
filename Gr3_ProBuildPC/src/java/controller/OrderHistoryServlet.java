@@ -70,6 +70,7 @@ public class OrderHistoryServlet extends HttpServlet {
         request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("canManageShipment", canManageShipment(account));
         request.setAttribute("isCustomerView", account.isCustomer());
+        request.setAttribute("shipmentStaffName", account.getFullName());
 
         request.getRequestDispatcher(VIEW_PATH).forward(request, response);
     }
@@ -111,8 +112,18 @@ public class OrderHistoryServlet extends HttpServlet {
             return;
         }
 
+        String deliveryName = normalizeText(request.getParameter("deliveryName"));
+        String deliveryPhone = normalizeText(request.getParameter("deliveryPhone"));
+        if (deliveryName == null || deliveryPhone == null) {
+            session.setAttribute(ERROR_FLASH, "Vui long nhap ten va so dien thoai nguoi giao hang.");
+            response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
+            return;
+        }
+
+        String shipmentNote = "Người giao hàng: " + deliveryName + " - SĐT: " + deliveryPhone;
+
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
-        if (orderHistoryDAO.updateShipmentStatus(orderId, shipmentStatusId)) {
+        if (orderHistoryDAO.updateShipmentStatus(orderId, shipmentStatusId, shipmentNote)) {
             session.setAttribute(SUCCESS_FLASH, "Cap nhat trang thai giao hang thanh cong.");
         } else {
             session.setAttribute(ERROR_FLASH, "Khong the cap nhat trang thai giao hang.");

@@ -25,6 +25,18 @@
     String searchAction = "#";
     String searchKeyword = request.getParameter("keyword");
     String ctx = request.getContextPath();
+    Object forwardServletPath = request.getAttribute("jakarta.servlet.forward.servlet_path");
+    if (forwardServletPath == null) {
+        forwardServletPath = request.getAttribute("javax.servlet.forward.servlet_path");
+    }
+
+    String currentPath = forwardServletPath instanceof String
+            ? (String) forwardServletPath
+            : request.getServletPath();
+
+    if (currentPath == null) {
+        currentPath = "";
+    }
 
     if (account != null) {
         roleName = account.getRoleName();
@@ -69,7 +81,7 @@
     <nav class="header-menu">
         <% if ("CUSTOMER".equals(roleName)) { %>
 
-        <a href="<%= ctx %>/home" class="menu-item active">🏠 Trang chủ</a>
+        <a href="<%= ctx %>/home" class="menu-item <%= "/home".equals(currentPath) || "/Home".equals(currentPath) ? "active" : "" %>">🏠 Trang chủ</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🛠 BUILD PC</a>
@@ -90,7 +102,7 @@
         <a href="#" class="menu-item">📋 Lịch sử đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">🛡 Tra cứu bảo hành</a>
+        <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>">🛡 Tra cứu bảo hành</a>
         <% } else if ("ADMIN".equals(roleName)) { %>
 
         <a href="<%= ctx %>/Dashboard" class="menu-item active">🛡 Dashboard</a>

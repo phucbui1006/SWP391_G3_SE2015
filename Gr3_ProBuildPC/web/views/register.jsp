@@ -1,5 +1,4 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-
 <!DOCTYPE html>
 <html lang="vi">
     <head>
@@ -22,10 +21,10 @@
             <form action="${pageContext.request.contextPath}/Register" method="POST">
                 <div class="form-group">
                     <label for="fullName">Họ và tên</label>
-
                     <div class="input-group">
                         <i class="fa-regular fa-user left-icon"></i>
-                        <input type="text" id="fullName" name="fullName" placeholder="Nguyen Van A" required>
+                        <input type="text" id="fullName" name="fullName" placeholder="Nhập tên.." 
+                               value="${param.fullName != null ? param.fullName : ''}" required>
                     </div>
                 </div>
 
@@ -33,7 +32,9 @@
                     <label for="email">Email</label>
                     <div class="input-group">
                         <i class="fa-regular fa-envelope left-icon"></i>
-                        <input type="email" id="email" name="email" placeholder="Nhập email" required
+                        <input type="email" id="email" name="email" placeholder="Nhập email.." 
+                               autocomplete="none" 
+                               value="${param.email != null ? param.email : ''}" required
                                pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                                title="Vui lòng nhập đúng định dạng email (Ví dụ: abc@gmail.com)">
                     </div>
@@ -41,20 +42,20 @@
 
                 <div class="form-group">
                     <label for="password">Mật khẩu</label>
-
                     <div class="input-group">
                         <i class="fa-solid fa-lock left-icon"></i>
-                        <input type="password" id="password" name="password" placeholder="••••••••" required class="pass-input">
+                        <input type="password" id="password" name="password" placeholder="••••••••" 
+                               autocomplete="new-password" required class="pass-input">
                         <i class="fa-regular fa-eye toggle-password" onclick="togglePass('password', this)"></i>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="confirmPassword">Xác nhận mật khẩu</label>
-
                     <div class="input-group">
                         <i class="fa-solid fa-lock left-icon"></i>
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required class="pass-input">
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" 
+                               autocomplete="new-password" required class="pass-input">
                         <i class="fa-regular fa-eye toggle-password" onclick="togglePass('confirmPassword', this)"></i>
                     </div>
                 </div>

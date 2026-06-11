@@ -31,8 +31,7 @@ public class BrandDAO extends DBContext {
             SELECT br.brand_id, br.brand_name, br.img, br.status,
                    COUNT(p.product_id) AS product_count
             FROM brands br
-            LEFT JOIN batch ba ON br.brand_id = ba.brand_id
-            LEFT JOIN products p ON ba.batch_id = p.batch_id
+            LEFT JOIN products p ON br.brand_id = p.brand_id
             WHERE (? IS NULL OR br.brand_name LIKE ?)
               AND (? IS NULL OR br.status = ?)
             GROUP BY br.brand_id, br.brand_name, br.img, br.status
@@ -77,11 +76,10 @@ public class BrandDAO extends DBContext {
 
         String sql = """
             SELECT br.brand_id, br.brand_name, br.img, br.status,
-                   COUNT(p.product_id) AS product_count
+                   COUNT(CASE WHEN ca.category_id IS NOT NULL THEN p.product_id END) AS product_count
             FROM brands br
-            LEFT JOIN batch ba ON br.brand_id = ba.brand_id
-            LEFT JOIN categories ca ON ba.category_id = ca.category_id AND ca.status = 'ACTIVE'
-            LEFT JOIN products p ON ba.batch_id = p.batch_id AND p.status = 'ACTIVE' AND ca.category_id IS NOT NULL
+            LEFT JOIN products p ON br.brand_id = p.brand_id AND p.status = 'ACTIVE'
+            LEFT JOIN categories ca ON p.category_id = ca.category_id AND ca.status = 'ACTIVE'
             WHERE br.status = 'ACTIVE'
             GROUP BY br.brand_id, br.brand_name, br.img, br.status
             ORDER BY br.brand_id DESC
@@ -107,8 +105,7 @@ public class BrandDAO extends DBContext {
             SELECT br.brand_id, br.brand_name, br.img, br.status,
                    COUNT(p.product_id) AS product_count
             FROM brands br
-            LEFT JOIN batch ba ON br.brand_id = ba.brand_id
-            LEFT JOIN products p ON ba.batch_id = p.batch_id
+            LEFT JOIN products p ON br.brand_id = p.brand_id
             WHERE br.brand_id = ?
             GROUP BY br.brand_id, br.brand_name, br.img, br.status
         """;
@@ -220,7 +217,7 @@ public class BrandDAO extends DBContext {
     public boolean hasBatches(int brandId) {
         String sql = """
             SELECT COUNT(*) AS total
-            FROM batch
+            FROM products
             WHERE brand_id = ?
         """;
 

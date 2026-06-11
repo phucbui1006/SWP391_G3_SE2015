@@ -15,16 +15,23 @@ public class CartDAO extends DBContext {
     public List<CartItem> getCartItemsByCustomerId(int customerId) {
         List<CartItem> cartItems = new ArrayList<>();
         String sql = "SELECT ci.cart_item_id, ci.cart_id, ci.product_id, ci.quantity, "
-                + "p.price, p.quantity AS stock_quantity, p.batch_id, p.description, "
-                + "p.image_url, p.warranty_months, p.product_name, p.status, "
+                + "p.price, COALESCE(stock.quantity, 0) AS stock_quantity, "
+                + "COALESCE(stock.batch_id, 0) AS batch_id, p.description, "
+                + "p.image_url, COALESCE(stock.warranty_months, 0) AS warranty_months, "
+                + "p.product_name, p.status, p.brand_id, p.category_id, "
                 + "br.brand_name, br.status AS brand_status, "
                 + "ca.category_name, ca.status AS category_status "
                 + "FROM cart c "
                 + "INNER JOIN cart_items ci ON c.cart_id = ci.cart_id "
                 + "INNER JOIN products p ON ci.product_id = p.product_id "
-                + "INNER JOIN batch ba ON p.batch_id = ba.batch_id "
-                + "INNER JOIN brands br ON ba.brand_id = br.brand_id "
-                + "INNER JOIN categories ca ON ba.category_id = ca.category_id "
+                + "LEFT JOIN ( "
+                + "    SELECT product_id, SUM(quantity) AS quantity, "
+                + "           MIN(batch_id) AS batch_id, MAX(warranty_months) AS warranty_months "
+                + "    FROM batch_items "
+                + "    GROUP BY product_id "
+                + ") stock ON stock.product_id = p.product_id "
+                + "INNER JOIN brands br ON p.brand_id = br.brand_id "
+                + "INNER JOIN categories ca ON p.category_id = ca.category_id "
                 + "WHERE c.customer_id = ? "
                 + "ORDER BY ci.cart_item_id";
 
@@ -199,6 +206,8 @@ public class CartDAO extends DBContext {
         product.setBrandName(rs.getString("brand_name"));
         product.setCategoryName(rs.getString("category_name"));
         product.setStatus(rs.getString("status"));
+        product.setBrandId(rs.getInt("brand_id"));
+        product.setCategoryId(rs.getInt("category_id"));
         product.setBrandStatus(rs.getString("brand_status"));
         product.setCategoryStatus(rs.getString("category_status"));
 

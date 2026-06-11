@@ -385,6 +385,8 @@ public class UserDAO {
         String roleName = rs.getString("role_name");
         if ("CUSTOMER".equalsIgnoreCase(accountType)) {
             roleName = "CUSTOMER";
+        } else {
+            roleName = normalizeStaffRoleName(getNullableInt(rs, "role_id"), roleName);
         }
 
         u.setUserId(rs.getInt("user_id"));
@@ -399,6 +401,19 @@ public class UserDAO {
         u.setRoleName(roleName);
 
         return u;
+    }
+
+    private String normalizeStaffRoleName(int roleId, String roleName) {
+        switch (roleId) {
+            case 1:
+                return "ADMIN";
+            case 2:
+                return "EMPLOYEE";
+            case 3:
+                return "SHIPMENT";
+            default:
+                return roleName;
+        }
     }
 
     private int getNullableInt(ResultSet rs, String columnName) throws Exception {

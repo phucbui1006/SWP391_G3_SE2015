@@ -50,12 +50,18 @@
         fullName = account.getFullName();
 
          if ("CUSTOMER".equals(roleName)) {
-            placeholder = "Tìm kiếm linh kiện...";
-            searchAction = ctx + "/home";
+            if ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) {
+                placeholder = "Tìm kiếm mã đơn hàng...";
+                searchAction = ctx + "/order-history";
+            } else {
+                placeholder = "Tìm kiếm linh kiện...";
+                searchAction = ctx + "/home";
+            }
         } else if ("EMPLOYEE".equals(roleName)) {
             placeholder = "Tìm kiếm yêu cầu bảo hành...";
         } else if ("SHIPMENT".equals(roleName)) {
             placeholder = "Tìm kiếm mã đơn hàng...";
+            searchAction = ctx + "/order-history";
         }
     } else {
         roleName = "CUSTOMER";
@@ -99,16 +105,16 @@
         </div>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">📋 Lịch sử đơn hàng</a>
+        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📋 Lịch sử đơn hàng</a>
         <span class="menu-divider"></span>
 
         <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>">🛡 Tra cứu bảo hành</a>
         <% } else if ("ADMIN".equals(roleName)) { %>
 
-        <a href="<%= ctx %>/Dashboard" class="menu-item active">🛡 Dashboard</a>
+        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">📦 Quản lý đơn hàng</a>
+        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📦 Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
         <a href="<%= ctx %>/AccountManagement" class="menu-item">👥 Tài khoản người dùng</a>
@@ -136,20 +142,20 @@
         <a href="#" class="menu-item">📊 Thống kê doanh thu</a>
         <% } else if ("EMPLOYEE".equals(roleName)) { %>
 
-        <a href="<%= ctx %>/Dashboard" class="menu-item active">🏠 Dashboard</a>
+        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🏠 Dashboard</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🛡 Dịch vụ bảo hành</a>
 
         <% } else if ("SHIPMENT".equals(roleName)) { %>
 
-        <a href="<%= ctx %>/Dashboard" class="menu-item active">🏠 Dashboard</a>
+        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🏠 Dashboard</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">📦 Đơn hàng</a>
+        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📦 Đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">🚚 Lịch sử giao hàng</a>
+        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">🚚 Lịch sử giao hàng</a>
         <% } %>
 
 

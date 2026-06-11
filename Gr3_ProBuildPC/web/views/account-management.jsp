@@ -167,14 +167,14 @@
                     <div class="search-box-wrapper">
                         <label class="filter-label" for="newStaffEmail">Email</label>
                         <div class="search-input-group">
-                            <input id="newStaffEmail" type="email" name="email" placeholder="staff@example.com" required>
+                            <input id="newStaffEmail" type="email" name="email" placeholder="staff@example.com" autocomplete="none" required>
                         </div>
                     </div>
 
                     <div class="search-box-wrapper">
                         <label class="filter-label" for="newStaffPassword">Mật khẩu</label>
                         <div class="search-input-group">
-                            <input id="newStaffPassword" type="password" name="password" placeholder="Mật khẩu" required>
+                            <input id="newStaffPassword" type="password" name="password" placeholder="Mật khẩu" autocomplete="new-password" required>
                         </div>
                     </div>
 

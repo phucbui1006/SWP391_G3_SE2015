@@ -234,7 +234,7 @@ CREATE TABLE ORDERS (
     CONSTRAINT FK_ORDERS_STATUS
         FOREIGN KEY (status_id)
         REFERENCES ORDERS_STATUS(status_id)
-);
+) AUTO_INCREMENT = 10000;
 
 -- =========================
 -- ORDER_DETAILS

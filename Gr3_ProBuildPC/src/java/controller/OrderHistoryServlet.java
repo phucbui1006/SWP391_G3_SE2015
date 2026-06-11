@@ -38,20 +38,27 @@ public class OrderHistoryServlet extends HttpServlet {
         Integer selectedStatusId = parsePositiveInteger(request.getParameter("statusId"));
         int page = parsePositiveInt(request.getParameter("page"), 1);
         Integer customerUserId = account.isCustomer() ? account.getUserId() : null;
+        boolean deliveryHistoryMode = isShipment(account) && "1".equals(normalizeText(request.getParameter("deliveryHistory")));
+        boolean shipmentQueueMode = isShipment(account) && !deliveryHistoryMode;
+        if (deliveryHistoryMode) {
+            selectedStatusId = null;
+        }
 
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
-        int totalOrders = orderHistoryDAO.countOrders(customerUserId, keyword, selectedStatusId);
+        int totalOrders = orderHistoryDAO.countOrders(customerUserId, keyword, selectedStatusId, deliveryHistoryMode, shipmentQueueMode);
         int totalPages = Math.max(1, (int) Math.ceil(totalOrders / (double) PAGE_SIZE));
         if (page > totalPages) {
             page = totalPages;
         }
 
-        List<OrderHistoryItem> orders = orderHistoryDAO.getOrders(customerUserId, keyword, selectedStatusId, page, PAGE_SIZE);
+        List<OrderHistoryItem> orders = orderHistoryDAO.getOrders(customerUserId, keyword, selectedStatusId, page, PAGE_SIZE, deliveryHistoryMode, shipmentQueueMode);
         OrderHistoryItem selectedOrder = resolveSelectedOrder(
                 orderHistoryDAO,
                 orders,
                 parsePositiveInteger(request.getParameter("selectedOrderId")),
-                customerUserId
+                customerUserId,
+                deliveryHistoryMode,
+                shipmentQueueMode
         );
 
         List<OrderStatus> statusOptions = orderHistoryDAO.getOrderStatuses();
@@ -71,6 +78,7 @@ public class OrderHistoryServlet extends HttpServlet {
         request.setAttribute("canManageShipment", canManageShipment(account));
         request.setAttribute("isCustomerView", account.isCustomer());
         request.setAttribute("shipmentStaffName", account.getFullName());
+        request.setAttribute("deliveryHistoryMode", deliveryHistoryMode);
 
         request.getRequestDispatcher(VIEW_PATH).forward(request, response);
     }
@@ -165,7 +173,9 @@ public class OrderHistoryServlet extends HttpServlet {
             OrderHistoryDAO orderHistoryDAO,
             List<OrderHistoryItem> orders,
             Integer selectedOrderId,
-            Integer customerUserId) {
+            Integer customerUserId,
+            boolean completedOnly,
+            boolean incompleteOnly) {
         if (selectedOrderId != null) {
             for (OrderHistoryItem order : orders) {
                 if (order.getOrderId() == selectedOrderId) {
@@ -173,7 +183,7 @@ public class OrderHistoryServlet extends HttpServlet {
                 }
             }
 
-            OrderHistoryItem order = orderHistoryDAO.getOrderById(selectedOrderId, customerUserId);
+            OrderHistoryItem order = orderHistoryDAO.getOrderById(selectedOrderId, customerUserId, completedOnly, incompleteOnly);
             if (order != null) {
                 return order;
             }
@@ -237,6 +247,7 @@ public class OrderHistoryServlet extends HttpServlet {
         appendQueryParam(query, "keyword", normalizeText(request.getParameter("keyword")));
         appendQueryParam(query, "statusId", normalizeText(request.getParameter("filterStatusId")));
         appendQueryParam(query, "page", normalizeText(request.getParameter("page")));
+        appendQueryParam(query, "deliveryHistory", normalizeText(request.getParameter("deliveryHistory")));
 
         if (selectedOrderId != null) {
             appendQueryParam(query, "selectedOrderId", String.valueOf(selectedOrderId));

@@ -33,6 +33,7 @@
     String currentPath = forwardServletPath instanceof String
             ? (String) forwardServletPath
             : request.getServletPath();
+    boolean deliveryHistoryMode = "1".equals(request.getParameter("deliveryHistory"));
 
     if (currentPath == null) {
         currentPath = "";
@@ -152,10 +153,10 @@
         <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🏠 Dashboard</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📦 Đơn hàng</a>
+        <a href="<%= ctx %>/order-history" class="menu-item <%= ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) && !deliveryHistoryMode ? "active" : "" %>">📦 Đơn hàng của tôi</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">🚚 Lịch sử giao hàng</a>
+        <a href="<%= ctx %>/order-history?deliveryHistory=1" class="menu-item <%= ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) && deliveryHistoryMode ? "active" : "" %>">🚚 Lịch sử giao hàng</a>
         <% } %>
 
 
@@ -171,6 +172,9 @@
         </div>
         <% if (!"ADMIN".equals(roleName)) { %>
         <form class="search-box" action="<%= searchAction %>" method="get">
+            <% if ("SHIPMENT".equals(roleName) && deliveryHistoryMode) { %>
+            <input type="hidden" name="deliveryHistory" value="1">
+            <% } %>
             <input class="search-input" type="text" name="keyword" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
             <button class="search-submit" type="submit">Tìm kiếm</button>
         </form>

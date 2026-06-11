@@ -88,22 +88,28 @@
         return builder.toString();
     }
 
-    private String buildOrderLink(String ctx, String keyword, String statusId, int page, int selectedOrderId) {
+    private String buildOrderLink(String ctx, String keyword, String statusId, int page, int selectedOrderId, boolean deliveryHistoryMode) {
         String query = "";
         query = appendParam(query, "keyword", keyword);
         query = appendParam(query, "statusId", statusId);
         query = appendParam(query, "page", String.valueOf(page));
         query = appendParam(query, "selectedOrderId", String.valueOf(selectedOrderId));
+        if (deliveryHistoryMode) {
+            query = appendParam(query, "deliveryHistory", "1");
+        }
         return ctx + "/order-history" + (query.isEmpty() ? "" : "?" + query);
     }
 
-    private String buildPageLink(String ctx, String keyword, String statusId, int page, Integer selectedOrderId) {
+    private String buildPageLink(String ctx, String keyword, String statusId, int page, Integer selectedOrderId, boolean deliveryHistoryMode) {
         String query = "";
         query = appendParam(query, "keyword", keyword);
         query = appendParam(query, "statusId", statusId);
         query = appendParam(query, "page", String.valueOf(page));
         if (selectedOrderId != null) {
             query = appendParam(query, "selectedOrderId", String.valueOf(selectedOrderId));
+        }
+        if (deliveryHistoryMode) {
+            query = appendParam(query, "deliveryHistory", "1");
         }
         return ctx + "/order-history" + (query.isEmpty() ? "" : "?" + query);
     }
@@ -141,6 +147,15 @@
         }
 
         String status = defaultText(order.getDisplayStatus(), "").toLowerCase(Locale.ROOT);
+        return isLockedShipmentStatus(status);
+    }
+
+    private boolean isLockedShipmentStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+
+        status = status.toLowerCase(Locale.ROOT);
         return status.contains("hủy")
                 || status.contains("huy")
                 || status.contains("đã giao")
@@ -159,6 +174,7 @@
     Boolean canManageShipmentValue = (Boolean) request.getAttribute("canManageShipment");
     Boolean isCustomerViewValue = (Boolean) request.getAttribute("isCustomerView");
     String shipmentStaffName = (String) request.getAttribute("shipmentStaffName");
+    Boolean deliveryHistoryModeValue = (Boolean) request.getAttribute("deliveryHistoryMode");
 
     if (orders == null) {
         orders = Collections.emptyList();
@@ -172,6 +188,7 @@
     int totalOrders = totalOrdersValue == null ? 0 : totalOrdersValue;
     boolean canManageShipment = canManageShipmentValue != null && canManageShipmentValue;
     boolean isCustomerView = isCustomerViewValue == null || isCustomerViewValue;
+    boolean deliveryHistoryMode = deliveryHistoryModeValue != null && deliveryHistoryModeValue;
     Integer selectedOrderId = selectedOrder == null ? null : selectedOrder.getOrderId();
     List<OrderHistoryDetail> selectedDetails = selectedOrder == null
             ? Collections.emptyList()
@@ -193,7 +210,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><%= isCustomerView ? "Lịch sử đơn hàng" : "Quản lý giao hàng" %></title>
+        <title><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý giao hàng") %></title>
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
     </head>
     <body class="order-history-body">
@@ -203,24 +220,32 @@
             <nav class="order-history-breadcrumb" aria-label="Breadcrumb">
                 <a href="<%= isCustomerView ? ctx + "/home" : ctx + "/Dashboard" %>">Trang chủ</a>
                 <span>/</span>
-                <span><%= isCustomerView ? "Lịch sử đơn hàng" : "Quản lý giao hàng" %></span>
+                <span><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý giao hàng") %></span>
             </nav>
 
             <section class="order-history-heading">
                 <div>
-                    <h1><%= isCustomerView ? "Lịch sử đơn hàng" : "Quản lý giao hàng" %></h1>
-                    <p><%= isCustomerView ? "Theo dõi và quản lý các đơn hàng của bạn" : "Theo dõi đơn hàng và trạng thái vận chuyển" %></p>
+                    <h1><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý giao hàng") %></h1>
+                    <p><%= isCustomerView ? "Theo dõi và quản lý các đơn hàng của bạn" : (deliveryHistoryMode ? "Các đơn hàng đã hoàn thành giao hàng" : "Theo dõi đơn hàng và trạng thái vận chuyển") %></p>
                 </div>
                 <form class="order-history-filter" action="<%= ctx %>/order-history" method="get">
+                    <% if (deliveryHistoryMode) { %>
+                    <input type="hidden" name="deliveryHistory" value="1">
+                    <% } %>
                     <input type="search" name="keyword" value="<%= h(keyword) %>" placeholder="Tìm mã đơn hàng">
+                    <% if (!deliveryHistoryMode) { %>
                     <select name="statusId">
                         <option value="">Tất cả trạng thái</option>
                         <% for (OrderStatus status : statusOptions) { %>
+                        <% if (canManageShipment && isLockedShipmentStatus(status.getStatusName())) {
+                                continue;
+                            } %>
                         <option value="<%= status.getStatusId() %>" <%= selectedStatusId != null && selectedStatusId == status.getStatusId() ? "selected" : "" %>>
                             <%= h(status.getStatusName()) %>
                         </option>
                         <% } %>
                     </select>
+                    <% } %>
                     <button type="submit">Tìm</button>
                 </form>
             </section>
@@ -235,7 +260,7 @@
             <section class="order-history-layout">
                 <aside class="order-list-panel">
                     <div class="order-panel-title">
-                        <h2><%= isCustomerView ? "Danh sách đơn hàng" : "Tất cả đơn hàng" %></h2>
+                        <h2><%= isCustomerView ? "Danh sách đơn hàng" : (deliveryHistoryMode ? "Đơn đã hoàn thành" : "Đơn cần hoàn thành") %></h2>
                         <span><%= totalOrders %> đơn</span>
                     </div>
 
@@ -253,7 +278,7 @@
                             boolean active = selectedOrderId != null && selectedOrderId == order.getOrderId();
                         %>
                         <a class="order-list-card <%= active ? "active" : "" %>"
-                           href="<%= buildOrderLink(ctx, keyword, selectedStatusIdValue, currentPage, order.getOrderId()) %>">
+                           href="<%= buildOrderLink(ctx, keyword, selectedStatusIdValue, currentPage, order.getOrderId(), deliveryHistoryMode) %>">
                             <span class="order-card-icon" aria-hidden="true">▧</span>
                             <span class="order-card-main">
                                 <strong>PB<%= order.getOrderId() %></strong>
@@ -272,14 +297,14 @@
                     <% if (totalPages > 1) { %>
                     <div class="order-history-pagination">
                         <a class="<%= currentPage <= 1 ? "disabled" : "" %>"
-                           href="<%= currentPage <= 1 ? "#" : buildPageLink(ctx, keyword, selectedStatusIdValue, currentPage - 1, selectedOrderId) %>"
+                           href="<%= currentPage <= 1 ? "#" : buildPageLink(ctx, keyword, selectedStatusIdValue, currentPage - 1, selectedOrderId, deliveryHistoryMode) %>"
                            aria-label="Trang trước">‹</a>
                         <% for (int pageNumber = 1; pageNumber <= totalPages; pageNumber++) { %>
                         <a class="<%= pageNumber == currentPage ? "active" : "" %>"
-                           href="<%= buildPageLink(ctx, keyword, selectedStatusIdValue, pageNumber, selectedOrderId) %>"><%= pageNumber %></a>
+                           href="<%= buildPageLink(ctx, keyword, selectedStatusIdValue, pageNumber, selectedOrderId, deliveryHistoryMode) %>"><%= pageNumber %></a>
                         <% } %>
                         <a class="<%= currentPage >= totalPages ? "disabled" : "" %>"
-                           href="<%= currentPage >= totalPages ? "#" : buildPageLink(ctx, keyword, selectedStatusIdValue, currentPage + 1, selectedOrderId) %>"
+                           href="<%= currentPage >= totalPages ? "#" : buildPageLink(ctx, keyword, selectedStatusIdValue, currentPage + 1, selectedOrderId, deliveryHistoryMode) %>"
                            aria-label="Trang sau">›</a>
                     </div>
                     <% } %>

@@ -2,12 +2,40 @@ package dal;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Product;
 
 public class ProductDAO extends DBContext {
+
+    private static final String PRODUCT_SELECT = """
+            SELECT p.product_id,
+                   p.product_name,
+                   p.price,
+                   COALESCE(stock.quantity, 0) AS quantity,
+                   COALESCE(stock.batch_id, 0) AS batch_id,
+                   p.description,
+                   p.image_url,
+                   COALESCE(stock.warranty_months, 0) AS warranty_months,
+                   p.status,
+                   p.brand_id,
+                   p.category_id,
+                   br.brand_name,
+                   br.status AS brand_status,
+                   c.category_name,
+                   c.status AS category_status
+            FROM products p
+            LEFT JOIN (
+                SELECT product_id,
+                       SUM(quantity) AS quantity,
+                       MIN(batch_id) AS batch_id,
+                       MAX(warranty_months) AS warranty_months
+                FROM batch_items
+                GROUP BY product_id
+            ) stock ON stock.product_id = p.product_id
+            JOIN brands br ON p.brand_id = br.brand_id
+            JOIN categories c ON p.category_id = c.category_id
+            """;
 
     private Product mapProduct(ResultSet rs) throws Exception {
         Product p = new Product();
@@ -21,6 +49,12 @@ public class ProductDAO extends DBContext {
         p.setWarrantyMonths(rs.getInt("warranty_months"));
         p.setProductName(rs.getString("product_name"));
         p.setStatus(rs.getString("status"));
+        p.setBrandId(rs.getInt("brand_id"));
+        p.setCategoryId(rs.getInt("category_id"));
+        p.setBrandName(rs.getString("brand_name"));
+        p.setBrandStatus(rs.getString("brand_status"));
+        p.setCategoryName(rs.getString("category_name"));
+        p.setCategoryStatus(rs.getString("category_status"));
 
         return p;
     }
@@ -41,37 +75,16 @@ public class ProductDAO extends DBContext {
 
     public List<Product> getAllProducts(String sort) {
         List<Product> list = new ArrayList<>();
-
-        String orderBy;
-
-        if ("price_asc".equals(sort)) {
-            orderBy = " ORDER BY p.price ASC ";
-        } else if ("price_desc".equals(sort)) {
-            orderBy = " ORDER BY p.price DESC ";
-        } else {
-            orderBy = " ORDER BY p.product_id DESC ";
-        }
-
-        String sql
-                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
-                + "p.description, p.image_url, p.warranty_months, p.status, "
-                + "br.brand_name, c.category_name "
-                + "FROM products p "
-                + "JOIN batch b ON p.batch_id = b.batch_id "
-                + "JOIN brands br ON b.brand_id = br.brand_id "
-                + "JOIN categories c ON b.category_id = c.category_id "
+        String sql = PRODUCT_SELECT
                 + "WHERE " + getActiveProductCondition()
-                + orderBy;
+                + getOrderBy(sort);
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                Product p = mapProduct(rs);
-                p.setBrandName(rs.getString("brand_name"));
-                p.setCategoryName(rs.getString("category_name"));
-                list.add(p);
+                list.add(mapProduct(rs));
             }
 
         } catch (Exception e) {
@@ -92,14 +105,7 @@ public class ProductDAO extends DBContext {
             return getAllProducts(sort);
         }
 
-        String sql
-                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
-                + "p.description, p.image_url, p.warranty_months, p.status, "
-                + "br.brand_name, c.category_name "
-                + "FROM products p "
-                + "JOIN batch b ON p.batch_id = b.batch_id "
-                + "JOIN brands br ON b.brand_id = br.brand_id "
-                + "JOIN categories c ON b.category_id = c.category_id "
+        String sql = PRODUCT_SELECT
                 + "WHERE " + getActiveProductCondition()
                 + "AND (p.product_name LIKE ? "
                 + "OR br.brand_name LIKE ? "
@@ -117,10 +123,7 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                Product p = mapProduct(rs);
-                p.setBrandName(rs.getString("brand_name"));
-                p.setCategoryName(rs.getString("category_name"));
-                list.add(p);
+                list.add(mapProduct(rs));
             }
 
         } catch (Exception e) {
@@ -131,20 +134,9 @@ public class ProductDAO extends DBContext {
     }
 
     public Product getProductById(int productId) {
-        String sql = """
-            SELECT p.product_id, p.price, p.quantity, p.batch_id,
-                   p.description, p.image_url, p.warranty_months, p.product_name, p.status,
-                   br.brand_name, br.status AS brand_status,
-                   c.category_name, c.status AS category_status
-            FROM products p
-            JOIN batch b ON p.batch_id = b.batch_id
-            JOIN brands br ON b.brand_id = br.brand_id
-            JOIN categories c ON b.category_id = c.category_id
-            WHERE p.product_id = ?
-              AND p.status = 'ACTIVE'
-              AND br.status = 'ACTIVE'
-              AND c.status = 'ACTIVE'
-        """;
+        String sql = PRODUCT_SELECT
+                + "WHERE p.product_id = ? "
+                + "AND " + getActiveProductCondition();
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -153,13 +145,7 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                Product p = mapProduct(rs);
-                p.setBrandName(rs.getString("brand_name"));
-                p.setBrandStatus(rs.getString("brand_status"));
-                p.setCategoryName(rs.getString("category_name"));
-                p.setCategoryStatus(rs.getString("category_status"));
-
-                return p;
+                return mapProduct(rs);
             }
 
         } catch (Exception e) {
@@ -175,26 +161,9 @@ public class ProductDAO extends DBContext {
 
     public List<Product> getProductsByCategoryId(int categoryId, String sort) {
         List<Product> list = new ArrayList<>();
-
-        String orderBy;
-
-        if ("price_asc".equals(sort)) {
-            orderBy = " ORDER BY p.price ASC ";
-        } else if ("price_desc".equals(sort)) {
-            orderBy = " ORDER BY p.price DESC ";
-        } else {
-            orderBy = " ORDER BY p.product_id DESC ";
-        }
-
-        String sql
-                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
-                + "p.description, p.image_url, p.warranty_months, p.status "
-                + "FROM products p "
-                + "JOIN batch b ON p.batch_id = b.batch_id "
-                + "JOIN brands br ON b.brand_id = br.brand_id "
-                + "JOIN categories c ON b.category_id = c.category_id "
-                + "WHERE b.category_id = ? AND " + getActiveProductCondition()
-                + orderBy;
+        String sql = PRODUCT_SELECT
+                + "WHERE p.category_id = ? AND " + getActiveProductCondition()
+                + getOrderBy(sort);
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -221,17 +190,11 @@ public class ProductDAO extends DBContext {
         List<Product> list = new ArrayList<>();
         List<Object> params = new ArrayList<>();
 
-        String sql
-                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
-                + "p.description, p.image_url, p.warranty_months, p.status "
-                + "FROM products p "
-                + "JOIN batch b ON p.batch_id = b.batch_id "
-                + "JOIN brands br ON b.brand_id = br.brand_id "
-                + "JOIN categories c ON b.category_id = c.category_id "
+        String sql = PRODUCT_SELECT
                 + "WHERE " + getActiveProductCondition();
 
         if (brandId != null) {
-            sql += "AND b.brand_id = ? ";
+            sql += "AND p.brand_id = ? ";
             params.add(brandId);
         }
 
@@ -311,30 +274,18 @@ public class ProductDAO extends DBContext {
     public List<Product> getProductsByKeyword(String keyword, String sort) {
         List<Product> list = new ArrayList<>();
 
-        String orderBy;
-
-        if ("price_asc".equals(sort)) {
-            orderBy = " ORDER BY p.price ASC ";
-        } else if ("price_desc".equals(sort)) {
-            orderBy = " ORDER BY p.price DESC ";
-        } else {
-            orderBy = " ORDER BY p.product_id DESC ";
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getAllProducts(sort);
         }
 
-        String sql
-                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
-                + "p.description, p.image_url, p.warranty_months, p.status "
-                + "FROM products p "
-                + "JOIN batch b ON p.batch_id = b.batch_id "
-                + "JOIN brands br ON b.brand_id = br.brand_id "
-                + "JOIN categories c ON b.category_id = c.category_id "
+        String sql = PRODUCT_SELECT
                 + "WHERE " + getActiveProductCondition()
                 + "AND LOWER(p.product_name) LIKE LOWER(?) "
-                + orderBy;
+                + getOrderBy(sort);
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, "%" + keyword + "%");
+            ps.setString(1, "%" + keyword.trim() + "%");
 
             ResultSet rs = ps.executeQuery();
 
@@ -343,6 +294,7 @@ public class ProductDAO extends DBContext {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return list;
@@ -351,31 +303,19 @@ public class ProductDAO extends DBContext {
     public List<Product> getProductsByCategoryAndKeyword(int categoryId, String keyword, String sort) {
         List<Product> list = new ArrayList<>();
 
-        String orderBy;
-
-        if ("price_asc".equals(sort)) {
-            orderBy = " ORDER BY p.price ASC ";
-        } else if ("price_desc".equals(sort)) {
-            orderBy = " ORDER BY p.price DESC ";
-        } else {
-            orderBy = " ORDER BY p.product_id DESC ";
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getProductsByCategoryId(categoryId, sort);
         }
 
-        String sql
-                = "SELECT p.product_id, p.product_name, p.price, p.quantity, p.batch_id, "
-                + "p.description, p.image_url, p.warranty_months, p.status "
-                + "FROM products p "
-                + "JOIN batch b ON p.batch_id = b.batch_id "
-                + "JOIN brands br ON b.brand_id = br.brand_id "
-                + "JOIN categories c ON b.category_id = c.category_id "
-                + "WHERE b.category_id = ? AND " + getActiveProductCondition()
+        String sql = PRODUCT_SELECT
+                + "WHERE p.category_id = ? AND " + getActiveProductCondition()
                 + "AND LOWER(p.product_name) LIKE LOWER(?) "
-                + orderBy;
+                + getOrderBy(sort);
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, categoryId);
-            ps.setString(2, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword.trim() + "%");
 
             ResultSet rs = ps.executeQuery();
 

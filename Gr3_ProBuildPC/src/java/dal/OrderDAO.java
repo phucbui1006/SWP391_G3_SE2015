@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import model.Address;
@@ -52,9 +53,10 @@ public class OrderDAO extends DBContext {
                                           product_id,
                                           quantity,
                                           unit_price,
+                                          warranty_months,
                                           subtotal
                                       )
-                                      VALUES (?, ?, ?, ?, ?)
+                                      VALUES (?, ?, ?, ?, ?, ?)
                                       """;
 
         try {
@@ -91,11 +93,17 @@ public class OrderDAO extends DBContext {
                         return false;
                     }
 
+                    if (!reserveStock(item.getProductId(), item.getQuantity())) {
+                        connection.rollback();
+                        return false;
+                    }
+
                     ps.setInt(1, orderId);
                     ps.setInt(2, item.getProductId());
                     ps.setInt(3, item.getQuantity());
                     ps.setBigDecimal(4, product.getPrice());
-                    ps.setBigDecimal(5, item.getLineTotal());
+                    ps.setInt(5, product.getWarrantyMonths());
+                    ps.setBigDecimal(6, item.getLineTotal());
                     ps.addBatch();
                 }
 
@@ -138,6 +146,70 @@ public class OrderDAO extends DBContext {
         }
 
         return total;
+    }
+
+    private boolean reserveStock(int productId, int requestedQuantity) throws SQLException {
+        if (requestedQuantity <= 0) {
+            return false;
+        }
+
+        String selectSql = """
+                           SELECT bi.batch_item_id, bi.quantity
+                           FROM batch_items bi
+                           INNER JOIN batch b ON bi.batch_id = b.batch_id
+                           WHERE bi.product_id = ?
+                             AND bi.quantity > 0
+                           ORDER BY b.date ASC, bi.batch_item_id ASC
+                           FOR UPDATE
+                           """;
+
+        List<BatchStock> availableBatches = new ArrayList<>();
+        int remainingQuantity = requestedQuantity;
+
+        try (PreparedStatement ps = connection.prepareStatement(selectSql)) {
+            ps.setInt(1, productId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next() && remainingQuantity > 0) {
+                    int availableQuantity = rs.getInt("quantity");
+                    availableBatches.add(new BatchStock(rs.getInt("batch_item_id"), availableQuantity));
+                    remainingQuantity -= availableQuantity;
+                }
+            }
+        }
+
+        if (remainingQuantity > 0) {
+            return false;
+        }
+
+        String updateSql = """
+                           UPDATE batch_items
+                           SET quantity = quantity - ?
+                           WHERE batch_item_id = ?
+                             AND quantity >= ?
+                           """;
+
+        int quantityToReserve = requestedQuantity;
+        try (PreparedStatement ps = connection.prepareStatement(updateSql)) {
+            for (BatchStock batchStock : availableBatches) {
+                int deductedQuantity = Math.min(quantityToReserve, batchStock.quantity);
+                if (deductedQuantity <= 0) {
+                    break;
+                }
+
+                ps.setInt(1, deductedQuantity);
+                ps.setInt(2, batchStock.batchItemId);
+                ps.setInt(3, deductedQuantity);
+
+                if (ps.executeUpdate() != 1) {
+                    return false;
+                }
+
+                quantityToReserve -= deductedQuantity;
+            }
+        }
+
+        return quantityToReserve == 0;
     }
 
     private void removeSelectedCartItems(int customerId, List<Integer> cartItemIds) throws SQLException {
@@ -202,5 +274,16 @@ public class OrderDAO extends DBContext {
 
     private String normalizeText(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private static class BatchStock {
+
+        private final int batchItemId;
+        private final int quantity;
+
+        private BatchStock(int batchItemId, int quantity) {
+            this.batchItemId = batchItemId;
+            this.quantity = quantity;
+        }
     }
 }

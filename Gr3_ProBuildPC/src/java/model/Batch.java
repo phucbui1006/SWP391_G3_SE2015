@@ -1,10 +1,13 @@
 package model;
 
+import java.sql.Date;
+
 public class Batch {
     private int batchId;
     private int categoryId;
     private int brandId;
     private String batchName;
+    private Date date;
 
     public Batch() {
     }
@@ -14,6 +17,12 @@ public class Batch {
         this.categoryId = categoryId;
         this.brandId = brandId;
         this.batchName = batchName;
+    }
+
+    public Batch(int batchId, String batchName, Date date) {
+        this.batchId = batchId;
+        this.batchName = batchName;
+        this.date = date;
     }
 
     public int getBatchId() {
@@ -46,5 +55,13 @@ public class Batch {
 
     public void setBatchName(String batchName) {
         this.batchName = batchName;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 }

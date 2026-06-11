@@ -8,6 +8,7 @@ public class OrderDetail {
     private int productId;
     private int quantity;
     private BigDecimal unitPrice;
+    private int warrantyMonths;
     private BigDecimal subtotal;
 
     public OrderDetail() {
@@ -20,6 +21,17 @@ public class OrderDetail {
         this.productId = productId;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
+        this.subtotal = subtotal;
+    }
+
+    public OrderDetail(int orderDetailId, int orderId, int productId, int quantity,
+                       BigDecimal unitPrice, int warrantyMonths, BigDecimal subtotal) {
+        this.orderDetailId = orderDetailId;
+        this.orderId = orderId;
+        this.productId = productId;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+        this.warrantyMonths = warrantyMonths;
         this.subtotal = subtotal;
     }
 
@@ -61,6 +73,14 @@ public class OrderDetail {
 
     public void setUnitPrice(BigDecimal unitPrice) {
         this.unitPrice = unitPrice;
+    }
+
+    public int getWarrantyMonths() {
+        return warrantyMonths;
+    }
+
+    public void setWarrantyMonths(int warrantyMonths) {
+        this.warrantyMonths = warrantyMonths;
     }
 
     public BigDecimal getSubtotal() {

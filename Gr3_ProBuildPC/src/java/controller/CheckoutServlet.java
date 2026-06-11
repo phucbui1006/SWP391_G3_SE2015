@@ -89,7 +89,7 @@ public class CheckoutServlet extends HttpServlet {
         }
 
         String paymentMethod = normalizePaymentMethod(request.getParameter("paymentMethod"));
-        String paymentStatus = "VNPAY".equals(paymentMethod) ? "PENDING" : "UNPAID";
+        String paymentStatus = "VNPAY".equals(paymentMethod) ? "Chờ thanh toán" : "Chưa thanh toán";
         String note = safeTrim(request.getParameter("note"));
 
         OrderDAO orderDAO = new OrderDAO();

@@ -18,7 +18,7 @@ public class AddressDAO {
     public List<Address> getAddressesByCustomerId(int customerId) {
         List<Address> addresses = new ArrayList<>();
         String sql = """
-                     SELECT address_id, customer_id, recipient_name, phoneNumber, Address_detail
+                     SELECT address_id, customer_id, recipient_name, phone_number, address_detail
                      FROM address
                      WHERE customer_id = ?
                      ORDER BY address_id DESC
@@ -45,7 +45,7 @@ public class AddressDAO {
 
     public Address getAddressByIdAndCustomerId(int addressId, int customerId) {
         String sql = """
-                     SELECT address_id, customer_id, recipient_name, phoneNumber, Address_detail
+                     SELECT address_id, customer_id, recipient_name, phone_number, address_detail
                      FROM address
                      WHERE address_id = ? AND customer_id = ?
                      """;
@@ -72,7 +72,7 @@ public class AddressDAO {
 
     public boolean addAddress(Address address) {
         String sql = """
-                     INSERT INTO address(customer_id, recipient_name, phoneNumber, Address_detail)
+                     INSERT INTO address(customer_id, recipient_name, phone_number, address_detail)
                      VALUES (?, ?, ?, ?)
                      """;
 
@@ -95,7 +95,7 @@ public class AddressDAO {
     public boolean updateAddress(Address address) {
         String sql = """
                      UPDATE address
-                     SET recipient_name = ?, phoneNumber = ?, Address_detail = ?
+                     SET recipient_name = ?, phone_number = ?, address_detail = ?
                      WHERE address_id = ? AND customer_id = ?
                      """;
 
@@ -140,8 +140,8 @@ public class AddressDAO {
         address.setAddressId(rs.getInt("address_id"));
         address.setCustomerId(rs.getInt("customer_id"));
         address.setRecipientName(rs.getString("recipient_name"));
-        address.setPhoneNumber(rs.getString("phoneNumber"));
-        address.setAddressDetail(rs.getString("Address_detail"));
+        address.setPhoneNumber(rs.getString("phone_number"));
+        address.setAddressDetail(rs.getString("address_detail"));
         return address;
     }
 

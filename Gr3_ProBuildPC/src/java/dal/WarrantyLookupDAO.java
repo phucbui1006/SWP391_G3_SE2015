@@ -22,18 +22,17 @@ public class WarrantyLookupDAO extends DBContext {
                    od.quantity,
                    p.product_name,
                    p.image_url,
-                   COALESCE(p.warranty_months, 0) AS warranty_months,
+                   COALESCE(od.warranty_months, 0) AS warranty_months,
                    br.brand_name,
                    ca.category_name,
-                   DATE_ADD(o.order_date, INTERVAL COALESCE(p.warranty_months, 0) MONTH) AS warranty_end_date,
-                   DATEDIFF(DATE_ADD(o.order_date, INTERVAL COALESCE(p.warranty_months, 0) MONTH), CURDATE()) AS remaining_days
+                   DATE_ADD(o.order_date, INTERVAL COALESCE(od.warranty_months, 0) MONTH) AS warranty_end_date,
+                   DATEDIFF(DATE_ADD(o.order_date, INTERVAL COALESCE(od.warranty_months, 0) MONTH), CURDATE()) AS remaining_days
             FROM orders o
             INNER JOIN orders_status os ON o.status_id = os.status_id
             INNER JOIN order_details od ON o.order_id = od.order_id
             INNER JOIN products p ON od.product_id = p.product_id
-            INNER JOIN batch b ON p.batch_id = b.batch_id
-            INNER JOIN brands br ON b.brand_id = br.brand_id
-            INNER JOIN categories ca ON b.category_id = ca.category_id
+            INNER JOIN brands br ON p.brand_id = br.brand_id
+            INNER JOIN categories ca ON p.category_id = ca.category_id
             WHERE o.order_id = ?
               AND o.customer_id = ?
             ORDER BY od.order_detail_id

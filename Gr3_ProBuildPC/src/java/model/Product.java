@@ -7,6 +7,8 @@ public class Product {
     private BigDecimal price;
     private int quantity;
     private int batchId;
+    private int brandId;
+    private int categoryId;
     private String description;
     private String imageUrl;
     private int warrantyMonths;
@@ -62,6 +64,22 @@ public class Product {
 
     public void setBatchId(int batchId) {
         this.batchId = batchId;
+    }
+
+    public int getBrandId() {
+        return brandId;
+    }
+
+    public void setBrandId(int brandId) {
+        this.brandId = brandId;
+    }
+
+    public int getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
     }
 
     public String getDescription() {

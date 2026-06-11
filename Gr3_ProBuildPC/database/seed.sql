@@ -241,6 +241,81 @@ VALUES
 'Đã thanh toán',
 'Thanh toán trực tuyến qua VNPAY');
 
+INSERT INTO orders
+(order_id, customer_id, status_id, order_date, total_amount, shipping_address, payment_method, payment_status, note)
+VALUES
+(3, 1, 5, '2023-02-18 09:15:00', 8500000,
+'Khu CNC Hòa Lạc, Thạch Thất, Hà Nội',
+'COD',
+'Đã thanh toán',
+'Đơn test năm 2023 - CPU và RAM'),
+
+(4, 2, 5, '2023-06-07 15:40:00', 8900000,
+'Đại học FPT Hà Nội, Khu CNC Hòa Lạc, Hà Nội',
+'VNPAY',
+'Đã thanh toán',
+'Đơn test năm 2023 - combo Intel'),
+
+(5, 1, 6, '2023-11-25 20:05:00', 9500000,
+'Khu CNC Hòa Lạc, Thạch Thất, Hà Nội',
+'COD',
+'Đã thanh toán',
+'Đơn test đã hủy năm 2023'),
+
+(6, 2, 5, '2024-01-12 10:30:00', 13300000,
+'Đại học FPT Hà Nội, Khu CNC Hòa Lạc, Hà Nội',
+'VNPAY',
+'Đã thanh toán',
+'Đơn test năm 2024 - CPU và RAM'),
+
+(7, 1, 5, '2024-04-30 13:25:00', 15300000,
+'Khu CNC Hòa Lạc, Thạch Thất, Hà Nội',
+'COD',
+'Đã thanh toán',
+'Đơn test năm 2024 - bộ máy AMD'),
+
+(8, 2, 4, '2024-09-14 17:50:00', 22400000,
+'Đại học FPT Hà Nội, Khu CNC Hòa Lạc, Hà Nội',
+'VNPAY',
+'Đã thanh toán',
+'Đơn test đang giao năm 2024'),
+
+(9, 1, 5, '2025-03-03 08:10:00', 19900000,
+'Khu CNC Hòa Lạc, Thạch Thất, Hà Nội',
+'COD',
+'Đã thanh toán',
+'Đơn test năm 2025 - combo Ryzen 9'),
+
+(10, 2, 2, '2025-07-21 19:35:00', 20800000,
+'Đại học FPT Hà Nội, Khu CNC Hòa Lạc, Hà Nội',
+'VNPAY',
+'Đã thanh toán',
+'Đơn test đã xác nhận năm 2025'),
+
+(11, 1, 5, '2025-12-05 11:45:00', 29600000,
+'Khu CNC Hòa Lạc, Thạch Thất, Hà Nội',
+'VNPAY',
+'Đã thanh toán',
+'Đơn test năm 2025 - bộ máy GPU'),
+
+(12, 2, 1, '2026-02-16 14:20:00', 38800000,
+'Đại học FPT Hà Nội, Khu CNC Hòa Lạc, Hà Nội',
+'VNPAY',
+'Chờ thanh toán',
+'Đơn test chờ xác nhận năm 2026'),
+
+(13, 1, 3, '2026-05-09 16:05:00', 19300000,
+'Khu CNC Hòa Lạc, Thạch Thất, Hà Nội',
+'COD',
+'Chưa thanh toán',
+'Đơn test đang chuẩn bị năm 2026'),
+
+(14, 2, 4, '2026-06-10 09:55:00', 14800000,
+'Đại học FPT Hà Nội, Khu CNC Hòa Lạc, Hà Nội',
+'COD',
+'Chưa thanh toán',
+'Đơn test đang giao năm 2026');
+
 INSERT INTO order_details
 (order_id, product_id, quantity, unit_price, subtotal)
 VALUES
@@ -251,6 +326,62 @@ VALUES
 -- Order 2
 (2, 3, 1, 4200000, 4200000),
 (2, 6, 1, 9500000, 9500000);
+
+INSERT INTO order_details
+(order_id, product_id, quantity, unit_price, subtotal)
+VALUES
+-- Order 3
+(3, 1, 1, 5500000, 5500000),
+(3, 5, 2, 1500000, 3000000),
+
+-- Order 4
+(4, 3, 1, 4200000, 4200000),
+(4, 12, 1, 3200000, 3200000),
+(4, 5, 1, 1500000, 1500000),
+
+-- Order 5
+(5, 6, 1, 9500000, 9500000),
+
+-- Order 6
+(6, 8, 1, 10500000, 10500000),
+(6, 14, 1, 2800000, 2800000),
+
+-- Order 7
+(7, 2, 1, 8500000, 8500000),
+(7, 4, 1, 3800000, 3800000),
+(7, 5, 2, 1500000, 3000000),
+
+-- Order 8
+(8, 16, 1, 16500000, 16500000),
+(8, 10, 1, 5900000, 5900000),
+
+-- Order 9
+(9, 7, 1, 11900000, 11900000),
+(9, 13, 1, 5200000, 5200000),
+(9, 14, 1, 2800000, 2800000),
+
+-- Order 10
+(10, 9, 1, 14900000, 14900000),
+(10, 15, 1, 5900000, 5900000),
+
+-- Order 11
+(11, 17, 1, 21900000, 21900000),
+(11, 11, 1, 4700000, 4700000),
+(11, 5, 2, 1500000, 3000000),
+
+-- Order 12
+(12, 18, 1, 32900000, 32900000),
+(12, 15, 1, 5900000, 5900000),
+
+-- Order 13
+(13, 8, 1, 10500000, 10500000),
+(13, 12, 1, 3200000, 3200000),
+(13, 14, 2, 2800000, 5600000),
+
+-- Order 14
+(14, 6, 1, 9500000, 9500000),
+(14, 4, 1, 3800000, 3800000),
+(14, 5, 1, 1500000, 1500000);
 
 INSERT INTO reviews
 (review_id, customer_id, product_id, rating, img, comment, date)

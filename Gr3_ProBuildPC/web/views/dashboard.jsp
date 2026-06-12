@@ -30,7 +30,7 @@
         <jsp:include page="/includes/header.jsp" />
 
         <div class="dashboard-content">
-            <div class="dashboard-card <%= "EMPLOYEE".equals(roleName) ? "employee-shell" : "" %>">
+            <div class="dashboard-card <%= "EMPLOYEE".equals(roleName) ? "employee-shell" : ("SHIPMENT".equals(roleName) ? "shipment-shell" : "") %>">
 
                 <% if ("ADMIN".equals(roleName)) { %>
 
@@ -182,23 +182,169 @@
 
                 <% } else if ("SHIPMENT".equals(roleName)) { %>
 
-                <h1>Transport Dashboard</h1>
-                <p>Xin chào <b><%= account.getFullName() %></b>. Bạn đang đăng nhập với quyền <b>SHIPMENT</b>.</p>
+                <div class="shipment-dashboard">
+                    <div class="shipment-summary-grid" aria-label="Thống kê đơn hàng vận chuyển">
+                        <div class="shipment-summary-card">
+                            <span class="shipment-summary-icon all">📋</span>
+                            <div class="shipment-summary-copy">
+                                <p class="shipment-summary-title">Tất cả đơn hàng của bạn</p>
+                                <div class="shipment-summary-value-row">
+                                    <span class="shipment-summary-number">24</span>
+                                    <span class="shipment-summary-unit">đơn</span>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="role-box">
-                    <div class="role-item">
-                        <h3>Đơn hàng giao</h3>
-                        <p>Xem danh sách đơn hàng cần vận chuyển.</p>
-                    </div>
-                    <div class="role-item">
-                        <h3>Lịch sử giao hàng</h3>
-                        <p>Theo dõi các đơn hàng đã giao.</p>
+                        <div class="shipment-summary-card">
+                            <span class="shipment-summary-icon pending">⏳</span>
+                            <div class="shipment-summary-copy">
+                                <p class="shipment-summary-title">Chờ xác nhận</p>
+                                <div class="shipment-summary-value-row">
+                                    <span class="shipment-summary-number">5</span>
+                                    <span class="shipment-summary-unit">đơn</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="shipment-summary-card">
+                            <span class="shipment-summary-icon confirmed">✓</span>
+                            <div class="shipment-summary-copy">
+                                <p class="shipment-summary-title">Đã xác nhận</p>
+                                <div class="shipment-summary-value-row">
+                                    <span class="shipment-summary-number">4</span>
+                                    <span class="shipment-summary-unit">đơn</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="shipment-summary-card">
+                            <span class="shipment-summary-icon preparing">📦</span>
+                            <div class="shipment-summary-copy">
+                                <p class="shipment-summary-title">Đang chuẩn bị hàng</p>
+                                <div class="shipment-summary-value-row">
+                                    <span class="shipment-summary-number">3</span>
+                                    <span class="shipment-summary-unit">đơn</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="shipment-summary-card">
+                            <span class="shipment-summary-icon shipping">🚚</span>
+                            <div class="shipment-summary-copy">
+                                <p class="shipment-summary-title">Đang giao hàng</p>
+                                <div class="shipment-summary-value-row">
+                                    <span class="shipment-summary-number">6</span>
+                                    <span class="shipment-summary-unit">đơn</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="shipment-summary-card">
+                            <span class="shipment-summary-icon delivered">✓</span>
+                            <div class="shipment-summary-copy">
+                                <p class="shipment-summary-title">Đã giao hàng</p>
+                                <div class="shipment-summary-value-row">
+                                    <span class="shipment-summary-number">5</span>
+                                    <span class="shipment-summary-unit">đơn</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="shipment-summary-card">
+                            <span class="shipment-summary-icon cancelled">!</span>
+                            <div class="shipment-summary-copy">
+                                <p class="shipment-summary-title">Đã hủy</p>
+                                <div class="shipment-summary-value-row">
+                                    <span class="shipment-summary-number">1</span>
+                                    <span class="shipment-summary-unit">đơn</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="role-item">
-                        <h3>Cập nhật trạng thái</h3>
-                        <p>Cập nhật trạng thái giao hàng.</p>
-                    </div>
+                    <section class="shipment-order-panel">
+                        <div class="shipment-order-header">
+                            <h2 class="shipment-order-title">Danh sách đơn hàng</h2>
+
+                            <div class="shipment-filter-tabs" aria-label="Lọc đơn hàng theo trạng thái">
+                                <button class="shipment-filter-tab active" type="button" data-filter="all">Tất cả</button>
+                                <button class="shipment-filter-tab" type="button" data-filter="pending">Chờ xác nhận</button>
+                                <button class="shipment-filter-tab" type="button" data-filter="confirmed">Đã xác nhận</button>
+                                <button class="shipment-filter-tab" type="button" data-filter="preparing">Đang chuẩn bị hàng</button>
+                                <button class="shipment-filter-tab" type="button" data-filter="shipping">Đang giao hàng</button>
+                                <button class="shipment-filter-tab" type="button" data-filter="delivered">Đã giao hàng</button>
+                                <button class="shipment-filter-tab" type="button" data-filter="cancelled">Đã hủy</button>
+                            </div>
+                        </div>
+
+                        <table class="shipment-order-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn hàng</th>
+                                    <th>Khách hàng</th>
+                                    <th>Địa chỉ giao hàng</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr data-status="pending">
+                                    <td>#DH10090</td>
+                                    <td>Đỗ Hoàng K</td>
+                                    <td>18 Lý Thường Kiệt, Q.10, TP.HCM</td>
+                                    <td><span class="shipment-status pending">Chờ xác nhận</span></td>
+                                </tr>
+                                <tr data-status="confirmed">
+                                    <td>#DH10089</td>
+                                    <td>Vũ Thanh H</td>
+                                    <td>99 Nguyễn Huệ, Q.1, TP.HCM</td>
+                                    <td><span class="shipment-status confirmed">Đã xác nhận</span></td>
+                                </tr>
+                                <tr data-status="preparing">
+                                    <td>#DH10088</td>
+                                    <td>Mai Quốc P</td>
+                                    <td>27 Âu Cơ, Q.Tân Bình, TP.HCM</td>
+                                    <td><span class="shipment-status preparing">Đang chuẩn bị hàng</span></td>
+                                </tr>
+                                <tr data-status="shipping">
+                                    <td>#DH10086</td>
+                                    <td>Nguyễn Văn A</td>
+                                    <td>123 Nguyễn Trãi, Q.1, TP.HCM</td>
+                                    <td><span class="shipment-status shipping">Đang giao hàng</span></td>
+                                </tr>
+                                <tr data-status="shipping">
+                                    <td>#DH10085</td>
+                                    <td>Trần Văn B</td>
+                                    <td>456 Lê Văn Sỹ, Q.3, TP.HCM</td>
+                                    <td><span class="shipment-status shipping">Đang giao hàng</span></td>
+                                </tr>
+                                <tr data-status="shipping">
+                                    <td>#DH10084</td>
+                                    <td>Lê Minh C</td>
+                                    <td>789 Cách Mạng Tháng 8, Q.10, TP.HCM</td>
+                                    <td><span class="shipment-status shipping">Đang giao hàng</span></td>
+                                </tr>
+                                <tr data-status="shipping">
+                                    <td>#DH10083</td>
+                                    <td>Phạm Hữu D</td>
+                                    <td>321 Điện Biên Phủ, Q.Bình Thạnh, TP.HCM</td>
+                                    <td><span class="shipment-status shipping">Đang giao hàng</span></td>
+                                </tr>
+                                <tr data-status="delivered">
+                                    <td>#DH10082</td>
+                                    <td>Ngô Minh T</td>
+                                    <td>72 Phan Xích Long, Q.Phú Nhuận, TP.HCM</td>
+                                    <td><span class="shipment-status delivered">Đã giao hàng</span></td>
+                                </tr>
+                                <tr data-status="cancelled">
+                                    <td>#DH10081</td>
+                                    <td>Huỳnh Gia N</td>
+                                    <td>11 Võ Văn Ngân, TP.Thủ Đức, TP.HCM</td>
+                                    <td><span class="shipment-status cancelled">Đã hủy</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="shipment-empty-message" hidden>Không có đơn hàng nào ở trạng thái này.</p>
+                    </section>
                 </div>
 
                 <% } else { %>
@@ -211,6 +357,42 @@
             </div>
         </div>
         <jsp:include page="/includes/footer.jsp" />
+
+        <script>
+            (function () {
+                const filterTabs = document.querySelectorAll(".shipment-filter-tab");
+                const orderRows = document.querySelectorAll(".shipment-order-table tbody tr[data-status]");
+                const emptyMessage = document.querySelector(".shipment-empty-message");
+
+                if (!filterTabs.length || !orderRows.length) {
+                    return;
+                }
+
+                filterTabs.forEach(function (tab) {
+                    tab.addEventListener("click", function () {
+                        const selectedStatus = tab.dataset.filter;
+                        let visibleCount = 0;
+
+                        filterTabs.forEach(function (item) {
+                            item.classList.toggle("active", item === tab);
+                        });
+
+                        orderRows.forEach(function (row) {
+                            const isVisible = selectedStatus === "all" || row.dataset.status === selectedStatus;
+                            row.hidden = !isVisible;
+
+                            if (isVisible) {
+                                visibleCount++;
+                            }
+                        });
+
+                        if (emptyMessage) {
+                            emptyMessage.hidden = visibleCount > 0;
+                        }
+                    });
+                });
+            })();
+        </script>
 
     </body>
 </html>

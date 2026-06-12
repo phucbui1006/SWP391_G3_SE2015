@@ -24,6 +24,10 @@ public class OrderHistoryDAO extends DBContext {
     }
 
     public int countOrders(Integer customerUserId, String trackingKeyword, Integer statusId, boolean completedOnly, boolean incompleteOnly) {
+        return countOrders(customerUserId, trackingKeyword, statusId, completedOnly, incompleteOnly, false);
+    }
+
+    public int countOrders(Integer customerUserId, String trackingKeyword, Integer statusId, boolean completedOnly, boolean incompleteOnly, boolean todayOnly) {
         StringBuilder sql = new StringBuilder("""
                      SELECT COUNT(*) AS total
                      FROM orders o
@@ -36,6 +40,7 @@ public class OrderHistoryDAO extends DBContext {
 
         List<Object> params = new ArrayList<>();
         appendFilters(sql, params, customerUserId, trackingKeyword, statusId, completedOnly, incompleteOnly);
+        appendTodayFilter(sql, todayOnly);
 
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
             setParameters(ps, params);
@@ -61,11 +66,16 @@ public class OrderHistoryDAO extends DBContext {
     }
 
     public List<OrderHistoryItem> getOrders(Integer customerUserId, String trackingKeyword, Integer statusId, int page, int pageSize, boolean completedOnly, boolean incompleteOnly) {
+        return getOrders(customerUserId, trackingKeyword, statusId, page, pageSize, completedOnly, incompleteOnly, false);
+    }
+
+    public List<OrderHistoryItem> getOrders(Integer customerUserId, String trackingKeyword, Integer statusId, int page, int pageSize, boolean completedOnly, boolean incompleteOnly, boolean todayOnly) {
         List<OrderHistoryItem> orders = new ArrayList<>();
         StringBuilder sql = new StringBuilder(baseOrderSelect());
 
         List<Object> params = new ArrayList<>();
         appendFilters(sql, params, customerUserId, trackingKeyword, statusId, completedOnly, incompleteOnly);
+        appendTodayFilter(sql, todayOnly);
         sql.append(" ORDER BY o.order_date DESC, o.order_id DESC LIMIT ? OFFSET ?");
         params.add(pageSize);
         params.add(Math.max(0, (page - 1) * pageSize));
@@ -328,14 +338,16 @@ public class OrderHistoryDAO extends DBContext {
                    AND NOT (
                        LOWER(os.status_name) = LOWER(?)
                        OR LOWER(os.status_name) = LOWER(?)
-                       OR LOWER(os.status_name) = LOWER(?)
-                       OR LOWER(os.status_name) = LOWER(?)
                    )
                    """);
         params.add("Đã giao hàng");
         params.add("Da giao hang");
-        params.add("Đã hủy");
-        params.add("Da huy");
+    }
+
+    private void appendTodayFilter(StringBuilder sql, boolean todayOnly) {
+        if (todayOnly) {
+            sql.append(" AND DATE(o.order_date) = CURDATE()");
+        }
     }
 
     private void attachDetails(List<OrderHistoryItem> orders) {

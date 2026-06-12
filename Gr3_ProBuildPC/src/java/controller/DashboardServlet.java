@@ -49,12 +49,13 @@ public class DashboardServlet extends HttpServlet {
 
     private void prepareShipmentDashboard(HttpServletRequest request) {
         Integer selectedStatusId = parsePositiveInteger(request.getParameter("statusId"));
+        boolean todayOnly = "1".equals(request.getParameter("today"));
         int page = parsePositiveInt(request.getParameter("page"), 1);
 
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
         List<OrderStatus> statusOptions = orderHistoryDAO.getOrderStatuses();
 
-        int totalOrders = orderHistoryDAO.countOrders(null, null, selectedStatusId, false, false);
+        int totalOrders = orderHistoryDAO.countOrders(null, null, selectedStatusId, false, false, todayOnly);
         int totalPages = Math.max(1, (int) Math.ceil(totalOrders / (double) SHIPMENT_PAGE_SIZE));
         if (page > totalPages) {
             page = totalPages;
@@ -67,11 +68,13 @@ public class DashboardServlet extends HttpServlet {
                 page,
                 SHIPMENT_PAGE_SIZE,
                 false,
-                false
+                false,
+                todayOnly
         );
 
         Map<Integer, Integer> shipmentStatusCounts = new LinkedHashMap<>();
         int allActiveOrders = orderHistoryDAO.countOrders(null, null, null, false, false);
+        int todayOrders = orderHistoryDAO.countOrders(null, null, null, false, false, true);
         for (OrderStatus status : statusOptions) {
             shipmentStatusCounts.put(
                     status.getStatusId(),
@@ -83,7 +86,9 @@ public class DashboardServlet extends HttpServlet {
         request.setAttribute("shipmentStatusOptions", statusOptions);
         request.setAttribute("shipmentStatusCounts", shipmentStatusCounts);
         request.setAttribute("shipmentAllActiveCount", allActiveOrders);
+        request.setAttribute("shipmentTodayCount", todayOrders);
         request.setAttribute("shipmentSelectedStatusId", selectedStatusId);
+        request.setAttribute("shipmentTodayOnly", todayOnly);
         request.setAttribute("shipmentPage", page);
         request.setAttribute("shipmentTotalPages", totalPages);
         request.setAttribute("shipmentTotalOrders", totalOrders);

@@ -64,10 +64,13 @@
         return "#";
     }
 
-    private String buildShipmentLink(String ctx, Integer statusId, int page) {
+    private String buildShipmentLink(String ctx, Integer statusId, boolean todayOnly, int page) {
         StringBuilder query = new StringBuilder();
         if (statusId != null) {
             appendParam(query, "statusId", String.valueOf(statusId));
+        }
+        if (todayOnly) {
+            appendParam(query, "today", "1");
         }
         if (page > 1) {
             appendParam(query, "page", String.valueOf(page));
@@ -282,10 +285,14 @@
                     Integer shipmentTotalPagesObject = (Integer) request.getAttribute("shipmentTotalPages");
                     Integer shipmentTotalOrdersObject = (Integer) request.getAttribute("shipmentTotalOrders");
                     Integer shipmentAllActiveCountObject = (Integer) request.getAttribute("shipmentAllActiveCount");
+                    Integer shipmentTodayCountObject = (Integer) request.getAttribute("shipmentTodayCount");
+                    Boolean shipmentTodayOnlyObject = (Boolean) request.getAttribute("shipmentTodayOnly");
                     int shipmentPage = shipmentPageObject == null ? 1 : shipmentPageObject;
                     int shipmentTotalPages = shipmentTotalPagesObject == null ? 1 : shipmentTotalPagesObject;
                     int shipmentTotalOrders = shipmentTotalOrdersObject == null ? 0 : shipmentTotalOrdersObject;
                     int shipmentAllActiveCount = shipmentAllActiveCountObject == null ? 0 : shipmentAllActiveCountObject;
+                    int shipmentTodayCount = shipmentTodayCountObject == null ? 0 : shipmentTodayCountObject;
+                    boolean shipmentTodayOnly = shipmentTodayOnlyObject != null && shipmentTodayOnlyObject;
                 %>
 
                 <div class="shipment-dashboard">
@@ -296,6 +303,17 @@
                                 <p class="shipment-summary-title">Tất cả đơn hàng</p>
                                 <div class="shipment-summary-value-row">
                                     <span class="shipment-summary-number"><%= shipmentAllActiveCount %></span>
+                                    <span class="shipment-summary-unit">đơn</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="shipment-summary-card">
+                            <span class="shipment-summary-icon today">✓</span>
+                            <div class="shipment-summary-copy">
+                                <p class="shipment-summary-title">Đơn hàng hôm nay</p>
+                                <div class="shipment-summary-value-row">
+                                    <span class="shipment-summary-number"><%= shipmentTodayCount %></span>
                                     <span class="shipment-summary-unit">đơn</span>
                                 </div>
                             </div>
@@ -327,12 +345,14 @@
                             </div>
 
                             <div class="shipment-filter-tabs" aria-label="Lọc đơn hàng theo trạng thái">
-                                <a class="shipment-filter-tab <%= shipmentSelectedStatusId == null ? "active" : "" %>"
-                                   href="<%= buildShipmentLink(ctx, null, 1) %>">Tất cả</a>
+                                <a class="shipment-filter-tab <%= shipmentSelectedStatusId == null && !shipmentTodayOnly ? "active" : "" %>"
+                                   href="<%= buildShipmentLink(ctx, null, false, 1) %>">Tất cả</a>
+                                <a class="shipment-filter-tab <%= shipmentTodayOnly ? "active" : "" %>"
+                                   href="<%= buildShipmentLink(ctx, shipmentSelectedStatusId, true, 1) %>">Hôm nay</a>
                                 <% if (shipmentStatusOptions != null) {
                                     for (OrderStatus status : shipmentStatusOptions) { %>
-                                <a class="shipment-filter-tab <%= shipmentSelectedStatusId != null && shipmentSelectedStatusId == status.getStatusId() ? "active" : "" %>"
-                                   href="<%= buildShipmentLink(ctx, status.getStatusId(), 1) %>"><%= h(status.getStatusName()) %></a>
+                                <a class="shipment-filter-tab <%= !shipmentTodayOnly && shipmentSelectedStatusId != null && shipmentSelectedStatusId == status.getStatusId() ? "active" : "" %>"
+                                   href="<%= buildShipmentLink(ctx, status.getStatusId(), false, 1) %>"><%= h(status.getStatusName()) %></a>
                                 <% }
                                 } %>
                             </div>
@@ -378,13 +398,13 @@
                         <% if (shipmentTotalPages > 1) { %>
                         <div class="shipment-pagination">
                             <a class="<%= shipmentPage <= 1 ? "disabled" : "" %>"
-                               href="<%= shipmentPage <= 1 ? "#" : buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentPage - 1) %>">‹</a>
+                               href="<%= shipmentPage <= 1 ? "#" : buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage - 1) %>">‹</a>
                             <% for (int pageNumber = 1; pageNumber <= shipmentTotalPages; pageNumber++) { %>
                             <a class="<%= pageNumber == shipmentPage ? "active" : "" %>"
-                               href="<%= buildShipmentLink(ctx, shipmentSelectedStatusId, pageNumber) %>"><%= pageNumber %></a>
+                               href="<%= buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, pageNumber) %>"><%= pageNumber %></a>
                             <% } %>
                             <a class="<%= shipmentPage >= shipmentTotalPages ? "disabled" : "" %>"
-                               href="<%= shipmentPage >= shipmentTotalPages ? "#" : buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentPage + 1) %>">›</a>
+                               href="<%= shipmentPage >= shipmentTotalPages ? "#" : buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage + 1) %>">›</a>
                         </div>
                         <% } %>
                     </section>

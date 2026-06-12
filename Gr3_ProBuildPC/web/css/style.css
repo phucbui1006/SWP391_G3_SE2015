@@ -1567,6 +1567,11 @@ body.dashboard-body .dashboard-content * {
     color: #2674f5;
 }
 
+.shipment-summary-icon.today {
+    background: #ecfeff;
+    color: #0e7490;
+}
+
 .shipment-summary-icon.pending {
     background: #fff7e6;
     color: #d49100;

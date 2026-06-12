@@ -161,6 +161,16 @@
                 || status.contains("đã giao")
                 || status.contains("da giao");
     }
+
+    private boolean isDeliveredShipmentStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+
+        status = status.toLowerCase(Locale.ROOT);
+        return status.contains("đã giao")
+                || status.contains("da giao");
+    }
 %>
 <%
     List<OrderHistoryItem> orders = (List<OrderHistoryItem>) request.getAttribute("orders");
@@ -237,7 +247,7 @@
                     <select name="statusId">
                         <option value="">Tất cả trạng thái</option>
                         <% for (OrderStatus status : statusOptions) { %>
-                        <% if (canManageShipment && isLockedShipmentStatus(status.getStatusName())) {
+                        <% if (canManageShipment && isDeliveredShipmentStatus(status.getStatusName())) {
                                 continue;
                             } %>
                         <option value="<%= status.getStatusId() %>" <%= selectedStatusId != null && selectedStatusId == status.getStatusId() ? "selected" : "" %>>
@@ -279,7 +289,7 @@
                         %>
                         <a class="order-list-card <%= active ? "active" : "" %>"
                            href="<%= buildOrderLink(ctx, keyword, selectedStatusIdValue, currentPage, order.getOrderId(), deliveryHistoryMode) %>">
-                            <span class="order-card-icon" aria-hidden="true">▧</span>
+                            <span class="order-card-icon" aria-hidden="true">🛒</span>
                             <span class="order-card-main">
                                 <strong>PB<%= order.getOrderId() %></strong>
                                 <small><%= formatDate(order.getOrderDate(), dateFormatter) %> · <%= formatTime(order.getOrderDate(), timeFormatter) %></small>
@@ -334,7 +344,7 @@
                     </div>
 
                     <article class="order-summary-card">
-                        <div class="order-summary-icon" aria-hidden="true">□</div>
+                        <div class="order-summary-icon" aria-hidden="true">🛒</div>
                         <div>
                             <strong>Mã đơn hàng: PB<%= selectedOrder.getOrderId() %></strong>
                             <span>Đặt hàng: <%= formatDate(selectedOrder.getOrderDate(), dateFormatter) %> · <%= formatTime(selectedOrder.getOrderDate(), timeFormatter) %></span>

@@ -8,6 +8,7 @@
 
     Product product = (Product) request.getAttribute("product");
     List<Review> reviews = (List<Review>) request.getAttribute("reviews");
+    List<Product> similarProducts = (List<Product>) request.getAttribute("similarProducts");
 
     double avgRating = 0;
 
@@ -22,6 +23,12 @@
 
     int fullStars = (int) avgRating;
     int totalReviews = reviews == null ? 0 : reviews.size();
+    int maxQuantity = product.getQuantity() > 0 ? product.getQuantity() : 1;
+    int selectedRating = 0;
+
+if (request.getAttribute("selectedRating") != null) {
+    selectedRating = (Integer) request.getAttribute("selectedRating");
+}
 %>
 
 <!DOCTYPE html>
@@ -102,50 +109,63 @@
                             <div class="warranty-icon">&#128737;</div>
 
                             <div>
-                                <span>Chinh sach bao hanh</span>
-                                <strong>Bao hanh chinh hang <%= product.getWarrantyMonths() %> thang</strong>
+                                <span>Chính sách bảo hành</span>
+                                <strong>Bảo hành chính hãng <%= product.getWarrantyMonths() %> tháng</strong>
                             </div>
                         </div>
 
-                        <div class="quantity-box">
-                            <span>So luong:</span>
+                        <form class="purchase-form" method="post">
 
-                            <div class="quantity-control">
-                                <button type="button" onclick="changeQty(-1)">-</button>
+                            <input type="hidden" name="productId" value="<%= product.getProductId() %>">
 
-                                <input id="quantityInput"
-                                       type="text"
+                            <div class="option-box">
+                                <p>Màu sắc</p>
+
+                                <div class="color-radio-group">
+                                    <input class="color-radio" type="radio" name="color" id="colorBlack" value="Đen" checked>
+                                    <label class="color-option" for="colorBlack">Đen</label>
+
+                                    <input class="color-radio" type="radio" name="color" id="colorWhite" value="Trắng">
+                                    <label class="color-option" for="colorWhite">Trắng</label>
+
+                                    <input class="color-radio" type="radio" name="color" id="colorBlue" value="Xanh">
+                                    <label class="color-option" for="colorBlue">Xanh</label>
+                                </div>
+                            </div>
+
+                            <div class="quantity-box">
+                                <span>Số lượng:</span>
+
+                                <input class="quantity-input"
+                                       type="number"
+                                       name="quantity"
                                        value="1"
                                        min="1"
-                                       max="<%= product.getQuantity() %>"
-                                       readonly>
-
-                                <button type="button" onclick="changeQty(1)">+</button>
+                                       max="<%= maxQuantity %>"
+                                       <%= product.getQuantity() > 0 ? "" : "disabled" %>>
                             </div>
-                        </div>
 
-                        <div class="action-buttons">
+                            <div class="action-buttons">
 
-                            <form class="detail-add-cart-form" action="<%= contextPath %>/cart" method="post">
-                                <input type="hidden" name="action" value="addToCart">
-                                <input type="hidden" name="productId" value="<%= product.getProductId() %>">
-                                <input type="hidden" name="quantity" id="cartQuantity" value="1">
-
-                                <button type="submit" class="add-cart-btn" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
-                                    &#128722; Them vao gio
+                                <button type="submit"
+                                        formaction="<%= contextPath %>/cart"
+                                        name="action"
+                                        value="addToCart"
+                                        class="add-cart-btn"
+                                        <%= product.getQuantity() > 0 ? "" : "disabled" %>>
+                                    &#128722; Thêm vào giỏ
                                 </button>
-                            </form>
 
-                            <form action="<%= contextPath %>/checkout" method="post">
-                                <input type="hidden" name="productId" value="<%= product.getProductId() %>">
-                                <input type="hidden" name="quantity" id="buyQuantity" value="1">
-
-                                <button type="submit" class="buy-btn">
+                                <button type="submit"
+                                        formaction="<%= contextPath %>/checkout"
+                                        class="buy-btn"
+                                        <%= product.getQuantity() > 0 ? "" : "disabled" %>>
                                     Mua ngay
                                 </button>
-                            </form>
 
-                        </div>
+                            </div>
+
+                        </form>
 
                     </div>
 
@@ -153,34 +173,51 @@
 
             </section>
 
-            <section class="description-card">
-                <h2>Dac diem noi bat</h2>
+            <section class="similar-card">
+                <div class="similar-header">
+                    <h2>Sản phẩm tương tự</h2>
+                    <p>Các sản phẩm cùng danh mục</p>
+                </div>
 
-                <p><%= product.getDescription() %></p>
+                <% if (similarProducts != null && !similarProducts.isEmpty()) { %>
 
-                <div class="spec-grid">
+                <div class="similar-products-row">
 
-                    <div>
-                        <strong>Ten san pham</strong>
-                        <span><%= product.getProductName() %></span>
-                    </div>
+                    <% for (Product item : similarProducts) {
+                        String imageUrl = item.getImageUrl();
 
-                    <div>
-                        <strong>Bao hanh</strong>
-                        <span><%= product.getWarrantyMonths() %> thang</span>
-                    </div>
+                        if (imageUrl == null || imageUrl.trim().isEmpty()) {
+                            imageUrl = "images/no-image.png";
+                        }
+                    %>
 
-                    <div>
-                        <strong>Tinh trang</strong>
-                        <span><%= product.getQuantity() > 0 ? "Con hang" : "Het hang" %></span>
-                    </div>
+                    <a class="similar-product-item"
+                       href="<%= contextPath %>/product-detail?id=<%= item.getProductId() %>">
 
-                    <div>
-                        <strong>Gia ban</strong>
-                        <span><%= String.format("%,d", product.getPrice().longValue()) %>&#273;</span>
-                    </div>
+                        <div class="similar-product-img">
+                            <img src="<%= contextPath %>/<%= imageUrl %>"
+                                 alt="<%= item.getProductName() %>">
+                        </div>
+
+                        <h3><%= item.getProductName() %></h3>
+
+                        <div class="similar-price">
+                            <%= String.format("%,d", item.getPrice().longValue()) %>đ
+                        </div>
+
+                    </a>
+
+                    <% } %>
 
                 </div>
+
+                <% } else { %>
+
+                <div class="empty-similar">
+                    Không có sản phẩm tương tự.
+                </div>
+
+                <% } %>
             </section>
 
             <section class="review-section">
@@ -200,12 +237,37 @@
                     </div>
 
                     <div class="review-filter">
-                        <button type="button" class="review-filter-btn active" data-rating="0">Tat ca</button>
-                        <button type="button" class="review-filter-btn" data-rating="5">5 sao</button>
-                        <button type="button" class="review-filter-btn" data-rating="4">4 sao</button>
-                        <button type="button" class="review-filter-btn" data-rating="3">3 sao</button>
-                        <button type="button" class="review-filter-btn" data-rating="2">2 sao</button>
-                        <button type="button" class="review-filter-btn" data-rating="1">1 sao</button>
+
+                        <a class="review-filter-btn <%= selectedRating == 0 ? "active" : "" %>"
+                           href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>">
+                            Tất cả
+                        </a>
+
+                        <a class="review-filter-btn <%= selectedRating == 5 ? "active" : "" %>"
+                           href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=5">
+                            5 sao
+                        </a>
+
+                        <a class="review-filter-btn <%= selectedRating == 4 ? "active" : "" %>"
+                           href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=4">
+                            4 sao
+                        </a>
+
+                        <a class="review-filter-btn <%= selectedRating == 3 ? "active" : "" %>"
+                           href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=3">
+                            3 sao
+                        </a>
+
+                        <a class="review-filter-btn <%= selectedRating == 2 ? "active" : "" %>"
+                           href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=2">
+                            2 sao
+                        </a>
+
+                        <a class="review-filter-btn <%= selectedRating == 1 ? "active" : "" %>"
+                           href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=1">
+                            1 sao
+                        </a>
+
                     </div>
 
                 </div>
@@ -248,14 +310,15 @@
 
                     <% }} %>
 
-                    <div id="emptyReviewMessage"
-                         class="empty-review"
-                         style="<%= totalReviews == 0 ? "display:block;" : "display:none;" %>">
-                        <% if (totalReviews == 0) { %>
-                        Khong co danh gia nao tinh den hien tai.
+                    <% if (reviews == null || reviews.isEmpty()) { %>
+                    <div class="empty-review">
+                        <% if (selectedRating == 0) { %>
+                        Không có đánh giá nào tính đến hiện tại.
+                        <% } else { %>
+                        Không có đánh giá <%= selectedRating %> sao tính đến hiện tại.
                         <% } %>
                     </div>
-
+                    <% } %>
                 </div>
             </section>
 
@@ -266,195 +329,6 @@
             <span class="detail-toast-message">Da them san pham vao gio hang.</span>
         </div>
 
-        <script>
-            function changeQty(value) {
-                const input = document.getElementById("quantityInput");
-                const cartQuantity = document.getElementById("cartQuantity");
-                const buyQuantity = document.getElementById("buyQuantity");
 
-                if (!input)
-                    return;
-
-                let current = parseInt(input.value, 10);
-                let min = parseInt(input.getAttribute("min"), 10);
-                let max = parseInt(input.getAttribute("max"), 10);
-
-                if (isNaN(current)) {
-                    current = 1;
-                }
-
-                current += value;
-
-                if (current < min)
-                    current = min;
-                if (current > max)
-                    current = max;
-
-                input.value = current;
-
-                if (cartQuantity)
-                    cartQuantity.value = current;
-                if (buyQuantity)
-                    buyQuantity.value = current;
-            }
-
-            const filterButtons = document.querySelectorAll(".review-filter-btn");
-            const reviewItems = document.querySelectorAll(".review-item");
-            const emptyReviewMessage = document.getElementById("emptyReviewMessage");
-
-            filterButtons.forEach(function (button) {
-                button.addEventListener("click", function () {
-                    const selectedRating = this.getAttribute("data-rating");
-                    let visibleCount = 0;
-
-                    filterButtons.forEach(function (btn) {
-                        btn.classList.remove("active");
-                    });
-
-                    this.classList.add("active");
-
-                    reviewItems.forEach(function (item) {
-                        const itemRating = item.getAttribute("data-rating");
-
-                        if (selectedRating === "0" || itemRating === selectedRating) {
-                            item.style.display = "flex";
-                            visibleCount++;
-                        } else {
-                            item.style.display = "none";
-                        }
-                    });
-
-                    if (visibleCount === 0) {
-                        emptyReviewMessage.style.display = "block";
-
-                        if (selectedRating === "0") {
-                            emptyReviewMessage.innerText = "Khong co danh gia nao tinh den hien tai.";
-                        } else {
-                            emptyReviewMessage.innerText = "Khong co danh gia " + selectedRating + " sao tinh den hien tai.";
-                        }
-                    } else {
-                        emptyReviewMessage.style.display = "none";
-                        emptyReviewMessage.innerText = "";
-                    }
-                });
-            });
-
-            const colorOptions = document.querySelectorAll(".color-option");
-            const cartColor = document.getElementById("cartColor");
-            const buyColor = document.getElementById("buyColor");
-
-            colorOptions.forEach(function (button) {
-                button.addEventListener("click", function () {
-                    colorOptions.forEach(function (item) {
-                        item.classList.remove("active");
-                    });
-
-                    this.classList.add("active");
-
-                    const selectedColor = this.getAttribute("data-color");
-
-                    if (cartColor) {
-                        cartColor.value = selectedColor;
-                    }
-
-                    if (buyColor) {
-                        buyColor.value = selectedColor;
-                    }
-                });
-            });
-
-            (function () {
-                const addToCartForm = document.querySelector(".detail-add-cart-form");
-                const addToCartButton = addToCartForm ? addToCartForm.querySelector(".add-cart-btn") : null;
-                const detailToast = document.getElementById("detailToast");
-                const detailToastMessage = detailToast ? detailToast.querySelector(".detail-toast-message") : null;
-                const headerCartCountElement = document.querySelector(".cart-box .cart-icon span");
-                const cartApiUrl = addToCartForm ? addToCartForm.getAttribute("action") : "";
-                let toastTimer = null;
-
-                if (!addToCartForm || !addToCartButton || !detailToast || !detailToastMessage || !cartApiUrl) {
-                    return;
-                }
-
-                const showToast = function (message, type) {
-                    detailToastMessage.textContent = message;
-                    detailToast.classList.remove("is-success", "is-error", "show");
-                    detailToast.classList.add(type === "error" ? "is-error" : "is-success");
-                    detailToast.offsetWidth;
-                    detailToast.classList.add("show");
-
-                    if (toastTimer) {
-                        window.clearTimeout(toastTimer);
-                    }
-
-                    toastTimer = window.setTimeout(function () {
-                        detailToast.classList.remove("show");
-                    }, 2600);
-                };
-
-                const parseJsonSafely = function (response) {
-                    return response.text().then(function (text) {
-                        if (!text) {
-                            return {};
-                        }
-
-                        try {
-                            return JSON.parse(text);
-                        } catch (error) {
-                            return {};
-                        }
-                    });
-                };
-
-                addToCartForm.addEventListener("submit", function (event) {
-                    event.preventDefault();
-
-                    if (addToCartButton.disabled) {
-                        showToast("San pham hien tam het hang.", "error");
-                        return;
-                    }
-
-                    addToCartButton.classList.add("is-adding");
-                    addToCartButton.classList.remove("is-added");
-
-                    const payload = new URLSearchParams(new FormData(addToCartForm));
-
-                    fetch(cartApiUrl, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                            "X-Requested-With": "XMLHttpRequest"
-                        },
-                        body: payload.toString()
-                    })
-                            .then(function (response) {
-                                return parseJsonSafely(response).then(function (data) {
-                                    if (!response.ok) {
-                                        throw new Error(data.message || "Khong the them san pham vao gio hang.");
-                                    }
-                                    return data;
-                                });
-                            })
-                            .then(function (data) {
-                                if (headerCartCountElement && typeof data.cartItemCount === "number") {
-                                    headerCartCountElement.textContent = data.cartItemCount;
-                                }
-
-                                addToCartButton.classList.add("is-added");
-                                window.setTimeout(function () {
-                                    addToCartButton.classList.remove("is-added");
-                                }, 1400);
-
-                                showToast(data.message || "Da them san pham vao gio hang.", "success");
-                            })
-                            .catch(function (error) {
-                                showToast(error.message || "Khong the them san pham vao gio hang.", "error");
-                            })
-                            .finally(function () {
-                                addToCartButton.classList.remove("is-adding");
-                            });
-                });
-            })();
-        </script>
     </body>
 </html>

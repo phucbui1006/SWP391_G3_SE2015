@@ -44,4 +44,44 @@ public class ReviewDAO extends DBContext {
 
         return list;
     }
+
+    public List<Review> getReviewsByProductIdAndRating(int productId, int rating) {
+        List<Review> list = new ArrayList<>();
+
+        String sql = """
+        SELECT review_id, customer_id, product_id, rating, img, comment, date
+        FROM reviews
+        WHERE product_id = ?
+          AND rating = ?
+        ORDER BY date DESC
+    """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            ps.setInt(1, productId);
+            ps.setInt(2, rating);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Review r = new Review();
+
+                r.setReviewId(rs.getInt("review_id"));
+                r.setUserId(rs.getInt("customer_id"));
+                r.setProductId(rs.getInt("product_id"));
+                r.setRating(rs.getInt("rating"));
+                r.setImg(rs.getString("img"));
+                r.setComment(rs.getString("comment"));
+                r.setDate(rs.getTimestamp("date"));
+
+                list.add(r);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
 }

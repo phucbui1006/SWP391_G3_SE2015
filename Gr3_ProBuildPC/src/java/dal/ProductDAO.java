@@ -2,6 +2,7 @@ package dal;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Product;
@@ -357,5 +358,38 @@ public class ProductDAO extends DBContext {
 
     public boolean activateProduct(int productId) {
         return updateProductStatus(productId, "ACTIVE");
+    }
+
+    public List<Product> getSimilarProducts(int productId) {
+        List<Product> list = new ArrayList<>();
+
+        String sql = PRODUCT_SELECT
+                + "WHERE p.product_id <> ? "
+                + "AND p.category_id = ( "
+                + "    SELECT category_id "
+                + "    FROM products "
+                + "    WHERE product_id = ? "
+                + ") "
+                + "AND " + getActiveProductCondition()
+                + "ORDER BY p.product_id ASC "
+                + "LIMIT 4";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            ps.setInt(1, productId);
+            ps.setInt(2, productId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapProduct(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 }

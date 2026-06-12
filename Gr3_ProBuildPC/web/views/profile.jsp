@@ -16,6 +16,7 @@
     String fullNameDynamic = account.getFullName() != null ? account.getFullName() : "";
     
     String ctx = request.getContextPath();
+    String homeTarget = account.isCustomer() ? ctx + "/home" : ctx + "/Dashboard";
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -30,7 +31,7 @@
     </head>
     <body class="profile-body">
         <div class="home-navigation">
-            <a style="color: black" href="${pageContext.request.contextPath}/home" class="home-link">Home</a>
+            <a style="color: black" href="<%= homeTarget %>" class="home-link">Home</a>
         </div>
 
         <div class="profile-container">

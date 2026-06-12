@@ -1,5 +1,94 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.User" %>
+<%@ page import="model.OrderHistoryItem" %>
+<%@ page import="model.OrderStatus" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+
+<%!
+    private String h(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
+    }
+
+    private String defaultText(String value, String fallback) {
+        return value == null || value.trim().isEmpty() ? fallback : value;
+    }
+
+    private String statusClass(String status) {
+        String value = status == null ? "" : status.toLowerCase();
+        if (value.contains("hủy") || value.contains("huy")) {
+            return "cancelled";
+        }
+        if (value.contains("đã giao") || value.contains("da giao")) {
+            return "delivered";
+        }
+        if (value.contains("đang giao") || value.contains("dang giao")) {
+            return "shipping";
+        }
+        if (value.contains("chuẩn bị") || value.contains("chuan bi")) {
+            return "preparing";
+        }
+        if (value.contains("xác nhận") || value.contains("xac nhan")) {
+            return value.contains("chờ") || value.contains("cho ") ? "pending" : "confirmed";
+        }
+        return "all";
+    }
+
+    private String statusIcon(String status) {
+        String cssClass = statusClass(status);
+        if ("pending".equals(cssClass)) {
+            return "!";
+        }
+        if ("confirmed".equals(cssClass) || "delivered".equals(cssClass)) {
+            return "✓";
+        }
+        if ("preparing".equals(cssClass)) {
+            return "□";
+        }
+        if ("shipping".equals(cssClass)) {
+            return "→";
+        }
+        if ("cancelled".equals(cssClass)) {
+            return "X";
+        }
+        return "#";
+    }
+
+    private String buildShipmentLink(String ctx, Integer statusId, int page) {
+        StringBuilder query = new StringBuilder();
+        if (statusId != null) {
+            appendParam(query, "statusId", String.valueOf(statusId));
+        }
+        if (page > 1) {
+            appendParam(query, "page", String.valueOf(page));
+        }
+        return ctx + "/Dashboard" + (query.length() == 0 ? "" : "?" + query);
+    }
+
+    private void appendParam(StringBuilder query, String name, String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return;
+        }
+
+        if (query.length() > 0) {
+            query.append("&");
+        }
+
+        query.append(name)
+                .append("=")
+                .append(URLEncoder.encode(value.trim(), StandardCharsets.UTF_8));
+    }
+%>
 
 <%
     User account = (User) session.getAttribute("account");
@@ -15,6 +104,8 @@
     } else {
         roleName = "";
     }
+
+    String ctx = request.getContextPath();
 %>
 
 <!DOCTYPE html>
@@ -182,98 +273,68 @@
 
                 <% } else if ("SHIPMENT".equals(roleName)) { %>
 
+                <%
+                    List<OrderHistoryItem> shipmentOrders = (List<OrderHistoryItem>) request.getAttribute("shipmentOrders");
+                    List<OrderStatus> shipmentStatusOptions = (List<OrderStatus>) request.getAttribute("shipmentStatusOptions");
+                    Map<Integer, Integer> shipmentStatusCounts = (Map<Integer, Integer>) request.getAttribute("shipmentStatusCounts");
+                    Integer shipmentSelectedStatusId = (Integer) request.getAttribute("shipmentSelectedStatusId");
+                    Integer shipmentPageObject = (Integer) request.getAttribute("shipmentPage");
+                    Integer shipmentTotalPagesObject = (Integer) request.getAttribute("shipmentTotalPages");
+                    Integer shipmentTotalOrdersObject = (Integer) request.getAttribute("shipmentTotalOrders");
+                    Integer shipmentAllActiveCountObject = (Integer) request.getAttribute("shipmentAllActiveCount");
+                    int shipmentPage = shipmentPageObject == null ? 1 : shipmentPageObject;
+                    int shipmentTotalPages = shipmentTotalPagesObject == null ? 1 : shipmentTotalPagesObject;
+                    int shipmentTotalOrders = shipmentTotalOrdersObject == null ? 0 : shipmentTotalOrdersObject;
+                    int shipmentAllActiveCount = shipmentAllActiveCountObject == null ? 0 : shipmentAllActiveCountObject;
+                %>
+
                 <div class="shipment-dashboard">
                     <div class="shipment-summary-grid" aria-label="Thống kê đơn hàng vận chuyển">
                         <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon all">📋</span>
+                            <span class="shipment-summary-icon all">#</span>
                             <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title">Tất cả đơn hàng của bạn</p>
+                                <p class="shipment-summary-title">Tất cả đơn hàng</p>
                                 <div class="shipment-summary-value-row">
-                                    <span class="shipment-summary-number">24</span>
+                                    <span class="shipment-summary-number"><%= shipmentAllActiveCount %></span>
                                     <span class="shipment-summary-unit">đơn</span>
                                 </div>
                             </div>
                         </div>
 
+                        <% if (shipmentStatusOptions != null) {
+                            for (OrderStatus status : shipmentStatusOptions) {
+                                Integer countValue = shipmentStatusCounts == null ? null : shipmentStatusCounts.get(status.getStatusId());
+                        %>
                         <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon pending">⏳</span>
+                            <span class="shipment-summary-icon <%= statusClass(status.getStatusName()) %>"><%= statusIcon(status.getStatusName()) %></span>
                             <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title">Chờ xác nhận</p>
+                                <p class="shipment-summary-title"><%= h(status.getStatusName()) %></p>
                                 <div class="shipment-summary-value-row">
-                                    <span class="shipment-summary-number">5</span>
+                                    <span class="shipment-summary-number"><%= countValue == null ? 0 : countValue %></span>
                                     <span class="shipment-summary-unit">đơn</span>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon confirmed">✓</span>
-                            <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title">Đã xác nhận</p>
-                                <div class="shipment-summary-value-row">
-                                    <span class="shipment-summary-number">4</span>
-                                    <span class="shipment-summary-unit">đơn</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon preparing">📦</span>
-                            <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title">Đang chuẩn bị hàng</p>
-                                <div class="shipment-summary-value-row">
-                                    <span class="shipment-summary-number">3</span>
-                                    <span class="shipment-summary-unit">đơn</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon shipping">🚚</span>
-                            <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title">Đang giao hàng</p>
-                                <div class="shipment-summary-value-row">
-                                    <span class="shipment-summary-number">6</span>
-                                    <span class="shipment-summary-unit">đơn</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon delivered">✓</span>
-                            <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title">Đã giao hàng</p>
-                                <div class="shipment-summary-value-row">
-                                    <span class="shipment-summary-number">5</span>
-                                    <span class="shipment-summary-unit">đơn</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon cancelled">!</span>
-                            <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title">Đã hủy</p>
-                                <div class="shipment-summary-value-row">
-                                    <span class="shipment-summary-number">1</span>
-                                    <span class="shipment-summary-unit">đơn</span>
-                                </div>
-                            </div>
-                        </div>
+                        <% }
+                        } %>
                     </div>
 
                     <section class="shipment-order-panel">
                         <div class="shipment-order-header">
-                            <h2 class="shipment-order-title">Danh sách đơn hàng</h2>
+                            <div class="shipment-order-title-row">
+                                <h2 class="shipment-order-title">Danh sách đơn hàng vận chuyển</h2>
+                                <span><%= shipmentTotalOrders %> đơn phù hợp</span>
+                            </div>
 
                             <div class="shipment-filter-tabs" aria-label="Lọc đơn hàng theo trạng thái">
-                                <button class="shipment-filter-tab active" type="button" data-filter="all">Tất cả</button>
-                                <button class="shipment-filter-tab" type="button" data-filter="pending">Chờ xác nhận</button>
-                                <button class="shipment-filter-tab" type="button" data-filter="confirmed">Đã xác nhận</button>
-                                <button class="shipment-filter-tab" type="button" data-filter="preparing">Đang chuẩn bị hàng</button>
-                                <button class="shipment-filter-tab" type="button" data-filter="shipping">Đang giao hàng</button>
-                                <button class="shipment-filter-tab" type="button" data-filter="delivered">Đã giao hàng</button>
-                                <button class="shipment-filter-tab" type="button" data-filter="cancelled">Đã hủy</button>
+                                <a class="shipment-filter-tab <%= shipmentSelectedStatusId == null ? "active" : "" %>"
+                                   href="<%= buildShipmentLink(ctx, null, 1) %>">Tất cả</a>
+                                <% if (shipmentStatusOptions != null) {
+                                    for (OrderStatus status : shipmentStatusOptions) { %>
+                                <a class="shipment-filter-tab <%= shipmentSelectedStatusId != null && shipmentSelectedStatusId == status.getStatusId() ? "active" : "" %>"
+                                   href="<%= buildShipmentLink(ctx, status.getStatusId(), 1) %>"><%= h(status.getStatusName()) %></a>
+                                <% }
+                                } %>
                             </div>
                         </div>
 
@@ -287,63 +348,45 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr data-status="pending">
-                                    <td>#DH10090</td>
-                                    <td>Đỗ Hoàng K</td>
-                                    <td>18 Lý Thường Kiệt, Q.10, TP.HCM</td>
-                                    <td><span class="shipment-status pending">Chờ xác nhận</span></td>
+                                <% if (shipmentOrders == null || shipmentOrders.isEmpty()) { %>
+                                <tr>
+                                    <td colspan="4">
+                                        <p class="shipment-empty-message">Không có đơn hàng nào ở bộ lọc hiện tại.</p>
+                                    </td>
                                 </tr>
-                                <tr data-status="confirmed">
-                                    <td>#DH10089</td>
-                                    <td>Vũ Thanh H</td>
-                                    <td>99 Nguyễn Huệ, Q.1, TP.HCM</td>
-                                    <td><span class="shipment-status confirmed">Đã xác nhận</span></td>
+                                <% } else {
+                                    for (OrderHistoryItem order : shipmentOrders) {
+                                        String displayStatus = defaultText(order.getDisplayStatus(), "Chờ xác nhận");
+                                %>
+                                <tr>
+                                    <td>
+                                        PB<%= order.getOrderId() %>
+                                    </td>
+                                    <td>
+                                        <%= h(defaultText(order.getRecipientName(), order.getCustomerName())) %>
+                                    </td>
+                                    <td><%= h(defaultText(order.getShippingAddress(), "Chưa cập nhật địa chỉ")) %></td>
+                                    <td>
+                                        <span class="shipment-status <%= statusClass(displayStatus) %>"><%= h(displayStatus) %></span>
+                                    </td>
                                 </tr>
-                                <tr data-status="preparing">
-                                    <td>#DH10088</td>
-                                    <td>Mai Quốc P</td>
-                                    <td>27 Âu Cơ, Q.Tân Bình, TP.HCM</td>
-                                    <td><span class="shipment-status preparing">Đang chuẩn bị hàng</span></td>
-                                </tr>
-                                <tr data-status="shipping">
-                                    <td>#DH10086</td>
-                                    <td>Nguyễn Văn A</td>
-                                    <td>123 Nguyễn Trãi, Q.1, TP.HCM</td>
-                                    <td><span class="shipment-status shipping">Đang giao hàng</span></td>
-                                </tr>
-                                <tr data-status="shipping">
-                                    <td>#DH10085</td>
-                                    <td>Trần Văn B</td>
-                                    <td>456 Lê Văn Sỹ, Q.3, TP.HCM</td>
-                                    <td><span class="shipment-status shipping">Đang giao hàng</span></td>
-                                </tr>
-                                <tr data-status="shipping">
-                                    <td>#DH10084</td>
-                                    <td>Lê Minh C</td>
-                                    <td>789 Cách Mạng Tháng 8, Q.10, TP.HCM</td>
-                                    <td><span class="shipment-status shipping">Đang giao hàng</span></td>
-                                </tr>
-                                <tr data-status="shipping">
-                                    <td>#DH10083</td>
-                                    <td>Phạm Hữu D</td>
-                                    <td>321 Điện Biên Phủ, Q.Bình Thạnh, TP.HCM</td>
-                                    <td><span class="shipment-status shipping">Đang giao hàng</span></td>
-                                </tr>
-                                <tr data-status="delivered">
-                                    <td>#DH10082</td>
-                                    <td>Ngô Minh T</td>
-                                    <td>72 Phan Xích Long, Q.Phú Nhuận, TP.HCM</td>
-                                    <td><span class="shipment-status delivered">Đã giao hàng</span></td>
-                                </tr>
-                                <tr data-status="cancelled">
-                                    <td>#DH10081</td>
-                                    <td>Huỳnh Gia N</td>
-                                    <td>11 Võ Văn Ngân, TP.Thủ Đức, TP.HCM</td>
-                                    <td><span class="shipment-status cancelled">Đã hủy</span></td>
-                                </tr>
+                                <% }
+                                } %>
                             </tbody>
                         </table>
-                        <p class="shipment-empty-message" hidden>Không có đơn hàng nào ở trạng thái này.</p>
+
+                        <% if (shipmentTotalPages > 1) { %>
+                        <div class="shipment-pagination">
+                            <a class="<%= shipmentPage <= 1 ? "disabled" : "" %>"
+                               href="<%= shipmentPage <= 1 ? "#" : buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentPage - 1) %>">‹</a>
+                            <% for (int pageNumber = 1; pageNumber <= shipmentTotalPages; pageNumber++) { %>
+                            <a class="<%= pageNumber == shipmentPage ? "active" : "" %>"
+                               href="<%= buildShipmentLink(ctx, shipmentSelectedStatusId, pageNumber) %>"><%= pageNumber %></a>
+                            <% } %>
+                            <a class="<%= shipmentPage >= shipmentTotalPages ? "disabled" : "" %>"
+                               href="<%= shipmentPage >= shipmentTotalPages ? "#" : buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentPage + 1) %>">›</a>
+                        </div>
+                        <% } %>
                     </section>
                 </div>
 
@@ -357,42 +400,6 @@
             </div>
         </div>
         <jsp:include page="/includes/footer.jsp" />
-
-        <script>
-            (function () {
-                const filterTabs = document.querySelectorAll(".shipment-filter-tab");
-                const orderRows = document.querySelectorAll(".shipment-order-table tbody tr[data-status]");
-                const emptyMessage = document.querySelector(".shipment-empty-message");
-
-                if (!filterTabs.length || !orderRows.length) {
-                    return;
-                }
-
-                filterTabs.forEach(function (tab) {
-                    tab.addEventListener("click", function () {
-                        const selectedStatus = tab.dataset.filter;
-                        let visibleCount = 0;
-
-                        filterTabs.forEach(function (item) {
-                            item.classList.toggle("active", item === tab);
-                        });
-
-                        orderRows.forEach(function (row) {
-                            const isVisible = selectedStatus === "all" || row.dataset.status === selectedStatus;
-                            row.hidden = !isVisible;
-
-                            if (isVisible) {
-                                visibleCount++;
-                            }
-                        });
-
-                        if (emptyMessage) {
-                            emptyMessage.hidden = visibleCount > 0;
-                        }
-                    });
-                });
-            })();
-        </script>
 
     </body>
 </html>

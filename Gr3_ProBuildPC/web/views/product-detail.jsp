@@ -250,7 +250,7 @@
 
                     <div id="emptyReviewMessage"
                          class="empty-review"
-                         style="<%= totalReviews == 0 ? "display:block;" : "display:none;" %>">
+                         style=<"<%= totalReviews == 0 ? "display:block;" : "display:none;" %>">
                         <% if (totalReviews == 0) { %>
                         Khong co danh gia nao tinh den hien tai.
                         <% } %>

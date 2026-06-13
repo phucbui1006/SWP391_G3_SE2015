@@ -18,12 +18,14 @@
                 Nhập email đã đăng ký để nhận đường liên kết đặt lại mật khẩu.
             </p>
 
-            <form action="${pageContext.request.contextPath}/ForgotPassword" method="post">
+            <form action="${pageContext.request.contextPath}/ForgotPassword" method="post" onsubmit="return validateForm()">
                 <div class="form-group" style="margin-bottom: 25px;">
                     <label for="email">Email</label>
                     <div class="input-group">
                         <i class="fa-regular fa-envelope left-icon"></i>
-                        <input type="email" id="email" name="email" placeholder="Nhập email của bạn" required>
+                        <input type="email" id="email" name="email" placeholder="Nhập email của bạn" required maxlength="100"
+                               pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                               title="Vui lòng nhập đúng định dạng email (Ví dụ: abc@gmail.com) và không vượt quá 100 ký tự">
                     </div>
                 </div>
 
@@ -52,5 +54,14 @@
             </div>
         </div>
 
+        <script>
+            function validateForm() {
+                var emailInput = document.getElementById("email");
+                if(emailInput) {
+                    emailInput.value = emailInput.value.trim();
+                }
+                return true;
+            }
+        </script>
     </body>
 </html>

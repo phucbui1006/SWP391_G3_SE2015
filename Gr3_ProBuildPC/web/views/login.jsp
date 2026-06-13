@@ -66,6 +66,12 @@
         </div>
 
         <script>
+            function validateForm() {
+                var emailInput = document.getElementById("email");
+                emailInput.value = emailInput.value.trim();
+                return true;
+            }
+
             function togglePass(inputId, icon) {
                 const inputField = document.getElementById(inputId);
 
@@ -77,6 +83,12 @@
                     inputField.type = "password";
                     icon.classList.remove("fa-eye-slash");
                     icon.classList.add("fa-eye");
+                }
+            }
+        </script>
+
+    </body>
+</html>lassList.add("fa-eye");
                 }
             }
         </script>

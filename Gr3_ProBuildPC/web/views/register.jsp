@@ -23,7 +23,9 @@
                     <label for="fullName">Họ và tên</label>
                     <div class="input-group">
                         <i class="fa-regular fa-user left-icon"></i>
-                        <input type="text" id="fullName" name="fullName" placeholder="Nhập tên.." minlength="2" maxlength="50"
+                        <input type="text" id="fullName" name="fullName" placeholder="Nhập tên.." 
+                               minlength="2" maxlength="50" pattern="^[^0-9\[\]!@#$%^&*()_+={}|\\:;\'&quot;<>,.?/-]+$"
+                               title="Họ và tên từ 2 đến 50 ký tự, không được chứa số hoặc ký tự đặc biệt"
                                value="${param.fullName != null ? param.fullName : ''}" required>
                     </div>
                 </div>
@@ -33,10 +35,10 @@
                     <div class="input-group">
                         <i class="fa-regular fa-envelope left-icon"></i>
                         <input type="email" id="email" name="email" placeholder="Nhập email.." 
-                               autocomplete="none" 
+                               autocomplete="none" maxlength="100"
                                value="${param.email != null ? param.email : ''}" required
                                pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-                               title="Vui lòng nhập đúng định dạng email (Ví dụ: abc@gmail.com)">
+                               title="Vui lòng nhập đúng định dạng email (Ví dụ: abc@gmail.com) và không vượt quá 100 ký tự">
                     </div>
                 </div>
 
@@ -44,8 +46,8 @@
                     <label for="password">Mật khẩu</label>
                     <div class="input-group">
                         <i class="fa-solid fa-lock left-icon"></i>
-                        <input type="password" id="password" name="password" placeholder="•••••••• (ít nhất 6 ký tự)" 
-                               autocomplete="new-password" required minlength="6" class="pass-input">
+                        <input type="password" id="password" name="password" placeholder="•••••••• (6-32 ký tự)" 
+                               autocomplete="new-password" required minlength="6" maxlength="32" class="pass-input">
                         <i class="fa-regular fa-eye toggle-password" onclick="togglePass('password', this)"></i>
                     </div>
                 </div>
@@ -55,7 +57,7 @@
                     <div class="input-group">
                         <i class="fa-solid fa-lock left-icon"></i>
                         <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" 
-                               autocomplete="new-password" required minlength="6" class="pass-input">
+                               autocomplete="new-password" required minlength="6" maxlength="32" class="pass-input">
                         <i class="fa-regular fa-eye toggle-password" onclick="togglePass('confirmPassword', this)"></i>
                     </div>
                     <small id="passwordError" style="color: red; display: none; margin-top: 5px; font-weight: 500;">Mật khẩu xác nhận không khớp!</small>
@@ -83,9 +85,14 @@
 
         <script>
             function validateForm() {
+                var fullNameInput = document.getElementById("fullName");
+                var emailInput = document.getElementById("email");
                 var password = document.getElementById("password").value;
                 var confirmPassword = document.getElementById("confirmPassword").value;
                 var errorMsg = document.getElementById("passwordError");
+
+                fullNameInput.value = fullNameInput.value.trim();
+                emailInput.value = emailInput.value.trim();
 
                 if (password !== confirmPassword) {
                     errorMsg.style.display = "block";

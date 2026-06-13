@@ -18,12 +18,12 @@
         <div class="card-container">
             <h2 class="card-title">Đăng ký tài khoản</h2>
 
-            <form action="${pageContext.request.contextPath}/Register" method="POST">
+            <form action="${pageContext.request.contextPath}/Register" method="POST" onsubmit="return validateForm()">
                 <div class="form-group">
                     <label for="fullName">Họ và tên</label>
                     <div class="input-group">
                         <i class="fa-regular fa-user left-icon"></i>
-                        <input type="text" id="fullName" name="fullName" placeholder="Nhập tên.." 
+                        <input type="text" id="fullName" name="fullName" placeholder="Nhập tên.." minlength="2" maxlength="50"
                                value="${param.fullName != null ? param.fullName : ''}" required>
                     </div>
                 </div>
@@ -44,8 +44,8 @@
                     <label for="password">Mật khẩu</label>
                     <div class="input-group">
                         <i class="fa-solid fa-lock left-icon"></i>
-                        <input type="password" id="password" name="password" placeholder="••••••••" 
-                               autocomplete="new-password" required class="pass-input">
+                        <input type="password" id="password" name="password" placeholder="•••••••• (ít nhất 6 ký tự)" 
+                               autocomplete="new-password" required minlength="6" class="pass-input">
                         <i class="fa-regular fa-eye toggle-password" onclick="togglePass('password', this)"></i>
                     </div>
                 </div>
@@ -54,10 +54,11 @@
                     <label for="confirmPassword">Xác nhận mật khẩu</label>
                     <div class="input-group">
                         <i class="fa-solid fa-lock left-icon"></i>
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" 
-                               autocomplete="new-password" required class="pass-input">
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" 
+                               autocomplete="new-password" required minlength="6" class="pass-input">
                         <i class="fa-regular fa-eye toggle-password" onclick="togglePass('confirmPassword', this)"></i>
                     </div>
+                    <small id="passwordError" style="color: red; display: none; margin-top: 5px; font-weight: 500;">Mật khẩu xác nhận không khớp!</small>
                 </div>
 
                 <button type="submit" class="btn-submit">Đăng ký</button>
@@ -81,6 +82,19 @@
         </div>
 
         <script>
+            function validateForm() {
+                var password = document.getElementById("password").value;
+                var confirmPassword = document.getElementById("confirmPassword").value;
+                var errorMsg = document.getElementById("passwordError");
+
+                if (password !== confirmPassword) {
+                    errorMsg.style.display = "block";
+                    return false; // Chặn việc gửi form lên server
+                }
+                errorMsg.style.display = "none";
+                return true; // Cho phép gửi form
+            }
+
             function togglePass(inputId, icon) {
                 const inputField = document.getElementById(inputId);
                 if (inputField.type === "password") {

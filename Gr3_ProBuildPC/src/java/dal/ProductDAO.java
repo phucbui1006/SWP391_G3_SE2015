@@ -275,14 +275,20 @@ public class ProductDAO extends DBContext {
     public List<Product> getProductsByKeyword(String keyword, String sort) {
         List<Product> list = new ArrayList<>();
 
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return getAllProducts(sort);
-        }
+        String sql = """
+        SELECT *
+        FROM products
+        WHERE UPPER(status) = 'ACTIVE'
+        AND LOWER(product_name) LIKE LOWER(?)
+    """;
 
-        String sql = PRODUCT_SELECT
-                + "WHERE " + getActiveProductCondition()
-                + "AND LOWER(p.product_name) LIKE LOWER(?) "
-                + getOrderBy(sort);
+        if ("price_asc".equals(sort)) {
+            sql += " ORDER BY price ASC";
+        } else if ("price_desc".equals(sort)) {
+            sql += " ORDER BY price DESC";
+        } else {
+            sql += " ORDER BY product_id DESC";
+        }
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -291,40 +297,65 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                list.add(mapProduct(rs));
+                Product p = new Product();
+
+                p.setProductId(rs.getInt("product_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setPrice(rs.getBigDecimal("price"));
+                p.setQuantity(rs.getInt("quantity"));
+                p.setImageUrl(rs.getString("image_url"));
+
+                list.add(p);
             }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
         return list;
     }
 
-    public List<Product> getProductsByCategoryAndKeyword(int categoryId, String keyword, String sort) {
+    public List<Product> getProductsByCategoryAndKeyword(int categoryId,
+            String keyword,
+            String sort) {
         List<Product> list = new ArrayList<>();
 
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return getProductsByCategoryId(categoryId, sort);
-        }
+        String sql = """
+        SELECT *
+        FROM products
+        WHERE category_id = ?
+        AND status = 'ACTIVE'
+        AND LOWER(product_name) LIKE LOWER(?)
+    """;
 
-        String sql = PRODUCT_SELECT
-                + "WHERE p.category_id = ? AND " + getActiveProductCondition()
-                + "AND LOWER(p.product_name) LIKE LOWER(?) "
-                + getOrderBy(sort);
+        if ("price_asc".equals(sort)) {
+            sql += " ORDER BY price ASC";
+        } else if ("price_desc".equals(sort)) {
+            sql += " ORDER BY price DESC";
+        } else {
+            sql += " ORDER BY product_id DESC";
+        }
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
+
             ps.setInt(1, categoryId);
             ps.setString(2, "%" + keyword.trim() + "%");
 
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                list.add(mapProduct(rs));
-            }
+                Product p = new Product();
 
-        } catch (Exception e) {
+                p.setProductId(rs.getInt("product_id"));
+                p.setProductName(rs.getString("product_name"));
+                p.setPrice(rs.getBigDecimal("price"));
+                p.setQuantity(rs.getInt("quantity"));
+                p.setImageUrl(rs.getString("image_url"));
+
+                list.add(p);
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 

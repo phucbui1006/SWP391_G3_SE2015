@@ -50,7 +50,7 @@
                     %>
                     <li>
                         <a href="<%= ctx %>/categories?id=<%= category.getCategoryId() %>">
-                            ▣ <%= category.getCategoryName() %>
+                             <%= category.getCategoryName() %>
                         </a>
                     </li>
                     <% }} %>

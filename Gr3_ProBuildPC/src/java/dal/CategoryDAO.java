@@ -1,8 +1,8 @@
 package dal;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Category;
@@ -25,16 +25,13 @@ public class CategoryDAO extends DBContext {
 
             while (rs.next()) {
                 Category c = new Category();
-
                 c.setCategoryId(rs.getInt("category_id"));
                 c.setCategoryName(rs.getString("category_name"));
                 c.setStatus(rs.getString("status"));
-
                 list.add(c);
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
         }
 
         return list;
@@ -44,7 +41,7 @@ public class CategoryDAO extends DBContext {
         String sql = """
             SELECT category_id, category_name, status
             FROM categories
-            WHERE category_id = ? AND status = 'ACTIVE'
+            WHERE category_id = ?
         """;
 
         try {
@@ -55,44 +52,45 @@ public class CategoryDAO extends DBContext {
 
             if (rs.next()) {
                 Category c = new Category();
-
                 c.setCategoryId(rs.getInt("category_id"));
                 c.setCategoryName(rs.getString("category_name"));
                 c.setStatus(rs.getString("status"));
-
                 return c;
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
         }
 
         return null;
     }
-     public ArrayList<Category> getCategories(String keyword, String sort, int page, int pageSize) {
-        ArrayList<Category> list = new ArrayList<>();
 
-        String sql = "SELECT category_id, category_name, status FROM categories WHERE 1=1 ";
+    public List<Category> getCategories(String keyword, String sort, int page, int pageSize) {
+        List<Category> list = new ArrayList<>();
+
+        String orderBy;
+
+        if ("name_asc".equalsIgnoreCase(sort)) {
+            orderBy = "category_name ASC";
+        } else if ("name_desc".equalsIgnoreCase(sort)) {
+            orderBy = "category_name DESC";
+        } else if ("oldest".equalsIgnoreCase(sort)) {
+            orderBy = "category_id ASC";
+        } else {
+            orderBy = "category_id DESC";
+        }
+
+        String sql = "SELECT category_id, category_name, status "
+                + "FROM categories "
+                + "WHERE 1 = 1 ";
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql += "AND category_name LIKE ? ";
         }
 
-        if ("name_asc".equals(sort)) {
-            sql += "ORDER BY category_name ASC ";
-        } else if ("name_desc".equals(sort)) {
-            sql += "ORDER BY category_name DESC ";
-        } else if ("oldest".equals(sort)) {
-            sql += "ORDER BY category_id ASC ";
-        } else {
-            sql += "ORDER BY category_id DESC ";
-        }
-
-        sql += "LIMIT ? OFFSET ?";
+        sql += "ORDER BY " + orderBy + " LIMIT ? OFFSET ?";
 
         try {
-            Connection conn = getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
+            PreparedStatement ps = connection.prepareStatement(sql);
 
             int index = 1;
 
@@ -100,26 +98,75 @@ public class CategoryDAO extends DBContext {
                 ps.setString(index++, "%" + keyword.trim() + "%");
             }
 
+            int offset = (page - 1) * pageSize;
+
             ps.setInt(index++, pageSize);
-            ps.setInt(index, (page - 1) * pageSize);
+            ps.setInt(index, offset);
 
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                list.add(new Category(
-                        rs.getInt("category_id"),
-                        rs.getString("category_name")
-                ));
-                list.get(list.size() - 1).setStatus(rs.getString("status"));
+                Category c = new Category();
+
+                c.setCategoryId(rs.getInt("category_id"));
+                c.setCategoryName(rs.getString("category_name"));
+                c.setStatus(rs.getString("status"));
+
+                list.add(c);
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
         }
 
         return list;
     }
 
-   
+    public int countCategories(String keyword) {
+        String sql = "SELECT COUNT(*) AS total "
+                + "FROM categories "
+                + "WHERE 1 = 1 ";
 
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql += "AND category_name LIKE ? ";
+        }
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                ps.setString(1, "%" + keyword.trim() + "%");
+            }
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+
+        } catch (SQLException e) {
+        }
+
+        return 0;
+    }
+
+    public boolean updateCategoryStatus(int categoryId, String status) {
+        String sql = """
+            UPDATE categories
+            SET status = ?
+            WHERE category_id = ?
+        """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            ps.setString(1, status);
+            ps.setInt(2, categoryId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+        }
+
+        return false;
+    }
 }

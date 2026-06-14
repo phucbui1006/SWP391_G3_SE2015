@@ -99,6 +99,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Tra cứu bảo hành</title>
         <link rel="stylesheet" type="text/css" href="<%= ctx %>/css/style.css">
+        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
     <body class="warranty-lookup-page">
         <jsp:include page="/includes/header.jsp" />
@@ -127,7 +128,7 @@
 
             <section class="warranty-layout">
                 <div class="warranty-main-column">
-                    <form class="warranty-search-card" action="<%= ctx %>/warranty-lookup" method="get">
+                    <form id="warrantyForm" class="warranty-search-card" action="<%= ctx %>/warranty-lookup" method="get" onsubmit="return validateForm()">
                         <label for="orderId">Nhập mã đơn hàng <span>*</span></label>
                         <div class="warranty-search-row">
                             <input
@@ -283,5 +284,23 @@
         </main>
 
         <jsp:include page="/includes/footer.jsp" />
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                Validator.setupRealTimeValidation([
+                    {
+                        selector: '#orderId',
+                        validateFn: (val) => Validator.validateOrderId(val),
+                        getErrorMsg: () => 'Mã đơn hàng không hợp lệ. Vui lòng nhập số ID (VD: 10006 hoặc PB10006).'
+                    }
+                ]);
+            });
+
+            function validateForm() {
+                const orderIdInput = document.getElementById("orderId");
+                const isValid = Validator.validateOrderId(orderIdInput.value);
+                Validator.showFeedback(orderIdInput, isValid, 'Mã đơn hàng không hợp lệ. Vui lòng nhập số ID (VD: 10006 hoặc PB10006).');
+                return isValid;
+            }
+        </script>
     </body>
 </html>

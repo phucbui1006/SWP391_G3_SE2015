@@ -6,26 +6,27 @@
         <meta charset="UTF-8">
         <title>Đặt lại mật khẩu</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
     <body>
 
         <div class="card-container">
             <h2 class="card-title">Đặt lại mật khẩu</h2>
 
-            <form action="${pageContext.request.contextPath}/ResetPassword" method="post">
+            <form action="${pageContext.request.contextPath}/ResetPassword" method="post" onsubmit="return validateForm()">
                 <div class="form-group">
-                    <label>Mật khẩu mới</label>
+                    <label for="password">Mật khẩu mới</label>
 
                     <div class="input-group">
-                        <input type="password" name="password" placeholder="Nhập mật khẩu mới" required>
+                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu mới (8-31 ký tự, có hoa, thường và số)" required minlength="8" maxlength="31">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Xác nhận mật khẩu</label>
+                    <label for="confirmPassword">Xác nhận mật khẩu</label>
 
                     <div class="input-group">
-                        <input type="password" name="confirmPassword" placeholder="Xác nhận mật khẩu" required>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Xác nhận mật khẩu" required minlength="8" maxlength="31">
                     </div>
                 </div>
 
@@ -43,5 +44,29 @@
             %>
         </div>
 
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                Validator.setupRealTimeValidation([
+                    {
+                        selector: '#password',
+                        validateFn: (val) => Validator.validatePassword(val),
+                        getErrorMsg: () => 'Mật khẩu từ 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.'
+                    }
+                ]);
+            });
+
+            function validateForm() {
+                const passwordInput = document.getElementById("password");
+                const confirmPasswordInput = document.getElementById("confirmPassword");
+
+                const isPasswordValid = Validator.validatePassword(passwordInput.value);
+                Validator.showFeedback(passwordInput, isPasswordValid, 'Mật khẩu từ 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
+
+                const isMatch = passwordInput.value === confirmPasswordInput.value;
+                Validator.showFeedback(confirmPasswordInput, isMatch, 'Mật khẩu xác nhận không khớp!');
+
+                return isPasswordValid && isMatch;
+            }
+        </script>
     </body>
 </html>

@@ -94,6 +94,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Quản lý tài khoản người dùng</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
     <body class="dashboard-body account-management-body">
 
@@ -150,7 +151,7 @@
 
             <section class="management-card account-management-card">
                 <h1 class="card-header-title">Tạo tài khoản nhân viên</h1>
-                <form class="account-filter-form" action="<%= ctx %>/AccountManagement" method="post">
+                <form id="createStaffForm" class="account-filter-form" action="<%= ctx %>/AccountManagement" method="post" onsubmit="return validateCreateStaffForm()">
                     <input type="hidden" name="action" value="createStaff">
                     <input type="hidden" name="keyword" value="<%= h(keyword) %>">
                     <input type="hidden" name="filterRoleId" value="<%= selectedRoleId == null ? "" : selectedRoleId %>">
@@ -174,7 +175,7 @@
                     <div class="search-box-wrapper">
                         <label class="filter-label" for="newStaffPassword">Mật khẩu</label>
                         <div class="search-input-group">
-                            <input id="newStaffPassword" type="password" name="password" placeholder="Mật khẩu" autocomplete="new-password" required>
+                            <input id="newStaffPassword" type="password" name="password" placeholder="Mật khẩu (8-31 ký tự, có hoa, thường và số)" autocomplete="new-password" required>
                         </div>
                     </div>
 
@@ -334,5 +335,43 @@
         </main>
 
         <jsp:include page="/includes/footer.jsp" />
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                Validator.setupRealTimeValidation([
+                    {
+                        selector: '#newStaffName',
+                        validateFn: (val) => Validator.validateName(val),
+                        getErrorMsg: () => 'Họ và tên từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.'
+                    },
+                    {
+                        selector: '#newStaffEmail',
+                        validateFn: (val) => Validator.validateEmail(val),
+                        getErrorMsg: () => 'Định dạng email không hợp lệ (tối đa 100 ký tự).'
+                    },
+                    {
+                        selector: '#newStaffPassword',
+                        validateFn: (val) => Validator.validatePassword(val),
+                        getErrorMsg: () => 'Mật khẩu 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.'
+                    }
+                ]);
+            });
+
+            function validateCreateStaffForm() {
+                const nameInput = document.getElementById("newStaffName");
+                const emailInput = document.getElementById("newStaffEmail");
+                const passwordInput = document.getElementById("newStaffPassword");
+
+                const isNameValid = Validator.validateName(nameInput.value);
+                Validator.showFeedback(nameInput, isNameValid, 'Họ và tên từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.');
+
+                const isEmailValid = Validator.validateEmail(emailInput.value);
+                Validator.showFeedback(emailInput, isEmailValid, 'Định dạng email không hợp lệ (tối đa 100 ký tự).');
+
+                const isPasswordValid = Validator.validatePassword(passwordInput.value);
+                Validator.showFeedback(passwordInput, isPasswordValid, 'Mật khẩu 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
+
+                return isNameValid && isEmailValid && isPasswordValid;
+            }
+        </script>
     </body>
 </html>

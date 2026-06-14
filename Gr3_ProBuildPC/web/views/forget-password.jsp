@@ -8,6 +8,7 @@
         <title>ProBuild PC - Quên mật khẩu</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
     <body>
 
@@ -23,9 +24,7 @@
                     <label for="email">Email</label>
                     <div class="input-group">
                         <i class="fa-regular fa-envelope left-icon"></i>
-                        <input type="email" id="email" name="email" placeholder="Nhập email của bạn" required maxlength="100"
-                               pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-                               title="Vui lòng nhập đúng định dạng email (Ví dụ: abc@gmail.com) và không vượt quá 100 ký tự">
+                        <input type="email" id="email" name="email" placeholder="Nhập email của bạn" required maxlength="100">
                     </div>
                 </div>
 
@@ -55,12 +54,21 @@
         </div>
 
         <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                Validator.setupRealTimeValidation([
+                    {
+                        selector: '#email',
+                        validateFn: (val) => Validator.validateEmail(val),
+                        getErrorMsg: () => 'Định dạng email không hợp lệ (tối đa 100 ký tự).'
+                    }
+                ]);
+            });
+
             function validateForm() {
                 var emailInput = document.getElementById("email");
-                if(emailInput) {
-                    emailInput.value = emailInput.value.trim();
-                }
-                return true;
+                const isValid = Validator.validateEmail(emailInput.value);
+                Validator.showFeedback(emailInput, isValid, 'Định dạng email không hợp lệ (tối đa 100 ký tự).');
+                return isValid;
             }
         </script>
     </body>

@@ -117,7 +117,7 @@
                                    name="id"
                                    value="<%= c.getCategoryId() %>"
                                    <%= selectedCategory != null && selectedCategory.getCategoryId() == c.getCategoryId() ? "checked" : "" %>>
-                            <span>▣ <%= c.getCategoryName() %></span>
+                            <span> <%= c.getCategoryName() %></span>
                         </label>
                         <% } %>
                         <% } %>

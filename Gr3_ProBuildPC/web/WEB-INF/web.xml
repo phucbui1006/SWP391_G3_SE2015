@@ -4,9 +4,25 @@
         <servlet-name>UpdateProfileServlet</servlet-name>
         <servlet-class>controller.UpdateProfileServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>BatchServlet</servlet-name>
+        <servlet-class>controller.BatchServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>BatchItemServlet</servlet-name>
+        <servlet-class>controller.BatchItemServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>UpdateProfileServlet</servlet-name>
         <url-pattern>/UpdateProfileServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BatchServlet</servlet-name>
+        <url-pattern>/BatchServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BatchItemServlet</servlet-name>
+        <url-pattern>/BatchItemServlet</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

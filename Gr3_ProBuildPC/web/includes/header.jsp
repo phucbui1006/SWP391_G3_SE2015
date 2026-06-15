@@ -138,7 +138,7 @@
         </div>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">🏬 Lô hàng</a>
+        <a href="${pageContext.request.contextPath}/BatchServlet" class="menu-item <%= "/BatchServlet".equals(currentPath) ? "active" : "" %>">🏬 Lô hàng</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🛡 Bảo hành</a>

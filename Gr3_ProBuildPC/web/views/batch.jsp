@@ -57,7 +57,7 @@
         <section class="batch-title-box">
             <div>
                 <h1>📦 Quản lý lô hàng</h1>
-                <p>Thêm, sửa, xóa lô hàng và xem chi tiết sản phẩm trong từng lô nhập.</p>
+                <p>Thêm, sửa và xem chi tiết sản phẩm trong từng lô nhập.</p>
             </div>
 
             <a href="${pageContext.request.contextPath}/BatchServlet" class="batch-btn-reset">
@@ -169,17 +169,7 @@
                                                 Sửa
                                             </a>
 
-                                            <form action="${pageContext.request.contextPath}/BatchServlet"
-                                                  method="post"
-                                                  class="batch-inline-form"
-                                                  onsubmit="return confirm('Bạn có chắc muốn xóa lô hàng này không?');">
-
-                                                <input type="hidden" name="action" value="deleteBatch">
-                                                <input type="hidden" name="batchId" value="<%= b.getBatchId() %>">
-
-                                                <button type="submit" class="batch-btn-delete">
-                                                    Xóa
-                                                </button>
+                                            
                                             </form>
 
                                         </div>
@@ -340,19 +330,7 @@
                                                 Sửa
                                             </a>
 
-                                            <form action="${pageContext.request.contextPath}/BatchItemServlet"
-                                                  method="post"
-                                                  class="batch-inline-form"
-                                                  onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này khỏi lô không?');">
-
-                                                <input type="hidden" name="action" value="deleteItem">
-                                                <input type="hidden" name="batchItemId" value="<%= item.getBatchItemId() %>">
-                                                <input type="hidden" name="batchId" value="<%= item.getBatchId() %>">
-
-                                                <button type="submit" class="batch-btn-delete">
-                                                    Xóa
-                                                </button>
-                                            </form>
+                                            
 
                                         </div>
                                     </td>

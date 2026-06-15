@@ -110,23 +110,5 @@ public class BatchDAO extends DBContext {
         return false;
     }
 
-    public boolean deleteBatch(int batchId) {
-        String sql = """
-            DELETE FROM BATCH
-            WHERE batch_id = ?
-        """;
 
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-
-            ps.setInt(1, batchId);
-
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
 }

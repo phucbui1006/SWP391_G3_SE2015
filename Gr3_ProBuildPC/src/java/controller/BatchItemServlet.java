@@ -70,7 +70,7 @@ public class BatchItemServlet extends HttpServlet {
             Nếu batch.jsp nằm trong thư mục admin thì sửa thành:
             request.getRequestDispatcher("/admin/batch.jsp").forward(request, response);
         */
-        request.getRequestDispatcher("/batch.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/batch.jsp").forward(request, response);
     }
 
     private void forwardWithBatchDetail(HttpServletRequest request,

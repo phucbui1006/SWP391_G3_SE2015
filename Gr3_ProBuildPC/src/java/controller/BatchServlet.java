@@ -88,8 +88,8 @@ public class BatchServlet extends HttpServlet {
         /*
             Nếu batch.jsp nằm trong thư mục admin thì sửa thành:
             request.getRequestDispatcher("/admin/batch.jsp").forward(request, response);
-         */
-        request.getRequestDispatcher("/batch.jsp").forward(request, response);
+        */
+        request.getRequestDispatcher("/views/batch.jsp").forward(request, response);
     }
 
     @Override
@@ -98,6 +98,7 @@ public class BatchServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
 
         if (!isAdmin(request, response)) {
             return;
@@ -164,6 +165,7 @@ public class BatchServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
 
         if (!isAdmin(request, response)) {
             return;
@@ -245,6 +247,7 @@ public class BatchServlet extends HttpServlet {
             e.printStackTrace();
             request.setAttribute("error", "Dữ liệu số không hợp lệ.");
             forwardToBatchPage(request, response);
+
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             request.setAttribute("error", "Ngày nhập không hợp lệ.");

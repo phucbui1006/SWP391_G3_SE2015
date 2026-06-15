@@ -23,6 +23,8 @@ public class CartServlet extends HttpServlet {
     private static final String SESSION_CART_ITEM_COUNT = "sessionCartItemCount";
     private static final String CART_SUCCESS_FLASH = "cartSuccessMsg";
     private static final String CART_ERROR_FLASH = "cartErrorMsg";
+    private static final String PRODUCT_DETAIL_CART_MESSAGE = "cartMessage";
+    private static final String PRODUCT_DETAIL_CART_MESSAGE_TYPE = "cartMessageType";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -170,15 +172,20 @@ public class CartServlet extends HttpServlet {
 
     private void handleAddToCart(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+
         HttpSession session = request.getSession();
         User account = (User) session.getAttribute("account");
         boolean ajaxRequest = isAjaxRequest(request);
+        String returnUrl = resolveReturnUrl(request);
 
         if (account == null) {
             if (ajaxRequest) {
                 writeJsonResponse(response, HttpServletResponse.SC_UNAUTHORIZED,
-                        "{\"success\":false,\"message\":\"Vui long dang nhap de them san pham vao gio hang.\"}");
+                        "{\"success\":false,\"message\":\"Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.\"}");
             } else {
+                setProductDetailFlash(session,
+                        "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.",
+                        "error");
                 response.sendRedirect(request.getContextPath() + "/Login");
             }
             return;
@@ -188,8 +195,11 @@ public class CartServlet extends HttpServlet {
         if (customerId == null) {
             if (ajaxRequest) {
                 writeJsonResponse(response, HttpServletResponse.SC_FORBIDDEN,
-                        "{\"success\":false,\"message\":\"Tai khoan nhan vien khong the them san pham vao gio hang.\"}");
+                        "{\"success\":false,\"message\":\"Tài khoản nhân viên không thể thêm sản phẩm vào giỏ hàng.\"}");
             } else {
+                setProductDetailFlash(session,
+                        "Tài khoản nhân viên không thể thêm sản phẩm vào giỏ hàng.",
+                        "error");
                 response.sendRedirect(request.getContextPath() + "/Dashboard");
             }
             return;
@@ -201,9 +211,12 @@ public class CartServlet extends HttpServlet {
         if (productId == null || requestedQuantity == null) {
             if (ajaxRequest) {
                 writeJsonResponse(response, HttpServletResponse.SC_BAD_REQUEST,
-                        "{\"success\":false,\"message\":\"Thong tin san pham khong hop le.\"}");
+                        "{\"success\":false,\"message\":\"Thông tin sản phẩm không hợp lệ.\"}");
             } else {
-                response.sendRedirect(resolveReturnUrl(request));
+                setProductDetailFlash(session,
+                        "Thông tin sản phẩm không hợp lệ.",
+                        "error");
+                response.sendRedirect(returnUrl);
             }
             return;
         }
@@ -214,19 +227,40 @@ public class CartServlet extends HttpServlet {
         if (product == null) {
             if (ajaxRequest) {
                 writeJsonResponse(response, HttpServletResponse.SC_NOT_FOUND,
-                        "{\"success\":false,\"message\":\"San pham khong ton tai.\"}");
+                        "{\"success\":false,\"message\":\"Sản phẩm không tồn tại.\"}");
             } else {
-                response.sendRedirect(resolveReturnUrl(request));
+                setProductDetailFlash(session,
+                        "Sản phẩm không tồn tại.",
+                        "error");
+                response.sendRedirect(returnUrl);
             }
             return;
         }
 
-        if (product.getQuantity() <= 0) {
+        if (!product.isAvailableForSale()) {
             if (ajaxRequest) {
                 writeJsonResponse(response, HttpServletResponse.SC_CONFLICT,
-                        "{\"success\":false,\"message\":\"San pham hien da het hang.\"}");
+                        "{\"success\":false,\"message\":\"Sản phẩm hiện không còn kinh doanh.\"}");
             } else {
-                response.sendRedirect(resolveReturnUrl(request));
+                setProductDetailFlash(session,
+                        "Sản phẩm hiện không còn kinh doanh.",
+                        "error");
+                response.sendRedirect(returnUrl);
+            }
+            return;
+        }
+
+        int stockQuantity = product.getQuantity();
+
+        if (stockQuantity <= 0) {
+            if (ajaxRequest) {
+                writeJsonResponse(response, HttpServletResponse.SC_CONFLICT,
+                        "{\"success\":false,\"message\":\"Sản phẩm hiện đã hết hàng.\"}");
+            } else {
+                setProductDetailFlash(session,
+                        "Sản phẩm hiện đã hết hàng.",
+                        "error");
+                response.sendRedirect(returnUrl);
             }
             return;
         }
@@ -235,55 +269,80 @@ public class CartServlet extends HttpServlet {
         List<CartItem> cartItems = cartDAO.getCartItemsByCustomerId(customerId);
 
         CartItem existingItem = findCartItemByProductId(cartItems, productId);
-        int desiredQuantity = requestedQuantity;
 
+        int currentCartQuantity = 0;
         if (existingItem != null) {
-            desiredQuantity = existingItem.getQuantity() + requestedQuantity;
+            currentCartQuantity = existingItem.getQuantity();
         }
 
-        if (desiredQuantity > product.getQuantity()) {
-            desiredQuantity = product.getQuantity();
-        }
+        if (currentCartQuantity >= stockQuantity) {
+            String message = "Số lượng sản phẩm trong giỏ hàng hiện đang bằng số lượng sản phẩm trong kho, không thể thêm sản phẩm vào giỏ hàng.";
 
-        if (existingItem != null && desiredQuantity == existingItem.getQuantity()) {
             if (ajaxRequest) {
                 writeJsonResponse(response, HttpServletResponse.SC_CONFLICT,
-                        "{\"success\":false,\"message\":\"San pham da dat so luong toi da trong gio hang.\"}");
+                        "{\"success\":false,\"message\":\"" + escapeJson(message) + "\"}");
             } else {
-                response.sendRedirect(resolveReturnUrl(request));
+                setProductDetailFlash(session, message, "error");
+                response.sendRedirect(returnUrl);
+            }
+            return;
+        }
+
+        if (currentCartQuantity + requestedQuantity > stockQuantity) {
+            int canAddMore = stockQuantity - currentCartQuantity;
+
+            String message = "Số lượng muốn thêm vượt quá số lượng trong kho. Bạn chỉ có thể thêm tối đa "
+                    + canAddMore + " sản phẩm nữa.";
+
+            if (ajaxRequest) {
+                writeJsonResponse(response, HttpServletResponse.SC_CONFLICT,
+                        "{\"success\":false,\"message\":\"" + escapeJson(message) + "\"}");
+            } else {
+                setProductDetailFlash(session, message, "error");
+                response.sendRedirect(returnUrl);
             }
             return;
         }
 
         boolean updateSuccess;
+
         if (existingItem != null) {
-            updateSuccess = cartDAO.updateCartItemQuantity(existingItem.getCartItemId(), desiredQuantity);
+            int newQuantity = currentCartQuantity + requestedQuantity;
+            updateSuccess = cartDAO.updateCartItemQuantity(existingItem.getCartItemId(), newQuantity);
         } else {
-            updateSuccess = cartDAO.addCartItemForCustomer(customerId, productId, desiredQuantity) > 0;
+            updateSuccess = cartDAO.addCartItemForCustomer(customerId, productId, requestedQuantity) > 0;
         }
 
         if (!updateSuccess) {
+            String message = "Không thể thêm sản phẩm vào giỏ hàng lúc này.";
+
             if (ajaxRequest) {
                 writeJsonResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                        "{\"success\":false,\"message\":\"Khong the them san pham vao gio hang luc nay.\"}");
+                        "{\"success\":false,\"message\":\"" + escapeJson(message) + "\"}");
             } else {
-                response.sendRedirect(resolveReturnUrl(request));
+                setProductDetailFlash(session, message, "error");
+                response.sendRedirect(returnUrl);
             }
             return;
         }
 
         List<CartItem> refreshedCartItems = cartDAO.getCartItemsByCustomerId(customerId);
         int cartItemCount = calculateCartItemCount(refreshedCartItems);
+
         session.setAttribute(SESSION_CART_ITEM_COUNT, cartItemCount);
         session.removeAttribute(LEGACY_SESSION_CART_QUANTITIES);
 
+        String successMessage = "Thêm vào giỏ hàng thành công.";
+
         if (ajaxRequest) {
             writeJsonResponse(response, HttpServletResponse.SC_OK,
-                    "{\"success\":true,\"message\":\"Da them san pham vao gio hang.\",\"cartItemCount\":" + cartItemCount + "}");
+                    "{\"success\":true,\"message\":\"" + escapeJson(successMessage)
+                    + "\",\"cartItemCount\":" + cartItemCount + "}");
             return;
         }
 
-        response.sendRedirect(resolveReturnUrl(request));
+        setProductDetailFlash(session, successMessage, "success");
+        response.sendRedirect(returnUrl);
     }
 
     private void handleRemoveCartItem(HttpServletRequest request, HttpServletResponse response)
@@ -366,7 +425,14 @@ public class CartServlet extends HttpServlet {
     }
 
     private String resolveReturnUrl(HttpServletRequest request) {
+        String redirect = request.getParameter("redirect");
+
+        if (redirect != null && !redirect.trim().isEmpty()) {
+            return redirect;
+        }
+
         String referer = request.getHeader("Referer");
+
         if (referer != null && !referer.trim().isEmpty()) {
             return referer;
         }
@@ -394,5 +460,22 @@ public class CartServlet extends HttpServlet {
 
         request.setAttribute(requestKey, flashMessage);
         session.removeAttribute(sessionKey);
+    }
+
+    private void setProductDetailFlash(HttpSession session, String message, String type) {
+        session.setAttribute("cartMessage", message);
+        session.setAttribute("cartMessageType", type);
+    }
+
+    private String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r");
     }
 }

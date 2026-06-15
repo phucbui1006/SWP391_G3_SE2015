@@ -195,12 +195,10 @@
 
                             <div class="action-buttons">
 
-                                <button type="submit"
-                                        formaction="<%= contextPath %>/cart"
-                                        name="action"
-                                        value="addToCart"
+                                <button type="button"
+                                        onclick="handleAddToCartAjax(this, <%= product.getQuantity() > 0 %>)"
                                         class="add-cart-btn"
-                                        <%= product.getQuantity() > 0 ? "" : "disabled" %>>
+                                        <%= product.getQuantity() > 0 ? "" : "style=\"opacity: 0.6; cursor: not-allowed; background: #e5e7eb; border-color: #e5e7eb; color: #9ca3af;\"" %>>
                                     <i class="fa-solid fa-cart-shopping"></i>
                                     Thêm vào giỏ
                                 </button>
@@ -460,6 +458,91 @@
 
                 </div>
             </section>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            function handleAddToCartAjax(btn, inStock) {
+                if (!inStock) {
+                    Swal.fire({
+                        title: 'Hết hàng!',
+                        text: 'Sản phẩm này hiện tại đã hết hàng.',
+                        icon: 'error',
+                        timer: 3000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'bottom-end'
+                    });
+                    return;
+                }
+
+                var form = btn.closest('form');
+                var productId = form.querySelector('input[name="productId"]').value;
+                var quantity = form.querySelector('input[name="quantity"]').value;
+
+                var params = new URLSearchParams();
+                params.append('action', 'addToCart');
+                params.append('productId', productId);
+                params.append('quantity', quantity);
+
+                fetch('<%= contextPath %>/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: params.toString()
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        window.location.href = '<%= contextPath %>/Login';
+                        throw new Error('Unauthorized');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Thành công!',
+                            text: 'Đã thêm sản phẩm vào giỏ hàng.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false,
+                            toast: true,
+                            position: 'bottom-end'
+                        });
+                        if (data.cartItemCount !== undefined) {
+                            var cartBadge = document.querySelector('.cart-icon span');
+                            if (cartBadge) {
+                                cartBadge.innerText = data.cartItemCount;
+                            }
+                        }
+                    } else {
+                        Swal.fire({
+                            title: 'Thất bại!',
+                            text: data.message || 'Không thể thêm vào giỏ hàng.',
+                            icon: 'error',
+                            timer: 3000,
+                            showConfirmButton: false,
+                            toast: true,
+                            position: 'bottom-end'
+                        });
+                    }
+                })
+                .catch(error => {
+                    if (error.message !== 'Unauthorized') {
+                        Swal.fire({
+                            title: 'Lỗi!',
+                            text: 'Có lỗi xảy ra khi kết nối đến máy chủ.',
+                            icon: 'error',
+                            timer: 3000,
+                            showConfirmButton: false,
+                            toast: true,
+                            position: 'bottom-end'
+                        });
+                    }
+                });
+            }
+        </script>
 
         </main>
 

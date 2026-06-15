@@ -2,13 +2,13 @@
 <%@ page import="java.util.List" %>
 <%@ page import="model.Product" %>
 <%@ page import="model.Review" %>
-<%@ page import="dal.ReviewDAO" %>
 
 <%
     String contextPath = request.getContextPath();
 
     Product product = (Product) request.getAttribute("product");
     List<Review> reviews = (List<Review>) request.getAttribute("reviews");
+    List<Review> allReviews = (List<Review>) request.getAttribute("allReviews");
     List<Product> similarProducts = (List<Product>) request.getAttribute("similarProducts");
 
     if (product == null) {
@@ -35,9 +35,6 @@
     } else {
         currentUrl += "?id=" + product.getProductId();
     }
-
-    ReviewDAO allReviewDAO = new ReviewDAO();
-    List<Review> allReviews = allReviewDAO.getReviewsByProductId(product.getProductId());
 
     int totalAllReviews = allReviews == null ? 0 : allReviews.size();
 

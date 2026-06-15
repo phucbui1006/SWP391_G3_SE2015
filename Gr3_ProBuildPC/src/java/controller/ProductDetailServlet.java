@@ -24,6 +24,9 @@ public class ProductDetailServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
+
         int selectedRating = 0;
 
         String ratingRaw = request.getParameter("rating");
@@ -38,9 +41,6 @@ public class ProductDetailServlet extends HttpServlet {
         if (selectedRating < 0 || selectedRating > 5) {
             selectedRating = 0;
         }
-
-        request.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html;charset=UTF-8");
 
         String idRaw = request.getParameter("id");
 
@@ -59,10 +59,11 @@ public class ProductDetailServlet extends HttpServlet {
                 return;
             }
 
+            List<Review> allReviews = reviewDAO.getReviewsByProductId(productId);
             List<Review> reviews;
 
             if (selectedRating == 0) {
-                reviews = reviewDAO.getReviewsByProductId(productId);
+                reviews = allReviews;
             } else {
                 reviews = reviewDAO.getReviewsByProductIdAndRating(productId, selectedRating);
             }
@@ -74,6 +75,7 @@ public class ProductDetailServlet extends HttpServlet {
 
             request.setAttribute("product", product);
             request.setAttribute("reviews", reviews);
+            request.setAttribute("allReviews", allReviews);
             request.setAttribute("avgRating", avgRating);
             request.setAttribute("similarProducts", similarProducts);
 

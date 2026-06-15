@@ -81,6 +81,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>&#272;&#7883;a ch&#7881; giao h&#224;ng</title>
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
+        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
     <body class="shipping-address-page">
         <jsp:include page="/includes/header.jsp" />
@@ -273,6 +274,41 @@
                 const baseUrl = form.dataset.baseUrl || window.location.pathname;
                 const defaultRecipientName = form.dataset.defaultRecipientName || '';
 
+                // Setup real-time validations
+                Validator.setupRealTimeValidation([
+                    {
+                        selector: '#recipientName',
+                        validateFn: (val) => Validator.validateName(val),
+                        getErrorMsg: () => 'Tên người nhận từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.'
+                    },
+                    {
+                        selector: '#phoneNumber',
+                        validateFn: (val) => Validator.validatePhone(val),
+                        getErrorMsg: () => 'Số điện thoại không hợp lệ (Phải là số di động VN gồm 10 chữ số).'
+                    },
+                    {
+                        selector: '#addressDetail',
+                        validateFn: (val) => val && val.trim().length >= 5 && val.trim().length <= 255,
+                        getErrorMsg: () => 'Địa chỉ chi tiết phải từ 5 đến 255 ký tự.'
+                    }
+                ]);
+
+                form.addEventListener('submit', function (event) {
+                    const isNameValid = Validator.validateName(recipientInput.value);
+                    Validator.showFeedback(recipientInput, isNameValid, 'Tên người nhận từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.');
+
+                    const isPhoneValid = Validator.validatePhone(phoneInput.value);
+                    Validator.showFeedback(phoneInput, isPhoneValid, 'Số điện thoại không hợp lệ (Phải là số di động VN gồm 10 chữ số).');
+
+                    const detailVal = detailInput.value.trim();
+                    const isDetailValid = detailVal.length >= 5 && detailVal.length <= 255;
+                    Validator.showFeedback(detailInput, isDetailValid, 'Địa chỉ chi tiết phải từ 5 đến 255 ký tự.');
+
+                    if (!isNameValid || !isPhoneValid || !isDetailValid) {
+                        event.preventDefault();
+                    }
+                });
+
                 const setEditingCard = function (addressId) {
                     addressCards.forEach(function (card) {
                         const isActive = card.dataset.addressId === String(addressId);
@@ -291,6 +327,10 @@
                     recipientInput.value = defaultRecipientName;
                     phoneInput.value = '';
                     detailInput.value = '';
+
+                    Validator.clearFeedback(recipientInput);
+                    Validator.clearFeedback(phoneInput);
+                    Validator.clearFeedback(detailInput);
 
                     if (submitLabel) {
                         submitLabel.textContent = 'L\u01b0u \u0111\u1ecba ch\u1ec9';
@@ -321,6 +361,10 @@
                     recipientInput.value = button.dataset.recipientName || '';
                     phoneInput.value = button.dataset.phoneNumber || '';
                     detailInput.value = button.dataset.addressDetail || '';
+
+                    Validator.clearFeedback(recipientInput);
+                    Validator.clearFeedback(phoneInput);
+                    Validator.clearFeedback(detailInput);
 
                     if (submitLabel) {
                         submitLabel.textContent = 'L\u01b0u thay \u0111\u1ed5i';

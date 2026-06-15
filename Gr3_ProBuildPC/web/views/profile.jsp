@@ -28,6 +28,7 @@
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
     <body class="profile-body">
         <div class="home-navigation">
@@ -56,7 +57,7 @@
                     ⚠️ <%= request.getAttribute("errorMsg") %>
                 </div>
                 <% } %>
-                <form action="${pageContext.request.contextPath}/updateProfile" method="POST" class="profile-form">
+                <form action="${pageContext.request.contextPath}/updateProfile" method="POST" class="profile-form" onsubmit="return validateForm()">
 
                     <div class="profile-form-group">
                         <label class="profile-label">Email</label>
@@ -83,7 +84,7 @@
                     <div class="profile-form-group">
                         <label class="profile-label" for="newPassword">Mật khẩu mới</label>
                         <div class="profile-input-wrapper">
-                            <input type="password" id="newPassword" name="newPassword" placeholder="Nhập mật khẩu mới" autocomplete="new-password">
+                            <input type="password" id="newPassword" name="newPassword" placeholder="Mật khẩu mới (8-31 ký tự, có hoa, thường và số)" autocomplete="new-password">
                             <i class="fa-regular fa-eye toggle-eye" onclick="toggleProfilePass('newPassword', this)"></i>
                         </div>
                     </div>
@@ -108,6 +109,59 @@
         </div>
 
         <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                Validator.setupRealTimeValidation([
+                    {
+                        selector: '#fullName',
+                        validateFn: (val) => Validator.validateName(val),
+                        getErrorMsg: () => 'Họ và tên từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.'
+                    }
+                ]);
+            });
+
+            function validateForm() {
+                const nameInput = document.getElementById("fullName");
+                const currentPasswordInput = document.getElementById("currentPassword");
+                const newPasswordInput = document.getElementById("newPassword");
+                const confirmPasswordInput = document.getElementById("confirmPassword");
+
+                Validator.clearFeedback(currentPasswordInput);
+                Validator.clearFeedback(newPasswordInput);
+                Validator.clearFeedback(confirmPasswordInput);
+
+                const isNameValid = Validator.validateName(nameInput.value);
+                Validator.showFeedback(nameInput, isNameValid, 'Họ và tên từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.');
+
+                const newPwd = newPasswordInput.value;
+                const confPwd = confirmPasswordInput.value;
+                const currPwd = currentPasswordInput.value;
+
+                let isPasswordValid = true;
+
+                if (newPwd || confPwd || currPwd) {
+                    if (!currPwd) {
+                        Validator.showFeedback(currentPasswordInput, false, 'Vui lòng nhập mật khẩu cũ để xác nhận thay đổi!');
+                        isPasswordValid = false;
+                    }
+                    if (!newPwd) {
+                        Validator.showFeedback(newPasswordInput, false, 'Vui lòng nhập mật khẩu mới!');
+                        isPasswordValid = false;
+                    } else {
+                        const pwdStrength = Validator.validatePassword(newPwd);
+                        Validator.showFeedback(newPasswordInput, pwdStrength, 'Mật khẩu mới từ 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
+                        if (!pwdStrength) {
+                            isPasswordValid = false;
+                        }
+                    }
+                    if (newPwd !== confPwd) {
+                        Validator.showFeedback(confirmPasswordInput, false, 'Xác nhận mật khẩu mới không khớp!');
+                        isPasswordValid = false;
+                    }
+                }
+
+                return isNameValid && isPasswordValid;
+            }
+
             function toggleProfilePass(inputId, icon) {
                 const inputField = document.getElementById(inputId);
                 if (inputField.type === "password") {

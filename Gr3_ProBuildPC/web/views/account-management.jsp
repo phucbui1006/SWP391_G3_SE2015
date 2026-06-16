@@ -388,6 +388,21 @@
                                                 ⊘ Ban
                                             </button>
                                         </form>
+
+                                        <% if (isStaff && !isCurrentAccount) { %>
+                                            <form action="<%= ctx %>/AccountManagement" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn reset mật khẩu cho nhân viên này?');">
+                                                <input type="hidden" name="action" value="resetPassword">
+                                                <input type="hidden" name="userId" value="<%= user.getUserId() %>">
+                                                <input type="hidden" name="keyword" value="<%= h(keyword) %>">
+                                                <input type="hidden" name="filterRoleId" value="<%= selectedRoleId == null ? "" : selectedRoleId %>">
+                                                <input type="hidden" name="filterStatus" value="<%= h(selectedStatus) %>">
+                                                <input type="hidden" name="page" value="<%= pageNumber %>">
+
+                                                <button class="account-v2-action" type="submit" style="background-color: #ffc107; color: #000; border-color: #ffc107; white-space: nowrap;">
+                                                    🔄 Reset
+                                                </button>
+                                            </form>
+                                        <% } %>
                                     </div>
                                 <% } %>
                             </td>

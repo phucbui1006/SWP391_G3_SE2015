@@ -82,6 +82,15 @@ public class AccountManagementServlet extends HttpServlet {
             createStaff(request, session);
             response.sendRedirect(request.getContextPath() + "/AccountManagement" + buildQueryString(request));
             return;
+        } else if ("resetPassword".equals(action)) {
+            Integer targetUserId = parseId(request.getParameter("userId"));
+            if (targetUserId != null) {
+                resetPassword(request, session, currentAdmin, targetUserId);
+            } else {
+                session.setAttribute("accountError", "Tài khoản cần reset không hợp lệ.");
+            }
+            response.sendRedirect(request.getContextPath() + "/AccountManagement" + buildQueryString(request));
+            return;
         }
 
         Integer userId = parseId(request.getParameter("userId"));
@@ -156,6 +165,45 @@ public class AccountManagementServlet extends HttpServlet {
             session.setAttribute("accountSuccess", "Tao tai khoan nhan vien thanh cong. Mat khau da duoc gui vao email.");
         } else {
             session.setAttribute("accountError", "Khong the tao tai khoan nhan vien (Loi Database).");
+        }
+    }
+
+    private void resetPassword(HttpServletRequest request, HttpSession session, User currentAdmin, int targetUserId) {
+        if (currentAdmin.getUserId() == targetUserId) {
+            session.setAttribute("accountError", "Ban khong the tu reset mat khau cua chinh minh tai day.");
+            return;
+        }
+
+        User targetUser = userDAO.getUserById(targetUserId);
+        if (targetUser == null) {
+            session.setAttribute("accountError", "Tai khoan khong ton tai.");
+            return;
+        }
+
+        if (!targetUser.isStaff()) {
+            session.setAttribute("accountError", "Chi co the reset mat khau cho nhan vien (Staff).");
+            return;
+        }
+
+        String randomPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String initialPassword = randomPassword;
+
+        if (targetUser.getRoleId() == 2 || targetUser.getRoleId() == 3) {
+            initialPassword = "!FIRST!" + randomPassword;
+        }
+
+        // Send the reset password email to the ADMIN's email instead of the staff's email
+        boolean emailSent = util.EmailService.sendResetPasswordToAdminEmail(currentAdmin.getEmail(), targetUser.getEmail(), randomPassword);
+        
+        if (!emailSent) {
+            session.setAttribute("accountError", "Khong the gui email reset mat khau ve mail Admin. Vui long kiem tra lai he thong mail.");
+            return;
+        }
+
+        if (userDAO.updatePassword(targetUser.getEmail(), initialPassword)) {
+            session.setAttribute("accountSuccess", "Reset mat khau thanh cong. Mat khau moi cua nhan vien da duoc gui vao email cua Admin.");
+        } else {
+            session.setAttribute("accountError", "Reset mat khau that bai do loi Database.");
         }
     }
 

@@ -24,6 +24,7 @@ public class CategoryServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
@@ -35,6 +36,8 @@ public class CategoryServlet extends HttpServlet {
         String keyword = request.getParameter("keyword");
         if (keyword != null) {
             keyword = keyword.trim();
+        } else {
+            keyword = "";
         }
 
         String idRaw = request.getParameter("id");
@@ -46,41 +49,98 @@ public class CategoryServlet extends HttpServlet {
         if (idRaw != null && !idRaw.trim().isEmpty()) {
             try {
                 int categoryId = Integer.parseInt(idRaw);
-
                 selectedCategory = categoryDAO.getCategoryById(categoryId);
 
-                if (keyword != null && !keyword.isEmpty()) {
+                if (!keyword.isEmpty()) {
                     products = productDAO.getProductsByCategoryAndKeyword(categoryId, keyword, sort);
                 } else {
                     products = productDAO.getProductsByCategoryId(categoryId, sort);
                 }
+
             } catch (NumberFormatException e) {
-                if (keyword != null && !keyword.isEmpty()) {
-                    products = productDAO.getProductsByKeyword(keyword, sort);
+                selectedCategory = null;
+
+                if (!keyword.isEmpty()) {
+                    products = productDAO.searchProducts(keyword, sort);
                 } else {
                     products = productDAO.getAllProducts(sort);
                 }
             }
         } else {
-            if (keyword != null && !keyword.isEmpty()) {
-                products = productDAO.getProductsByKeyword(keyword, sort);
+            if (!keyword.isEmpty()) {
+                products = productDAO.searchProducts(keyword, sort);
             } else {
                 products = productDAO.getAllProducts(sort);
             }
         }
+        int pageSize = 12;
+
+        String pageRaw = request.getParameter("page");
+        int currentPage = 1;
+
+        try {
+            if (pageRaw != null && !pageRaw.trim().isEmpty()) {
+                currentPage = Integer.parseInt(pageRaw);
+            }
+        } catch (NumberFormatException e) {
+            currentPage = 1;
+        }
+
+        if (currentPage < 1) {
+            currentPage = 1;
+        }
+
+        int totalProducts = products == null ? 0 : products.size();
+        int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
+
+        if (totalPages == 0) {
+            totalPages = 1;
+        }
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalProducts);
+
+        List<Product> pagingProducts;
+
+        if (products == null || products.isEmpty()) {
+            pagingProducts = new java.util.ArrayList<>();
+        } else {
+            pagingProducts = products.subList(fromIndex, toIndex);
+        }
 
         request.setAttribute("categories", categories);
-        request.setAttribute("products", products);
+        request.setAttribute("products", pagingProducts);
+        request.setAttribute("totalProducts", totalProducts);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
         request.setAttribute("selectedCategory", selectedCategory);
         request.setAttribute("selectedSort", sort);
         request.setAttribute("keyword", keyword);
 
         HttpSession session = request.getSession(false);
+
         if (session != null) {
             User account = (User) session.getAttribute("account");
+
             if (account != null && account.isCustomer()) {
                 CartDAO cartDAO = new CartDAO();
-                request.setAttribute("cartItemCount", cartDAO.getCartItemCountByCustomerId(account.getCustomerId()));
+                int cartItemCount = cartDAO.getCartItemCountByCustomerId(account.getCustomerId());
+                request.setAttribute("cartItemCount", cartItemCount);
+            }
+
+            String cartMessage = (String) session.getAttribute("cartMessage");
+            String cartMessageType = (String) session.getAttribute("cartMessageType");
+
+            if (cartMessage != null) {
+                request.setAttribute("cartMessage", cartMessage);
+                request.setAttribute("cartMessageType", cartMessageType);
+
+                session.removeAttribute("cartMessage");
+                session.removeAttribute("cartMessageType");
             }
         }
 

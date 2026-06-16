@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.net.URLEncoder" %>
 <%@ page import="model.Category" %>
 <%@ page import="model.Product" %>
 <%@ page import="dal.ProductDAO" %>
@@ -26,6 +27,18 @@
     ProductDAO productDAO = (ProductDAO) request.getAttribute("productDAO");
     String keyword = (String) request.getAttribute("keyword");
     boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+    Integer totalProductsObj = (Integer) request.getAttribute("totalProducts");
+    Integer currentPageObj = (Integer) request.getAttribute("currentPage");
+    Integer totalPagesObj = (Integer) request.getAttribute("totalPages");
+    int totalProducts = totalProductsObj == null ? 0 : totalProductsObj;
+    int currentPage = currentPageObj == null ? 1 : currentPageObj;
+    int totalPages = totalPagesObj == null ? 1 : totalPagesObj;
+    int searchResultCount = totalProducts;
+    String pagingUrl = ctx + "/home?";
+    if (hasKeyword) {
+        pagingUrl += "keyword=" + URLEncoder.encode(keyword, "UTF-8") + "&";
+    }
+    pagingUrl += "page=";
 %>
 
 <!DOCTYPE html>
@@ -50,7 +63,7 @@
                     %>
                     <li>
                         <a href="<%= ctx %>/categories?id=<%= category.getCategoryId() %>">
-                            ▣ <%= category.getCategoryName() %>
+                            <%= category.getCategoryName() %>
                         </a>
                     </li>
                     <% }} %>
@@ -70,143 +83,172 @@
                             NÂNG TẦM TRẢI NGHIỆM
                         </h1>
                         <span>
-                           TRỐN NẮNG TRONG PHÒNG - 
+                            TRỐN NẮNG TRONG PHÒNG - 
                             BUILD PC ĐỈNH DÒNG
                         </span>
                         <a href="#" style="
                            padding-left: 10px;
                            padding-right: 10px;">BUILD NGAY PC <br> BẠN YÊU THÍCH</a>
-                           </div>
-                           </section>
+                    </div>
+                </section>
 
-                           <section class="service-row">
-                            <article>
-                                <span>🛡</span>
-                                <div>
-                                    <strong>Hàng chính hãng</strong>
-                                    <small>100% chính hãng</small>
-                                </div>
-                            </article>
+                <section class="service-row">
+                    <article>
+                        <span>🛡</span>
+                        <div>
+                            <strong>Hàng chính hãng</strong>
+                            <small>100% chính hãng</small>
+                        </div>
+                    </article>
 
-                            <article>
-                                <span>🔄</span>
-                                <div>
-                                    <strong>Bảo hành uy tín</strong>
-                                    <small>Bảo hành chính hãng</small>
-                                </div>
-                            </article>
+                    <article>
+                        <span>🔄</span>
+                        <div>
+                            <strong>Bảo hành uy tín</strong>
+                            <small>Bảo hành chính hãng</small>
+                        </div>
+                    </article>
 
-                            <article>
-                                <span>🚚</span>
-                                <div>
-                                    <strong>Giao hàng toàn Thạch Thất</strong>
-                                    <small>Miễn phí đơn từ 1 triệu</small>
-                                </div>
-                            </article>
+                    <article>
+                        <span>🚚</span>
+                        <div>
+                            <strong>Giao hàng toàn Thạch Thất</strong>
+                            <small>Miễn phí đơn từ 1 triệu</small>
+                        </div>
+                    </article>
 
-                            <article>
-                                <span>🎧</span>
-                                <div>
-                                    <strong>Hỗ trợ 24/7</strong>
-                                    <small>Tư vấn tận tâm</small>
-                                </div>
-                            </article>
-                            </section>
+                    <article>
+                        <span>🎧</span>
+                        <div>
+                            <strong>Hỗ trợ 24/7</strong>
+                            <small>Tư vấn tận tâm</small>
+                        </div>
+                    </article>
+                </section>
 
-                            <section class="filter-row">
-                                <form class="filters" action="<%= ctx %>/categories" method="get">
-                                    <label>
-                                        Danh mục:
-                                        <select name="id">
-                                            <option value="">Tất cả</option>
-                                            <% if (categories != null) {
-                                                for (Category category : categories) {
-                                            %>
-                                            <option value="<%= category.getCategoryId() %>">
-                                                <%= category.getCategoryName() %>
-                                            </option>
-                                            <% }} %>
-                                        </select>
-                                    </label>
-                                    <button class="home-filter-btn" type="submit">Lọc</button>
-                                </form>
-
-                                <form class="sort-box" action="<%= ctx %>/categories" method="get">
-                                    <label>
-                                        Sắp xếp:
-                                        <select name="sort">
-                                            <option value="newest">Mới nhất</option>
-                                            <option value="price_asc">Giá tăng dần</option>
-                                            <option value="price_desc">Giá giảm dần</option>
-                                        </select>
-                                    </label>
-                                    <button class="home-filter-btn" type="submit">Áp dụng</button>
-                                </form>
-                            </section>
-
-                            <% if (hasKeyword) { %>
-                            <div class="home-search-result">
-                                <h2>Kết quả tìm kiếm cho "<%= h(keyword) %>"</h2>
-                                <a href="<%= ctx %>/home">Xem tất cả sản phẩm</a>
-                            </div>
-                            <% } %>
-
-                            <section class="product-grid">
-                                <% if (products != null && !products.isEmpty()) {
-                                    for (Product product : products) {
-                                        double rating = productDAO == null ? 0 : productDAO.getAverageRating(product.getProductId());
-                                        int fullStars = (int) rating;
+                <section class="filter-row">
+                    <form class="filters" action="<%= ctx %>/categories" method="get">
+                        <label>
+                            Danh mục:
+                            <select name="id">
+                                <option value="">Tất cả</option>
+                                <% if (categories != null) {
+                                    for (Category category : categories) {
                                 %>
-                                <article class="product-card">
-                                    <figure>
-                                        <img src="<%= ctx %>/<%= product.getImageUrl() %>"
-                                             alt="<%= product.getProductName() %>">
-                                    </figure>
+                                <option value="<%= category.getCategoryId() %>">
+                                    <%= category.getCategoryName() %>
+                                </option>
+                                <% }} %>
+                            </select>
+                        </label>
+                        <button class="home-filter-btn" type="submit">Lọc</button>
+                    </form>
 
-                                    <h3><%= product.getProductName() %></h3>
+                    <form class="sort-box" action="<%= ctx %>/categories" method="get">
+                        <label>
+                            Sắp xếp:
+                            <select name="sort">
+                                <option value="newest">Mới nhất</option>
+                                <option value="price_asc">Giá tăng dần</option>
+                                <option value="price_desc">Giá giảm dần</option>
+                            </select>
+                        </label>
+                        <button class="home-filter-btn" type="submit">Áp dụng</button>
+                    </form>
+                </section>
 
-                                    <strong>
-                                        <%= String.format("%,d", product.getPrice().longValue()) %>đ
-                                    </strong>
+                <% if (hasKeyword) { %>
+                <div class="home-search-result">
+                    <div>
+                        <h2>Kết quả tìm kiếm cho "<%= h(keyword) %>"</h2>
+                        <p>Tìm thấy <%= searchResultCount %> sản phẩm</p>
+                    </div>
+                    <a href="<%= ctx %>/home">Xem tất cả sản phẩm</a>
+                </div>
+                <% } %>
 
-                                    <div class="product-rating">
-                                        <% for (int i = 1; i <= 5; i++) { %>
-                                        <%= i <= fullStars ? "★" : "☆" %>
-                                        <% } %>
-                                        <span><%= String.format("%.1f", rating) %></span>
-                                    </div>
+                <section class="product-grid">
+                    <% if (products != null && !products.isEmpty()) {
+                        for (Product product : products) {
+                            double rating = productDAO == null ? 0 : productDAO.getAverageRating(product.getProductId());
+                            int fullStars = (int) rating;
+                    %>
+                    <article class="product-card">
+                        <figure>
+                            <img src="<%= ctx %>/<%= product.getImageUrl() %>"
+                                 alt="<%= product.getProductName() %>">
+                        </figure>
 
-                                    <div class="product-actions">
-                                        <a class="detail-btn" href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
-                                            Xem chi tiết
-                                        </a>
+                        <h3><%= product.getProductName() %></h3>
 
-                                        <form class="cart-form" action="<%= ctx %>/cart" method="post">
-                                            <input type="hidden" name="action" value="addToCart">
-                                            <input type="hidden" name="productId" value="<%= product.getProductId() %>">
-                                            <input type="hidden" name="quantity" value="1">
-                                            <button class="cart-btn" type="submit" data-add-to-cart-btn data-product-name="<%= h(product.getProductName()) %>" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
-                                                🛒
-                                            </button>
-                                        </form>
-                                    </div>
-                                </article>
-                                <% }} else { %>
-                                <p class="home-empty-message">
-                                    <%= hasKeyword ? "Không tìm thấy sản phẩm phù hợp." : "Không có sản phẩm nào để hiển thị." %>
-                                </p>
-                                <% } %>
-                            </section>
-                            </section>
-                            </main>
+                        <strong>
+                            <%= String.format("%,d", product.getPrice().longValue()) %>đ
+                        </strong>
 
-                            <div class="home-toast" data-home-toast hidden>
-                                <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
-                                <div class="home-toast-message" data-home-toast-message></div>
-                            </div>
+                        <div class="product-rating">
+                            <% for (int i = 1; i <= 5; i++) { %>
+                            <%= i <= fullStars ? "★" : "☆" %>
+                            <% } %>
+                            <span><%= String.format("%.1f", rating) %></span>
+                        </div>
 
-                            <jsp:include page="/includes/footer.jsp" />
+                        <p class="product-stock <%= product.getQuantity() > 0 ? "in-stock" : "out-of-stock" %>">
+                            <% if (product.getQuantity() > 0) { %>
+                            Còn hàng: <%= product.getQuantity() %>
+                            <% } else { %>
+                            Hết hàng
+                            <% } %>
+                        </p>
 
-                            <script src="<%= ctx %>/js/cart.js"></script>
-                            </body>
-                            </html>
+                        <div class="product-actions">
+                            <a class="detail-btn" href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
+                                Xem chi tiết
+                            </a>
+
+                            <form class="cart-form" action="<%= ctx %>/cart" method="post">
+                                <input type="hidden" name="action" value="addToCart">
+                                <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                                <input type="hidden" name="quantity" value="1">
+                                <button class="cart-btn" type="submit" data-add-to-cart-btn data-product-name="<%= h(product.getProductName()) %>" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
+                                    🛒
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                    <% }} else { %>
+                    <p class="home-empty-message">
+                        <%= hasKeyword ? "Không tìm thấy sản phẩm phù hợp." : "Không có sản phẩm nào để hiển thị." %>
+                    </p>
+                    <% } %>
+                </section>
+
+                <% if (totalPages > 1) { %>
+                <div class="home-pagination">
+                    <% if (currentPage > 1) { %>
+                    <a href="<%= pagingUrl + (currentPage - 1) %>">Trước</a>
+                    <% } %>
+
+                    <% for (int i = 1; i <= totalPages; i++) { %>
+                    <a class="<%= currentPage == i ? "active" : "" %>" href="<%= pagingUrl + i %>">
+                        <%= i %>
+                    </a>
+                    <% } %>
+
+                    <% if (currentPage < totalPages) { %>
+                    <a href="<%= pagingUrl + (currentPage + 1) %>">Sau</a>
+                    <% } %>
+                </div>
+                <% } %>
+            </section>
+        </main>
+
+        <div class="home-toast" data-home-toast hidden>
+            <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
+            <div class="home-toast-message" data-home-toast-message></div>
+        </div>
+
+        <jsp:include page="/includes/footer.jsp" />
+
+        <script src="<%= ctx %>/js/cart.js"></script>
+    </body>
+</html>

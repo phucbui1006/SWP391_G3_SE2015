@@ -35,10 +35,48 @@ public class HomeServlet extends HttpServlet {
                 ? productDAO.getAllProducts("newest")
                 : productDAO.searchProducts(normalizedKeyword, "newest");
 
-        System.out.println("HOME PRODUCTS SIZE = " + products.size());
+        int pageSize = 12;
+        String pageRaw = request.getParameter("page");
+        int currentPage = 1;
+
+        try {
+            if (pageRaw != null && !pageRaw.trim().isEmpty()) {
+                currentPage = Integer.parseInt(pageRaw);
+            }
+        } catch (NumberFormatException e) {
+            currentPage = 1;
+        }
+
+        if (currentPage < 1) {
+            currentPage = 1;
+        }
+
+        int totalProducts = products == null ? 0 : products.size();
+        int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
+
+        if (totalPages == 0) {
+            totalPages = 1;
+        }
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalProducts);
+        List<Product> pagingProducts;
+
+        if (products == null || products.isEmpty()) {
+            pagingProducts = new java.util.ArrayList<>();
+        } else {
+            pagingProducts = products.subList(fromIndex, toIndex);
+        }
 
         request.setAttribute("categories", categories);
-        request.setAttribute("products", products);
+        request.setAttribute("products", pagingProducts);
+        request.setAttribute("totalProducts", totalProducts);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
         request.setAttribute("productDAO", productDAO);
         request.setAttribute("keyword", normalizedKeyword);
 

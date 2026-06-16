@@ -88,10 +88,10 @@
         </script>
 
     </body>
-</html>lassList.add("fa-eye");
-                }
-            }
-        </script>
+</html>
+}
+}
+</script>
 
-    </body>
+</body>
 </html>

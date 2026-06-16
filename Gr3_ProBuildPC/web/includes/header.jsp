@@ -21,10 +21,14 @@
 
     String roleName = "";
     String fullName = "";
-    String placeholder = "Tìm kiếm...";
-    String searchAction = "#";
-    String searchKeyword = request.getParameter("keyword");
     String ctx = request.getContextPath();
+    String placeholder = "Tìm kiếm linh kiện...";
+    String searchAction = ctx + "/categories";
+    String searchKeyword = request.getParameter("keyword");
+
+    if (searchKeyword == null) {
+    searchKeyword = "";
+    }
     Object forwardServletPath = request.getAttribute("jakarta.servlet.forward.servlet_path");
     if (forwardServletPath == null) {
         forwardServletPath = request.getAttribute("javax.servlet.forward.servlet_path");
@@ -67,7 +71,7 @@
     } else {
         roleName = "CUSTOMER";
         placeholder = "Tìm kiếm linh kiện...";
-        searchAction = ctx + "/home";
+        searchAction = ctx + "/categories";
     }
 
     Integer cartItemCount = (Integer) request.getAttribute("cartItemCount");
@@ -129,7 +133,7 @@
             <div class="menu-dropdown-list">
                 <a href="#">Quản lý sản phẩm</a>
                 <a href="<%= ctx %>/AdminBrands">Quản lý thương hiệu</a>
-                <a href="#">Quản lý các loại sản phẩm</a>
+                <a href="<%= ctx %>/admin/categories">Quản lý các loại sản phẩm</a>
             </div>
         </div>
         <span class="menu-divider"></span>

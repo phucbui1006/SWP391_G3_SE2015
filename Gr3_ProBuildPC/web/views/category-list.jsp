@@ -190,21 +190,11 @@
                         <% } %>
 
                         <%
-                            int showPages = Math.min(totalPages, 5);
-                            for (int i = 1; i <= showPages; i++) {
+                            for (int i = 1; i <= totalPages; i++) {
                         %>
                         <a class="page-btn <%= currentPage == i ? "active" : "" %>"
                            href="<%= contextPath %>/admin/categories?page=<%= i %>&keyword=<%= keyword %>&sort=<%= sort %>">
                             <%= i %>
-                        </a>
-                        <% } %>
-
-                        <% if (totalPages > 6) { %>
-                        <span class="page-dots">...</span>
-
-                        <a class="page-btn <%= currentPage == totalPages ? "active" : "" %>"
-                           href="<%= contextPath %>/admin/categories?page=<%= totalPages %>&keyword=<%= keyword %>&sort=<%= sort %>">
-                            <%= totalPages %>
                         </a>
                         <% } %>
 

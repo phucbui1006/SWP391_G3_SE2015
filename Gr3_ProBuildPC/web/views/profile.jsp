@@ -32,7 +32,18 @@
     </head>
     <body class="profile-body">
         <div class="home-navigation">
-            <a style="color: black" href="<%= homeTarget %>" class="home-link">Home</a>
+            <%
+
+                String homeUrl = request.getContextPath() + "/home";
+
+                if (account != null
+                        && account.getAccountType() != null
+                        && !"CUSTOMER".equalsIgnoreCase(account.getAccountType())) {
+                    homeUrl = request.getContextPath() + "/Dashboard";
+                }
+            %>
+
+            <a style="color: black" href="<%= homeUrl %>" class="home-link">Home</a>
         </div>
 
         <div class="profile-container">

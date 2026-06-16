@@ -24,9 +24,23 @@ public class ProductDetailServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
+
+        int selectedRating = 0;
+
+        String ratingRaw = request.getParameter("rating");
+        if (ratingRaw != null && !ratingRaw.trim().isEmpty()) {
+            try {
+                selectedRating = Integer.parseInt(ratingRaw);
+            } catch (NumberFormatException e) {
+                selectedRating = 0;
+            }
+        }
+
+        if (selectedRating < 0 || selectedRating > 5) {
+            selectedRating = 0;
+        }
 
         String idRaw = request.getParameter("id");
 
@@ -45,19 +59,36 @@ public class ProductDetailServlet extends HttpServlet {
                 return;
             }
 
-            List<Review> reviews = reviewDAO.getReviewsByProductId(productId);
+            List<Review> allReviews = reviewDAO.getReviewsByProductId(productId);
+            List<Review> reviews;
+
+            if (selectedRating == 0) {
+                reviews = allReviews;
+            } else {
+                reviews = reviewDAO.getReviewsByProductIdAndRating(productId, selectedRating);
+            }
+
+            request.setAttribute("selectedRating", selectedRating);
             double avgRating = productDAO.getAverageRating(productId);
+
+            List<Product> similarProducts = productDAO.getSimilarProducts(productId);
 
             request.setAttribute("product", product);
             request.setAttribute("reviews", reviews);
+            request.setAttribute("allReviews", allReviews);
             request.setAttribute("avgRating", avgRating);
+            request.setAttribute("similarProducts", similarProducts);
 
             HttpSession session = request.getSession(false);
             if (session != null) {
                 User account = (User) session.getAttribute("account");
+
                 if (account != null && account.isCustomer()) {
                     CartDAO cartDAO = new CartDAO();
-                    request.setAttribute("cartItemCount", cartDAO.getCartItemCountByCustomerId(account.getCustomerId()));
+                    request.setAttribute(
+                            "cartItemCount",
+                            cartDAO.getCartItemCountByCustomerId(account.getCustomerId())
+                    );
                 }
             }
 

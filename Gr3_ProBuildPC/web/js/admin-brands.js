@@ -7,12 +7,12 @@ document.addEventListener("DOMContentLoaded", function() {
         if (nameInput) {
             nameInput.addEventListener('blur', () => {
                 const isValid = Validator.validateBrandName(nameInput.value);
-                Validator.showFeedback(nameInput, isValid, 'Tên thương hiệu phải từ 2 đến 50 ký tự.');
+                Validator.showFeedback(nameInput, isValid, 'Tên thương hiệu phải từ 2 đến 20 ký tự.');
             });
             nameInput.addEventListener('input', () => {
                 if (nameInput.classList.contains('is-invalid')) {
                     const isValid = Validator.validateBrandName(nameInput.value);
-                    Validator.showFeedback(nameInput, isValid, 'Tên thương hiệu phải từ 2 đến 50 ký tự.');
+                    Validator.showFeedback(nameInput, isValid, 'Tên thương hiệu phải từ 2 đến 20 ký tự.');
                 }
             });
         }
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (nameInput) {
                 const isNameValid = Validator.validateBrandName(nameInput.value);
-                Validator.showFeedback(nameInput, isNameValid, 'Tên thương hiệu phải từ 2 đến 50 ký tự.');
+                Validator.showFeedback(nameInput, isNameValid, 'Tên thương hiệu phải từ 2 đến 20 ký tự.');
                 if (!isNameValid) isFormValid = false;
             }
 

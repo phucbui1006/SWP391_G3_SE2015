@@ -44,7 +44,7 @@ public class EmailService {
 
             String content =  otp;
 
-            message.setText(content, "UTF-8");
+            message.setContent(content, "text/plain; charset=UTF-8");
 
             Transport.send(message);
 
@@ -94,7 +94,7 @@ public class EmailService {
                            + "Lưu ý: Bạn sẽ được yêu cầu đổi mật khẩu ngay trong lần đăng nhập đầu tiên.\n\n"
                            + "Trân trọng,\nBan Quản Trị ProBuild PC";
 
-            message.setText(content, "UTF-8");
+            message.setContent(content, "text/plain; charset=UTF-8");
 
             Transport.send(message);
 
@@ -144,7 +144,7 @@ public class EmailService {
                            + "Lưu ý: Vì lý do bảo mật, bạn sẽ được yêu cầu đổi mật khẩu mới trong lần đăng nhập tiếp theo.\n\n"
                            + "Trân trọng,\nBan Quản Trị ProBuild PC";
 
-            message.setText(content, "UTF-8");
+            message.setContent(content, "text/plain; charset=UTF-8");
 
             Transport.send(message);
 
@@ -194,7 +194,7 @@ public class EmailService {
                            + "Vui lòng cung cấp mật khẩu này cho nhân viên để họ có thể đăng nhập và đổi mật khẩu mới.\n\n"
                            + "Trân trọng,\nHệ thống ProBuild PC";
 
-            message.setText(content, "UTF-8");
+            message.setContent(content, "text/plain; charset=UTF-8");
 
             Transport.send(message);
 

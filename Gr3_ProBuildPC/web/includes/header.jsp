@@ -60,7 +60,7 @@
                 searchAction = ctx + "/order-history";
             } else {
                 placeholder = "Tìm kiếm linh kiện...";
-                searchAction = ctx + "/categories";
+                searchAction = ctx + "/home";
             }
         } else if ("EMPLOYEE".equals(roleName)) {
             placeholder = "Tìm kiếm yêu cầu bảo hành...";

@@ -50,7 +50,7 @@
             return;
         }
 
-        const productCard = form.closest('.product-card');
+        const productCard = form.closest('.product-card, .category-product-card');
         const productImage = productCard ? productCard.querySelector('figure img') : null;
 
         if (!productImage) {

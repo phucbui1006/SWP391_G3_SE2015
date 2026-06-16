@@ -340,7 +340,7 @@
                                 <% if (p.getQuantity()> 0) { %>
                                 <form action="<%= ctx %>/cart"
                                       method="post"
-                                      class="add-cart-form">
+                                      class="cart-form">
                                     <input type="hidden"
                                            name="action"
                                            value="addToCart">
@@ -350,12 +350,10 @@
                                     <input type="hidden"
                                            name="quantity"
                                            value="1">
-                                    <input type="hidden"
-                                           name="redirect"
-                                           value="<%= currentUrl %>">
 
                                     <button type="submit"
                                             class="add-to-cart-btn"
+                                            data-add-to-cart-btn
                                             title="Thêm vào giỏ hàng">
                                         🛒
                                     </button>
@@ -414,8 +412,14 @@
 
         </main>
 
+        <div class="home-toast" data-home-toast hidden>
+            <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
+            <div class="home-toast-message" data-home-toast-message></div>
+        </div>
+
         <jsp:include page="/includes/footer.jsp" />
 
+        <script src="<%= ctx %>/js/cart.js"></script>
     </body>
 
 </html>

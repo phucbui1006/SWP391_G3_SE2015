@@ -232,9 +232,11 @@
                 <select id="newStaffRole" name="roleId" required>
                     <% if (roles != null) { %>
                         <% for (Role role : roles) { %>
-                            <option value="<%= role.getRoleId() %>">
-                                <%= h(roleLabel(role.getRoleName())) %>
-                            </option>
+                            <% if (role.getRoleId() != 1 && !"ADMIN".equalsIgnoreCase(role.getRoleName())) { %>
+                                <option value="<%= role.getRoleId() %>">
+                                    <%= h(roleLabel(role.getRoleName())) %>
+                                </option>
+                            <% } %>
                         <% } %>
                     <% } %>
                 </select>
@@ -334,10 +336,12 @@
 
                                             <% if (roles != null) { %>
                                                 <% for (Role role : roles) { %>
-                                                    <option value="<%= role.getRoleId() %>"
-                                                        <%= user.getRoleId() == role.getRoleId() ? "selected" : "" %>>
-                                                        <%= h(roleLabel(role.getRoleName())) %>
-                                                    </option>
+                                                    <% if (role.getRoleId() != 1 && !"ADMIN".equalsIgnoreCase(role.getRoleName())) { %>
+                                                        <option value="<%= role.getRoleId() %>"
+                                                            <%= user.getRoleId() == role.getRoleId() ? "selected" : "" %>>
+                                                            <%= h(roleLabel(role.getRoleName())) %>
+                                                        </option>
+                                                    <% } %>
                                                 <% } %>
                                             <% } %>
 

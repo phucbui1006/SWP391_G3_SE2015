@@ -138,6 +138,11 @@ public class AccountManagementServlet extends HttpServlet {
             return;
         }
 
+        if (roleId == 1) {
+            session.setAttribute("accountError", "Khong the tao tai khoan Admin moi.");
+            return;
+        }
+
         if (userDAO.checkEmailExist(email)) {
             session.setAttribute("accountError", "Email nay da ton tai trong he thong.");
             return;
@@ -213,6 +218,11 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
     // BỔ SUNG ĐIỀU KIỆN: Chặn không cho phép đổi vai trò nhân viên thành Customer (-1)
     if (roleId == null || roleId == -1) {
         session.setAttribute("accountError", "Vai tro cap nhat khong hop le.");
+        return;
+    }
+
+    if (roleId == 1) {
+        session.setAttribute("accountError", "Khong the thay doi vai tro thanh Admin.");
         return;
     }
 

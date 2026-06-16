@@ -122,10 +122,9 @@ public class AccountManagementServlet extends HttpServlet {
     private void createStaff(HttpServletRequest request, HttpSession session) {
         String fullName = normalizeText(request.getParameter("fullName"));
         String email = normalizeText(request.getParameter("email"));
-        String password = normalizeText(request.getParameter("password"));
         Integer roleId = parseId(request.getParameter("roleId"));
 
-        if (fullName == null || email == null || password == null || roleId == null) {
+        if (fullName == null || email == null || roleId == null) {
             session.setAttribute("accountError", "Vui long nhap day du thong tin nhan vien.");
             return;
         }
@@ -135,16 +134,28 @@ public class AccountManagementServlet extends HttpServlet {
             return;
         }
 
+        // Generate random 8-character password
+        String randomPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
+
         // Add prefix to force password change on first login only for Employee (2) and Shipment (3)
-        String initialPassword = password;
+        String initialPassword = randomPassword;
         if (roleId == 2 || roleId == 3) {
-            initialPassword = "!FIRST!" + password;
+            initialPassword = "!FIRST!" + randomPassword;
+        }
+
+        // Send email first to verify email exists (if SMTP fails, we don't create account)
+        // Note: This relies on SMTP throwing an error if email is malformed or rejected synchronously.
+        boolean emailSent = util.EmailService.sendStaffWelcomeEmail(email, randomPassword);
+        
+        if (!emailSent) {
+            session.setAttribute("accountError", "Không thể gửi email đến địa chỉ này. Vui lòng kiểm tra lại email!");
+            return;
         }
 
         if (userDAO.createStaff(fullName, email, initialPassword, roleId)) {
-            session.setAttribute("accountSuccess", "Tao tai khoan nhan vien thanh cong.");
+            session.setAttribute("accountSuccess", "Tao tai khoan nhan vien thanh cong. Mat khau da duoc gui vao email.");
         } else {
-            session.setAttribute("accountError", "Khong the tao tai khoan nhan vien.");
+            session.setAttribute("accountError", "Khong the tao tai khoan nhan vien (Loi Database).");
         }
     }
 

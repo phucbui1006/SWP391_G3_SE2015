@@ -228,16 +228,6 @@
             </div>
 
             <div class="account-v2-field">
-                <label for="newStaffPassword">Mật khẩu</label>
-                <input id="newStaffPassword"
-                       type="password"
-                       name="password"
-                       placeholder="8-31 ký tự, có hoa, thường và số"
-                       autocomplete="new-password"
-                       required>
-            </div>
-
-            <div class="account-v2-field">
                 <label for="newStaffRole">Vai trò</label>
                 <select id="newStaffRole" name="roleId" required>
                     <% if (roles != null) { %>
@@ -469,11 +459,6 @@
                         selector: '#newStaffEmail',
                         validateFn: (val) => Validator.validateEmail(val),
                         getErrorMsg: () => 'Định dạng email không hợp lệ (tối đa 100 ký tự).'
-                    },
-                    {
-                        selector: '#newStaffPassword',
-                        validateFn: (val) => Validator.validatePassword(val),
-                        getErrorMsg: () => 'Mật khẩu 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.'
                     }
                 ]);
             });
@@ -481,7 +466,6 @@
             function validateCreateStaffForm() {
                 const nameInput = document.getElementById("newStaffName");
                 const emailInput = document.getElementById("newStaffEmail");
-                const passwordInput = document.getElementById("newStaffPassword");
 
                 const isNameValid = Validator.validateName(nameInput.value);
                 Validator.showFeedback(nameInput, isNameValid, 'Họ và tên từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.');
@@ -489,10 +473,7 @@
                 const isEmailValid = Validator.validateEmail(emailInput.value);
                 Validator.showFeedback(emailInput, isEmailValid, 'Định dạng email không hợp lệ (tối đa 100 ký tự).');
 
-                const isPasswordValid = Validator.validatePassword(passwordInput.value);
-                Validator.showFeedback(passwordInput, isPasswordValid, 'Mật khẩu 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
-
-                return isNameValid && isEmailValid && isPasswordValid;
+                return isNameValid && isEmailValid;
             }
         </script>
     </body>

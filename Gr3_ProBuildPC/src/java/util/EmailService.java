@@ -42,9 +42,14 @@ public class EmailService {
 
             message.setSubject("Mã xác nhận đặt lại mật khẩu - ProBuild PC", "UTF-8");
 
-            String content =  otp;
+            String content = "<html><body style='font-family: Arial, sans-serif;'>"
+                           + "<p>Chào bạn,</p>"
+                           + "<p>Mã OTP để xác nhận đặt lại mật khẩu của bạn là: <b>" + otp + "</b></p>"
+                           + "<p>Vui lòng không chia sẻ mã này với bất kỳ ai.</p>"
+                           + "<p>Trân trọng,<br>Ban Quản Trị ProBuild PC</p>"
+                           + "</body></html>";
 
-            message.setContent(content, "text/plain; charset=UTF-8");
+            message.setContent(content, "text/html; charset=UTF-8");
 
             Transport.send(message);
 
@@ -86,15 +91,19 @@ public class EmailService {
 
             message.setSubject("Tài khoản nhân viên - ProBuild PC", "UTF-8");
 
-            String content = "Chào bạn,\n\n"
-                           + "Tài khoản nhân viên của bạn đã được tạo thành công trên hệ thống ProBuild PC.\n\n"
-                           + "Thông tin đăng nhập:\n"
-                           + "- Email: " + toEmail + "\n"
-                           + "- Mật khẩu tạm thời: " + password + "\n\n"
-                           + "Lưu ý: Bạn sẽ được yêu cầu đổi mật khẩu ngay trong lần đăng nhập đầu tiên.\n\n"
-                           + "Trân trọng,\nBan Quản Trị ProBuild PC";
+            String content = "<html><body style='font-family: Arial, sans-serif;'>"
+                           + "<p>Chào bạn,</p>"
+                           + "<p>Tài khoản nhân viên của bạn đã được tạo thành công trên hệ thống ProBuild PC.</p>"
+                           + "<p>Thông tin đăng nhập:</p>"
+                           + "<ul>"
+                           + "<li>Email: <b>" + toEmail + "</b></li>"
+                           + "<li>Mật khẩu tạm thời: <b>" + password + "</b></li>"
+                           + "</ul>"
+                           + "<p><i>Lưu ý: Bạn sẽ được yêu cầu đổi mật khẩu ngay trong lần đăng nhập đầu tiên.</i></p>"
+                           + "<p>Trân trọng,<br>Ban Quản Trị ProBuild PC</p>"
+                           + "</body></html>";
 
-            message.setContent(content, "text/plain; charset=UTF-8");
+            message.setContent(content, "text/html; charset=UTF-8");
 
             Transport.send(message);
 
@@ -186,15 +195,19 @@ public class EmailService {
 
             message.setSubject("Mật khẩu nhân viên đã được đặt lại - ProBuild PC", "UTF-8");
 
-            String content = "Chào Admin,\n\n"
-                           + "Bạn vừa thực hiện đặt lại mật khẩu cho một tài khoản nhân viên.\n\n"
-                           + "Thông tin tài khoản:\n"
-                           + "- Email nhân viên: " + staffEmail + "\n"
-                           + "- Mật khẩu mới: " + password + "\n\n"
-                           + "Vui lòng cung cấp mật khẩu này cho nhân viên để họ có thể đăng nhập và đổi mật khẩu mới.\n\n"
-                           + "Trân trọng,\nHệ thống ProBuild PC";
+            String content = "<html><body style='font-family: Arial, sans-serif;'>"
+                           + "<p>Chào Admin,</p>"
+                           + "<p>Bạn vừa thực hiện đặt lại mật khẩu cho một tài khoản nhân viên.</p>"
+                           + "<p>Thông tin tài khoản:</p>"
+                           + "<ul>"
+                           + "<li>Email nhân viên: <b>" + staffEmail + "</b></li>"
+                           + "<li>Mật khẩu mới: <b>" + password + "</b></li>"
+                           + "</ul>"
+                           + "<p>Vui lòng cung cấp mật khẩu này cho nhân viên để họ có thể đăng nhập và đổi mật khẩu mới.</p>"
+                           + "<p>Trân trọng,<br>Hệ thống ProBuild PC</p>"
+                           + "</body></html>";
 
-            message.setContent(content, "text/plain; charset=UTF-8");
+            message.setContent(content, "text/html; charset=UTF-8");
 
             Transport.send(message);
 

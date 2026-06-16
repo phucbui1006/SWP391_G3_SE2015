@@ -91,6 +91,7 @@ public class CategoryServlet extends HttpServlet {
         }
 
         int totalProducts = products == null ? 0 : products.size();
+        
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
 
         if (totalPages == 0) {

@@ -65,13 +65,22 @@
     int pct3 = totalAllReviews == 0 ? 0 : (count3 * 100) / totalAllReviews;
     int pct2 = totalAllReviews == 0 ? 0 : (count2 * 100) / totalAllReviews;
     int pct1 = totalAllReviews == 0 ? 0 : (count1 * 100) / totalAllReviews;
-
     String cartMessage = (String) request.getAttribute("cartMessage");
     String cartMessageType = (String) request.getAttribute("cartMessageType");
 
-    if (cartMessageType == null) {
-        cartMessageType = "success";
-    }
+   if (cartMessage == null) {
+    cartMessage = (String) session.getAttribute("cartMessage");
+    session.removeAttribute("cartMessage");
+  }
+
+  if (cartMessageType == null) {
+    cartMessageType = (String) session.getAttribute("cartMessageType");
+    session.removeAttribute("cartMessageType");
+  }
+
+ if (cartMessageType == null) {
+    cartMessageType = "success";
+ }
 %>
 
 <!DOCTYPE html>

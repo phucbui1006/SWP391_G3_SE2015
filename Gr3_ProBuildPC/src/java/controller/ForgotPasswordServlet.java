@@ -31,6 +31,13 @@ public class ForgotPasswordServlet extends HttpServlet {
 
         email = email.trim();
 
+        UserDAO userDAO = new UserDAO();
+        if (!userDAO.checkEmailExist(email)) {
+            request.setAttribute("error", "Email không tồn tại trong hệ thống!");
+            request.getRequestDispatcher("/views/forget-password.jsp").forward(request, response);
+            return;
+        }
+
         String otp = String.format("%06d", new Random().nextInt(1000000));
 
         HttpSession session = request.getSession();

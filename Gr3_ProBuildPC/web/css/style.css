@@ -3311,11 +3311,11 @@ body.home-page .product-actions .cart-btn.is-added {
     background: #f0fdf4;
 }
 
-body.home-page .cart-icon.is-bumping {
+.cart-icon.is-bumping {
     animation: home-cart-bump 0.46s ease;
 }
 
-body.home-page .home-cart-flight {
+.home-cart-flight {
     position: fixed;
     z-index: 1400;
     object-fit: cover;
@@ -3325,7 +3325,7 @@ body.home-page .home-cart-flight {
     transform-origin: center center;
 }
 
-body.home-page .home-cart-flight.is-flying {
+.home-cart-flight.is-flying {
     animation: home-cart-fly 0.9s cubic-bezier(0.22, 0.8, 0.2, 1) forwards;
 }
 
@@ -5462,7 +5462,7 @@ body.cart-page .checkout-btn:disabled:hover {
     }
 }
 
-body.home-page .home-toast {
+.home-toast {
     width: min(360px, calc(100vw - 32px));
     position: fixed;
     right: 24px;
@@ -5483,41 +5483,41 @@ body.home-page .home-toast {
     pointer-events: none;
 }
 
-body.home-page .home-toast.is-visible {
+.home-toast.is-visible {
     transform: translate3d(0, 0, 0);
     opacity: 1;
 }
 
-body.home-page .home-toast.is-success {
+.home-toast.is-success {
     border-color: #cde8d3;
 }
 
-body.home-page .home-toast.is-success .home-toast-icon {
+.home-toast.is-success .home-toast-icon {
     color: #16a34a;
 }
 
-body.home-page .home-toast.is-error {
+.home-toast.is-error {
     border-color: #f2c4c4;
 }
 
-body.home-page .home-toast.is-error .home-toast-icon {
+.home-toast.is-error .home-toast-icon {
     color: #ef4444;
 }
 
-body.home-page .home-toast-icon {
+.home-toast-icon {
     font-size: 18px;
     flex-shrink: 0;
     font-weight: 900;
 }
 
-body.home-page .home-toast-message {
+.home-toast-message {
     font-size: 14px;
     font-weight: 600;
     line-height: 1.4;
 }
 
 @media (max-width: 700px) {
-    body.home-page .home-toast {
+    .home-toast {
         right: 12px;
         bottom: 12px;
         width: calc(100vw - 24px);

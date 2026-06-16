@@ -89,7 +89,7 @@ public class AdminCategoryServlet extends HttpServlet {
         request.setAttribute("startItem", startItem);
         request.setAttribute("endItem", endItem);
 
-        request.getRequestDispatcher("/views/category-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/category-management.jsp").forward(request, response);
     }
 
     @Override

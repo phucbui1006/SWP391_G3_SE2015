@@ -65,13 +65,22 @@
     int pct3 = totalAllReviews == 0 ? 0 : (count3 * 100) / totalAllReviews;
     int pct2 = totalAllReviews == 0 ? 0 : (count2 * 100) / totalAllReviews;
     int pct1 = totalAllReviews == 0 ? 0 : (count1 * 100) / totalAllReviews;
-
     String cartMessage = (String) request.getAttribute("cartMessage");
     String cartMessageType = (String) request.getAttribute("cartMessageType");
 
-    if (cartMessageType == null) {
-        cartMessageType = "success";
-    }
+   if (cartMessage == null) {
+    cartMessage = (String) session.getAttribute("cartMessage");
+    session.removeAttribute("cartMessage");
+  }
+
+  if (cartMessageType == null) {
+    cartMessageType = (String) session.getAttribute("cartMessageType");
+    session.removeAttribute("cartMessageType");
+  }
+
+ if (cartMessageType == null) {
+    cartMessageType = "success";
+ }
 %>
 
 <!DOCTYPE html>
@@ -179,8 +188,11 @@
                                        type="number"
                                        name="quantity"
                                        value="1"
+                                       inputmode="numeric"
                                        min="1"
+                                       step="1"
                                        max="<%= maxQuantity %>"
+                                       data-max-quantity="<%= maxQuantity %>"
                                        <%= product.getQuantity() > 0 ? "" : "disabled" %>>
                             </div>
 
@@ -452,6 +464,77 @@
 
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
+            function showQuantityError(message) {
+                Swal.fire({
+                    title: 'Số lượng không hợp lệ!',
+                    text: message,
+                    icon: 'warning',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'bottom-end'
+                });
+            }
+
+            function isTypingNumberKey(event) {
+                return event.key.length === 1 && /^\d$/.test(event.key);
+            }
+
+            function isControlKey(event) {
+                return event.ctrlKey || event.metaKey || [
+                    'Backspace',
+                    'Delete',
+                    'Tab',
+                    'Enter',
+                    'Escape',
+                    'ArrowLeft',
+                    'ArrowRight',
+                    'ArrowUp',
+                    'ArrowDown',
+                    'Home',
+                    'End'
+                ].indexOf(event.key) !== -1;
+            }
+
+            function validateQuantity(form, showError) {
+                var quantityInput = form.querySelector('input[name="quantity"]');
+
+                if (!quantityInput) {
+                    return true;
+                }
+
+                var maxQuantity = parseInt(quantityInput.dataset.maxQuantity || quantityInput.max || '1', 10);
+                var quantityText = quantityInput.value.trim();
+
+                if (quantityText === '' || !/^\d+$/.test(quantityText)) {
+                    if (showError) {
+                        showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+                    }
+                    quantityInput.focus();
+                    return false;
+                }
+
+                var quantity = parseInt(quantityText, 10);
+
+                if (quantity < 1) {
+                    if (showError) {
+                        showQuantityError('Số lượng phải lớn hơn hoặc bằng 1.');
+                    }
+                    quantityInput.focus();
+                    return false;
+                }
+
+                if (quantity > maxQuantity) {
+                    if (showError) {
+                        showQuantityError('Số lượng không được lớn hơn số lượng trong kho (' + maxQuantity + ').');
+                    }
+                    quantityInput.focus();
+                    return false;
+                }
+
+                return true;
+            }
+
             function handleAddToCartAjax(btn, inStock) {
                 if (!inStock) {
                     Swal.fire({
@@ -467,6 +550,10 @@
                 }
 
                 var form = btn.closest('form');
+                if (!validateQuantity(form, true)) {
+                    return;
+                }
+
                 var productId = form.querySelector('input[name="productId"]').value;
                 var quantity = form.querySelector('input[name="quantity"]').value;
 
@@ -533,6 +620,45 @@
                     }
                 });
             }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                var purchaseForm = document.querySelector('.purchase-form');
+                var quantityInput = document.querySelector('.purchase-form input[name="quantity"]');
+
+                if (quantityInput) {
+                    quantityInput.addEventListener('keydown', function (event) {
+                        if (isControlKey(event) || isTypingNumberKey(event)) {
+                            return;
+                        }
+
+                        event.preventDefault();
+                        showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+                    });
+
+                    quantityInput.addEventListener('paste', function (event) {
+                        var pastedText = (event.clipboardData || window.clipboardData).getData('text');
+
+                        if (/^\d+$/.test(pastedText)) {
+                            return;
+                        }
+
+                        event.preventDefault();
+                        showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+                    });
+
+                    quantityInput.addEventListener('blur', function () {
+                        validateQuantity(purchaseForm, quantityInput.value.trim() !== '');
+                    });
+                }
+
+                if (purchaseForm) {
+                    purchaseForm.addEventListener('submit', function (event) {
+                        if (!validateQuantity(purchaseForm, true)) {
+                            event.preventDefault();
+                        }
+                    });
+                }
+            });
         </script>
 
         </main>

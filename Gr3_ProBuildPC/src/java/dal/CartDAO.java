@@ -250,4 +250,124 @@ public class CartDAO extends DBContext {
 
         return -1;
     }
+
+    public int getCartItemQuantity(int customerId, int productId) {
+        String sql = "SELECT ISNULL(ci.quantity, 0) AS quantity "
+                + "FROM [cart] c "
+                + "INNER JOIN cart_items ci ON c.cart_id = ci.cart_id "
+                + "WHERE c.customer_id = ? AND ci.product_id = ?";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, customerId);
+            ps.setInt(2, productId);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("quantity");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    public int getProductStockQuantity(int productId) {
+        String sql = "SELECT quantity FROM products WHERE product_id = ?";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, productId);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("quantity");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    public int getOrCreateCartId(int customerId) {
+        String selectSql = "SELECT cart_id FROM [cart] WHERE customer_id = ?";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(selectSql);
+            ps.setInt(1, customerId);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("cart_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String insertSql = "INSERT INTO [cart] (customer_id) VALUES (?)";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, customerId);
+            ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
+    public boolean addOrUpdateCartItem(int customerId, int productId, int quantity) {
+        int cartId = getOrCreateCartId(customerId);
+
+        if (cartId == -1) {
+            return false;
+        }
+
+        String checkSql = "SELECT cart_item_id, quantity FROM cart_items WHERE cart_id = ? AND product_id = ?";
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(checkSql);
+            ps.setInt(1, cartId);
+            ps.setInt(2, productId);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                int cartItemId = rs.getInt("cart_item_id");
+                int oldQuantity = rs.getInt("quantity");
+
+                String updateSql = "UPDATE cart_items SET quantity = ? WHERE cart_item_id = ?";
+                PreparedStatement updatePs = connection.prepareStatement(updateSql);
+                updatePs.setInt(1, oldQuantity + quantity);
+                updatePs.setInt(2, cartItemId);
+
+                return updatePs.executeUpdate() > 0;
+            } else {
+                String insertSql = "INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?, ?, ?)";
+                PreparedStatement insertPs = connection.prepareStatement(insertSql);
+                insertPs.setInt(1, cartId);
+                insertPs.setInt(2, productId);
+                insertPs.setInt(3, quantity);
+
+                return insertPs.executeUpdate() > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }

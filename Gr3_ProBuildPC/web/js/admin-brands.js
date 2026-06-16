@@ -1,5 +1,22 @@
 document.addEventListener("DOMContentLoaded", function() {
     const forms = document.querySelectorAll('.brand-modal-form');
+    const allowedLogoTypes = ['png', 'jpg', 'jpeg', 'webp'];
+    const logoTypeMessage = 'Logo chỉ chấp nhận định dạng PNG, JPG, JPEG hoặc WEBP.';
+    const logoSizeMessage = 'Dung lượng logo không được vượt quá 2MB.';
+
+    const validateLogoFile = (fileInput) => {
+        const file = fileInput.files[0];
+        const isTypeValid = Validator.validateFileType(file, allowedLogoTypes);
+        if (!isTypeValid) {
+            Validator.showFeedback(fileInput, false, logoTypeMessage);
+            return false;
+        }
+
+        const isSizeValid = Validator.validateFileSize(file, 2 * 1024 * 1024);
+        Validator.showFeedback(fileInput, isSizeValid, logoSizeMessage);
+        return isSizeValid;
+    };
+
     forms.forEach(form => {
         const nameInput = form.querySelector('input[name="brandName"]');
         const fileInput = form.querySelector('input[name="imgFile"]');
@@ -19,9 +36,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (fileInput) {
             fileInput.addEventListener('change', () => {
-                const file = fileInput.files[0];
-                const isValid = Validator.validateFileSize(file, 2 * 1024 * 1024);
-                Validator.showFeedback(fileInput, isValid, 'Dung lượng logo không được vượt quá 2MB.');
+                validateLogoFile(fileInput);
             });
         }
 
@@ -35,9 +50,8 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             if (fileInput && fileInput.files && fileInput.files[0]) {
-                const isSizeValid = Validator.validateFileSize(fileInput.files[0], 2 * 1024 * 1024);
-                Validator.showFeedback(fileInput, isSizeValid, 'Dung lượng logo không được vượt quá 2MB.');
-                if (!isSizeValid) isFormValid = false;
+                const isFileValid = validateLogoFile(fileInput);
+                if (!isFileValid) isFormValid = false;
             }
 
             if (!isFormValid) {

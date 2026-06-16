@@ -66,6 +66,14 @@ const Validator = {
         return file.size <= maxBytes;
     },
 
+    validateFileType(file, allowedExtensions = ['png', 'jpg', 'jpeg', 'webp']) {
+        if (!file) return true; // Optional file is considered valid
+
+        const fileName = file.name || '';
+        const extension = fileName.split('.').pop().toLowerCase();
+        return allowedExtensions.includes(extension);
+    },
+
     // UI Feedback Helpers
     showFeedback(inputElement, isValid, errorMessage) {
         if (typeof inputElement === 'string') {

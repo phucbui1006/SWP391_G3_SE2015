@@ -179,7 +179,7 @@
                     <input id="modalBrandName" name="brandName" type="text" placeholder="VD: ASUS" required>
 
                     <label for="modalBrandImg">Logo <span>*</span></label>
-                    <input id="modalBrandImg" name="imgFile" type="file" accept="image/png,image/jpeg,image/webp" required>
+                    <input id="modalBrandImg" name="imgFile" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" required>
                     <small class="brand-file-note">PNG, JPG, JPEG, WEBP. Tối đa 2MB.</small>
 
                     <div class="brand-form-actions">
@@ -208,7 +208,7 @@
                     <input id="editBrandName<%= brand.getBrandId() %>" name="brandName" type="text" value="<%= h(brand.getBrandName()) %>" required>
 
                     <label for="editBrandImg<%= brand.getBrandId() %>">Logo</label>
-                    <input id="editBrandImg<%= brand.getBrandId() %>" name="imgFile" type="file" accept="image/png,image/jpeg,image/webp">
+                    <input id="editBrandImg<%= brand.getBrandId() %>" name="imgFile" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">
                     <small class="brand-file-note">Chọn ảnh mới nếu muốn thay logo hiện tại.</small>
 
                     <div class="brand-form-actions">

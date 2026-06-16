@@ -2,6 +2,8 @@ package controller;
 
 import dal.CategoryDAO;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import jakarta.servlet.ServletException;
@@ -27,6 +29,7 @@ public class AdminCategoryServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
 
         String keyword = request.getParameter("keyword");
+        String status = normalizeStatusFilter(request.getParameter("status"));
         String sort = request.getParameter("sort");
         String pageRaw = request.getParameter("page");
 
@@ -50,7 +53,7 @@ public class AdminCategoryServlet extends HttpServlet {
             currentPage = 1;
         }
 
-        int totalCategories = categoryDAO.countCategories(keyword);
+        int totalCategories = categoryDAO.countCategories(keyword, status);
 
         int totalPages;
         if (totalCategories == 0) {
@@ -67,7 +70,7 @@ public class AdminCategoryServlet extends HttpServlet {
             currentPage = totalPages;
         }
 
-        List<Category> categories = categoryDAO.getCategories(keyword, sort, currentPage, PAGE_SIZE);
+        List<Category> categories = categoryDAO.getCategories(keyword, status, sort, currentPage, PAGE_SIZE);
 
         int startItem;
         int endItem;
@@ -82,6 +85,7 @@ public class AdminCategoryServlet extends HttpServlet {
 
         request.setAttribute("categories", categories);
         request.setAttribute("keyword", keyword);
+        request.setAttribute("status", status);
         request.setAttribute("sort", sort);
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("totalPages", totalPages);
@@ -100,6 +104,10 @@ public class AdminCategoryServlet extends HttpServlet {
 
         String categoryIdRaw = request.getParameter("categoryId");
         String action = request.getParameter("action");
+        String keyword = request.getParameter("keyword");
+        String status = normalizeStatusFilter(request.getParameter("status"));
+        String sort = request.getParameter("sort");
+        String page = request.getParameter("page");
 
         try {
             int categoryId = Integer.parseInt(categoryIdRaw);
@@ -113,6 +121,38 @@ public class AdminCategoryServlet extends HttpServlet {
         } catch (Exception e) {
         }
 
-        response.sendRedirect(request.getContextPath() + "/admin/categories");
+        response.sendRedirect(request.getContextPath() + "/admin/categories" + buildQuery(keyword, status, sort, page));
+    }
+
+    private String normalizeStatusFilter(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return "ALL";
+        }
+
+        String status = value.trim().toUpperCase();
+        if ("ACTIVE".equals(status) || "INACTIVE".equals(status)) {
+            return status;
+        }
+
+        return "ALL";
+    }
+
+    private String buildQuery(String keyword, String status, String sort, String page) {
+        StringBuilder query = new StringBuilder("?");
+        appendQueryParam(query, "keyword", keyword == null ? "" : keyword.trim());
+        appendQueryParam(query, "status", normalizeStatusFilter(status));
+        appendQueryParam(query, "sort", sort == null || sort.trim().isEmpty() ? "newest" : sort.trim());
+        appendQueryParam(query, "page", page == null || page.trim().isEmpty() ? "1" : page.trim());
+        return query.toString();
+    }
+
+    private void appendQueryParam(StringBuilder query, String name, String value) {
+        if (query.length() > 1) {
+            query.append("&");
+        }
+
+        query.append(URLEncoder.encode(name, StandardCharsets.UTF_8));
+        query.append("=");
+        query.append(URLEncoder.encode(value, StandardCharsets.UTF_8));
     }
 }

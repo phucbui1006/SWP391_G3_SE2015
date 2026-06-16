@@ -65,6 +65,10 @@ public class CategoryDAO extends DBContext {
     }
 
     public List<Category> getCategories(String keyword, String sort, int page, int pageSize) {
+        return getCategories(keyword, null, sort, page, pageSize);
+    }
+
+    public List<Category> getCategories(String keyword, String status, String sort, int page, int pageSize) {
         List<Category> list = new ArrayList<>();
 
         String orderBy;
@@ -87,6 +91,10 @@ public class CategoryDAO extends DBContext {
             sql += "AND category_name LIKE ? ";
         }
 
+        if (isValidStatus(status)) {
+            sql += "AND status = ? ";
+        }
+
         sql += "ORDER BY " + orderBy + " LIMIT ? OFFSET ?";
 
         try {
@@ -96,6 +104,10 @@ public class CategoryDAO extends DBContext {
 
             if (keyword != null && !keyword.trim().isEmpty()) {
                 ps.setString(index++, "%" + keyword.trim() + "%");
+            }
+
+            if (isValidStatus(status)) {
+                ps.setString(index++, status.trim().toUpperCase());
             }
 
             int offset = (page - 1) * pageSize;
@@ -122,6 +134,10 @@ public class CategoryDAO extends DBContext {
     }
 
     public int countCategories(String keyword) {
+        return countCategories(keyword, null);
+    }
+
+    public int countCategories(String keyword, String status) {
         String sql = "SELECT COUNT(*) AS total "
                 + "FROM categories "
                 + "WHERE 1 = 1 ";
@@ -130,11 +146,20 @@ public class CategoryDAO extends DBContext {
             sql += "AND category_name LIKE ? ";
         }
 
+        if (isValidStatus(status)) {
+            sql += "AND status = ? ";
+        }
+
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
+            int index = 1;
 
             if (keyword != null && !keyword.trim().isEmpty()) {
-                ps.setString(1, "%" + keyword.trim() + "%");
+                ps.setString(index++, "%" + keyword.trim() + "%");
+            }
+
+            if (isValidStatus(status)) {
+                ps.setString(index, status.trim().toUpperCase());
             }
 
             ResultSet rs = ps.executeQuery();
@@ -147,6 +172,27 @@ public class CategoryDAO extends DBContext {
         }
 
         return 0;
+    }
+
+    public boolean updateCategoryName(int categoryId, String categoryName) {
+        String sql = """
+            UPDATE categories
+            SET category_name = ?
+            WHERE category_id = ?
+        """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            ps.setString(1, categoryName);
+            ps.setInt(2, categoryId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+        }
+
+        return false;
     }
 
     public boolean updateCategoryStatus(int categoryId, String status) {
@@ -169,4 +215,32 @@ public class CategoryDAO extends DBContext {
 
         return false;
     }
+
+    private boolean isValidStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+
+        String normalizedStatus = status.trim().toUpperCase();
+        return "ACTIVE".equals(normalizedStatus) || "INACTIVE".equals(normalizedStatus);
+    }
+
+    public boolean addCategory(String categoryName) {
+        String sql = """
+            INSERT INTO categories (category_name, status)
+            VALUES (?, 'ACTIVE')
+        """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, categoryName);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+        }
+
+        return false;
+    }
 }
+

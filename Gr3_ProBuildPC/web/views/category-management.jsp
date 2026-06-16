@@ -1,12 +1,38 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Collections" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ page import="model.Category" %>
+
+<%!
+    private String h(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+
+    private String enc(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+%>
 
 <%
     List<Category> categories = (List<Category>) request.getAttribute("categories");
 
     String keyword = (String) request.getAttribute("keyword");
+    String status = (String) request.getAttribute("status");
     String sort = (String) request.getAttribute("sort");
 
     Integer currentPage = (Integer) request.getAttribute("currentPage");
@@ -21,6 +47,10 @@
 
     if (keyword == null) {
         keyword = "";
+    }
+
+    if (status == null || status.trim().isEmpty()) {
+        status = "ALL";
     }
 
     if (sort == null) {
@@ -48,13 +78,14 @@
     }
 
     String contextPath = request.getContextPath();
+    String listQuery = "&keyword=" + enc(keyword) + "&status=" + enc(status) + "&sort=" + enc(sort);
 %>
 
 <!DOCTYPE html>
 <html lang="vi">
     <head>
         <meta charset="UTF-8">
-        <title>Quản lý danh mục sản phẩm</title>
+        <title>Qu&#7843;n l&#253; danh m&#7909;c s&#7843;n ph&#7849;m</title>
 
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-categories.css">
@@ -70,14 +101,14 @@
         <main class="admin-category-container">
 
             <div class="admin-page-title">
-                <h2>Danh sách danh mục</h2>
+                <h2>Danh s&#225;ch danh m&#7909;c</h2>
 
                 <div class="admin-breadcrumb">
                     <a href="<%= contextPath %>/Dashboard">Dashboard</a>
-                    <span>›</span>
-                    <a href="<%= contextPath %>/admin/products">Sản phẩm</a>
-                    <span>›</span>
-                    <strong>Danh mục sản phẩm</strong>
+                    <span>&rsaquo;</span>
+                    <a href="<%= contextPath %>/admin/products">S&#7843;n ph&#7849;m</a>
+                    <span>&rsaquo;</span>
+                    <strong>Danh m&#7909;c s&#7843;n ph&#7849;m</strong>
                 </div>
             </div>
 
@@ -88,8 +119,8 @@
                     <div class="category-search">
                         <input type="text"
                                name="keyword"
-                               value="<%= keyword %>"
-                               placeholder="Tìm kiếm danh mục...">
+                               value="<%= h(keyword) %>"
+                               placeholder="T&#236;m ki&#7871;m danh m&#7909;c...">
 
                         <button type="submit">
                             <i class="fa-solid fa-magnifying-glass"></i>
@@ -97,114 +128,128 @@
                     </div>
 
                     <div class="category-sort">
-                        <label>Sắp xếp:</label>
+                        <label>Tr&#7841;ng th&#225;i:</label>
+
+                        <select name="status" onchange="this.form.submit()">
+                            <option value="ALL" <%= "ALL".equals(status) ? "selected" : "" %>>T&#7845;t c&#7843;</option>
+                            <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>&#272;ang ho&#7841;t &#273;&#7897;ng</option>
+                            <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>&#272;&#227; v&#244; hi&#7879;u h&#243;a</option>
+                        </select>
+                    </div>
+
+                    <div class="category-sort">
+                        <label>S&#7855;p x&#7871;p:</label>
 
                         <select name="sort" onchange="this.form.submit()">
-                            <option value="newest" <%= "newest".equals(sort) ? "selected" : "" %>>Mới nhất</option>
-                            <option value="oldest" <%= "oldest".equals(sort) ? "selected" : "" %>>Cũ nhất</option>
-                            <option value="name_asc" <%= "name_asc".equals(sort) ? "selected" : "" %>>Tên A-Z</option>
-                            <option value="name_desc" <%= "name_desc".equals(sort) ? "selected" : "" %>>Tên Z-A</option>
+                            <option value="newest" <%= "newest".equals(sort) ? "selected" : "" %>>M&#7899;i nh&#7845;t</option>
+                            <option value="oldest" <%= "oldest".equals(sort) ? "selected" : "" %>>C&#361; nh&#7845;t</option>
+                            <option value="name_asc" <%= "name_asc".equals(sort) ? "selected" : "" %>>T&#234;n A-Z</option>
+                            <option value="name_desc" <%= "name_desc".equals(sort) ? "selected" : "" %>>T&#234;n Z-A</option>
                         </select>
                     </div>
 
                     <a href="<%= contextPath %>/admin/category/add" class="btn-add-category">
                         <i class="fa-solid fa-plus"></i>
-                        Thêm danh mục
+                        Th&#234;m danh m&#7909;c
                     </a>
 
                 </form>
 
-                <div class="table-wrapper">
-                    <table class="admin-category-table">
-                        <thead>
-                            <tr>
-                                <th>Mã danh mục</th>
-                                <th>Tên danh mục</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            <% if (categories.isEmpty()) { %>
-                            <tr>
-                                <td colspan="4" style="text-align:center; padding: 30px;">
-                                    Không có danh mục nào
-                                </td>
-                            </tr>
-                            <% } else { %>
-
-                            <% for (Category c : categories) { %>
-                            <tr>
-                                <td><%= c.getCategoryId() %></td>
-                                <td><%= c.getCategoryName() %></td>
-                                <td><%= c.getStatus() %></td>
-                                <td>
-                                    <div class="category-actions">
-
-                                        <a href="<%= contextPath %>/admin/category/detail?id=<%= c.getCategoryId() %>"
-                                           class="btn-view">
-                                            <i class="fa-solid fa-eye"></i> Xem
-                                        </a>
-
-                                        <a href="<%= contextPath %>/admin/category/edit?id=<%= c.getCategoryId() %>"
-                                           class="btn-edit">
-                                            <i class="fa-solid fa-pen"></i> Sửa
-                                        </a>
-
-                                        <form action="<%= contextPath %>/admin/categories" method="post" style="display:inline;">
-                                            <input type="hidden" name="categoryId" value="<%= c.getCategoryId() %>">
-                                            <input type="hidden" name="action" value="<%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "delete" : "activate" %>">
-                                            <button type="submit"
-                                                    class="btn-delete"
-                                                    onclick="return confirm('Bạn có chắc muốn đổi trạng thái danh mục này không?')">
-                                                <i class="fa-solid fa-power-off"></i>
-                                                <%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "Vô hiệu hóa" : "Kích hoạt" %>
-                                            </button>
-                                        </form>
-
-                                    </div>
-                                </td>
-                            </tr>
-                            <% } %>
-
-                            <% } %>
+                 <div class="table-wrapper">
+                     <table class="admin-category-table">
+                         <thead>
+                             <tr>
+                                 <th>M&#227; danh m&#7909;c</th>
+                                 <th>T&#234;n danh m&#7909;c</th>
+                                 <th>Tr&#7841;ng th&#225;i</th>
+                                 <th>Thao t&#225;c</th>
+                             </tr>
+                         </thead>
+ 
+                         <tbody>
+                             <% if (categories.isEmpty()) { %>
+                             <tr>
+                                 <td colspan="4" style="text-align:center; padding: 30px;">
+                                     Kh&#244;ng c&#243; danh m&#7909;c n&#224;o
+                                 </td>
+                             </tr>
+                             <% } else { %>
+ 
+                             <% for (Category c : categories) { %>
+                             <tr>
+                                 <td><%= c.getCategoryId() %></td>
+                                 <td><%= h(c.getCategoryName()) %></td>
+                                 <td><%= h(c.getStatus()) %></td>
+                                 <td>
+                                     <div class="category-actions">
+ 
+                                         <a href="<%= contextPath %>/admin/category/detail?id=<%= c.getCategoryId() %>"
+                                            class="btn-view">
+                                             <i class="fa-solid fa-eye"></i> Xem
+                                         </a>
+ 
+                                         <a href="<%= contextPath %>/admin/category/edit?id=<%= c.getCategoryId() %>"
+                                            class="btn-edit">
+                                             <i class="fa-solid fa-pen"></i> S&#7917;a
+                                         </a>
+ 
+                                         <form action="<%= contextPath %>/admin/categories" method="post" style="display:inline;">
+                                             <input type="hidden" name="categoryId" value="<%= c.getCategoryId() %>">
+                                             <input type="hidden" name="action" value="<%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "delete" : "activate" %>">
+                                             <input type="hidden" name="keyword" value="<%= h(keyword) %>">
+                                             <input type="hidden" name="status" value="<%= h(status) %>">
+                                             <input type="hidden" name="sort" value="<%= h(sort) %>">
+                                             <input type="hidden" name="page" value="<%= currentPage %>">
+                                             <button type="submit"
+                                                     class="btn-delete"
+                                                     onclick="return confirm('B&#7841;n c&#243; ch&#7855;c mu&#7889;n &#273;&#7893;i tr&#7841;ng th&#225;i danh m&#7909;c n&#224;y kh&#244;ng?')">
+                                                 <i class="fa-solid fa-power-off"></i>
+                                                 <%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "V&#244; hi&#7879;u h&#243;a" : "K&#237;ch ho&#7841;t" %>
+                                             </button>
+                                         </form>
+ 
+                                     </div>
+                                 </td>
+                             </tr>
+                             <% } %>
+ 
+                             <% } %>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="admin-category-footer">
                     <p>
-                        Hiển thị <%= startItem %> đến <%= endItem %> của <%= totalCategories %> danh mục
+                        Hi&#7875;n th&#7883; <%= startItem %> &#273;&#7871;n <%= endItem %> c&#7911;a <%= totalCategories %> danh m&#7909;c
                     </p>
 
                     <div class="admin-pagination">
 
                         <% if (currentPage > 1) { %>
                         <a class="page-btn"
-                           href="<%= contextPath %>/admin/categories?page=<%= currentPage - 1 %>&keyword=<%= keyword %>&sort=<%= sort %>">
-                            ‹
+                           href="<%= contextPath %>/admin/categories?page=<%= currentPage - 1 %><%= listQuery %>">
+                            &lsaquo;
                         </a>
                         <% } else { %>
-                        <span class="page-btn disabled">‹</span>
+                        <span class="page-btn disabled">&lsaquo;</span>
                         <% } %>
 
                         <%
                             for (int i = 1; i <= totalPages; i++) {
                         %>
                         <a class="page-btn <%= currentPage == i ? "active" : "" %>"
-                           href="<%= contextPath %>/admin/categories?page=<%= i %>&keyword=<%= keyword %>&sort=<%= sort %>">
+                           href="<%= contextPath %>/admin/categories?page=<%= i %><%= listQuery %>">
                             <%= i %>
                         </a>
                         <% } %>
 
                         <% if (currentPage < totalPages) { %>
                         <a class="page-btn"
-                           href="<%= contextPath %>/admin/categories?page=<%= currentPage + 1 %>&keyword=<%= keyword %>&sort=<%= sort %>">
-                            ›
+                           href="<%= contextPath %>/admin/categories?page=<%= currentPage + 1 %><%= listQuery %>">
+                            &rsaquo;
                         </a>
                         <% } else { %>
-                        <span class="page-btn disabled">›</span>
+                        <span class="page-btn disabled">&rsaquo;</span>
                         <% } %>
 
                     </div>

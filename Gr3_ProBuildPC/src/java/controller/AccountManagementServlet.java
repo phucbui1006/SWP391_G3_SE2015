@@ -135,7 +135,13 @@ public class AccountManagementServlet extends HttpServlet {
             return;
         }
 
-        if (userDAO.createStaff(fullName, email, password, roleId)) {
+        // Add prefix to force password change on first login only for Employee (2) and Shipment (3)
+        String initialPassword = password;
+        if (roleId == 2 || roleId == 3) {
+            initialPassword = "!FIRST!" + password;
+        }
+
+        if (userDAO.createStaff(fullName, email, initialPassword, roleId)) {
             session.setAttribute("accountSuccess", "Tao tai khoan nhan vien thanh cong.");
         } else {
             session.setAttribute("accountError", "Khong the tao tai khoan nhan vien.");

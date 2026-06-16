@@ -14,7 +14,7 @@ public class UserDAO {
     public User login(String email, String password) {
         String sql = baseUserSelect() + """
                      WHERE u.email = ?
-                       AND u.password = ?
+                       AND (u.password = ? OR u.password = CONCAT('!FIRST!', ?))
                        AND (
                            (UPPER(u.account_type) = 'CUSTOMER' AND c.customer_id IS NOT NULL)
                            OR
@@ -26,6 +26,7 @@ public class UserDAO {
 
             ps.setString(1, email);
             ps.setString(2, password);
+            ps.setString(3, password);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {

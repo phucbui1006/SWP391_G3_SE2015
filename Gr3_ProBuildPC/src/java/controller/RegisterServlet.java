@@ -61,12 +61,24 @@ public class RegisterServlet extends HttpServlet {
             return;
         }
 
-        boolean success = dao.registerCustomer(fullName, email, password);
+        // Generate OTP
+        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+        
+        jakarta.servlet.http.HttpSession session = request.getSession();
+        session.setAttribute("regFullName", fullName);
+        session.setAttribute("regEmail", email);
+        session.setAttribute("regPassword", password);
+        session.setAttribute("regOtp", otp);
+        session.setAttribute("regOtpExpiredTime", System.currentTimeMillis() + 5 * 60 * 1000);
 
-        if (success) {
-            response.sendRedirect(request.getContextPath() + "/Login");
+        System.out.println("Register OTP tao ra la: " + otp);
+
+        boolean sent = util.EmailService.sendOtpEmail(email, otp);
+
+        if (sent) {
+            response.sendRedirect(request.getContextPath() + "/VerifyRegisterOtp");
         } else {
-            request.setAttribute("error", "Dang ky that bai!");
+            request.setAttribute("error", "Không gửi được email mã OTP. Vui lòng thử lại!");
             request.getRequestDispatcher("/views/register.jsp").forward(request, response);
         }
     }

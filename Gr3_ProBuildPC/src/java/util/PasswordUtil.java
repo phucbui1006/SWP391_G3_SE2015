@@ -63,7 +63,7 @@ public class PasswordUtil {
                 diff |= hash[i] ^ testHash[i];
             }
             return diff == 0;
-        } catch (NumberFormatException | IllegalArgumentException e) {
+        } catch (Exception e) {
             return false;
         }
     }
@@ -73,7 +73,7 @@ public class PasswordUtil {
             PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, keyLength);
             SecretKeyFactory skf = SecretKeyFactory.getInstance(ALGORITHM);
             return skf.generateSecret(spec).getEncoded();
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error hashing password with PBKDF2", e);
         }
     }

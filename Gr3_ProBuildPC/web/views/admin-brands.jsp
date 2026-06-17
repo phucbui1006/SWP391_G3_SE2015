@@ -176,7 +176,7 @@
                     <input type="hidden" name="action" value="add">
 
                     <label for="modalBrandName">Tên thương hiệu <span>*</span></label>
-                    <input id="modalBrandName" name="brandName" type="text" placeholder="VD: ASUS" required>
+                    <input id="modalBrandName" name="brandName" type="text" placeholder="VD: ASUS" minlength="2" maxlength="19" required>
 
                     <label for="modalBrandImg">Logo <span>*</span></label>
                     <input id="modalBrandImg" name="imgFile" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" required>
@@ -205,7 +205,7 @@
                     <input type="hidden" name="currentImg" value="<%= h(brand.getImg()) %>">
 
                     <label for="editBrandName<%= brand.getBrandId() %>">Tên thương hiệu <span>*</span></label>
-                    <input id="editBrandName<%= brand.getBrandId() %>" name="brandName" type="text" value="<%= h(brand.getBrandName()) %>" required>
+                    <input id="editBrandName<%= brand.getBrandId() %>" name="brandName" type="text" value="<%= h(brand.getBrandName()) %>" minlength="2" maxlength="19" required>
 
                     <label for="editBrandImg<%= brand.getBrandId() %>">Logo</label>
                     <input id="editBrandImg<%= brand.getBrandId() %>" name="imgFile" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">

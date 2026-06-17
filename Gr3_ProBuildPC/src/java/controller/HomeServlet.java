@@ -8,6 +8,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import model.Category;
@@ -26,6 +27,10 @@ public class HomeServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
+
+        if (!allowHomeAccess(request, response)) {
+            return;
+        }
 
         String keyword = request.getParameter("keyword");
         String normalizedKeyword = keyword == null ? "" : keyword.trim();
@@ -80,12 +85,33 @@ public class HomeServlet extends HttpServlet {
         request.setAttribute("productDAO", productDAO);
         request.setAttribute("keyword", normalizedKeyword);
 
-        User account = (User) request.getSession().getAttribute("account");
-        if (account != null && account.isCustomer()) {
-            CartDAO cartDAO = new CartDAO();
-            request.setAttribute("cartItemCount", cartDAO.getCartItemCountByCustomerId(account.getCustomerId()));
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            User account = (User) session.getAttribute("account");
+            if (account != null && account.isCustomer()) {
+                CartDAO cartDAO = new CartDAO();
+                request.setAttribute("cartItemCount", cartDAO.getCartItemCountByCustomerId(account.getCustomerId()));
+            }
         }
 
         request.getRequestDispatcher("/views/home.jsp").forward(request, response);
+    }
+
+    private boolean allowHomeAccess(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        HttpSession session = request.getSession(false);
+        User account = session != null ? (User) session.getAttribute("account") : null;
+
+        if (account == null || account.isCustomer()) {
+            return true;
+        }
+
+        if (account.isStaff()) {
+            response.sendRedirect(request.getContextPath() + "/Dashboard");
+            return false;
+        }
+
+        response.sendRedirect(request.getContextPath() + "/Login");
+        return false;
     }
 }

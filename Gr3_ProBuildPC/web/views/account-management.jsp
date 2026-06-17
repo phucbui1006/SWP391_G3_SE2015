@@ -313,8 +313,8 @@
                             <td class="account-v2-email"><%= h(user.getEmail()) %></td>
 
                             <td>
-                                <% if (!isStaff) { %>
-                                    <span class="account-v2-role customer">
+                                <% if (!isStaff || isAdmin) { %>
+                                    <span class="account-v2-role <%= isAdmin ? "admin" : "customer" %>">
                                         <%= h(roleLabel(user.getRoleName())) %>
                                     </span>
                                 <% } else { %>

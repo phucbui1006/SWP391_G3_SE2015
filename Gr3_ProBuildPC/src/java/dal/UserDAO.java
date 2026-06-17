@@ -14,7 +14,6 @@ public class UserDAO {
     public User login(String email, String password) {
         String sql = baseUserSelect() + """
                      WHERE u.email = ?
-                       AND (u.password = ? OR u.password = CONCAT('!FIRST!', ?))
                        AND (
                            (UPPER(u.account_type) = 'CUSTOMER' AND c.customer_id IS NOT NULL)
                            OR
@@ -25,12 +24,20 @@ public class UserDAO {
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
-            ps.setString(2, password);
-            ps.setString(3, password);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapUser(rs);
+                    User user = mapUser(rs);
+                    String storedPassword = user.getPassword();
+                    
+                    String targetHash = storedPassword;
+                    if (storedPassword != null && storedPassword.startsWith("!FIRST!")) {
+                        targetHash = storedPassword.substring("!FIRST!".length());
+                    }
+
+                    if (util.PasswordUtil.verify(password, targetHash)) {
+                        return user;
+                    }
                 }
             }
         } catch (Exception e) {
@@ -120,10 +127,11 @@ public class UserDAO {
 
     public boolean updatePassword(String email, String newPassword) {
         String sql = "UPDATE users SET password = ? WHERE email = ?";
+        String hashToStore = util.PasswordUtil.hash(newPassword);
 
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, newPassword);
+            ps.setString(1, hashToStore);
             ps.setString(2, email);
 
             return ps.executeUpdate() > 0;
@@ -137,11 +145,17 @@ public class UserDAO {
 
     public boolean updateProfile(String email, String fullName, String password) {
         String sql = "UPDATE users SET full_name = ?, password = ? WHERE email = ?";
+        String hashToStore;
+        if (password != null && password.contains(":")) {
+            hashToStore = password;
+        } else {
+            hashToStore = util.PasswordUtil.hash(password);
+        }
 
         try (Connection conn = new DBContext().getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
 
             st.setString(1, fullName);
-            st.setString(2, password);
+            st.setString(2, hashToStore);
             st.setString(3, email);
 
             return st.executeUpdate() > 0;
@@ -294,10 +308,17 @@ public class UserDAO {
                      VALUES (?, 'ACTIVE', ?, ?, ?)
                      """;
 
+        String hashToStore;
+        if (password != null && password.startsWith("!FIRST!")) {
+            hashToStore = "!FIRST!" + util.PasswordUtil.hash(password.substring("!FIRST!".length()));
+        } else {
+            hashToStore = util.PasswordUtil.hash(password);
+        }
+
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, fullName);
             ps.setString(2, email);
-            ps.setString(3, password);
+            ps.setString(3, hashToStore);
             ps.setString(4, accountType);
 
             if (ps.executeUpdate() <= 0) {

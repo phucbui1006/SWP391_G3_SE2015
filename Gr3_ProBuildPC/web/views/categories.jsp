@@ -4,6 +4,20 @@
 <%@ page import="model.Category" %>
 <%@ page import="model.Product" %>
 
+<%!
+    private String h(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+%>
+
 <%              String ctx=request.getContextPath();
                 List<Category> categories = (List<Category>) request.getAttribute("categories");
                 List<Product> products = (List<Product>) request.getAttribute("products");
@@ -16,18 +30,22 @@
 
                 String keyword = (String) request.getAttribute("keyword");
                 if (keyword == null) {
-                keyword = "";
+                    keyword = "";
+                }
+                String contentKeyword = (String) request.getAttribute("contentKeyword");
+                if (contentKeyword == null) {
+                    contentKeyword = "";
                 }
 
                 String title = "Tất cả sản phẩm";
                 if (selectedCategory != null) {
-                title = "Danh mục: " + selectedCategory.getCategoryName();
+                    title = "Danh mục: " + selectedCategory.getCategoryName();
                 }
 
                 String cartMessage = (String) request.getAttribute("cartMessage");
                 String cartMessageType = (String) request.getAttribute("cartMessageType");
                 if (cartMessageType == null) {
-                cartMessageType = "success";
+                    cartMessageType = "success";
                 }
 
                 Integer totalProductsObj = (Integer) request.getAttribute("totalProducts");
@@ -38,38 +56,35 @@
                 int currentPage = currentPageObj == null ? 1 : currentPageObj;
                 int totalPages = totalPagesObj == null ? 1 : totalPagesObj;
 
-                String encodedKeyword = "";
-                if (keyword != null && !keyword.trim().isEmpty()) {
-                encodedKeyword = URLEncoder.encode(keyword, "UTF-8");
-                }
-                String searchValue = keyword == null ? "" : keyword
-                .replace("&", "&amp;")
-                .replace("\"", "&quot;")
-                .replace("<", "&lt;" ) .replace(">", "&gt;");
+                String searchValue = contentKeyword == null ? "" : contentKeyword
+                        .replace("&", "&amp;")
+                        .replace("\"", "&quot;")
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;");
 
-                    String clearSearchUrl = ctx + "/categories?";
-                    if (selectedCategory != null) {
+                String clearSearchUrl = ctx + "/categories?";
+                if (selectedCategory != null) {
                     clearSearchUrl += "id=" + selectedCategory.getCategoryId() + "&";
-                    }
-                    clearSearchUrl += "sort=" + selectedSort;
+                }
+                clearSearchUrl += "sort=" + selectedSort;
 
-                    String currentUrl = ctx + "/categories";
-                    if (request.getQueryString() != null &&
-                    !request.getQueryString().trim().isEmpty()) {
+                String currentUrl = ctx + "/categories";
+                if (request.getQueryString() != null &&
+                        !request.getQueryString().trim().isEmpty()) {
                     currentUrl += "?" + request.getQueryString();
-                    }
+                }
 
-                    String pagingUrl = ctx + "/categories?";
-
-                    if (selectedCategory != null) {
+                String pagingUrl = ctx + "/categories?";
+                if (selectedCategory != null) {
                     pagingUrl += "id=" + selectedCategory.getCategoryId() + "&";
-                    }
-
-                    if (keyword != null && !keyword.trim().isEmpty()) {
-                    pagingUrl += "keyword=" + encodedKeyword + "&";
-                    }
-
-                    pagingUrl += "sort=" + selectedSort + "&page=";
+                }
+                if (keyword != null && !keyword.trim().isEmpty()) {
+                    pagingUrl += "keyword=" + URLEncoder.encode(keyword, "UTF-8") + "&";
+                }
+                if (contentKeyword != null && !contentKeyword.trim().isEmpty()) {
+                    pagingUrl += "contentKeyword=" + URLEncoder.encode(contentKeyword, "UTF-8") + "&";
+                }
+                pagingUrl += "sort=" + selectedSort + "&page=";
 %>
 
 <!DOCTYPE html>
@@ -161,9 +176,10 @@
 
                         <div class="category-heading">
                             <h2>
-                                <% if (keyword !=null &&
-                                                                                !keyword.trim().isEmpty()) { %>
-                                Kết quả tìm kiếm: "<%= keyword %>"
+                                <% if (contentKeyword != null && !contentKeyword.trim().isEmpty()) { %>
+                                Kết quả tìm kiếm: "<%= h(contentKeyword) %>"
+                                <% } else if (keyword != null && !keyword.trim().isEmpty()) { %>
+                                Kết quả tìm kiếm: "<%= h(keyword) %>"
                                 <% } else { %>
                                 <%= title %>
                                 <% } %>
@@ -205,13 +221,12 @@
                                     </line>
                                     </svg>
                                 </span>
-                                <input type="text" name="keyword"
+                                <input type="text" name="contentKeyword"
                                        id="contentSearchInput"
                                        value="<%= searchValue %>"
                                        placeholder="Tìm sản phẩm theo tên/loại">
 
-                                <% if (keyword !=null &&
-                                                                                        !keyword.trim().isEmpty()) { %>
+                                <% if (contentKeyword != null && !contentKeyword.trim().isEmpty()) { %>
                                 <a href="<%= clearSearchUrl %>"
                                    class="search-clear-btn"
                                    title="Xóa tìm kiếm">
@@ -265,9 +280,12 @@
                                    value="<%= selectedCategory.getCategoryId() %>">
                             <% } %>
 
-                            <% if (keyword !=null &&
-                                                                                    !keyword.trim().isEmpty()) { %>
+                            <% if (keyword != null && !keyword.trim().isEmpty()) { %>
                             <input type="hidden" name="keyword"
+                                   value="<%= h(keyword) %>">
+                            <% } %>
+                            <% if (contentKeyword != null && !contentKeyword.trim().isEmpty()) { %>
+                            <input type="hidden" name="contentKeyword"
                                    value="<%= searchValue %>">
                             <% } %>
 

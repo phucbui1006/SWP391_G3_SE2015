@@ -40,6 +40,20 @@ public class CategoryServlet extends HttpServlet {
             keyword = "";
         }
 
+        String contentKeyword = request.getParameter("contentKeyword");
+        if (contentKeyword != null) {
+            contentKeyword = contentKeyword.trim();
+        } else {
+            contentKeyword = "";
+        }
+
+        String activeKeyword = "";
+        if (!contentKeyword.isEmpty()) {
+            activeKeyword = contentKeyword;
+        } else if (!keyword.isEmpty()) {
+            activeKeyword = keyword;
+        }
+
         String idRaw = request.getParameter("id");
 
         List<Category> categories = categoryDAO.getAllCategories();
@@ -51,8 +65,8 @@ public class CategoryServlet extends HttpServlet {
                 int categoryId = Integer.parseInt(idRaw);
                 selectedCategory = categoryDAO.getCategoryById(categoryId);
 
-                if (!keyword.isEmpty()) {
-                    products = productDAO.getProductsByCategoryAndKeyword(categoryId, keyword, sort);
+                if (!activeKeyword.isEmpty()) {
+                    products = productDAO.getProductsByCategoryAndKeyword(categoryId, activeKeyword, sort);
                 } else {
                     products = productDAO.getProductsByCategoryId(categoryId, sort);
                 }
@@ -60,15 +74,15 @@ public class CategoryServlet extends HttpServlet {
             } catch (NumberFormatException e) {
                 selectedCategory = null;
 
-                if (!keyword.isEmpty()) {
-                    products = productDAO.searchProducts(keyword, sort);
+                if (!activeKeyword.isEmpty()) {
+                    products = productDAO.searchProducts(activeKeyword, sort);
                 } else {
                     products = productDAO.getAllProducts(sort);
                 }
             }
         } else {
-            if (!keyword.isEmpty()) {
-                products = productDAO.searchProducts(keyword, sort);
+            if (!activeKeyword.isEmpty()) {
+                products = productDAO.searchProducts(activeKeyword, sort);
             } else {
                 products = productDAO.getAllProducts(sort);
             }
@@ -121,6 +135,7 @@ public class CategoryServlet extends HttpServlet {
         request.setAttribute("selectedCategory", selectedCategory);
         request.setAttribute("selectedSort", sort);
         request.setAttribute("keyword", keyword);
+        request.setAttribute("contentKeyword", contentKeyword);
 
         HttpSession session = request.getSession(false);
 

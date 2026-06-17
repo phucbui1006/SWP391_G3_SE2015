@@ -41,6 +41,9 @@
     Integer startItem = (Integer) request.getAttribute("startItem");
     Integer endItem = (Integer) request.getAttribute("endItem");
 
+    String success = (String) request.getAttribute("success");
+    String error = (String) request.getAttribute("error");
+
     if (categories == null) {
         categories = Collections.emptyList();
     }
@@ -112,6 +115,14 @@
                 </div>
             </div>
 
+            <% if (success != null && !success.isEmpty()) { %>
+            <div class="category-alert success"><%= h(success) %></div>
+            <% } %>
+
+            <% if (error != null && !error.isEmpty()) { %>
+            <div class="category-alert error"><%= h(error) %></div>
+            <% } %>
+
             <section class="admin-category-card">
 
                 <form action="<%= contextPath %>/admin/categories" method="get" class="admin-category-toolbar" id="adminCategorySearchForm">
@@ -123,8 +134,6 @@
                                value="<%= h(keyword) %>"
                                placeholder="Tìm kiếm danh mục...">
                     </div>
-
-
 
                     <div class="category-sort">
                         <label>Trạng thái:</label>
@@ -150,7 +159,7 @@
                         <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
                     </button>
 
-                    <a href="<%= contextPath %>/admin/category/add" class="btn-add-category">
+                    <a href="#add-category-modal" class="btn-add-category">
                         <i class="fa-solid fa-plus"></i>
                         Thêm danh mục
                     </a>
@@ -192,7 +201,7 @@
                                             <i class="fa-solid fa-eye"></i> Xem
                                         </a>
 
-                                        <a href="<%= contextPath %>/admin/category/edit?id=<%= c.getCategoryId() %>"
+                                        <a href="#edit-category-<%= c.getCategoryId() %>"
                                            class="btn-edit">
                                             <i class="fa-solid fa-pen"></i> S&#7917;a
                                         </a>
@@ -263,17 +272,135 @@
 
         </main>
 
+        <%-- ==================== ADD CATEGORY MODAL ==================== --%>
+        <div class="cat-modal-overlay" id="add-category-modal">
+            <section class="cat-modal" role="dialog" aria-modal="true" aria-labelledby="addCategoryTitle">
+                <div class="cat-modal-header">
+                    <h2 id="addCategoryTitle">Thêm danh mục mới</h2>
+                    <a href="#" aria-label="Đóng">&times;</a>
+                </div>
+
+                <form action="<%= contextPath %>/admin/categories" method="post" class="cat-modal-form"
+                      id="addCategoryForm" novalidate>
+                    <input type="hidden" name="action" value="add">
+
+                    <div class="cat-form-group">
+                        <label for="addCategoryName">Tên danh mục <span>*</span></label>
+                        <input id="addCategoryName" name="categoryName" type="text"
+                               placeholder="VD: CPU, RAM, SSD..." required
+                               minlength="2" maxlength="100">
+                        <small class="cat-form-error" id="addCategoryNameError"></small>
+                    </div>
+
+                    <div class="cat-modal-actions">
+                        <a class="cat-btn-cancel" href="#">Hủy</a>
+                        <button class="cat-btn-submit" type="submit">Thêm danh mục</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <%-- ==================== EDIT CATEGORY MODALS (one per row) ==================== --%>
+        <% if (!categories.isEmpty()) { %>
+        <% for (Category c : categories) { %>
+        <div class="cat-modal-overlay" id="edit-category-<%= c.getCategoryId() %>">
+            <section class="cat-modal" role="dialog" aria-modal="true"
+                     aria-labelledby="editCategoryTitle<%= c.getCategoryId() %>">
+                <div class="cat-modal-header">
+                    <h2 id="editCategoryTitle<%= c.getCategoryId() %>">Sửa danh mục</h2>
+                    <a href="#" aria-label="Đóng">&times;</a>
+                </div>
+
+                <form action="<%= contextPath %>/admin/categories" method="post" class="cat-modal-form"
+                      novalidate>
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="categoryId" value="<%= c.getCategoryId() %>">
+
+                    <div class="cat-form-group">
+                        <label>Mã danh mục</label>
+                        <input type="text" value="<%= c.getCategoryId() %>" disabled>
+                    </div>
+
+                    <div class="cat-form-group">
+                        <label for="editCategoryName<%= c.getCategoryId() %>">Tên danh mục <span>*</span></label>
+                        <input id="editCategoryName<%= c.getCategoryId() %>"
+                               name="categoryName" type="text"
+                               value="<%= h(c.getCategoryName()) %>"
+                               required minlength="2" maxlength="100">
+                        <small class="cat-form-error"></small>
+                    </div>
+
+                    <div class="cat-form-group">
+                        <label for="editCategoryStatus<%= c.getCategoryId() %>">Trạng thái</label>
+                        <select id="editCategoryStatus<%= c.getCategoryId() %>" name="status">
+                            <option value="ACTIVE" <%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "selected" : "" %>>Đang hoạt động</option>
+                            <option value="INACTIVE" <%= "INACTIVE".equalsIgnoreCase(c.getStatus()) ? "selected" : "" %>>Đã vô hiệu hóa</option>
+                        </select>
+                    </div>
+
+                    <div class="cat-modal-actions">
+                        <a class="cat-btn-cancel" href="#">Hủy</a>
+                        <button class="cat-btn-submit" type="submit">Cập nhật</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+        <% } %>
+        <% } %>
+
         <jsp:include page="/includes/footer.jsp" />
 
         <script>
             document.addEventListener("DOMContentLoaded", function () {
-                const searchForm = document.getElementById("adminCategorySearchForm");
+                // Trim search input on submit
+                var searchForm = document.getElementById("adminCategorySearchForm");
                 if (searchForm) {
-                    searchForm.addEventListener("submit", function (event) {
-                        const searchInput = document.getElementById("categorySearchInput");
+                    searchForm.addEventListener("submit", function () {
+                        var searchInput = document.getElementById("categorySearchInput");
                         if (searchInput) {
                             searchInput.value = searchInput.value.trim();
                         }
+                    });
+                }
+
+                // Client-side validation for all modal forms
+                var modalForms = document.querySelectorAll(".cat-modal-form");
+                modalForms.forEach(function (form) {
+                    form.addEventListener("submit", function (e) {
+                        var nameInput = form.querySelector("input[name='categoryName']");
+                        var errorEl = nameInput
+                                ? nameInput.parentElement.querySelector(".cat-form-error")
+                                : null;
+
+                        if (!nameInput) return;
+
+                        var name = nameInput.value.trim();
+                        nameInput.value = name;
+
+                        if (name.length < 2 || name.length > 100) {
+                            e.preventDefault();
+                            if (errorEl) {
+                                errorEl.textContent = "Tên danh mục phải từ 2 đến 100 ký tự.";
+                                errorEl.style.display = "block";
+                            }
+                            nameInput.focus();
+                            return;
+                        }
+
+                        if (errorEl) {
+                            errorEl.style.display = "none";
+                        }
+                    });
+                });
+
+                // Clear the add form when its modal is opened
+                var addLink = document.querySelector('a[href="#add-category-modal"]');
+                if (addLink) {
+                    addLink.addEventListener("click", function () {
+                        var addInput = document.getElementById("addCategoryName");
+                        var addError = document.getElementById("addCategoryNameError");
+                        if (addInput) addInput.value = "";
+                        if (addError) addError.style.display = "none";
                     });
                 }
             });

@@ -64,10 +64,6 @@ public class CategoryDAO extends DBContext {
         return null;
     }
 
-    public List<Category> getCategories(String keyword, String sort, int page, int pageSize) {
-        return getCategories(keyword, null, sort, page, pageSize);
-    }
-
     public List<Category> getCategories(String keyword, String status, String sort, int page, int pageSize) {
         List<Category> list = new ArrayList<>();
 
@@ -91,7 +87,7 @@ public class CategoryDAO extends DBContext {
             sql += "AND category_name LIKE ? ";
         }
 
-        if (isValidStatus(status)) {
+        if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) {
             sql += "AND status = ? ";
         }
 
@@ -106,7 +102,7 @@ public class CategoryDAO extends DBContext {
                 ps.setString(index++, "%" + keyword.trim() + "%");
             }
 
-            if (isValidStatus(status)) {
+            if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) {
                 ps.setString(index++, status.trim().toUpperCase());
             }
 
@@ -133,10 +129,6 @@ public class CategoryDAO extends DBContext {
         return list;
     }
 
-    public int countCategories(String keyword) {
-        return countCategories(keyword, null);
-    }
-
     public int countCategories(String keyword, String status) {
         String sql = "SELECT COUNT(*) AS total "
                 + "FROM categories "
@@ -146,20 +138,21 @@ public class CategoryDAO extends DBContext {
             sql += "AND category_name LIKE ? ";
         }
 
-        if (isValidStatus(status)) {
+        if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) {
             sql += "AND status = ? ";
         }
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
+
             int index = 1;
 
             if (keyword != null && !keyword.trim().isEmpty()) {
                 ps.setString(index++, "%" + keyword.trim() + "%");
             }
 
-            if (isValidStatus(status)) {
-                ps.setString(index, status.trim().toUpperCase());
+            if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) {
+                ps.setString(index++, status.trim().toUpperCase());
             }
 
             ResultSet rs = ps.executeQuery();
@@ -174,6 +167,24 @@ public class CategoryDAO extends DBContext {
         return 0;
     }
 
+    public boolean addCategory(String categoryName) {
+        String sql = """
+            INSERT INTO categories (category_name)
+            VALUES (?)
+        """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, categoryName);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+        }
+
+        return false;
+    }
+
     public boolean updateCategoryName(int categoryId, String categoryName) {
         String sql = """
             UPDATE categories
@@ -183,7 +194,6 @@ public class CategoryDAO extends DBContext {
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-
             ps.setString(1, categoryName);
             ps.setInt(2, categoryId);
 
@@ -215,32 +225,4 @@ public class CategoryDAO extends DBContext {
 
         return false;
     }
-
-    private boolean isValidStatus(String status) {
-        if (status == null) {
-            return false;
-        }
-
-        String normalizedStatus = status.trim().toUpperCase();
-        return "ACTIVE".equals(normalizedStatus) || "INACTIVE".equals(normalizedStatus);
-    }
-
-    public boolean addCategory(String categoryName) {
-        String sql = """
-            INSERT INTO categories (category_name, status)
-            VALUES (?, 'ACTIVE')
-        """;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, categoryName);
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-        }
-
-        return false;
-    }
 }
-

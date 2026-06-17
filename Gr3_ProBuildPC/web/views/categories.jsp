@@ -206,6 +206,7 @@
                                     </svg>
                                 </span>
                                 <input type="text" name="keyword"
+                                       id="contentSearchInput"
                                        value="<%= searchValue %>"
                                        placeholder="Tìm sản phẩm theo tên/loại">
 

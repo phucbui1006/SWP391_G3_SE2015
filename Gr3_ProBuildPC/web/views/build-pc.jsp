@@ -20,6 +20,15 @@
             this.price = price;
         }
     }
+
+    private int parseQuantity(String value) {
+        try {
+            int quantity = Integer.parseInt(value);
+            return quantity < 1 ? 1 : quantity;
+        } catch (NumberFormatException e) {
+            return 1;
+        }
+    }
 %>
 
 <%
@@ -40,9 +49,30 @@
         new BuildPart("TẢN NHIỆT", "❄", "images/products/amd-ryzen-5-7600.jpg", "Deepcool AK400", "Tản khí, 1 fan 120mm, 4 ống đồng", 690000)
     };
 
+    int[] quantities = new int[parts.length];
+    for (int i = 0; i < parts.length; i++) {
+        quantities[i] = parseQuantity(request.getParameter("q" + i));
+    }
+
+    String adjust = request.getParameter("adjust");
+    if (adjust != null) {
+        String[] adjustParts = adjust.split(":");
+        if (adjustParts.length == 2) {
+            try {
+                int index = Integer.parseInt(adjustParts[0]);
+                int delta = Integer.parseInt(adjustParts[1]);
+                if (index >= 0 && index < quantities.length) {
+                    quantities[index] = Math.max(1, quantities[index] + delta);
+                }
+            } catch (NumberFormatException e) {
+                // Keep submitted quantities unchanged when adjust data is invalid.
+            }
+        }
+    }
+
     long total = 0;
-    for (BuildPart part : parts) {
-        total += part.price;
+    for (int i = 0; i < parts.length; i++) {
+        total += parts[i].price * quantities[i];
     }
 %>
 
@@ -69,8 +99,14 @@
                 </div>
 
                 <div class="build-part-list">
-                    <% for (BuildPart part : parts) { %>
-                    <article class="build-part-row" data-build-part data-unit-price="<%= part.price %>">
+                    <% for (int i = 0; i < parts.length; i++) { %>
+                    <% BuildPart part = parts[i]; %>
+                    <form class="build-part-row" action="<%= ctx %>/build-pc" method="get">
+                        <% for (int j = 0; j < quantities.length; j++) { %>
+                        <% if (j != i) { %>
+                        <input type="hidden" name="q<%= j %>" value="<%= quantities[j] %>">
+                        <% } %>
+                        <% } %>
                         <div class="build-part-type">
                             <span class="build-part-icon" aria-hidden="true"><%= part.icon %></span>
                             <strong><%= part.category %></strong>
@@ -80,14 +116,14 @@
                             <img src="<%= ctx %>/<%= part.image %>" alt="<%= part.name %>">
                             <div>
                                 <h2><%= part.name %></h2>
-                                <strong data-line-price><%= currencyFormatter.format(part.price) %>đ</strong>
+                                <strong><%= currencyFormatter.format(part.price * quantities[i]) %>đ</strong>
                             </div>
                         </div>
 
                         <div class="build-quantity">
-                            <button class="build-qty-btn" type="button" data-qty-minus aria-label="Giảm số lượng <%= part.category %>">−</button>
-                            <input class="build-qty-input" type="number" value="1" min="1" step="1" inputmode="numeric" aria-label="Số lượng <%= part.category %>" data-qty-input>
-                            <button class="build-qty-btn" type="button" data-qty-plus aria-label="Tăng số lượng <%= part.category %>">+</button>
+                            <button class="build-qty-btn" type="submit" name="adjust" value="<%= i %>:-1" aria-label="Giảm số lượng <%= part.category %>">−</button>
+                            <input class="build-qty-input" type="number" name="q<%= i %>" value="<%= quantities[i] %>" min="1" step="1" inputmode="numeric" aria-label="Số lượng <%= part.category %>">
+                            <button class="build-qty-btn" type="submit" name="adjust" value="<%= i %>:1" aria-label="Tăng số lượng <%= part.category %>">+</button>
                         </div>
 
                         <div class="build-part-actions">
@@ -100,7 +136,7 @@
                                 Xóa
                             </button>
                         </div>
-                    </article>
+                    </form>
                     <% } %>
                 </div>
 
@@ -145,77 +181,5 @@
 
         <jsp:include page="/includes/footer.jsp" />
 
-        <script>
-            (function () {
-                const rows = document.querySelectorAll('[data-build-part]');
-                const totalElement = document.querySelector('[data-build-total]');
-                const formatter = new Intl.NumberFormat('vi-VN', {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                });
-
-                const formatCurrency = function (amount) {
-                    return formatter.format(Math.round(amount)) + 'đ';
-                };
-
-                const normalizeQuantity = function (input) {
-                    let quantity = parseInt(input.value, 10);
-
-                    if (Number.isNaN(quantity) || quantity < 1) {
-                        quantity = 1;
-                    }
-
-                    input.value = quantity;
-                    return quantity;
-                };
-
-                const updateTotals = function () {
-                    let total = 0;
-
-                    rows.forEach(function (row) {
-                        const unitPrice = Number(row.dataset.unitPrice) || 0;
-                        const input = row.querySelector('[data-qty-input]');
-                        const linePrice = row.querySelector('[data-line-price]');
-                        const quantity = normalizeQuantity(input);
-                        const lineTotal = unitPrice * quantity;
-
-                        total += lineTotal;
-
-                        if (linePrice) {
-                            linePrice.textContent = formatCurrency(lineTotal);
-                        }
-                    });
-
-                    if (totalElement) {
-                        totalElement.textContent = formatCurrency(total);
-                    }
-                };
-
-                rows.forEach(function (row) {
-                    const input = row.querySelector('[data-qty-input]');
-                    const minusButton = row.querySelector('[data-qty-minus]');
-                    const plusButton = row.querySelector('[data-qty-plus]');
-
-                    if (!input || !minusButton || !plusButton) {
-                        return;
-                    }
-
-                    minusButton.addEventListener('click', function () {
-                        input.value = Math.max(1, normalizeQuantity(input) - 1);
-                        updateTotals();
-                    });
-
-                    plusButton.addEventListener('click', function () {
-                        input.value = normalizeQuantity(input) + 1;
-                        updateTotals();
-                    });
-
-                    input.addEventListener('input', updateTotals);
-                    input.addEventListener('change', updateTotals);
-                });
-
-                updateTotals();
-            })();
-        </script>
     </body>
 </html>

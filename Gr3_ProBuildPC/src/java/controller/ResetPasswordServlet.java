@@ -40,13 +40,6 @@ public class ResetPasswordServlet extends HttpServlet {
         }
 
         String password = request.getParameter("password");
-        String confirmPassword = request.getParameter("confirmPassword");
-
-        if (!password.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu xác nhận không khớp!");
-            request.getRequestDispatcher("/views/reset-password.jsp").forward(request, response);
-            return;
-        }
 
         UserDAO dao = new UserDAO();
 

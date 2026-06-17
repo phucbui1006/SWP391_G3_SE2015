@@ -82,6 +82,15 @@ public class AccountManagementServlet extends HttpServlet {
             createStaff(request, session);
             response.sendRedirect(request.getContextPath() + "/AccountManagement" + buildQueryString(request));
             return;
+        } else if ("resetPassword".equals(action)) {
+            Integer targetUserId = parseId(request.getParameter("userId"));
+            if (targetUserId != null) {
+                resetPassword(request, session, currentAdmin, targetUserId);
+            } else {
+                session.setAttribute("accountError", "Tài khoản cần reset không hợp lệ.");
+            }
+            response.sendRedirect(request.getContextPath() + "/AccountManagement" + buildQueryString(request));
+            return;
         }
 
         Integer userId = parseId(request.getParameter("userId"));
@@ -122,11 +131,15 @@ public class AccountManagementServlet extends HttpServlet {
     private void createStaff(HttpServletRequest request, HttpSession session) {
         String fullName = normalizeText(request.getParameter("fullName"));
         String email = normalizeText(request.getParameter("email"));
-        String password = normalizeText(request.getParameter("password"));
         Integer roleId = parseId(request.getParameter("roleId"));
 
-        if (fullName == null || email == null || password == null || roleId == null) {
+        if (fullName == null || email == null || roleId == null) {
             session.setAttribute("accountError", "Vui long nhap day du thong tin nhan vien.");
+            return;
+        }
+
+        if (roleId == 1) {
+            session.setAttribute("accountError", "Khong the tao tai khoan Admin moi.");
             return;
         }
 
@@ -135,10 +148,67 @@ public class AccountManagementServlet extends HttpServlet {
             return;
         }
 
-        if (userDAO.createStaff(fullName, email, password, roleId)) {
-            session.setAttribute("accountSuccess", "Tao tai khoan nhan vien thanh cong.");
+        // Generate random 8-character password
+        String randomPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
+
+        // Add prefix to force password change on first login only for Employee (2) and Shipment (3)
+        String initialPassword = randomPassword;
+        if (roleId == 2 || roleId == 3) {
+            initialPassword = "!FIRST!" + randomPassword;
+        }
+
+        // Send email first to verify email exists (if SMTP fails, we don't create account)
+        // Note: This relies on SMTP throwing an error if email is malformed or rejected synchronously.
+        boolean emailSent = util.EmailService.sendStaffWelcomeEmail(email, randomPassword);
+        
+        if (!emailSent) {
+            session.setAttribute("accountError", "Không thể gửi email đến địa chỉ này. Vui lòng kiểm tra lại email!");
+            return;
+        }
+
+        if (userDAO.createStaff(fullName, email, initialPassword, roleId)) {
+            session.setAttribute("accountSuccess", "Tao tai khoan nhan vien thanh cong. Mat khau da duoc gui vao email.");
         } else {
-            session.setAttribute("accountError", "Khong the tao tai khoan nhan vien.");
+            session.setAttribute("accountError", "Khong the tao tai khoan nhan vien (Loi Database).");
+        }
+    }
+
+    private void resetPassword(HttpServletRequest request, HttpSession session, User currentAdmin, int targetUserId) {
+        if (currentAdmin.getUserId() == targetUserId) {
+            session.setAttribute("accountError", "Ban khong the tu reset mat khau cua chinh minh tai day.");
+            return;
+        }
+
+        User targetUser = userDAO.getUserById(targetUserId);
+        if (targetUser == null) {
+            session.setAttribute("accountError", "Tai khoan khong ton tai.");
+            return;
+        }
+
+        if (!targetUser.isStaff()) {
+            session.setAttribute("accountError", "Chi co the reset mat khau cho nhan vien (Staff).");
+            return;
+        }
+
+        String randomPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String initialPassword = randomPassword;
+
+        if (targetUser.getRoleId() == 2 || targetUser.getRoleId() == 3) {
+            initialPassword = "!FIRST!" + randomPassword;
+        }
+
+        // Send the reset password email to the ADMIN's email instead of the staff's email
+        boolean emailSent = util.EmailService.sendResetPasswordToAdminEmail(currentAdmin.getEmail(), targetUser.getEmail(), randomPassword);
+        
+        if (!emailSent) {
+            session.setAttribute("accountError", "Khong the gui email reset mat khau ve mail Admin. Vui long kiem tra lai he thong mail.");
+            return;
+        }
+
+        if (userDAO.updatePassword(targetUser.getEmail(), initialPassword)) {
+            session.setAttribute("accountSuccess", "Reset mat khau thanh cong. Mat khau moi cua nhan vien da duoc gui vao email cua Admin.");
+        } else {
+            session.setAttribute("accountError", "Reset mat khau that bai do loi Database.");
         }
     }
 
@@ -148,6 +218,11 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
     // BỔ SUNG ĐIỀU KIỆN: Chặn không cho phép đổi vai trò nhân viên thành Customer (-1)
     if (roleId == null || roleId == -1) {
         session.setAttribute("accountError", "Vai tro cap nhat khong hop le.");
+        return;
+    }
+
+    if (roleId == 1) {
+        session.setAttribute("accountError", "Khong the thay doi vai tro thanh Admin.");
         return;
     }
 

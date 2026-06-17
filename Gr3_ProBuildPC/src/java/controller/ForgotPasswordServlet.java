@@ -21,15 +21,7 @@ public class ForgotPasswordServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String email = request.getParameter("email");
-
-        if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập email!");
-            request.getRequestDispatcher("/views/forget-password.jsp").forward(request, response);
-            return;
-        }
-
-        email = email.trim();
+        String email = request.getParameter("email").trim();
 
         UserDAO userDAO = new UserDAO();
         if (!userDAO.checkEmailExist(email)) {

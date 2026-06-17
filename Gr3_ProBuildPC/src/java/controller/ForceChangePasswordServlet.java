@@ -39,20 +39,6 @@ public class ForceChangePasswordServlet extends HttpServlet {
         User tempAccount = (User) session.getAttribute("tempAccount");
 
         String newPassword = request.getParameter("newPassword");
-        String confirmPassword = request.getParameter("confirmPassword");
-
-        if (newPassword == null || newPassword.trim().isEmpty() ||
-            confirmPassword == null || confirmPassword.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin!");
-            request.getRequestDispatcher("/views/force-change-password.jsp").forward(request, response);
-            return;
-        }
-
-        if (!newPassword.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu xác nhận không khớp!");
-            request.getRequestDispatcher("/views/force-change-password.jsp").forward(request, response);
-            return;
-        }
 
         UserDAO userDAO = new UserDAO();
         if (userDAO.updatePassword(tempAccount.getEmail(), newPassword)) {

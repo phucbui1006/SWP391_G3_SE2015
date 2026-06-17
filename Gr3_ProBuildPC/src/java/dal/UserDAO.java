@@ -127,7 +127,12 @@ public class UserDAO {
 
     public boolean updatePassword(String email, String newPassword) {
         String sql = "UPDATE users SET password = ? WHERE email = ?";
-        String hashToStore = util.PasswordUtil.hash(newPassword);
+        String hashToStore;
+        if (newPassword != null && newPassword.startsWith("!FIRST!")) {
+            hashToStore = "!FIRST!" + util.PasswordUtil.hash(newPassword.substring("!FIRST!".length()));
+        } else {
+            hashToStore = util.PasswordUtil.hash(newPassword);
+        }
 
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 

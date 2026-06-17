@@ -116,6 +116,9 @@
         <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>">🛡 Tra cứu bảo hành</a>
         <% } else if ("ADMIN".equals(roleName)) { %>
 
+        <a href="<%= ctx %>/home" class="menu-item <%= "/home".equals(currentPath) || "/Home".equals(currentPath) ? "active" : "" %>">🏠 Trang chủ</a>
+        <span class="menu-divider"></span>
+
         <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
         <span class="menu-divider"></span>
 
@@ -147,14 +150,20 @@
         <a href="#" class="menu-item">📊 Thống kê doanh thu</a>
         <% } else if ("EMPLOYEE".equals(roleName)) { %>
 
-        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🏠 Dashboard</a>
+        <a href="<%= ctx %>/home" class="menu-item <%= "/home".equals(currentPath) || "/Home".equals(currentPath) ? "active" : "" %>">🏠 Trang chủ</a>
+        <span class="menu-divider"></span>
+
+        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🛡 Dịch vụ bảo hành</a>
 
         <% } else if ("SHIPMENT".equals(roleName)) { %>
 
-        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🏠 Dashboard</a>
+        <a href="<%= ctx %>/home" class="menu-item <%= "/home".equals(currentPath) || "/Home".equals(currentPath) ? "active" : "" %>">🏠 Trang chủ</a>
+        <span class="menu-divider"></span>
+
+        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
         <span class="menu-divider"></span>
 
         <a href="<%= ctx %>/order-history" class="menu-item <%= ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) && !deliveryHistoryMode ? "active" : "" %>">📦 Đơn hàng của tôi</a>
@@ -167,13 +176,15 @@
     </nav>
 
     <div class="header-bottom">
-        <div class="logo-box">
-            <div class="logo-icon">P</div>
-            <div>
-                <h2>ProBuild <span>PC</span></h2>
-                <p>BUILD YOUR PERFECT PC</p>
+        <a href="<%= ctx %>/home" style="text-decoration: none; color: inherit;">
+            <div class="logo-box">
+                <div class="logo-icon">P</div>
+                <div>
+                    <h2>ProBuild <span>PC</span></h2>
+                    <p>BUILD YOUR PERFECT PC</p>
+                </div>
             </div>
-        </div>
+        </a>
         <% if (!"ADMIN".equals(roleName)) { %>
         <form class="search-box" action="<%= searchAction %>" method="get">
             <% if ("SHIPMENT".equals(roleName) && deliveryHistoryMode) { %>

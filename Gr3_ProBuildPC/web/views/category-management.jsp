@@ -114,106 +114,110 @@
 
             <section class="admin-category-card">
 
-                <form action="<%= contextPath %>/admin/categories" method="get" class="admin-category-toolbar">
+                <form action="<%= contextPath %>/admin/categories" method="get" class="admin-category-toolbar" id="adminCategorySearchForm">
 
                     <div class="category-search">
                         <input type="text"
+                               id="categorySearchInput"
                                name="keyword"
                                value="<%= h(keyword) %>"
-                               placeholder="T&#236;m ki&#7871;m danh m&#7909;c...">
-
-                        <button type="submit">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </button>
+                               placeholder="Tìm kiếm danh mục...">
                     </div>
 
-                    <div class="category-sort">
-                        <label>Tr&#7841;ng th&#225;i:</label>
 
-                        <select name="status" onchange="this.form.submit()">
-                            <option value="ALL" <%= "ALL".equals(status) ? "selected" : "" %>>T&#7845;t c&#7843;</option>
-                            <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>&#272;ang ho&#7841;t &#273;&#7897;ng</option>
-                            <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>&#272;&#227; v&#244; hi&#7879;u h&#243;a</option>
+
+                    <div class="category-sort">
+                        <label>Trạng thái:</label>
+
+                        <select name="status" id="statusFilter">
+                            <option value="ALL" <%= "ALL".equals(status) ? "selected" : "" %>>Tất cả</option>
+                            <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>Đang hoạt động</option>
+                            <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>Đã vô hiệu hóa</option>
                         </select>
                     </div>
 
                     <div class="category-sort">
-                        <label>S&#7855;p x&#7871;p:</label>
+                        <label>Sắp xếp:</label>
 
-                        <select name="sort" onchange="this.form.submit()">
-                            <option value="newest" <%= "newest".equals(sort) ? "selected" : "" %>>M&#7899;i nh&#7845;t</option>
-                            <option value="oldest" <%= "oldest".equals(sort) ? "selected" : "" %>>C&#361; nh&#7845;t</option>
-                            <option value="name_asc" <%= "name_asc".equals(sort) ? "selected" : "" %>>T&#234;n A-Z</option>
-                            <option value="name_desc" <%= "name_desc".equals(sort) ? "selected" : "" %>>T&#234;n Z-A</option>
+                        <select name="sort" id="sortFilter">
+                            <option value="newest" <%= "newest".equals(sort) ? "selected" : "" %>>Mới nhất</option>
+                            <option value="oldest" <%= "oldest".equals(sort) ? "selected" : "" %>>Cũ nhất</option>
+                            <option value="name_asc" <%= "name_asc".equals(sort) ? "selected" : "" %>>Tên A-Z</option>
+                            <option value="name_desc" <%= "name_desc".equals(sort) ? "selected" : "" %>>Tên Z-A</option>
                         </select>
                     </div>
+                    <button type="submit" class="btn-search-category">
+                        <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+                    </button>
 
                     <a href="<%= contextPath %>/admin/category/add" class="btn-add-category">
                         <i class="fa-solid fa-plus"></i>
-                        Th&#234;m danh m&#7909;c
+                        Thêm danh mục
                     </a>
 
                 </form>
 
-                 <div class="table-wrapper">
-                     <table class="admin-category-table">
-                         <thead>
-                             <tr>
-                                 <th>M&#227; danh m&#7909;c</th>
-                                 <th>T&#234;n danh m&#7909;c</th>
-                                 <th>Tr&#7841;ng th&#225;i</th>
-                                 <th>Thao t&#225;c</th>
-                             </tr>
-                         </thead>
- 
-                         <tbody>
-                             <% if (categories.isEmpty()) { %>
-                             <tr>
-                                 <td colspan="4" style="text-align:center; padding: 30px;">
-                                     Kh&#244;ng c&#243; danh m&#7909;c n&#224;o
-                                 </td>
-                             </tr>
-                             <% } else { %>
- 
-                             <% for (Category c : categories) { %>
-                             <tr>
-                                 <td><%= c.getCategoryId() %></td>
-                                 <td><%= h(c.getCategoryName()) %></td>
-                                 <td><%= h(c.getStatus()) %></td>
-                                 <td>
-                                     <div class="category-actions">
- 
-                                         <a href="<%= contextPath %>/admin/category/detail?id=<%= c.getCategoryId() %>"
-                                            class="btn-view">
-                                             <i class="fa-solid fa-eye"></i> Xem
-                                         </a>
- 
-                                         <a href="<%= contextPath %>/admin/category/edit?id=<%= c.getCategoryId() %>"
-                                            class="btn-edit">
-                                             <i class="fa-solid fa-pen"></i> S&#7917;a
-                                         </a>
- 
-                                         <form action="<%= contextPath %>/admin/categories" method="post" style="display:inline;">
-                                             <input type="hidden" name="categoryId" value="<%= c.getCategoryId() %>">
-                                             <input type="hidden" name="action" value="<%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "delete" : "activate" %>">
-                                             <input type="hidden" name="keyword" value="<%= h(keyword) %>">
-                                             <input type="hidden" name="status" value="<%= h(status) %>">
-                                             <input type="hidden" name="sort" value="<%= h(sort) %>">
-                                             <input type="hidden" name="page" value="<%= currentPage %>">
-                                             <button type="submit"
-                                                     class="btn-delete"
-                                                     onclick="return confirm('B&#7841;n c&#243; ch&#7855;c mu&#7889;n &#273;&#7893;i tr&#7841;ng th&#225;i danh m&#7909;c n&#224;y kh&#244;ng?')">
-                                                 <i class="fa-solid fa-power-off"></i>
-                                                 <%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "V&#244; hi&#7879;u h&#243;a" : "K&#237;ch ho&#7841;t" %>
-                                             </button>
-                                         </form>
- 
-                                     </div>
-                                 </td>
-                             </tr>
-                             <% } %>
- 
-                             <% } %>
+                <div class="table-wrapper">
+                    <table class="admin-category-table">
+                        <thead>
+                            <tr>
+                                <th>M&#227; danh m&#7909;c</th>
+                                <th>T&#234;n danh m&#7909;c</th>
+                                <th>Tr&#7841;ng th&#225;i</th>
+                                <th>Số lượng sản phẩm</th>
+                                <th>Thao t&#225;c</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <% if (categories.isEmpty()) { %>
+                            <tr>
+                                <td colspan="5" style="text-align:center; padding: 30px;">
+                                    Kh&#244;ng c&#243; danh m&#7909;c n&#224;o
+                                </td>
+                            </tr>
+                            <% } else { %>
+
+                            <% for (Category c : categories) { %>
+                            <tr>
+                                <td><%= c.getCategoryId() %></td>
+                                <td><%= h(c.getCategoryName()) %></td>
+                                <td><%= h(c.getStatus()) %></td>
+                                <td><%= c.getProductCount() %></td>
+                                <td>
+                                    <div class="category-actions">
+
+                                        <a href="<%= contextPath %>/admin/category/detail?id=<%= c.getCategoryId() %>"
+                                           class="btn-view">
+                                            <i class="fa-solid fa-eye"></i> Xem
+                                        </a>
+
+                                        <a href="<%= contextPath %>/admin/category/edit?id=<%= c.getCategoryId() %>"
+                                           class="btn-edit">
+                                            <i class="fa-solid fa-pen"></i> S&#7917;a
+                                        </a>
+
+                                        <form action="<%= contextPath %>/admin/categories" method="post" style="display:inline;">
+                                            <input type="hidden" name="categoryId" value="<%= c.getCategoryId() %>">
+                                            <input type="hidden" name="action" value="<%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "delete" : "activate" %>">
+                                            <input type="hidden" name="keyword" value="<%= h(keyword) %>">
+                                            <input type="hidden" name="status" value="<%= h(status) %>">
+                                            <input type="hidden" name="sort" value="<%= h(sort) %>">
+                                            <input type="hidden" name="page" value="<%= currentPage %>">
+                                            <button type="submit"
+                                                    class="btn-delete"
+                                                    onclick="return confirm('B&#7841;n c&#243; ch&#7855;c mu&#7889;n &#273;&#7893;i tr&#7841;ng th&#225;i danh m&#7909;c n&#224;y kh&#244;ng?')">
+                                                <i class="fa-solid fa-power-off"></i>
+                                                <%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "V&#244; hi&#7879;u h&#243;a" : "K&#237;ch ho&#7841;t" %>
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                </td>
+                            </tr>
+                            <% } %>
+
+                            <% } %>
                         </tbody>
                     </table>
                 </div>
@@ -260,6 +264,20 @@
         </main>
 
         <jsp:include page="/includes/footer.jsp" />
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const searchForm = document.getElementById("adminCategorySearchForm");
+                if (searchForm) {
+                    searchForm.addEventListener("submit", function (event) {
+                        const searchInput = document.getElementById("categorySearchInput");
+                        if (searchInput) {
+                            searchInput.value = searchInput.value.trim();
+                        }
+                    });
+                }
+            });
+        </script>
 
     </body>
 </html>

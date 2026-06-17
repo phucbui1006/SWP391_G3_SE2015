@@ -66,6 +66,13 @@ public class LoginServlet extends HttpServlet {
         }
 
         HttpSession session = request.getSession(true);
+
+        if (user.isStaff() && user.getPassword() != null && user.getPassword().startsWith("!FIRST!")) {
+            session.setAttribute("tempAccount", user);
+            response.sendRedirect(request.getContextPath() + "/ForceChangePassword");
+            return;
+        }
+
         session.setAttribute("account", user);
         redirectAfterLogin(request, response, user);
     }

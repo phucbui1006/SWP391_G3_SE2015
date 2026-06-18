@@ -14,24 +14,31 @@ public class EmailService {
     private static final String FROM_EMAIL = "hoangdzvl2005@gmail.com";
     private static final String APP_PASSWORD = "fgbm ixbv kvoy csew";
 
+    private static Properties getSmtpProperties() {
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.starttls.required", "true");
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2");
+        props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+        props.put("mail.debug", "true");
+        return props;
+    }
+
+    private static Session getMailSession() {
+        return Session.getInstance(getSmtpProperties(), new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(FROM_EMAIL, APP_PASSWORD);
+            }
+        });
+    }
+
     public static boolean sendOtpEmail(String toEmail, String otp) {
         try {
-            Properties props = new Properties();
-
-            props.put("mail.smtp.host", "smtp.gmail.com");
-            props.put("mail.smtp.port", "587");
-            props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
-            props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
-            props.put("mail.debug", "true");
-
-            Session session = Session.getInstance(props, new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(FROM_EMAIL, APP_PASSWORD);
-                }
-            });
-
+            Session session = getMailSession();
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(FROM_EMAIL, "ProBuild PC", "UTF-8"));
 
@@ -65,22 +72,7 @@ public class EmailService {
 
     public static boolean sendStaffWelcomeEmail(String toEmail, String password) {
         try {
-            Properties props = new Properties();
-
-            props.put("mail.smtp.host", "smtp.gmail.com");
-            props.put("mail.smtp.port", "587");
-            props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
-            props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
-            props.put("mail.debug", "true");
-
-            Session session = Session.getInstance(props, new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(FROM_EMAIL, APP_PASSWORD);
-                }
-            });
-
+            Session session = getMailSession();
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(FROM_EMAIL, "ProBuild PC", "UTF-8"));
 
@@ -119,22 +111,7 @@ public class EmailService {
 
     public static boolean sendAdminResetPasswordEmail(String toEmail, String password) {
         try {
-            Properties props = new Properties();
-
-            props.put("mail.smtp.host", "smtp.gmail.com");
-            props.put("mail.smtp.port", "587");
-            props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
-            props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
-            props.put("mail.debug", "true");
-
-            Session session = Session.getInstance(props, new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(FROM_EMAIL, APP_PASSWORD);
-                }
-            });
-
+            Session session = getMailSession();
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(FROM_EMAIL, "ProBuild PC", "UTF-8"));
 
@@ -145,15 +122,19 @@ public class EmailService {
 
             message.setSubject("Mật khẩu của bạn đã được đặt lại - ProBuild PC", "UTF-8");
 
-            String content = "Chào bạn,\n\n"
-                           + "Mật khẩu cho tài khoản của bạn đã được quản trị viên (Admin) đặt lại thành công.\n\n"
-                           + "Thông tin đăng nhập mới của bạn:\n"
-                           + "- Email: " + toEmail + "\n"
-                           + "- Mật khẩu tạm thời: " + password + "\n\n"
-                           + "Lưu ý: Vì lý do bảo mật, bạn sẽ được yêu cầu đổi mật khẩu mới trong lần đăng nhập tiếp theo.\n\n"
-                           + "Trân trọng,\nBan Quản Trị ProBuild PC";
+            String content = "<html><body style='font-family: Arial, sans-serif;'>"
+                           + "<p>Chào bạn,</p>"
+                           + "<p>Mật khẩu cho tài khoản của bạn đã được quản trị viên (Admin) đặt lại thành công.</p>"
+                           + "<p>Thông tin đăng nhập mới của bạn:</p>"
+                           + "<ul>"
+                           + "<li>Email: <b>" + toEmail + "</b></li>"
+                           + "<li>Mật khẩu tạm thời: <b>" + password + "</b></li>"
+                           + "</ul>"
+                           + "<p><i>Lưu ý: Vì lý do bảo mật, bạn sẽ được yêu cầu đổi mật khẩu mới ngay trong lần đăng nhập tiếp theo.</i></p>"
+                           + "<p>Trân trọng,<br>Ban Quản Trị ProBuild PC</p>"
+                           + "</body></html>";
 
-            message.setContent(content, "text/plain; charset=UTF-8");
+            message.setContent(content, "text/html; charset=UTF-8");
 
             Transport.send(message);
 
@@ -169,22 +150,7 @@ public class EmailService {
 
     public static boolean sendResetPasswordToAdminEmail(String adminEmail, String staffEmail, String password) {
         try {
-            Properties props = new Properties();
-
-            props.put("mail.smtp.host", "smtp.gmail.com");
-            props.put("mail.smtp.port", "587");
-            props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
-            props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
-            props.put("mail.debug", "true");
-
-            Session session = Session.getInstance(props, new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(FROM_EMAIL, APP_PASSWORD);
-                }
-            });
-
+            Session session = getMailSession();
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(FROM_EMAIL, "ProBuild PC", "UTF-8"));
 

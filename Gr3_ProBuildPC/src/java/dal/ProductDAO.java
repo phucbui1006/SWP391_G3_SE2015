@@ -183,6 +183,37 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
+    public List<Product> getProductsByCategoryIdForAdmin(int categoryId, String statusFilter) {
+        List<Product> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(PRODUCT_SELECT);
+        sql.append(" WHERE p.category_id = ? ");
+
+        if ("ACTIVE".equalsIgnoreCase(statusFilter)) {
+            sql.append(" AND p.status = 'ACTIVE' ");
+        } else if ("INACTIVE".equalsIgnoreCase(statusFilter)) {
+            sql.append(" AND p.status = 'INACTIVE' ");
+        }
+
+        sql.append(" ORDER BY p.product_id DESC ");
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            ps.setInt(1, categoryId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapProduct(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+
     public List<Product> getProductsByBrand(Integer brandId, String priceRange, String sort) {
         return getProductsByBrand(brandId, priceRange, sort, null);
     }
@@ -423,4 +454,21 @@ public class ProductDAO extends DBContext {
 
         return list;
     }
+
+    public boolean verifyProductInCategory(int productId, int categoryId) {
+        String sql = "SELECT COUNT(*) FROM products WHERE product_id = ? AND category_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, productId);
+            ps.setInt(2, categoryId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
+

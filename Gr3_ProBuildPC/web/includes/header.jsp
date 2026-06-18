@@ -116,8 +116,6 @@
         <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>">🛡 Tra cứu bảo hành</a>
         <% } else if ("ADMIN".equals(roleName)) { %>
 
-        <a href="<%= ctx %>/home" class="menu-item <%= "/home".equals(currentPath) || "/Home".equals(currentPath) ? "active" : "" %>">🏠 Trang chủ</a>
-        <span class="menu-divider"></span>
 
         <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
         <span class="menu-divider"></span>
@@ -150,8 +148,6 @@
         <a href="#" class="menu-item">📊 Thống kê doanh thu</a>
         <% } else if ("EMPLOYEE".equals(roleName)) { %>
 
-        <a href="<%= ctx %>/home" class="menu-item <%= "/home".equals(currentPath) || "/Home".equals(currentPath) ? "active" : "" %>">🏠 Trang chủ</a>
-        <span class="menu-divider"></span>
 
         <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
         <span class="menu-divider"></span>
@@ -160,8 +156,6 @@
 
         <% } else if ("SHIPMENT".equals(roleName)) { %>
 
-        <a href="<%= ctx %>/home" class="menu-item <%= "/home".equals(currentPath) || "/Home".equals(currentPath) ? "active" : "" %>">🏠 Trang chủ</a>
-        <span class="menu-divider"></span>
 
         <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
         <span class="menu-divider"></span>

@@ -272,7 +272,6 @@
 
         </main>
 
-        <%-- ==================== ADD CATEGORY MODAL ==================== --%>
         <div class="cat-modal-overlay" id="add-category-modal">
             <section class="cat-modal" role="dialog" aria-modal="true" aria-labelledby="addCategoryTitle">
                 <div class="cat-modal-header">
@@ -300,7 +299,6 @@
             </section>
         </div>
 
-        <%-- ==================== EDIT CATEGORY MODALS (one per row) ==================== --%>
         <% if (!categories.isEmpty()) { %>
         <% for (Category c : categories) { %>
         <div class="cat-modal-overlay" id="edit-category-<%= c.getCategoryId() %>">

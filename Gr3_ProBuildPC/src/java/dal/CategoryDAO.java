@@ -168,21 +168,36 @@ public class CategoryDAO extends DBContext {
     }
 
     public boolean addCategory(String categoryName) {
+        int nextCategoryId = getnextCategoryId();
         String sql = """
-            INSERT INTO categories (category_name)
-            VALUES (?)
+            INSERT INTO categories (category_id, category_name)
+            VALUES (?, ?)
         """;
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, categoryName);
-
+            ps.setInt(1, nextCategoryId);
+            ps.setString(2, categoryName);
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
         }
 
         return false;
+    }
+
+    private int getnextCategoryId() {
+        String sql = "SELECT MAX(category_id) + 1 AS next_id\n"
+                + "FROM Categories";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("next_id");
+            }
+        } catch (SQLException e) {
+        }
+        return 1;
     }
 
     public boolean updateCategoryName(int categoryId, String categoryName) {

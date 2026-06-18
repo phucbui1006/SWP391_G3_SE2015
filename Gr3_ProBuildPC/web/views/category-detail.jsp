@@ -88,11 +88,6 @@
             <section class="admin-category-card" style="padding: 24px; margin-bottom: 30px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #edf0f5; padding-bottom: 15px; margin-bottom: 20px;">
                     <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #111;">Thông tin danh mục</h3>
-                    <div>
-                        <a href="<%= ctx %>/admin/categories#edit-category-<%= category.getCategoryId() %>" class="btn-add-category" style="background: #007bff; height: 38px; padding: 0 16px; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center;">
-                            <i class="fa-solid fa-pen"></i> Chỉnh sửa
-                        </a>
-                    </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px;">

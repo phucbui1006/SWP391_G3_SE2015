@@ -10,7 +10,10 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import model.User;
 
@@ -22,10 +25,14 @@ import model.User;
     "/VerifyRegisterOtp",
     "/ResetPassword",
     "/ForceChangePassword",
-    "/shipping-address"
+    "/shipping-address",
+    "/AdminBrands"
 })
 public class ValidationFilter implements Filter {
 
+    private static final long MAX_BRAND_IMAGE_SIZE = 2 * 1024 * 1024;
+    private static final String BRAND_IMAGE_ADD_ERROR = "Vui lòng chọn logo PNG, JPG, JPEG hoặc WEBP, tối đa 2MB.";
+    private static final String BRAND_IMAGE_UPDATE_ERROR = "Logo chỉ chấp nhận PNG, JPG, JPEG hoặc WEBP và tối đa 2MB.";
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     private static final Pattern PHONE_PATTERN = Pattern.compile("^(0[35789])[0-9]{8}$");
     private static final Pattern PASSWORD_PATTERN = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,31}$");
@@ -71,6 +78,8 @@ public class ValidationFilter implements Filter {
             isValid = validateForceChangePassword(req, res);
         } else if ("/shipping-address".equalsIgnoreCase(path)) {
             isValid = validateShippingAddress(req, res);
+        } else if ("/AdminBrands".equalsIgnoreCase(path)) {
+            isValid = validateBrand(req, res);
         }
 
         if (isValid) {
@@ -110,6 +119,35 @@ public class ValidationFilter implements Filter {
         if (otp == null) return false;
         String trimmed = otp.trim();
         return OTP_PATTERN.matcher(trimmed).matches();
+    }
+
+    private boolean isValidBrandName(String brandName) {
+        if (brandName == null) return false;
+        int length = brandName.trim().length();
+        return length >= 2 && length < 20;
+    }
+
+    private boolean isAllowedBrandImage(Part filePart, boolean required) {
+        if (filePart == null || filePart.getSize() == 0) {
+            return !required;
+        }
+
+        if (filePart.getSize() > MAX_BRAND_IMAGE_SIZE) {
+            return false;
+        }
+
+        String submittedName = filePart.getSubmittedFileName();
+        if (submittedName == null || submittedName.trim().isEmpty()) {
+            return false;
+        }
+
+        String fileName = Paths.get(submittedName).getFileName().toString();
+        String lowerName = fileName.toLowerCase(Locale.ROOT);
+
+        return lowerName.endsWith(".png")
+                || lowerName.endsWith(".jpg")
+                || lowerName.endsWith(".jpeg")
+                || lowerName.endsWith(".webp");
     }
 
     // Specific Path Validators
@@ -292,6 +330,44 @@ public class ValidationFilter implements Filter {
             }
         }
         return true;
+    }
+
+    private boolean validateBrand(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        String action = req.getParameter("action");
+        if (!"add".equalsIgnoreCase(action) && !"update".equalsIgnoreCase(action)) {
+            return true;
+        }
+
+        String error = null;
+        if (!isValidBrandName(req.getParameter("brandName"))) {
+            error = "Tên thương hiệu chứa từu 2-20 kí tự.";
+        } else {
+            boolean imageRequired = "add".equalsIgnoreCase(action);
+            try {
+                Part imagePart = getUploadedPart(req, "imgFile");
+                if (!isAllowedBrandImage(imagePart, imageRequired)) {
+                    error = getBrandImageError(imageRequired);
+                }
+            } catch (IllegalStateException e) {
+                error = getBrandImageError(imageRequired);
+            }
+        }
+
+        if (error == null) {
+            return true;
+        }
+
+        req.getSession().setAttribute("brandError", error);
+        res.sendRedirect(req.getContextPath() + "/AdminBrands");
+        return false;
+    }
+
+    private Part getUploadedPart(HttpServletRequest req, String name) throws ServletException, IOException {
+        return req.getPart(name);
+    }
+
+    private String getBrandImageError(boolean imageRequired) {
+        return imageRequired ? BRAND_IMAGE_ADD_ERROR : BRAND_IMAGE_UPDATE_ERROR;
     }
 
     private String extractAddressDetailPart(String rawAddress) {

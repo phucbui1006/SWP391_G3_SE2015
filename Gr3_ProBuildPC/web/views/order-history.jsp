@@ -529,5 +529,6 @@
                 });
             })();
         </script>
+        <jsp:include page="/includes/footer.jsp" />
     </body>
 </html>

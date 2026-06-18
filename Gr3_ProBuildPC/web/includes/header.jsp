@@ -95,7 +95,7 @@
         <a href="<%= ctx %>/home" class="menu-item <%= "/home".equals(currentPath) || "/Home".equals(currentPath) ? "active" : "" %>">🏠 Trang chủ</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">🛠 BUILD PC</a>
+        <a href="<%= ctx %>/build-pc" class="menu-item <%= "/build-pc".equals(currentPath) || "/BuildPC".equals(currentPath) ? "active" : "" %>">🛠 BUILD PC</a>
         <span class="menu-divider"></span>
 
         <div class="menu-dropdown">

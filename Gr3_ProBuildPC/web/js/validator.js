@@ -58,12 +58,20 @@ const Validator = {
     validateBrandName(name) {
         if (!name) return false;
         const trimmed = name.trim();
-        return trimmed.length >= 2 && trimmed.length <= 20;
+        return trimmed.length > 2 && trimmed.length < 20;
     },
 
     validateFileSize(file, maxBytes = 2 * 1024 * 1024) {
         if (!file) return true; // Optional file is considered valid
         return file.size <= maxBytes;
+    },
+
+    validateFileType(file, allowedExtensions = ['png', 'jpg', 'jpeg', 'webp']) {
+        if (!file) return true; // Optional file is considered valid
+
+        const fileName = file.name || '';
+        const extension = fileName.split('.').pop().toLowerCase();
+        return allowedExtensions.includes(extension);
     },
 
     // UI Feedback Helpers

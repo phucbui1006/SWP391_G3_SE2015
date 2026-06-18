@@ -64,7 +64,7 @@ public class CategoryDAO extends DBContext {
         return null;
     }
 
-    public List<Category> getCategories(String keyword, String sort, int page, int pageSize) {
+    public List<Category> getCategories(String keyword, String status, String sort, int page, int pageSize) {
         List<Category> list = new ArrayList<>();
 
         String orderBy;
@@ -87,6 +87,10 @@ public class CategoryDAO extends DBContext {
             sql += "AND category_name LIKE ? ";
         }
 
+        if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) {
+            sql += "AND status = ? ";
+        }
+
         sql += "ORDER BY " + orderBy + " LIMIT ? OFFSET ?";
 
         try {
@@ -96,6 +100,10 @@ public class CategoryDAO extends DBContext {
 
             if (keyword != null && !keyword.trim().isEmpty()) {
                 ps.setString(index++, "%" + keyword.trim() + "%");
+            }
+
+            if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) {
+                ps.setString(index++, status.trim().toUpperCase());
             }
 
             int offset = (page - 1) * pageSize;
@@ -121,7 +129,7 @@ public class CategoryDAO extends DBContext {
         return list;
     }
 
-    public int countCategories(String keyword) {
+    public int countCategories(String keyword, String status) {
         String sql = "SELECT COUNT(*) AS total "
                 + "FROM categories "
                 + "WHERE 1 = 1 ";
@@ -130,11 +138,21 @@ public class CategoryDAO extends DBContext {
             sql += "AND category_name LIKE ? ";
         }
 
+        if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) {
+            sql += "AND status = ? ";
+        }
+
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
 
+            int index = 1;
+
             if (keyword != null && !keyword.trim().isEmpty()) {
-                ps.setString(1, "%" + keyword.trim() + "%");
+                ps.setString(index++, "%" + keyword.trim() + "%");
+            }
+
+            if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) {
+                ps.setString(index++, status.trim().toUpperCase());
             }
 
             ResultSet rs = ps.executeQuery();
@@ -147,6 +165,59 @@ public class CategoryDAO extends DBContext {
         }
 
         return 0;
+    }
+
+    public boolean addCategory(String categoryName) {
+        int nextCategoryId = getnextCategoryId();
+        String sql = """
+            INSERT INTO categories (category_id, category_name)
+            VALUES (?, ?)
+        """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, nextCategoryId);
+            ps.setString(2, categoryName);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+        }
+
+        return false;
+    }
+
+    private int getnextCategoryId() {
+        String sql = "SELECT MAX(category_id) + 1 AS next_id\n"
+                + "FROM Categories";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("next_id");
+            }
+        } catch (SQLException e) {
+        }
+        return 1;
+    }
+
+    public boolean updateCategoryName(int categoryId, String categoryName) {
+        String sql = """
+            UPDATE categories
+            SET category_name = ?
+            WHERE category_id = ?
+        """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, categoryName);
+            ps.setInt(2, categoryId);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+        }
+
+        return false;
     }
 
     public boolean updateCategoryStatus(int categoryId, String status) {

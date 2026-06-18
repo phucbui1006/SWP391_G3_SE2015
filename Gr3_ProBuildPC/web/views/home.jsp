@@ -86,7 +86,7 @@
                             TRỐN NẮNG TRONG PHÒNG - 
                             BUILD PC ĐỈNH DÒNG
                         </span>
-                        <a href="#" style="
+                        <a href="<%= ctx %>/build-pc" style="
                            padding-left: 10px;
                            padding-right: 10px;">BUILD NGAY PC <br> BẠN YÊU THÍCH</a>
                     </div>

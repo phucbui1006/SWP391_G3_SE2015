@@ -197,16 +197,16 @@ public class AccountManagementServlet extends HttpServlet {
             initialPassword = "!FIRST!" + randomPassword;
         }
 
-        // Send the reset password email to the ADMIN's email instead of the staff's email
-        boolean emailSent = util.EmailService.sendResetPasswordToAdminEmail(currentAdmin.getEmail(), targetUser.getEmail(), randomPassword);
+        // Send the reset password email directly to the staff's email
+        boolean emailSent = util.EmailService.sendAdminResetPasswordEmail(targetUser.getEmail(), randomPassword);
         
         if (!emailSent) {
-            session.setAttribute("accountError", "Khong the gui email reset mat khau ve mail Admin. Vui long kiem tra lai he thong mail.");
+            session.setAttribute("accountError", "Khong the gui email reset mat khau den email cua nhan vien.");
             return;
         }
 
         if (userDAO.updatePassword(targetUser.getEmail(), initialPassword)) {
-            session.setAttribute("accountSuccess", "Reset mat khau thanh cong. Mat khau moi cua nhan vien da duoc gui vao email cua Admin.");
+            session.setAttribute("accountSuccess", "Reset mat khau thanh cong. Mat khau moi cua nhan vien da duoc gui den email cua ho.");
         } else {
             session.setAttribute("accountError", "Reset mat khau that bai do loi Database.");
         }

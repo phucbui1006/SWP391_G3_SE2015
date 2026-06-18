@@ -61,9 +61,8 @@
         <link rel="stylesheet" href="<%= ctx %>/css/style.css">
         <link rel="stylesheet" href="<%= ctx %>/css/brands.css">
     </head>
-    <body class="brands-page">
+    <body class="brands-page" style="padding-bottom: 0px; padding-left: 0px; padding-right: 0px; padding-top: 0px">
         <jsp:include page="/includes/header.jsp" />
-
         <main class="brand-page">
             <nav class="brand-breadcrumb" aria-label="Breadcrumb">
                 <a href="<%= ctx %>/home">Trang chủ</a>
@@ -213,7 +212,6 @@
                 </section>
             </section>
         </main>
-
         <jsp:include page="/includes/footer.jsp" />
     </body>
 </html>

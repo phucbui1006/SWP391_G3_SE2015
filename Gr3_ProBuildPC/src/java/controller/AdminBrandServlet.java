@@ -20,9 +20,7 @@ import model.User;
 
 @WebServlet(name = "AdminBrandServlet", urlPatterns = {"/AdminBrands"})
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024,
-        maxFileSize = 2 * 1024 * 1024,
-        maxRequestSize = 4 * 1024 * 1024
+        fileSizeThreshold = 1024 * 1024
 )
 public class AdminBrandServlet extends HttpServlet {
 
@@ -120,8 +118,8 @@ public class AdminBrandServlet extends HttpServlet {
         String brandName = normalizeText(request.getParameter("brandName"));
         String img = saveUploadedBrandImage(request.getPart("imgFile"));
 
-        if (brandName == null || img == null) {
-            session.setAttribute("brandError", "Vui lòng nhập đầy đủ tên thương hiệu và chọn logo.");
+        if (img == null) {
+            session.setAttribute("brandError", "Không thể lưu logo thương hiệu.");
             return;
         }
 
@@ -142,7 +140,7 @@ public class AdminBrandServlet extends HttpServlet {
             img = normalizeImagePath(request.getParameter("currentImg"));
         }
 
-        if (brandId == null || brandName == null || img == null) {
+        if (brandId == null || img == null) {
             session.setAttribute("brandError", "Thông tin cập nhật thương hiệu chưa hợp lệ.");
             return;
         }
@@ -246,20 +244,14 @@ public class AdminBrandServlet extends HttpServlet {
             return null;
         }
 
-        String contentType = filePart.getContentType();
-        if (contentType == null || !contentType.toLowerCase(Locale.ROOT).startsWith("image/")) {
-            return null;
-        }
-
         String submittedName = filePart.getSubmittedFileName();
         if (submittedName == null || submittedName.trim().isEmpty()) {
             return null;
         }
 
         String submittedFileName = Paths.get(submittedName).getFileName().toString();
-        String extension = getAllowedImageExtension(submittedFileName);
-
-        if (extension == null) {
+        String extension = getFileExtension(submittedFileName);
+        if (extension.isEmpty()) {
             return null;
         }
 
@@ -285,23 +277,12 @@ public class AdminBrandServlet extends HttpServlet {
         return "images/brands/" + fileName;
     }
 
-    private String getAllowedImageExtension(String fileName) {
-        if (fileName == null) {
-            return null;
+    private String getFileExtension(String fileName) {
+        int dotIndex = fileName.lastIndexOf(".");
+        if (dotIndex < 0) {
+            return "";
         }
 
-        String lowerName = fileName.toLowerCase(Locale.ROOT);
-
-        if (lowerName.endsWith(".png")) {
-            return ".png";
-        } else if (lowerName.endsWith(".jpg")) {
-            return ".jpg";
-        } else if (lowerName.endsWith(".jpeg")) {
-            return ".jpeg";
-        } else if (lowerName.endsWith(".webp")) {
-            return ".webp";
-        }
-
-        return null;
+        return fileName.substring(dotIndex).toLowerCase(Locale.ROOT);
     }
 }

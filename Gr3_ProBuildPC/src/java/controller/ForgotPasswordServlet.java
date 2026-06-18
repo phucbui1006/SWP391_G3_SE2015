@@ -21,15 +21,14 @@ public class ForgotPasswordServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String email = request.getParameter("email");
+        String email = request.getParameter("email").trim();
 
-        if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập email!");
+        UserDAO userDAO = new UserDAO();
+        if (!userDAO.checkEmailExist(email)) {
+            request.setAttribute("error", "Email không tồn tại trong hệ thống!");
             request.getRequestDispatcher("/views/forget-password.jsp").forward(request, response);
             return;
         }
-
-        email = email.trim();
 
         String otp = String.format("%06d", new Random().nextInt(1000000));
 

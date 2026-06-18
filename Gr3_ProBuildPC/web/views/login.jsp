@@ -66,6 +66,12 @@
         </div>
 
         <script>
+            function validateForm() {
+                var emailInput = document.getElementById("email");
+                emailInput.value = emailInput.value.trim();
+                return true;
+            }
+
             function togglePass(inputId, icon) {
                 const inputField = document.getElementById(inputId);
 
@@ -82,4 +88,10 @@
         </script>
 
     </body>
+</html>
+}
+}
+</script>
+
+</body>
 </html>

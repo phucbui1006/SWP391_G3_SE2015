@@ -1,18 +1,44 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.net.URLEncoder" %>
 <%@ page import="model.Category" %>
 <%@ page import="model.Product" %>
-<%@ page import="model.User" %>
 <%@ page import="dal.ProductDAO" %>
+
+<%!
+    private String h(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+%>
 
 <%
     String ctx = request.getContextPath();
-
-    User account = (User) session.getAttribute("account");
-
     List<Category> categories = (List<Category>) request.getAttribute("categories");
     List<Product> products = (List<Product>) request.getAttribute("products");
     ProductDAO productDAO = (ProductDAO) request.getAttribute("productDAO");
+    String keyword = (String) request.getAttribute("keyword");
+    boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+    Integer totalProductsObj = (Integer) request.getAttribute("totalProducts");
+    Integer currentPageObj = (Integer) request.getAttribute("currentPage");
+    Integer totalPagesObj = (Integer) request.getAttribute("totalPages");
+    int totalProducts = totalProductsObj == null ? 0 : totalProductsObj;
+    int currentPage = currentPageObj == null ? 1 : currentPageObj;
+    int totalPages = totalPagesObj == null ? 1 : totalPagesObj;
+    int searchResultCount = totalProducts;
+    String pagingUrl = ctx + "/home?";
+    if (hasKeyword) {
+        pagingUrl += "keyword=" + URLEncoder.encode(keyword, "UTF-8") + "&";
+    }
+    pagingUrl += "page=";
 %>
 
 <!DOCTYPE html>
@@ -21,41 +47,26 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ProBuild PC</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
         <link rel="stylesheet" href="<%= ctx %>/css/style.css">
     </head>
 
-    <body class="home-page">
-
+    <body class="home-page" data-context-path="<%= ctx %>">
         <jsp:include page="/includes/header.jsp" />
 
-<!--        <nav class="main-nav">
-            <a class="active" href="<%= ctx %>/home">🏠 Trang chủ</a>
-            <a href="<%= ctx %>/categories">Sản phẩm ▾</a>
-            <a href="#">Build PC</a>
-            <a href="#">Đơn hàng</a>
-        </nav>-->
-
         <main class="page-shell">
-
             <aside class="sidebar">
                 <h2>DANH MỤC SẢN PHẨM</h2>
 
                 <ul class="category-list">
-                    <% if (categories != null && !categories.isEmpty()) {
-                        for (Category cat : categories) {
+                    <% if (categories != null) {
+                        for (Category category : categories) {
                     %>
-
                     <li>
-                        <a href="<%= ctx %>/categories?id=<%= cat.getCategoryId() %>">
-                            ▣ <%= cat.getCategoryName() %>
+                        <a href="<%= ctx %>/categories?id=<%= category.getCategoryId() %>">
+                            <%= category.getCategoryName() %>
                         </a>
                     </li>
-
-                    <%
-                        }
-                    }
-                    %>
+                    <% }} %>
                 </ul>
 
                 <a class="all-categories" href="<%= ctx %>/categories">
@@ -64,22 +75,20 @@
             </aside>
 
             <section class="content">
-
                 <section class="hero-banner">
                     <div class="hero-copy">
-                        <p>BUILD PC</p>
-
+                        <p>ProBUILD PC</p>
                         <h1>
                             ĐỈNH CAO HIỆU NĂNG<br>
                             NÂNG TẦM TRẢI NGHIỆM
                         </h1>
-
                         <span>
-                            Linh kiện chính hãng - Giá tốt nhất<br>
-                            Bảo hành uy tín - Hỗ trợ tận tâm
+                            TRỐN NẮNG TRONG PHÒNG - 
+                            BUILD PC ĐỈNH DÒNG
                         </span>
-
-                        <a href="<%= ctx %>/categories">MUA NGAY</a>
+                        <a href="<%= ctx %>/build-pc" style="
+                           padding-left: 10px;
+                           padding-right: 10px;">BUILD NGAY PC <br> BẠN YÊU THÍCH</a>
                     </div>
                 </section>
 
@@ -118,79 +127,53 @@
                 </section>
 
                 <section class="filter-row">
-                    <div class="filters">
-
+                    <form class="filters" action="<%= ctx %>/categories" method="get">
                         <label>
                             Danh mục:
-                            <select onchange="location.href=this.value">
-                                <option value="<%= ctx %>/categories">Tất cả</option>
-
-                                <% if (categories != null && !categories.isEmpty()) {
-                                    for (Category cat : categories) {
+                            <select name="id">
+                                <option value="">Tất cả</option>
+                                <% if (categories != null) {
+                                    for (Category category : categories) {
                                 %>
-
-                                <option value="<%= ctx %>/categories?id=<%= cat.getCategoryId() %>">
-                                    <%= cat.getCategoryName() %>
+                                <option value="<%= category.getCategoryId() %>">
+                                    <%= category.getCategoryName() %>
                                 </option>
-
-                                <%
-                                    }
-                                }
-                                %>
+                                <% }} %>
                             </select>
                         </label>
+                        <button class="home-filter-btn" type="submit">Lọc</button>
+                    </form>
 
+                    <form class="sort-box" action="<%= ctx %>/categories" method="get">
                         <label>
-                            Thương hiệu:
-                            <select>
-                                <option>Tất cả</option>
-                                <option>Intel</option>
-                                <option>AMD</option>
-                                <option>ASUS</option>
-                                <option>MSI</option>
+                            Sắp xếp:
+                            <select name="sort">
+                                <option value="newest">Mới nhất</option>
+                                <option value="price_asc">Giá tăng dần</option>
+                                <option value="price_desc">Giá giảm dần</option>
                             </select>
                         </label>
-
-                        <label>
-                            Khoảng giá:
-                            <select>
-                                <option>Tất cả</option>
-                                <option>Dưới 2 triệu</option>
-                                <option>2 - 5 triệu</option>
-                                <option>Trên 5 triệu</option>
-                            </select>
-                        </label>
-
-                    </div>
-
-                    <label class="sort-box">
-                        Sắp xếp:
-                        <select onchange="location.href='<%= ctx %>/categories?sort=' + this.value">
-                            <option value="newest">Mới nhất</option>
-                            <option value="price_asc">Giá tăng dần</option>
-                            <option value="price_desc">Giá giảm dần</option>
-                        </select>
-                    </label>
+                        <button class="home-filter-btn" type="submit">Áp dụng</button>
+                    </form>
                 </section>
 
-                <section class="product-grid">
+                <% if (hasKeyword) { %>
+                <div class="home-search-result">
+                    <div>
+                        <h2>Kết quả tìm kiếm cho "<%= h(keyword) %>"</h2>
+                        <p>Tìm thấy <%= searchResultCount %> sản phẩm</p>
+                    </div>
+                    <a href="<%= ctx %>/home">Xem tất cả sản phẩm</a>
+                </div>
+                <% } %>
 
+                <section class="product-grid">
                     <% if (products != null && !products.isEmpty()) {
                         for (Product product : products) {
-
-                            double rating = 0;
-
-                            if (productDAO != null) {
-                                rating = productDAO.getAverageRating(product.getProductId());
-                            }
-
+                            double rating = productDAO == null ? 0 : productDAO.getAverageRating(product.getProductId());
                             int fullStars = (int) rating;
                     %>
-
                     <article class="product-card">
-
-                        <button class="wish-btn" type="button">♡</button>
-
                         <figure>
                             <img src="<%= ctx %>/<%= product.getImageUrl() %>"
                                  alt="<%= product.getProductName() %>">
@@ -206,44 +189,66 @@
                             <% for (int i = 1; i <= 5; i++) { %>
                             <%= i <= fullStars ? "★" : "☆" %>
                             <% } %>
-
                             <span><%= String.format("%.1f", rating) %></span>
                         </div>
 
+                        <p class="product-stock <%= product.getQuantity() > 0 ? "in-stock" : "out-of-stock" %>">
+                            <% if (product.getQuantity() > 0) { %>
+                            Còn hàng: <%= product.getQuantity() %>
+                            <% } else { %>
+                            Hết hàng
+                            <% } %>
+                        </p>
+
                         <div class="product-actions">
-                            <a class="detail-btn"
-                               href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
+                            <a class="detail-btn" href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
                                 Xem chi tiết
                             </a>
 
-                            <button type="button" class="cart-btn">🛒</button>
+                            <form class="cart-form" action="<%= ctx %>/cart" method="post">
+                                <input type="hidden" name="action" value="addToCart">
+                                <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                                <input type="hidden" name="quantity" value="1">
+                                <button class="cart-btn" type="submit" data-add-to-cart-btn data-product-name="<%= h(product.getProductName()) %>" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
+                                    🛒
+                                </button>
+                            </form>
                         </div>
-
                     </article>
-
-                    <%
-                        }
-                    } else {
-                    %>
-                    <p>Không có sản phẩm nào để hiển thị.</p>
+                    <% }} else { %>
+                    <p class="home-empty-message">
+                        <%= hasKeyword ? "Không tìm thấy sản phẩm phù hợp." : "Không có sản phẩm nào để hiển thị." %>
+                    </p>
                     <% } %>
                 </section>
 
-                <nav class="home-pagination">
-                    <a href="#">‹</a>
-                    <a href="#" class="active">1</a>
-                    <a href="#">2</a>
-                    <a href="#">3</a>
-                    <a href="#">4</a>
-                    <a href="#">5</a>
-                    <span>...</span>
-                    <a href="#">10</a>
-                    <a href="#">›</a>
-                </nav>
+                <% if (totalPages > 1) { %>
+                <div class="home-pagination">
+                    <% if (currentPage > 1) { %>
+                    <a href="<%= pagingUrl + (currentPage - 1) %>">Trước</a>
+                    <% } %>
+
+                    <% for (int i = 1; i <= totalPages; i++) { %>
+                    <a class="<%= currentPage == i ? "active" : "" %>" href="<%= pagingUrl + i %>">
+                        <%= i %>
+                    </a>
+                    <% } %>
+
+                    <% if (currentPage < totalPages) { %>
+                    <a href="<%= pagingUrl + (currentPage + 1) %>">Sau</a>
+                    <% } %>
+                </div>
+                <% } %>
             </section>
         </main>
 
+        <div class="home-toast" data-home-toast hidden>
+            <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
+            <div class="home-toast-message" data-home-toast-message></div>
+        </div>
+
         <jsp:include page="/includes/footer.jsp" />
 
+        <script src="<%= ctx %>/js/cart.js"></script>
     </body>
 </html>

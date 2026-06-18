@@ -3,7 +3,9 @@ package controller;
 import dal.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet(name = "RegisterServlet", urlPatterns = {"/Register"})
@@ -19,32 +21,43 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String fullName = request.getParameter("fullName");
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-        String confirmPassword = request.getParameter("confirmPassword");
+        request.setCharacterEncoding("UTF-8");
+
+        String fullName = safeTrim(request.getParameter("fullName"));
+        String email = safeTrim(request.getParameter("email"));
+        String password = safeTrim(request.getParameter("password"));
+        String confirmPassword = safeTrim(request.getParameter("confirmPassword"));
 
         UserDAO dao = new UserDAO();
-
-        if (!password.equals(confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu xác nhận không khớp!");
-            request.getRequestDispatcher("/views/register.jsp").forward(request, response);
-            return;
-        }
-
         if (dao.checkEmailExist(email)) {
-            request.setAttribute("error", "Email đã tồn tại!");
+            request.setAttribute("error", "Email da ton tai!");
             request.getRequestDispatcher("/views/register.jsp").forward(request, response);
             return;
         }
 
-        boolean success = dao.registerCustomer(fullName, email, password);
+        // Generate OTP
+        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+        
+        jakarta.servlet.http.HttpSession session = request.getSession();
+        session.setAttribute("regFullName", fullName);
+        session.setAttribute("regEmail", email);
+        session.setAttribute("regPassword", password);
+        session.setAttribute("regOtp", otp);
+        session.setAttribute("regOtpExpiredTime", System.currentTimeMillis() + 5 * 60 * 1000);
 
-        if (success) {
-            response.sendRedirect(request.getContextPath() + "/Login");
+        System.out.println("Register OTP tao ra la: " + otp);
+
+        boolean sent = util.EmailService.sendOtpEmail(email, otp);
+
+        if (sent) {
+            response.sendRedirect(request.getContextPath() + "/VerifyRegisterOtp");
         } else {
-            request.setAttribute("error", "Đăng ký thất bại!");
+            request.setAttribute("error", "Không gửi được email mã OTP. Vui lòng thử lại!");
             request.getRequestDispatcher("/views/register.jsp").forward(request, response);
         }
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? "" : value.trim();
     }
 }

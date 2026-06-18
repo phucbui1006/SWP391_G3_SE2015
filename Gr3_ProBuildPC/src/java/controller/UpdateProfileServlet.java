@@ -43,57 +43,33 @@ public class UpdateProfileServlet extends HttpServlet {
         boolean isChangingPassword = false;
 
         try {
-            // Tình huống 1: Người dùng có điền vào ô đổi mật khẩu
-            if (oldPassword != null && !oldPassword.trim().isEmpty()) {
-                oldPassword = oldPassword.trim();
+            boolean hasNewPassword = (newPassword != null && !newPassword.trim().isEmpty());
 
-                // KIỂM TRA ĐIỀU KIỆN 1: Mật khẩu cũ nhập vào phải trùng với mật khẩu hiện tại
+            if (hasNewPassword) {
+                oldPassword = oldPassword.trim();
+                newPassword = newPassword.trim();
+
+                // ĐIỀU KIỆN: Mật khẩu cũ nhập vào phải trùng khớp với mật khẩu hiện tại trong Session
                 if (!oldPassword.equals(currentPasswordInSession)) {
                     request.setAttribute("errorMsg", "Mật khẩu cũ không chính xác!");
                     request.getRequestDispatcher("views/profile.jsp").forward(request, response);
                     return;
                 }
 
-                // KIỂM TRA ĐIỀU KIỆN 2: Mật khẩu mới không được rỗng và phải khớp với Confirm
-                if (newPassword == null || newPassword.trim().isEmpty()) {
-                    request.setAttribute("errorMsg", "Vui lòng nhập mật khẩu mới!");
-                    request.getRequestDispatcher("views/profile.jsp").forward(request, response);
-                    return;
-                }
-
-                newPassword = newPassword.trim();
-                confirmPassword = confirmPassword.trim();
-
-                if (!newPassword.equals(confirmPassword)) {
-                    request.setAttribute("errorMsg", "Xác nhận mật khẩu mới không trùng khớp!");
-                    request.getRequestDispatcher("views/profile.jsp").forward(request, response);
-                    return;
-                }
-
-                // Đạt điều kiện đổi mật khẩu
                 passwordToUpdate = newPassword;
                 isChangingPassword = true;
             }
 
             // 2. Khởi tạo đối tượng DAL kết nối cơ sở dữ liệu thực tế
             UserDAO userDAO = new UserDAO();
-
-            // Thực hiện gọi hàm update dưới Database của bạn 
-            // Truyền các tham số: email (lấy từ session làm điều kiện WHERE), fullName mới, password mới
             boolean isUpdated = userDAO.updateProfile(account.getEmail(), fullName, passwordToUpdate);
 
             if (isUpdated) {
-                // 1. Cập nhật họ tên mới vào đối tượng account hiện tại
                 account.setFullName(fullName);
-
-                // 2. Nếu người dùng có đổi mật khẩu, phải ghi đè mật khẩu mới vào đối tượng account
                 if (isChangingPassword) {
-                    account.setPassword(passwordToUpdate); // passwordToUpdate chính là newPassword lúc này
+                    account.setPassword(passwordToUpdate);
                 }
-
-                // 3. Quan trọng nhất: Ghi đè lại đối tượng account đã sửa vào Session
                 session.setAttribute("account", account);
-
                 request.setAttribute("successMsg", "Lưu thành công!");
             } else {
                 request.setAttribute("errorMsg", "Lưu thất bại! Đã xảy ra lỗi ở tầng cơ sở dữ liệu.");

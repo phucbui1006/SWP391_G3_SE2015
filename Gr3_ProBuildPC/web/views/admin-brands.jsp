@@ -63,7 +63,7 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
         <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
-    <body class="dashboard-body admin-brand-body">
+    <body class="dashboard-body admin-brand-body" style=" padding-bottom: 0px">
 
         <jsp:include page="/includes/header.jsp" />
 

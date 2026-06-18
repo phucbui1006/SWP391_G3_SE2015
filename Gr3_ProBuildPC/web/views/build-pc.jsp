@@ -83,10 +83,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Build PC - ProBuild PC</title>
         <link rel="stylesheet" href="<%= ctx %>/css/style.css">
-        <link rel="stylesheet" href="<%= ctx %>/css/build-pc.css">
     </head>
 
-    <body class="build-pc-page">
+    <body class="build-pc-page" style="padding-bottom: 0px; padding-left: 0px; padding-right: 0px; padding-top: 0px">
         <jsp:include page="/includes/header.jsp" />
 
         <main class="build-pc-shell">

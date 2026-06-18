@@ -21,6 +21,7 @@ import model.Address;
 import model.CartItem;
 import model.Product;
 import model.User;
+import util.VNPayUtil;
 
 @WebServlet(name = "CheckoutServlet", urlPatterns = {"/checkout"})
 public class CheckoutServlet extends HttpServlet {
@@ -89,28 +90,37 @@ public class CheckoutServlet extends HttpServlet {
         }
 
         String paymentMethod = normalizePaymentMethod(request.getParameter("paymentMethod"));
+        int statusId = "VNPAY".equals(paymentMethod) ? 1 : 2; // 1: Chờ xác nhận, 2: Đã xác nhận (auto-confirmed)
         String paymentStatus = "VNPAY".equals(paymentMethod) ? "Chờ thanh toán" : "Chưa thanh toán";
         String note = safeTrim(request.getParameter("note"));
 
         OrderDAO orderDAO = new OrderDAO();
-        boolean created = orderDAO.createOrder(
+        int orderId = orderDAO.createOrder(
                 customerId,
                 selectedAddress,
                 paymentMethod,
                 paymentStatus,
+                statusId,
                 note,
                 payload.getItems(),
                 payload.isCartCheckout() ? payload.getSelectedCartItemIds() : Collections.emptyList()
         );
 
-        if (!created) {
+        if (orderId == -1) {
             request.setAttribute("errorMsg", "Khong the tao don hang luc nay. Vui long thu lai.");
             renderCheckoutPage(request, response, account);
             return;
         }
 
-        setFlashMessage(request.getSession(), CART_SUCCESS_FLASH, "Da tao don hang thanh cong.");
-        response.sendRedirect(request.getContextPath() + "/cart");
+        if ("VNPAY".equals(paymentMethod)) {
+            BigDecimal totalAmount = calculateSubtotal(payload.getItems());
+            orderDAO.setVnpayExpiresAt(orderId, 5); // Đặt thời hạn thanh toán 5 phút
+            String paymentUrl = VNPayUtil.buildPaymentUrl(request, orderId, totalAmount.doubleValue());
+            response.sendRedirect(paymentUrl);
+        } else {
+            setFlashMessage(request.getSession(), CART_SUCCESS_FLASH, "Da tao don hang thanh cong.");
+            response.sendRedirect(request.getContextPath() + "/cart");
+        }
     }
 
     private void renderCheckoutPage(HttpServletRequest request, HttpServletResponse response, User account)

@@ -396,6 +396,35 @@ body.order-history-body * {
     transform: translateY(-1px);
 }
 
+.order-vnpay-retry-form {
+    display: inline-flex;
+    margin: 0;
+}
+
+.order-vnpay-retry-btn {
+    height: 42px;
+    padding: 0 16px;
+    border: 1px solid #005691;
+    border-radius: 8px;
+    background: #e6f2fc;
+    color: #005691;
+    font-size: 14px;
+    font-weight: 850;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.order-vnpay-retry-btn:hover {
+    border-color: #003d66;
+    background: #005691;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+
 .order-quick-btn {
     min-width: 116px;
     padding: 0 14px;

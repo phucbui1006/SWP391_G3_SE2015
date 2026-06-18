@@ -232,7 +232,12 @@ public class OrderHistoryDAO extends DBContext {
                 ps.setInt(2, orderId);
                 ps.setInt(3, customerId);
                 ps.setInt(4, waitingStatusId);
-                return ps.executeUpdate() > 0;
+                boolean success = ps.executeUpdate() > 0;
+                if (success) {
+                    OrderDAO orderDAO = new OrderDAO();
+                    orderDAO.releaseStock(orderId);
+                }
+                return success;
             }
         } catch (SQLException e) {
             e.printStackTrace();

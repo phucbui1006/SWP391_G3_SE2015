@@ -204,6 +204,10 @@
             ? Collections.emptyList()
             : selectedOrder.getDetails();
     boolean selectedCanCancel = isCustomerView && canCancelOrder(selectedOrder);
+    boolean selectedCanRetryVnpay = isCustomerView && selectedOrder != null
+            && "VNPAY".equalsIgnoreCase(selectedOrder.getPaymentMethod())
+            && "Chờ thanh toán".equals(selectedOrder.getPaymentStatus())
+            && selectedOrder.getStatusId() == 1;
     boolean selectedCanUpdateShipment = canManageShipment && !isLockedShipmentOrder(selectedOrder);
     String selectedStatusIdValue = selectedStatusId == null ? null : String.valueOf(selectedStatusId);
 
@@ -338,6 +342,12 @@
                                 <input type="hidden" name="filterStatusId" value="<%= h(selectedStatusIdValue) %>">
                                 <input type="hidden" name="page" value="<%= currentPage %>">
                                 <button type="submit" class="order-cancel-btn">Hủy đơn</button>
+                            </form>
+                            <% } %>
+                            <% if (selectedCanRetryVnpay) { %>
+                            <form class="order-vnpay-retry-form" action="<%= ctx %>/vnpay-retry" method="post">
+                                <input type="hidden" name="orderId" value="<%= selectedOrder.getOrderId() %>">
+                                <button type="submit" class="order-vnpay-retry-btn">💳 Tiếp tục thanh toán VNPAY</button>
                             </form>
                             <% } %>
                         </div>

@@ -192,6 +192,12 @@ public class BatchServlet extends HttpServlet {
                         return;
                     }
 
+                    if (!batchName.trim().matches("^[\\p{L}\\p{N}\\s]+$")) {
+                        request.setAttribute("error", "Tên lô hàng không được chứa kí tự đặc biệt");
+                        forwardToBatchPage(request, response);
+                        return;
+                    }
+
                     Date inputDate = Date.valueOf(dateRaw);
                     Date currentDate = Date.valueOf(java.time.LocalDate.now());
                     
@@ -222,10 +228,26 @@ public class BatchServlet extends HttpServlet {
                     String batchName = request.getParameter("batchName");
                     String dateRaw = request.getParameter("date");
 
+                    Batch tempBatch = new Batch();
+                    tempBatch.setBatchId(batchId);
+                    tempBatch.setBatchName(batchName != null ? batchName.trim() : "");
+                    try {
+                        if (dateRaw != null && !dateRaw.trim().isEmpty()) {
+                            tempBatch.setDate(Date.valueOf(dateRaw));
+                        }
+                    } catch (Exception e) {}
+                    request.setAttribute("editBatch", tempBatch);
+
                     if (batchName == null || batchName.trim().isEmpty()
                             || dateRaw == null || dateRaw.trim().isEmpty()) {
 
                         request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin lô hàng.");
+                        forwardToBatchPage(request, response);
+                        return;
+                    }
+
+                    if (!batchName.trim().matches("^[\\p{L}\\p{N}\\s]+$")) {
+                        request.setAttribute("error", "Tên lô hàng không được chứa kí tự đặc biệt");
                         forwardToBatchPage(request, response);
                         return;
                     }

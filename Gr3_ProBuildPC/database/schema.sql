@@ -1,5 +1,6 @@
 SET NAMES utf8mb4;
 
+DROP DATABASE IF EXISTS db1;
 CREATE DATABASE db1
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
@@ -200,7 +201,6 @@ CREATE TABLE REVIEWS (
     customer_id INT NOT NULL,
     product_id  INT NOT NULL,
     rating      INT NOT NULL,
-    img         VARCHAR(255),
     comment     TEXT NULL,
     date        DATETIME,
 
@@ -209,6 +209,18 @@ CREATE TABLE REVIEWS (
 
     CONSTRAINT FK_REVIEWS_PRODUCTS
         FOREIGN KEY (product_id) REFERENCES PRODUCTS(product_id)
+);
+
+-- =========================
+-- ẢNH ĐÁNH GIÁ
+-- =========================
+CREATE TABLE REVIEW_IMAGES (
+    image_id  INT AUTO_INCREMENT PRIMARY KEY,
+    review_id INT NOT NULL,
+    image_url VARCHAR(255) NOT NULL,
+
+    CONSTRAINT FK_REVIEW_IMAGES_REVIEWS
+        FOREIGN KEY (review_id) REFERENCES REVIEWS(review_id) ON DELETE CASCADE
 );
 
 -- =========================
@@ -232,6 +244,7 @@ CREATE TABLE ORDERS (
     payment_method   VARCHAR(100) NOT NULL,
     payment_status   VARCHAR(50) DEFAULT 'Chưa thanh toán',
     note             TEXT NULL,
+    vnpay_expires_at DATETIME NULL DEFAULT NULL,
 
     CONSTRAINT FK_ORDERS_CUSTOMERS
         FOREIGN KEY (customer_id) REFERENCES CUSTOMERS(customer_id),
@@ -319,4 +332,3 @@ CREATE TABLE WARRANTIES (
     CONSTRAINT FK_WARRANTIES_STATUS
         FOREIGN KEY (status_id) REFERENCES WARRANTY_STATUS(status_id)
 );
-ALTER TABLE ORDERS ADD COLUMN vnpay_expires_at DATETIME NULL DEFAULT NULL;

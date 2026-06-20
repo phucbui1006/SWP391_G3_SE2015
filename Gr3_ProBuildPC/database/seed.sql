@@ -451,27 +451,30 @@ VALUES
 -- ĐÁNH GIÁ VÀ BẢO HÀNH
 -- =========================
 INSERT INTO REVIEWS
-(review_id, customer_id, product_id, rating, img, comment, date)
+(review_id, customer_id, product_id, rating, comment, date)
 VALUES
 (1, 1, 1, 5,
-'images/reviews/ryzen7600-review.jpg',
 'CPU chạy ổn định, nhiệt độ mát và hiệu năng chơi game rất tốt trong tầm giá.',
 '2026-01-20 09:00:00'),
 
 (2, 1, 5, 4,
-'images/reviews/kingston-ddr5-review.jpg',
 'RAM hoạt động ổn định, đóng gói cẩn thận và giao hàng nhanh.',
 '2026-01-20 09:10:00'),
 
 (3, 2, 3, 5,
-'images/reviews/i512400f-review.jpg',
 'Hiệu năng rất tốt trong tầm giá, phù hợp cho học tập, làm việc văn phòng và chơi game.',
 '2026-01-22 15:00:00'),
 
 (4, 2, 6, 5,
-'images/reviews/msi4060-review.jpg',
 'Card đồ họa chạy mượt, DLSS hoạt động hiệu quả trong các trò chơi hỗ trợ.',
 '2026-01-22 15:15:00');
+
+INSERT INTO REVIEW_IMAGES (image_id, review_id, image_url)
+VALUES
+(1, 1, 'images/reviews/ryzen7600-review.jpg'),
+(2, 2, 'images/reviews/kingston-ddr5-review.jpg'),
+(3, 3, 'images/reviews/i512400f-review.jpg'),
+(4, 4, 'images/reviews/msi4060-review.jpg');
 
 INSERT INTO WARRANTIES
 (warranty_id, order_detail_id, customer_id, product_id, status_id, request_date, request)

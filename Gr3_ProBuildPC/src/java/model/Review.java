@@ -1,25 +1,26 @@
 package model;
 
 import java.util.Date;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Review {
     private int reviewId;
     private int customerId;
     private int rating;
     private int productId;
-    private String img;
     private String comment;
     private Date date;
+    private List<String> images = new ArrayList<>();
 
     public Review() {
     }
 
-    public Review(int reviewId, int customerId, int rating, int productId, String img, String comment, Date date) {
+    public Review(int reviewId, int customerId, int rating, int productId, String comment, Date date) {
         this.reviewId = reviewId;
         this.customerId = customerId;
         this.rating = rating;
         this.productId = productId;
-        this.img = img;
         this.comment = comment;
         this.date = date;
     }
@@ -64,13 +65,7 @@ public class Review {
         this.productId = productId;
     }
 
-    public String getImg() {
-        return img;
-    }
 
-    public void setImg(String img) {
-        this.img = img;
-    }
 
     public String getComment() {
         return comment;
@@ -86,5 +81,13 @@ public class Review {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public List<String> getImages() {
+        return images;
+    }
+
+    public void setImages(List<String> images) {
+        this.images = images;
     }
 }

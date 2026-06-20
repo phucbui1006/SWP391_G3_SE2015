@@ -422,19 +422,72 @@
                         <h3>Danh sách sản phẩm</h3>
                         <div class="order-product-list">
                             <% for (OrderHistoryDetail detail : selectedDetails) { %>
-                            <a class="order-product-row" href="<%= ctx %>/product-detail?id=<%= detail.getProductId() %>">
-                                <% if (detail.getImageUrl() != null && !detail.getImageUrl().trim().isEmpty()) { %>
-                                <img src="<%= h(assetUrl(ctx, detail.getImageUrl())) %>" alt="<%= h(defaultText(detail.getProductName(), "Sản phẩm")) %>">
-                                <% } else { %>
-                                <span class="order-product-placeholder">PC</span>
-                                <% } %>
-                                <div>
-                                    <strong><%= h(defaultText(detail.getProductName(), "Sản phẩm")) %></strong>
-                                    <span><%= h(defaultText(detail.getCategoryName(), "Danh mục")) %> · <%= h(defaultText(detail.getBrandName(), "Thương hiệu")) %></span>
+                            <div class="order-product-item-wrap">
+                                <a class="order-product-row" href="<%= ctx %>/product-detail?id=<%= detail.getProductId() %>">
+                                    <% if (detail.getImageUrl() != null && !detail.getImageUrl().trim().isEmpty()) { %>
+                                    <img src="<%= h(assetUrl(ctx, detail.getImageUrl())) %>" alt="<%= h(defaultText(detail.getProductName(), "Sản phẩm")) %>">
+                                    <% } else { %>
+                                    <span class="order-product-placeholder">PC</span>
+                                    <% } %>
+                                    <div>
+                                        <strong><%= h(defaultText(detail.getProductName(), "Sản phẩm")) %></strong>
+                                        <span><%= h(defaultText(detail.getCategoryName(), "Danh mục")) %> · <%= h(defaultText(detail.getBrandName(), "Thương hiệu")) %></span>
+                                    </div>
+                                    <span>x<%= detail.getQuantity() %></span>
+                                    <strong><%= formatMoney(detail.getSubtotal(), currencyFormatter) %></strong>
+                                </a>
+                                
+                                <% if (isCustomerView && selectedOrder != null && isDeliveredShipmentStatus(selectedOrder.getDisplayStatus())) { %>
+                                <div class="order-product-review-row">
+                                    <% if (detail.getReview() != null) { %>
+                                        <%
+                                            StringBuilder imgListBuilder = new StringBuilder();
+                                            if (detail.getReview().getImages() != null) {
+                                                for (String imgPath : detail.getReview().getImages()) {
+                                                    if (imgListBuilder.length() > 0) {
+                                                        imgListBuilder.append(",");
+                                                    }
+                                                    imgListBuilder.append(imgPath);
+                                                }
+                                            }
+                                            String imagesCsv = imgListBuilder.toString();
+                                        %>
+                                        <div class="order-reviewed-status">
+                                            <div class="order-reviewed-stars">
+                                                <% for (int i = 1; i <= 5; i++) { %>
+                                                    <span class="<%= i <= detail.getReview().getRating() ? "" : "star-empty" %>">★</span>
+                                                <% } %>
+                                            </div>
+                                            <span class="order-reviewed-text">Bạn đã đánh giá</span>
+                                            <button type="button" class="order-review-edit-btn trigger-review-modal"
+                                                    data-product-id="<%= detail.getProductId() %>"
+                                                    data-product-name="<%= h(detail.getProductName()) %>"
+                                                    data-product-image="<%= h(assetUrl(ctx, detail.getImageUrl())) %>"
+                                                    data-product-meta="<%= h(detail.getCategoryName()) %> · <%= h(detail.getBrandName()) %>"
+                                                    data-rating="<%= detail.getReview().getRating() %>"
+                                                    data-comment="<%= h(detail.getReview().getComment()) %>"
+                                                    data-images="<%= h(imagesCsv) %>">
+                                                Sửa
+                                            </button>
+                                        </div>
+                                    <% } else { %>
+                                        <button type="button" class="order-review-btn trigger-review-modal"
+                                                data-product-id="<%= detail.getProductId() %>"
+                                                data-product-name="<%= h(detail.getProductName()) %>"
+                                                data-product-image="<%= h(assetUrl(ctx, detail.getImageUrl())) %>"
+                                                data-product-meta="<%= h(detail.getCategoryName()) %> · <%= h(detail.getBrandName()) %>"
+                                                data-rating="5"
+                                                data-comment=""
+                                                data-images="">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                              <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499c.15-.316.606-.316.756 0l2.224 4.507 4.973.723c.348.051.488.482.236.728l-3.6 3.512.85 4.955c.058.344-.304.607-.61.446l-4.444-2.336-4.444 2.336c-.306.161-.669-.102-.61-.446l.85-4.955-3.6-3.512c-.253-.246-.113-.677.236-.728l4.973-.723 2.224-4.507Z" />
+                                            </svg>
+                                            Đánh giá sản phẩm
+                                        </button>
+                                    <% } %>
                                 </div>
-                                <span>x<%= detail.getQuantity() %></span>
-                                <strong><%= formatMoney(detail.getSubtotal(), currencyFormatter) %></strong>
-                            </a>
+                                <% } %>
+                            </div>
                             <% } %>
                         </div>
                         <div class="order-total-row">
@@ -488,6 +541,76 @@
                 </div>
             </div>
         </div>
+
+        <div class="order-modal-backdrop" data-modal="reviewQuickView" hidden>
+            <div class="order-modal review-modal" role="dialog" aria-modal="true" aria-labelledby="reviewQuickViewTitle" style="width: min(520px, 100%);">
+                <div class="order-modal-header" style="padding: 16px 20px; border-bottom: none;">
+                    <h2 id="reviewQuickViewTitle" style="font-size: 18px; font-weight: 700; margin: 0;">Đánh giá sản phẩm</h2>
+                    <button type="button" data-close-modal aria-label="Đóng" style="border: none; background: none; font-size: 20px; cursor: pointer;">×</button>
+                </div>
+                
+                <form id="reviewForm" action="<%= ctx %>/submit-review" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="orderId" value="<%= selectedOrder.getOrderId() %>">
+                    <input type="hidden" name="productId" id="reviewProductId" value="">
+                    
+                    <div class="order-modal-content" style="padding: 0 20px 20px;">
+                        <!-- Product Summary Info Row -->
+                        <div class="review-product-summary" style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #edf0f5;">
+                            <img id="reviewProductImg" src="" alt="" style="width: 50px; height: 50px; border-radius: 8px; border: 1px solid #e5e9f0; object-fit: contain; background: #f8fafc;">
+                            <div>
+                                <strong id="reviewProductName" style="display: block; font-size: 14px; color: #111827;"></strong>
+                                <span id="reviewProductMeta" style="font-size: 12px; color: #64748b;"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Star Rating Section -->
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Chất lượng sản phẩm</label>
+                            <div class="star-rating-picker" style="display: flex; gap: 6px;">
+                                <input type="hidden" name="rating" id="reviewRatingInput" value="5" required>
+                                <span class="rating-star-btn" data-star="1" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;">★</span>
+                                <span class="rating-star-btn" data-star="2" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;">★</span>
+                                <span class="rating-star-btn" data-star="3" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;">★</span>
+                                <span class="rating-star-btn" data-star="4" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;">★</span>
+                                <span class="rating-star-btn" data-star="5" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;">★</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Comment Section -->
+                        <div style="margin-bottom: 20px;">
+                            <label for="reviewComment" style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Nhận xét của bạn</label>
+                            <textarea id="reviewComment" name="comment" rows="4" placeholder="Hàng chạy ổn định, đóng gói chắc chắn..." style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
+                        </div>
+                        
+                        <!-- Realistic Image Section -->
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Hình ảnh thực tế (tối đa 5 ảnh, định dạng ảnh, < 2MB)</label>
+                            <div class="review-image-upload-wrapper" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+                                <label class="review-image-upload-box" style="width: 72px; height: 72px; border: 1px dashed #d1d5db; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: #fafafa; transition: border-color 0.15s ease; margin: 0;">
+                                    <input type="file" name="imgFiles" id="reviewImgFileInput" accept="image/*" multiple style="display: none;">
+                                    <!-- Camera SVG Icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px; color: #64748b;">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+                                    </svg>
+                                </label>
+                                <input type="hidden" name="clearImages" id="reviewClearImagesInput" value="false">
+                                <input type="hidden" name="keepImages" id="reviewKeepImagesInput" value="">
+                                <!-- Preview list container -->
+                                <div id="reviewImgPreviewList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; width: 100%;"></div>
+                                <div id="reviewValidationError" style="color: #ef1b24; font-size: 12px; display: none; font-weight: 500;"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Modal Footer Action Buttons -->
+                        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                            <button type="button" data-close-modal class="review-modal-btn-cancel" style="padding: 10px 24px; border: 1px solid #d1d5db; border-radius: 8px; background: #ffffff; color: #374151; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s ease;">Hủy</button>
+                            <button type="submit" class="review-modal-btn-submit" style="padding: 10px 24px; border: none; border-radius: 8px; background: #111827; color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s ease;">Gửi đánh giá</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
         <% } %>
 
         <script>
@@ -537,6 +660,214 @@
                         document.querySelectorAll(".order-modal-backdrop:not([hidden])").forEach(closeModal);
                     }
                 });
+
+                // --- LOGIC ĐÁNH GIÁ SẢN PHẨM ---
+                const starRatingPicker = document.querySelector(".star-rating-picker");
+                const stars = starRatingPicker ? starRatingPicker.querySelectorAll(".rating-star-btn") : [];
+                const ratingInput = document.getElementById("reviewRatingInput");
+
+                function setStarRating(ratingValue) {
+                    ratingValue = parseInt(ratingValue) || 5;
+                    if (ratingInput) {
+                        ratingInput.value = ratingValue;
+                    }
+                    
+                    stars.forEach(star => {
+                        const starNum = parseInt(star.getAttribute("data-star"));
+                        if (starNum <= ratingValue) {
+                            star.style.color = "#fbbf24";
+                        } else {
+                            star.style.color = "#d1d5db";
+                        }
+                    });
+                }
+
+                if (starRatingPicker) {
+                    stars.forEach(star => {
+                        star.addEventListener("click", function() {
+                            const val = this.getAttribute("data-star");
+                            setStarRating(val);
+                        });
+                        
+                        star.addEventListener("mouseover", function() {
+                            const val = parseInt(this.getAttribute("data-star"));
+                            stars.forEach(s => {
+                                const sNum = parseInt(s.getAttribute("data-star"));
+                                if (sNum <= val) {
+                                    s.style.color = "#fbbf24";
+                                } else {
+                                    s.style.color = "#d1d5db";
+                                }
+                            });
+                        });
+                    });
+
+                    starRatingPicker.addEventListener("mouseleave", function() {
+                        setStarRating(ratingInput.value);
+                    });
+                }
+
+                // State variables for images
+                let currentExistingImages = [];
+                let currentNewFiles = [];
+
+                const fileInput = document.getElementById("reviewImgFileInput");
+                const previewList = document.getElementById("reviewImgPreviewList");
+                const errorDiv = document.getElementById("reviewValidationError");
+
+                function renderImages() {
+                    if (!previewList) return;
+                    previewList.innerHTML = "";
+                    if (errorDiv) {
+                        errorDiv.style.display = "none";
+                        errorDiv.textContent = "";
+                    }
+
+                    // 1. Render existing images
+                    currentExistingImages.forEach(function(path, index) {
+                        const item = document.createElement("div");
+                        item.style.cssText = "position: relative; width: 72px; height: 72px;";
+                        item.innerHTML = 
+                            '<img src="<%= ctx %>/' + path.trim() + '" style="width: 100%; height: 100%; border-radius: 8px; border: 1px solid #e5e9f0; object-fit: cover;">' +
+                            '<button type="button" class="remove-old-img-btn" style="position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: rgba(15, 23, 42, 0.7); border: none; color: #ffffff; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; line-height: 1;">×</button>';
+                        
+                        item.querySelector(".remove-old-img-btn").addEventListener("click", function(e) {
+                            e.preventDefault();
+                            currentExistingImages.splice(index, 1);
+                            renderImages();
+                        });
+                        previewList.appendChild(item);
+                    });
+
+                    // 2. Render newly selected images
+                    currentNewFiles.forEach(function(file, index) {
+                        const item = document.createElement("div");
+                        item.style.cssText = "position: relative; width: 72px; height: 72px;";
+                        
+                        const objectUrl = URL.createObjectURL(file);
+                        item.innerHTML = 
+                            '<img src="' + objectUrl + '" style="width: 100%; height: 100%; border-radius: 8px; border: 1px solid #e5e9f0; object-fit: cover;">' +
+                            '<button type="button" class="remove-new-img-btn" style="position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: rgba(15, 23, 42, 0.7); border: none; color: #ffffff; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; line-height: 1;">×</button>';
+                        
+                        item.querySelector(".remove-new-img-btn").addEventListener("click", function(e) {
+                            e.preventDefault();
+                            currentNewFiles.splice(index, 1);
+                            updateFileInput();
+                            renderImages();
+                        });
+                        previewList.appendChild(item);
+                    });
+
+                    // 3. Update hidden inputs
+                    const keepImagesInput = document.getElementById("reviewKeepImagesInput");
+                    if (keepImagesInput) {
+                        keepImagesInput.value = currentExistingImages.join(",");
+                    }
+                    const clearImagesInput = document.getElementById("reviewClearImagesInput");
+                    if (clearImagesInput) {
+                        if (currentExistingImages.length === 0 && currentNewFiles.length === 0) {
+                            clearImagesInput.value = "true";
+                        } else {
+                            clearImagesInput.value = "false";
+                        }
+                    }
+                }
+
+                function updateFileInput() {
+                    if (!fileInput) return;
+                    try {
+                        const dt = new DataTransfer();
+                        currentNewFiles.forEach(function(file) {
+                            dt.items.add(file);
+                        });
+                        fileInput.files = dt.files;
+                    } catch (err) {
+                        console.error("DataTransfer is not supported: ", err);
+                    }
+                }
+
+                // Trigger mở modal đánh giá & điền thông tin cũ
+                const reviewTriggers = document.querySelectorAll(".trigger-review-modal");
+                reviewTriggers.forEach(function (button) {
+                    button.addEventListener("click", function () {
+                        const productId = this.getAttribute("data-product-id");
+                        const productName = this.getAttribute("data-product-name");
+                        const productImage = this.getAttribute("data-product-image");
+                        const productMeta = this.getAttribute("data-product-meta");
+                        const rating = this.getAttribute("data-rating");
+                        const comment = this.getAttribute("data-comment");
+                        const imagesCsv = this.getAttribute("data-images");
+                        
+                        document.getElementById("reviewProductId").value = productId;
+                        document.getElementById("reviewProductName").textContent = productName;
+                        document.getElementById("reviewProductImg").src = productImage || '';
+                        document.getElementById("reviewProductMeta").textContent = productMeta;
+                        
+                        setStarRating(rating);
+                        document.getElementById("reviewComment").value = comment || '';
+                        
+                        currentNewFiles = [];
+                        if (imagesCsv && imagesCsv.trim() !== "") {
+                            currentExistingImages = imagesCsv.split(",").filter(function(p) { return p.trim() !== ""; });
+                        } else {
+                            currentExistingImages = [];
+                        }
+                        if (fileInput) fileInput.value = "";
+                        renderImages();
+                        
+                        openModal("reviewQuickView");
+                    });
+                });
+
+                // Xử lý upload ảnh preview
+                if (fileInput) {
+                    fileInput.addEventListener("change", function() {
+                        const files = Array.from(this.files);
+                        if (errorDiv) {
+                            errorDiv.style.display = "none";
+                            errorDiv.textContent = "";
+                        }
+
+                        if (currentExistingImages.length + files.length > 5) {
+                            if (errorDiv) {
+                                errorDiv.textContent = "Bạn chỉ được đăng tải tối đa tổng cộng 5 ảnh (bao gồm cả ảnh cũ).";
+                                errorDiv.style.display = "block";
+                            }
+                            this.value = "";
+                            updateFileInput();
+                            return;
+                        }
+
+                        for (let i = 0; i < files.length; i++) {
+                            const file = files[i];
+                            
+                            // FE Validate Size: <= 2MB
+                            if (file.size > 2 * 1024 * 1024) {
+                                if (errorDiv) {
+                                    errorDiv.textContent = "Dung lượng ảnh '" + file.name + "' lớn hơn 2MB. Vui lòng chọn ảnh khác.";
+                                    errorDiv.style.display = "block";
+                                }
+                                this.value = "";
+                                updateFileInput();
+                                return;
+                            }
+                            
+                            // FE Validate Format: must be an image
+                            if (!file.type.startsWith("image/")) {
+                                if (errorDiv) {
+                                    errorDiv.textContent = "Tệp '" + file.name + "' không phải là định dạng hình ảnh hợp lệ.";
+                                    errorDiv.style.display = "block";
+                                }
+                                this.value = "";
+                                updateFileInput();
+                                return;
+                            }
+                        }
+
+                        currentNewFiles = files;
+                        renderImages();
+                    });
+                }
             })();
         </script>
         <jsp:include page="/includes/footer.jsp" />

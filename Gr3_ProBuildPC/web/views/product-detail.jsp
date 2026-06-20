@@ -431,11 +431,17 @@
 
                             <p><%= review.getComment() %></p>
 
-                            <% if (review.getImg() != null && !review.getImg().trim().isEmpty()) { %>
-                            <div class="review-img-container">
-                                <img class="review-img"
-                                     src="<%= contextPath %>/<%= review.getImg() %>"
-                                     alt="Hình ảnh đánh giá">
+                            <% if (review.getImages() != null && !review.getImages().isEmpty()) { %>
+                            <div class="review-images-row" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                                <% for (String imgPath : review.getImages()) { %>
+                                    <div class="review-img-container" style="width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid #e5e9f0;">
+                                        <img class="review-img"
+                                             src="<%= contextPath %>/<%= imgPath.trim() %>"
+                                             alt="Hình ảnh đánh giá"
+                                             style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
+                                             onclick="window.open(this.src, '_blank')">
+                                    </div>
+                                <% } %>
                             </div>
                             <% } %>
 

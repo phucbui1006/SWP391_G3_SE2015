@@ -1,6 +1,9 @@
 package controller;
 
 import dal.OrderHistoryDAO;
+import dal.ReviewDAO;
+import model.Review;
+import model.OrderHistoryDetail;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -60,6 +63,14 @@ public class OrderHistoryServlet extends HttpServlet {
                 deliveryHistoryMode,
                 shipmentQueueMode
         );
+
+        if (selectedOrder != null && account.isCustomer()) {
+            ReviewDAO reviewDAO = new ReviewDAO();
+            for (OrderHistoryDetail detail : selectedOrder.getDetails()) {
+                Review r = reviewDAO.getReviewByCustomerAndProduct(account.getCustomerId(), detail.getProductId());
+                detail.setReview(r);
+            }
+        }
 
         List<OrderStatus> statusOptions = orderHistoryDAO.getOrderStatuses();
         HttpSession session = request.getSession(false);

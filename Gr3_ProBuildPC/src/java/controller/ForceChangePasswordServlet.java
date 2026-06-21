@@ -1,6 +1,7 @@
 package controller;
 
 import dal.UserDAO;
+import util.PasswordUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -43,7 +44,7 @@ public class ForceChangePasswordServlet extends HttpServlet {
         UserDAO userDAO = new UserDAO();
         if (userDAO.updatePassword(tempAccount.getEmail(), newPassword)) {
             // Success
-            tempAccount.setPassword(newPassword); // remove !FIRST! from session object too
+            tempAccount.setPassword(PasswordUtil.hash(newPassword)); // remove !FIRST! from session object too
             session.removeAttribute("tempAccount");
             session.setAttribute("account", tempAccount);
             

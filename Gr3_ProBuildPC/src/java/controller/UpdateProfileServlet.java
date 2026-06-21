@@ -1,6 +1,7 @@
 package controller;
 
 import dal.UserDAO; // Mở comment và import đúng package chứa UserDAO của bạn
+import util.PasswordUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -50,7 +51,12 @@ public class UpdateProfileServlet extends HttpServlet {
                 newPassword = newPassword.trim();
 
                 // ĐIỀU KIỆN: Mật khẩu cũ nhập vào phải trùng khớp với mật khẩu hiện tại trong Session
-                if (!oldPassword.equals(currentPasswordInSession)) {
+                String targetHash = currentPasswordInSession;
+                if (currentPasswordInSession != null && currentPasswordInSession.startsWith("!FIRST!")) {
+                    targetHash = currentPasswordInSession.substring("!FIRST!".length());
+                }
+
+                if (!PasswordUtil.verify(oldPassword, targetHash)) {
                     request.setAttribute("errorMsg", "Mật khẩu cũ không chính xác!");
                     request.getRequestDispatcher("views/profile.jsp").forward(request, response);
                     return;
@@ -67,7 +73,7 @@ public class UpdateProfileServlet extends HttpServlet {
             if (isUpdated) {
                 account.setFullName(fullName);
                 if (isChangingPassword) {
-                    account.setPassword(passwordToUpdate);
+                    account.setPassword(PasswordUtil.hash(passwordToUpdate));
                 }
                 session.setAttribute("account", account);
                 request.setAttribute("successMsg", "Lưu thành công!");

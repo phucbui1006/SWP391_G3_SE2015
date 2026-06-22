@@ -161,6 +161,8 @@
                     List<OrderHistoryItem> adminLatestOrders = (List<OrderHistoryItem>) request.getAttribute("adminLatestOrders");
                     Map<String, Integer> adminWarrantyStatusCounts = (Map<String, Integer>) request.getAttribute("adminWarrantyStatusCounts");
                     AccountSummary adminAccountSummary = (AccountSummary) request.getAttribute("adminAccountSummary");
+                    Integer adminBestSellingTotalObject = (Integer) request.getAttribute("adminBestSellingTotal");
+                    Integer adminLowStockTotalObject = (Integer) request.getAttribute("adminLowStockTotal");
 
                     if (adminSelectedDate == null) {
                         adminSelectedDate = LocalDate.now();
@@ -171,6 +173,14 @@
                     if (adminAccountSummary == null) {
                         adminAccountSummary = new AccountSummary();
                     }
+
+                    int adminBestSellingVisible = adminBestSellingProducts == null ? 0 : adminBestSellingProducts.size();
+                    int adminLowStockVisible = adminLowStockProducts == null ? 0 : adminLowStockProducts.size();
+                    int adminLatestOrdersVisible = adminLatestOrders == null ? 0 : adminLatestOrders.size();
+                    int adminBestSellingTotal = adminBestSellingTotalObject == null ? adminBestSellingVisible : adminBestSellingTotalObject;
+                    int adminLowStockTotal = adminLowStockTotalObject == null ? adminLowStockVisible : adminLowStockTotalObject;
+                    int adminWarrantyStatusTotal = adminWarrantyStatusCounts == null ? 0 : adminWarrantyStatusCounts.size();
+                    boolean adminShowAllWarranty = "1".equals(request.getParameter("showWarrantyAll"));
                 %>
 
                 <div class="admin-dashboard">
@@ -183,7 +193,7 @@
 
                     <div class="admin-stat-grid" aria-label="Tổng quan chức năng quản trị">
                         <a class="admin-stat-card" >
-                            <span class="admin-stat-icon red">📦</span>
+                            <span class="admin-stat-icon red">💰</span>
                             <span>
                                 <small>Tổng doanh thu</small>
                                 <strong><%= formatCurrency(adminSummary.getTotalRevenue()) %></strong>
@@ -192,7 +202,7 @@
                         </a>
 
                         <a class="admin-stat-card">
-                            <span class="admin-stat-icon dark">👥</span>
+                            <span class="admin-stat-icon dark">📦</span>
                             <span>
                                 <small>Tổng đơn hàng</small>
                                 <strong><%= adminSummary.getTotalOrders() %></strong>
@@ -201,16 +211,16 @@
                         </a>
 
                         <a class="admin-stat-card">
-                            <span class="admin-stat-icon blue">▦</span>
+                            <span class="admin-stat-icon blue">🖥️</span>
                             <span>
-                                <small>Tổng sản phẩm</small>
+                                <small>Tất cả sản phẩm</small>
                                 <strong><%= adminSummary.getActiveProducts() %></strong>
                                 
                             </span>
                         </a>
 
                         <a class="admin-stat-card">
-                            <span class="admin-stat-icon green">◆</span>
+                            <span class="admin-stat-icon green">🏷️</span>
                             <span>
                                 <small>Tất cả thương hiệu</small>
                                 <strong><%= adminSummary.getTotalBrands() %></strong>
@@ -219,7 +229,7 @@
                         </a>
 
                         <div class="admin-stat-card">
-                            <span class="admin-stat-icon orange">!</span>
+                            <span class="admin-stat-icon orange">🛠️</span>
                             <span>
                                 <small>Yêu cầu bảo hành</small>
                                 <strong><%= adminSummary.getWarrantyRequests() %></strong>
@@ -228,7 +238,7 @@
                         </div>
 
                         <a class="admin-stat-card">
-                            <span class="admin-stat-icon purple">▣</span>
+                            <span class="admin-stat-icon purple">🚚</span>
                             <span>
                                 <small>Lô hàng đã nhập</small>
                                 <strong><%= adminSummary.getImportedBatches() %></strong>
@@ -267,6 +277,12 @@
                                     } %>
                                 </tbody>
                             </table>
+                            <% if (adminBestSellingTotal > adminBestSellingVisible) { %>
+                            <div class="admin-panel-footer">
+                                <span>Còn <%= adminBestSellingTotal - adminBestSellingVisible %> sản phẩm bán chạy khác trong ngày.</span>
+                                <a href="<%= ctx %>/order-history">Xem tất cả</a>
+                            </div>
+                            <% } %>
                         </section>
 
                         <aside class="admin-panel admin-quick-panel">
@@ -296,6 +312,12 @@
                                     } %>
                                 </tbody>
                             </table>
+                            <% if (adminLowStockTotal > adminLowStockVisible) { %>
+                            <div class="admin-panel-footer">
+                                <span>Còn <%= adminLowStockTotal - adminLowStockVisible %> sản phẩm sắp hết hàng khác.</span>
+                                <a href="<%= ctx %>/admin/categories">Xem tất cả</a>
+                            </div>
+                            <% } %>
                         </aside>
                     </div>
 
@@ -333,6 +355,12 @@
                                     } %>
                                 </tbody>
                             </table>
+                            <% if (adminSummary.getTotalOrders() > adminLatestOrdersVisible) { %>
+                            <div class="admin-panel-footer">
+                                <span>Còn <%= adminSummary.getTotalOrders() - adminLatestOrdersVisible %> đơn hàng khác trong ngày.</span>
+                                <a href="<%= ctx %>/order-history">Xem tất cả</a>
+                            </div>
+                            <% } %>
                         </section>
 
                         <aside class="admin-panel">
@@ -344,14 +372,25 @@
                                 <% if (adminWarrantyStatusCounts == null || adminWarrantyStatusCounts.isEmpty()) { %>
                                 <p class="admin-empty-message">Không có yêu cầu bảo hành trong ngày này.</p>
                                 <% } else {
+                                    int warrantyStatusIndex = 0;
                                     for (Map.Entry<String, Integer> entry : adminWarrantyStatusCounts.entrySet()) { %>
+                                <% if (adminShowAllWarranty || warrantyStatusIndex < 5) { %>
                                 <p>
                                     <span><%= h(entry.getKey()) %></span>
                                     <strong><%= entry.getValue() %></strong>
                                 </p>
                                 <% }
+                                    warrantyStatusIndex++;
+                                %>
+                                <% }
                                 } %>
                             </div>
+                            <% if (!adminShowAllWarranty && adminWarrantyStatusTotal > 5) { %>
+                            <div class="admin-panel-footer">
+                                <span>Còn <%= adminWarrantyStatusTotal - 5 %> trạng thái bảo hành khác.</span>
+                                <a href="<%= ctx %>/Dashboard?date=<%= adminSelectedDate %>&showWarrantyAll=1">Xem tất cả</a>
+                            </div>
+                            <% } %>
                         </aside>
                         <section class="admin-panel">
                             <div class="admin-panel-header">

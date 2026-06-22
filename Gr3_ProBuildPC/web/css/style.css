@@ -1562,32 +1562,31 @@ body.dashboard-body .dashboard-content * {
     font-size: 17px;
 }
 
-.admin-stat-icon.red,
+
 .admin-module-mark.red {
     background: #ef1b24;
 }
 
-.admin-stat-icon.dark,
+
 .admin-module-mark.dark {
     background: #111827;
 }
 
-.admin-stat-icon.blue,
+
 .admin-module-mark.blue {
     background: #2563eb;
 }
 
-.admin-stat-icon.green,
+
 .admin-module-mark.green {
     background: #16a34a;
 }
 
-.admin-stat-icon.orange,
+
 .admin-module-mark.orange {
     background: #f97316;
 }
 
-.admin-stat-icon.purple,
 .admin-module-mark.purple {
     background: #7c3aed;
 }
@@ -1782,6 +1781,35 @@ body.dashboard-body .dashboard-content * {
 .admin-dashboard-table.compact th,
 .admin-dashboard-table.compact td {
     padding: 13px 12px;
+}
+
+.admin-panel-footer {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    border-top: 1px solid #edf0f5;
+    background: #f8fafc;
+}
+
+.admin-panel-footer span {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.admin-panel-footer a {
+    color: #ef1b24;
+    font-size: 12px;
+    font-weight: 900;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.admin-panel-footer a:hover {
+    color: #d71920;
 }
 
 .admin-empty-cell,

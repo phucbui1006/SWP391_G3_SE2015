@@ -59,7 +59,9 @@ public class DashboardServlet extends HttpServlet {
         request.setAttribute("adminSelectedDate", selectedDate);
         request.setAttribute("adminSummary", dashboardDAO.getSummary(selectedDate));
         request.setAttribute("adminBestSellingProducts", dashboardDAO.getBestSellingProducts(selectedDate, 5));
+        request.setAttribute("adminBestSellingTotal", dashboardDAO.countBestSellingProducts(selectedDate));
         request.setAttribute("adminLowStockProducts", dashboardDAO.getLowStockProducts(5));
+        request.setAttribute("adminLowStockTotal", dashboardDAO.countLowStockProducts());
         request.setAttribute("adminLatestOrders", dashboardDAO.getLatestOrders(selectedDate, 5));
         request.setAttribute("adminWarrantyStatusCounts", dashboardDAO.getWarrantyStatusCounts(selectedDate));
         request.setAttribute("adminAccountSummary", dashboardDAO.getAccountSummary());

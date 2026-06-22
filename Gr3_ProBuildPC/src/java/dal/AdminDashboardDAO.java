@@ -76,6 +76,25 @@ public class AdminDashboardDAO extends DBContext {
         return products;
     }
 
+    public int countBestSellingProducts(LocalDate selectedDate) {
+        String sql = """
+                SELECT COUNT(*) AS value
+                FROM (
+                    SELECT p.product_id
+                    FROM order_details od
+                    INNER JOIN orders o ON o.order_id = od.order_id
+                    INNER JOIN products p ON p.product_id = od.product_id
+                    LEFT JOIN orders_status os ON os.status_id = o.status_id
+                    WHERE DATE(o.order_date) = ?
+                      AND (os.status_name IS NULL
+                           OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
+                               AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
+                    GROUP BY p.product_id
+                ) sold_products
+                """;
+        return queryInt(sql, selectedDate);
+    }
+
     public List<DashboardProduct> getLowStockProducts(int limit) {
         List<DashboardProduct> products = new ArrayList<>();
         String sql = """
@@ -108,6 +127,20 @@ public class AdminDashboardDAO extends DBContext {
         }
 
         return products;
+    }
+
+    public int countLowStockProducts() {
+        String sql = """
+                SELECT COUNT(*) AS value
+                FROM products p
+                LEFT JOIN (
+                    SELECT product_id, SUM(quantity) AS quantity
+                    FROM batch_items
+                    GROUP BY product_id
+                ) stock ON stock.product_id = p.product_id
+                WHERE COALESCE(stock.quantity, 0) <= 5
+                """;
+        return queryInt(sql);
     }
 
     public List<OrderHistoryItem> getLatestOrders(LocalDate selectedDate, int limit) {

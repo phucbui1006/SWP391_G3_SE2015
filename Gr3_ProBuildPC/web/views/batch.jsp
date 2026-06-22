@@ -100,7 +100,7 @@
                             name="batchName"
                             placeholder="Ví dụ: Lô nhập tháng 06"
                             required
-                            value="<%= editBatch != null ? editBatch.getBatchName() : "" %>">
+                            value="<%= editBatch != null ? editBatch.getBatchName() : (request.getParameter("batchName") != null ? request.getParameter("batchName") : "") %>">
                     </div>
 
                     <div class="batch-form-group">
@@ -109,7 +109,7 @@
                             type="date"
                             name="date"
                             required
-                            value="<%= editBatch != null ? editBatch.getDate() : "" %>">
+                            value="<%= editBatch != null && editBatch.getDate() != null ? editBatch.getDate() : (request.getParameter("date") != null ? request.getParameter("date") : "") %>">
                     </div>
 
                     <div class="batch-form-actions">

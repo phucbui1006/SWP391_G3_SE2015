@@ -192,9 +192,24 @@ public class BatchServlet extends HttpServlet {
                         return;
                     }
 
+                    if (!batchName.trim().matches("^[\\p{L}\\p{N}\\s]+$")) {
+                        request.setAttribute("error", "Tên lô hàng không được chứa kí tự đặc biệt");
+                        forwardToBatchPage(request, response);
+                        return;
+                    }
+
+                    Date inputDate = Date.valueOf(dateRaw);
+                    Date currentDate = Date.valueOf(java.time.LocalDate.now());
+                    
+                    if (inputDate.after(currentDate)) {
+                        request.setAttribute("error", "Ngày nhập lô hàng không hợp lệ.");
+                        forwardToBatchPage(request, response);
+                        return;
+                    }
+
                     Batch batch = new Batch();
                     batch.setBatchName(batchName.trim());
-                    batch.setDate(Date.valueOf(dateRaw));
+                    batch.setDate(inputDate);
 
                     boolean success = batchDAO.addBatch(batch);
 
@@ -213,6 +228,16 @@ public class BatchServlet extends HttpServlet {
                     String batchName = request.getParameter("batchName");
                     String dateRaw = request.getParameter("date");
 
+                    Batch tempBatch = new Batch();
+                    tempBatch.setBatchId(batchId);
+                    tempBatch.setBatchName(batchName != null ? batchName.trim() : "");
+                    try {
+                        if (dateRaw != null && !dateRaw.trim().isEmpty()) {
+                            tempBatch.setDate(Date.valueOf(dateRaw));
+                        }
+                    } catch (Exception e) {}
+                    request.setAttribute("editBatch", tempBatch);
+
                     if (batchName == null || batchName.trim().isEmpty()
                             || dateRaw == null || dateRaw.trim().isEmpty()) {
 
@@ -221,10 +246,25 @@ public class BatchServlet extends HttpServlet {
                         return;
                     }
 
+                    if (!batchName.trim().matches("^[\\p{L}\\p{N}\\s]+$")) {
+                        request.setAttribute("error", "Tên lô hàng không được chứa kí tự đặc biệt");
+                        forwardToBatchPage(request, response);
+                        return;
+                    }
+
+                    Date inputDate = Date.valueOf(dateRaw);
+                    Date currentDate = Date.valueOf(java.time.LocalDate.now());
+                    
+                    if (inputDate.after(currentDate)) {
+                        request.setAttribute("error", "Ngày nhập lô hàng không được lớn hơn ngày hiện tại.");
+                        forwardToBatchPage(request, response);
+                        return;
+                    }
+
                     Batch batch = new Batch();
                     batch.setBatchId(batchId);
                     batch.setBatchName(batchName.trim());
-                    batch.setDate(Date.valueOf(dateRaw));
+                    batch.setDate(inputDate);
 
                     boolean success = batchDAO.updateBatch(batch);
 

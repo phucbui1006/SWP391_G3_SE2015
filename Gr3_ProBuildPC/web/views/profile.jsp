@@ -1,132 +1,139 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-    <%@ page import="model.User" %>
+<%@ page import="model.User" %>
+
 <%
-    // 1. Lấy thông tin tài khoản đang đăng nhập từ Session
     User account = (User) session.getAttribute("account");
-    
-    // Kiểm tra nếu session trống (chưa đăng nhập hoặc hết hạn) thì đá về trang Login
+
     if (account == null) {
         response.sendRedirect(request.getContextPath() + "/Login");
         return;
     }
-    
-    // 2. Trích xuất thông tin động từ đối tượng account để điền vào Form
-    // Đảm bảo các hàm getName(), getEmail() khớp với thuộc tính trong class model.User của bạn
-    String emailDynamic = account.getEmail() != null ? account.getEmail() : "";
+
     String fullNameDynamic = account.getFullName() != null ? account.getFullName() : "";
-    
     String ctx = request.getContextPath();
-    String homeTarget = account.isCustomer() ? ctx + "/home" : ctx + "/Dashboard";
+
+    String homeUrl = ctx + "/home";
+    if (account.getAccountType() != null 
+            && !"CUSTOMER".equalsIgnoreCase(account.getAccountType())) {
+        homeUrl = ctx + "/Dashboard";
+    }
 %>
-            <!DOCTYPE html>
-            <html lang="vi">
 
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>ProBuild PC - My Profile</title>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thông tin cá nhân - ProBuild PC</title>
 
-                <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <script src="${pageContext.request.contextPath}/js/validator.js"></script>
+    <script src="${pageContext.request.contextPath}/js/profile.js"></script>
+</head>
 
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-                <script src="${pageContext.request.contextPath}/js/validator.js"></script>
-                <script src="${pageContext.request.contextPath}/js/profile.js"></script>
-            </head>
+<body class="profile-page-body">
 
-            <body class="profile-body">
-                <div class="home-navigation">
-                    <% String homeUrl=request.getContextPath() + "/home" ; if (account !=null &&
-                        account.getAccountType() !=null && !"CUSTOMER".equalsIgnoreCase(account.getAccountType())) {
-                        homeUrl=request.getContextPath() + "/Dashboard" ; } %>
+    <a href="<%= homeUrl %>" class="profile-back-link">
+        <i class="fa-solid fa-arrow-left"></i> Home
+    </a>
 
-                        <a style="color: black" href="<%= homeUrl %>" class="home-link">Home</a>
+    <div class="profile-page-wrapper">
+
+        <div class="profile-card">
+
+            <div class="profile-banner">
+                <div class="profile-banner-content">
+                    <h1>ProBuild PC</h1>
+                    <p>Quản lý thông tin cá nhân, bảo mật tài khoản và cập nhật hồ sơ của bạn.</p>
+                </div>
+            </div>
+
+            <div class="profile-form-section">
+
+                <h2>Thông tin cá nhân</h2>
+                <p class="profile-subtitle">Cập nhật họ tên hoặc thay đổi mật khẩu khi cần.</p>
+
+                <div class="profile-alert-placeholder" style="min-height: 68px;">
+                    <% if (request.getAttribute("successMsg") != null) { %>
+                        <div class="profile-alert success">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <%= request.getAttribute("successMsg") %>
+                        </div>
+                    <% } %>
+
+                    <% if (request.getAttribute("errorMsg") != null) { %>
+                        <div class="profile-alert error">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <%= request.getAttribute("errorMsg") %>
+                        </div>
+                    <% } %>
                 </div>
 
-                <div class="profile-container">
+                <form action="${pageContext.request.contextPath}/updateProfile"
+                      method="POST"
+                      class="profile-form"
+                      onsubmit="return validateForm()">
 
-                    <div class="profile-left">
-                        <div class="overlay-text">
-                            <h2>ProBuild PC</h2>
-                            <p>Cập nhật hồ sơ để bảo mật tài khoản và quản lý đơn hàng của bạn tốt hơn.</p>
+                    <div class="profile-group">
+                        <label>Email</label>
+                        <div class="profile-input-box readonly">
+                            <input type="email" name="email"
+                                   value="${sessionScope.account.email}" readonly>
+                            <i class="fa-solid fa-lock"></i>
                         </div>
                     </div>
 
-                    <div class="profile-right">
-                        <h2 class="profile-title">Thông tin cá nhân</h2>
-                        <% if (request.getAttribute("successMsg") !=null) { %>
-                            <div class="alert-message alert-success">
-                                🎉 <%= request.getAttribute("successMsg") %>
-                            </div>
-                            <% } %>
-
-                                <% if (request.getAttribute("errorMsg") !=null) { %>
-                                    <div class="alert-message alert-danger">
-                                        ⚠️ <%= request.getAttribute("errorMsg") %>
-                                    </div>
-                                    <% } %>
-                                        <form action="${pageContext.request.contextPath}/updateProfile" method="POST"
-                                            class="profile-form" onsubmit="return validateForm()">
-
-                                            <div class="profile-form-group">
-                                                <label class="profile-label">Email</label>
-                                                <div class="profile-input-wrapper">
-                                                    <input type="email" name="email"
-                                                        value="${sessionScope.account.email}" readonly> <i
-                                                        class="fa-solid fa-lock lock-icon"></i>
-                                                </div>
-                                            </div>
-
-                                            <div class="profile-form-group">
-                                                <label class="profile-label" for="fullName">Họ tên</label>
-                                                <div class="profile-input-wrapper">
-                                                    <input type="text" id="fullName" name="fullName"
-                                                        value="<%= fullNameDynamic %>" required>
-                                                </div>
-                                            </div>
-
-                                            <div class="profile-form-group">
-                                                <label class="profile-label" for="oldPassword">Mật khẩu cũ</label>
-                                                <div class="profile-input-wrapper">
-                                                    <input type="password" id="currentPassword" name="currentPassword"
-                                                        placeholder="•••••••••">
-                                                    <i class="fa-regular fa-eye toggle-eye"
-                                                        onclick="toggleProfilePass('currentPassword', this)"></i>
-                                                </div>
-                                            </div>
-
-                                            <div class="profile-form-group">
-                                                <label class="profile-label" for="newPassword">Mật khẩu mới</label>
-                                                <div class="profile-input-wrapper">
-                                                    <input type="password" id="newPassword" name="newPassword"
-                                                        placeholder="Mật khẩu mới (8-31 ký tự, có hoa, thường và số)"
-                                                        autocomplete="new-password">
-                                                    <i class="fa-regular fa-eye toggle-eye"
-                                                        onclick="toggleProfilePass('newPassword', this)"></i>
-                                                </div>
-                                            </div>
-
-                                            <div class="profile-form-group">
-                                                <label class="profile-label" for="confirmPassword">Xác nhận mật khẩu
-                                                    mới</label>
-                                                <div class="profile-input-wrapper">
-                                                    <input type="password" id="confirmPassword" name="confirmPassword"
-                                                        placeholder="Xác nhận mật khẩu mới" autocomplete="new-password">
-                                                    <i class="fa-regular fa-eye toggle-eye"
-                                                        onclick="toggleProfilePass('confirmPassword', this)"></i>
-                                                </div>
-                                            </div>
-                                            <br />
-
-                                            <div class="profile-action-row">
-                                                <button type="submit" class="profile-btn-save">Lưu thay đổi</button>
-                                            </div>
-
-                                        </form>
-
+                    <div class="profile-group">
+                        <label for="fullName">Họ tên</label>
+                        <div class="profile-input-box">
+                            <input type="text" id="fullName" name="fullName"
+                                   value="<%= fullNameDynamic %>" required>
+                            <i class="fa-solid fa-user"></i>
+                        </div>
                     </div>
 
-                </div>
+                    <div class="profile-group">
+                        <label for="currentPassword">Mật khẩu cũ</label>
+                        <div class="profile-input-box">
+                            <input type="password" id="currentPassword" name="currentPassword"
+                                   placeholder="Nhập mật khẩu hiện tại">
+                            <i class="fa-regular fa-eye profile-eye"
+                               onclick="toggleProfilePass('currentPassword', this)"></i>
+                        </div>
+                    </div>
 
-            </body>
+                    <div class="profile-group">
+                        <label for="newPassword">Mật khẩu mới</label>
+                        <div class="profile-input-box">
+                            <input type="password" id="newPassword" name="newPassword"
+                                   placeholder="8-31 ký tự, có chữ hoa, thường và số"
+                                   autocomplete="new-password">
+                            <i class="fa-regular fa-eye profile-eye"
+                               onclick="toggleProfilePass('newPassword', this)"></i>
+                        </div>
+                    </div>
 
-            </html>
+                    <div class="profile-group">
+                        <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+                        <div class="profile-input-box">
+                            <input type="password" id="confirmPassword" name="confirmPassword"
+                                   placeholder="Nhập lại mật khẩu mới"
+                                   autocomplete="new-password">
+                            <i class="fa-regular fa-eye profile-eye"
+                               onclick="toggleProfilePass('confirmPassword', this)"></i>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="profile-save-btn">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Lưu thay đổi
+                    </button>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -103,6 +103,16 @@ public class OrderHistoryDetail {
         return subtotal;
     }
 
+    private Review review;
+
+    public Review getReview() {
+        return review;
+    }
+
+    public void setReview(Review review) {
+        this.review = review;
+    }
+
     public void setSubtotal(BigDecimal subtotal) {
         this.subtotal = subtotal;
     }

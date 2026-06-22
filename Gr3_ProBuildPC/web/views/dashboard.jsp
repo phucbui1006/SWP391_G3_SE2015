@@ -2,8 +2,15 @@
 <%@ page import="model.User" %>
 <%@ page import="model.OrderHistoryItem" %>
 <%@ page import="model.OrderStatus" %>
+<%@ page import="dal.AdminDashboardDAO.AccountSummary" %>
+<%@ page import="dal.AdminDashboardDAO.DashboardProduct" %>
+<%@ page import="dal.AdminDashboardDAO.DashboardSummary" %>
+<%@ page import="java.math.BigDecimal" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
+<%@ page import="java.text.DecimalFormat" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.time.LocalDate" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 
@@ -62,6 +69,24 @@
             return "X";
         }
         return "#";
+    }
+
+    private String productStatusClass(String status) {
+        return status != null && "ACTIVE".equalsIgnoreCase(status.trim()) ? "active" : "inactive";
+    }
+
+    private String formatCurrency(BigDecimal value) {
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        BigDecimal safeValue = value == null ? BigDecimal.ZERO : value;
+        return formatter.format(safeValue) + "đ";
+    }
+
+    private String formatDateTime(java.util.Date value) {
+        if (value == null) {
+            return "";
+        }
+
+        return new SimpleDateFormat("dd/MM/yyyy HH:mm").format(value);
     }
 
     private String buildShipmentLink(String ctx, Integer statusId, boolean todayOnly, int page) {
@@ -124,42 +149,223 @@
         <jsp:include page="/includes/header.jsp" />
 
         <div class="dashboard-content">
-            <div class="dashboard-card <%= "EMPLOYEE".equals(roleName) ? "employee-shell" : ("SHIPMENT".equals(roleName) ? "shipment-shell" : "") %>">
+            <div class="dashboard-card <%= "ADMIN".equals(roleName) ? "admin-shell" : ("EMPLOYEE".equals(roleName) ? "employee-shell" : ("SHIPMENT".equals(roleName) ? "shipment-shell" : "")) %>">
 
                 <% if ("ADMIN".equals(roleName)) { %>
 
-                <h1>Admin Dashboard</h1>
-                <p>Xin chào <b><%= account.getFullName() %></b>. Bạn đang đăng nhập với quyền <b>ADMIN</b>.</p>
+                <%
+                    LocalDate adminSelectedDate = (LocalDate) request.getAttribute("adminSelectedDate");
+                    DashboardSummary adminSummary = (DashboardSummary) request.getAttribute("adminSummary");
+                    List<DashboardProduct> adminBestSellingProducts = (List<DashboardProduct>) request.getAttribute("adminBestSellingProducts");
+                    List<DashboardProduct> adminLowStockProducts = (List<DashboardProduct>) request.getAttribute("adminLowStockProducts");
+                    List<OrderHistoryItem> adminLatestOrders = (List<OrderHistoryItem>) request.getAttribute("adminLatestOrders");
+                    Map<String, Integer> adminWarrantyStatusCounts = (Map<String, Integer>) request.getAttribute("adminWarrantyStatusCounts");
+                    AccountSummary adminAccountSummary = (AccountSummary) request.getAttribute("adminAccountSummary");
 
-                <div class="role-box">
-                    <div class="role-item">
-                        <h3>Quản lý đơn hàng</h3>
-                        <p>Xem, cập nhật và xử lý đơn hàng.</p>
+                    if (adminSelectedDate == null) {
+                        adminSelectedDate = LocalDate.now();
+                    }
+                    if (adminSummary == null) {
+                        adminSummary = new DashboardSummary();
+                    }
+                    if (adminAccountSummary == null) {
+                        adminAccountSummary = new AccountSummary();
+                    }
+                %>
+
+                <div class="admin-dashboard">
+                    <div class="admin-dashboard-heading">
+                        <form class="admin-date-filter" action="<%= ctx %>/Dashboard" method="get">
+                            <input type="date" name="date" value="<%= adminSelectedDate %>">
+                            <button type="submit">Xem</button>
+                        </form>
                     </div>
 
-                    <div class="role-item">
-                        <h3>Quản lý người dùng</h3>
-                        <p>Quản lý tài khoản, vai trò và trạng thái người dùng.</p>
+                    <div class="admin-stat-grid" aria-label="Tổng quan chức năng quản trị">
+                        <a class="admin-stat-card" >
+                            <span class="admin-stat-icon red">📦</span>
+                            <span>
+                                <small>Tổng doanh thu</small>
+                                <strong><%= formatCurrency(adminSummary.getTotalRevenue()) %></strong>
+                                
+                            </span>
+                        </a>
+
+                        <a class="admin-stat-card">
+                            <span class="admin-stat-icon dark">👥</span>
+                            <span>
+                                <small>Tổng đơn hàng</small>
+                                <strong><%= adminSummary.getTotalOrders() %></strong>
+                               
+                            </span>
+                        </a>
+
+                        <a class="admin-stat-card">
+                            <span class="admin-stat-icon blue">▦</span>
+                            <span>
+                                <small>Tổng sản phẩm</small>
+                                <strong><%= adminSummary.getActiveProducts() %></strong>
+                                
+                            </span>
+                        </a>
+
+                        <a class="admin-stat-card">
+                            <span class="admin-stat-icon green">◆</span>
+                            <span>
+                                <small>Tất cả thương hiệu</small>
+                                <strong><%= adminSummary.getTotalBrands() %></strong>
+                              
+                            </span>
+                        </a>
+
+                        <div class="admin-stat-card">
+                            <span class="admin-stat-icon orange">!</span>
+                            <span>
+                                <small>Yêu cầu bảo hành</small>
+                                <strong><%= adminSummary.getWarrantyRequests() %></strong>
+                               
+                            </span>
+                        </div>
+
+                        <a class="admin-stat-card">
+                            <span class="admin-stat-icon purple">▣</span>
+                            <span>
+                                <small>Lô hàng đã nhập</small>
+                                <strong><%= adminSummary.getImportedBatches() %></strong>
+                               
+                            </span>
+                        </a>
                     </div>
 
-                    <div class="role-item">
-                        <h3>Quản lý sản phẩm</h3>
-                        <p>Thêm, sửa, xóa và cập nhật sản phẩm.</p>
+                    <div class="admin-dashboard-grid admin-products-grid">
+                        <section class="admin-panel admin-module-panel">
+                            <div class="admin-panel-header">
+                                <h2>Sản phẩm bán chạy nhất</h2>
+                            </div>
+
+                            <table class="admin-dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã SP</th>
+                                        <th>Tên sản phẩm</th>
+                                        <th>Đã bán</th>
+                                        <th>Tồn kho</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (adminBestSellingProducts == null || adminBestSellingProducts.isEmpty()) { %>
+                                    <tr><td colspan="4" class="admin-empty-cell">Không có dữ liệu bán hàng trong ngày này.</td></tr>
+                                    <% } else {
+                                        for (DashboardProduct product : adminBestSellingProducts) { %>
+                                    <tr>
+                                        <td>SP<%= product.getProductId() %></td>
+                                        <td><%= h(product.getProductName()) %></td>
+                                        <td><%= product.getSoldQuantity() %></td>
+                                        <td><%= product.getStockQuantity() %></td>
+                                    </tr>
+                                    <% }
+                                    } %>
+                                </tbody>
+                            </table>
+                        </section>
+
+                        <aside class="admin-panel admin-quick-panel">
+                            <div class="admin-panel-header">
+                                <h2>Sản phẩm sắp hết hàng</h2>
+                            </div>
+
+                            <table class="admin-dashboard-table compact">
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>SL</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (adminLowStockProducts == null || adminLowStockProducts.isEmpty()) { %>
+                                    <tr><td colspan="3" class="admin-empty-cell">Chưa có sản phẩm.</td></tr>
+                                    <% } else {
+                                        for (DashboardProduct product : adminLowStockProducts) { %>
+                                    <tr>
+                                        <td><%= h(product.getProductName()) %></td>
+                                        <td><%= product.getStockQuantity() %></td>
+                                        <td><span class="admin-status <%= productStatusClass(product.getStatus()) %>"><%= h(product.getStatus()) %></span></td>
+                                    </tr>
+                                    <% }
+                                    } %>
+                                </tbody>
+                            </table>
+                        </aside>
                     </div>
 
-                    <div class="role-item">
-                        <h3>Lô hàng</h3>
-                        <p>Quản lý lô hàng nhập vào hệ thống.</p>
-                    </div>
+                    <div class="admin-dashboard-grid admin-bottom-grid">
+                        <section class="admin-panel">
+                            <div class="admin-panel-header">
+                                <h2>Đơn hàng mới nhất</h2>
+                            </div>
 
-                    <div class="role-item">
-                        <h3>Bảo hành</h3>
-                        <p>Theo dõi và xử lý thông tin bảo hành.</p>
-                    </div>
+                            <table class="admin-dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Khách hàng</th>
+                                        <th>Tổng tiền</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thời gian</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (adminLatestOrders == null || adminLatestOrders.isEmpty()) { %>
+                                    <tr><td colspan="5" class="admin-empty-cell">Không có đơn hàng trong ngày này.</td></tr>
+                                    <% } else {
+                                        for (OrderHistoryItem order : adminLatestOrders) {
+                                            String displayStatus = defaultText(order.getDisplayStatus(), "Chưa cập nhật");
+                                    %>
+                                    <tr>
+                                        <td>PB<%= order.getOrderId() %></td>
+                                        <td><%= h(order.getCustomerName()) %></td>
+                                        <td><%= formatCurrency(order.getTotalAmount()) %></td>
+                                        <td><span class="shipment-status <%= statusClass(displayStatus) %>"><%= h(displayStatus) %></span></td>
+                                        <td><%= h(formatDateTime(order.getOrderDate())) %></td>
+                                    </tr>
+                                    <% }
+                                    } %>
+                                </tbody>
+                            </table>
+                        </section>
 
-                    <div class="role-item">
-                        <h3>Thống kê doanh thu</h3>
-                        <p>Xem báo cáo và thống kê doanh thu.</p>
+                        <aside class="admin-panel">
+                            <div class="admin-panel-header">
+                                <h2>Yêu cầu bảo hành</h2>
+                            </div>
+
+                            <div class="admin-count-list">
+                                <% if (adminWarrantyStatusCounts == null || adminWarrantyStatusCounts.isEmpty()) { %>
+                                <p class="admin-empty-message">Không có yêu cầu bảo hành trong ngày này.</p>
+                                <% } else {
+                                    for (Map.Entry<String, Integer> entry : adminWarrantyStatusCounts.entrySet()) { %>
+                                <p>
+                                    <span><%= h(entry.getKey()) %></span>
+                                    <strong><%= entry.getValue() %></strong>
+                                </p>
+                                <% }
+                                } %>
+                            </div>
+                        </aside>
+                        <section class="admin-panel">
+                            <div class="admin-panel-header">
+                                <h2>Tổng quan tài khoản</h2>
+                            </div>
+
+                            <div class="admin-account-grid">
+                                <div><span>Khách hàng</span><strong><%= adminAccountSummary.getCustomers() %></strong></div>
+                                <div><span>Nhân viên</span><strong><%= adminAccountSummary.getEmployees() %></strong></div>
+                                <div><span>Nhân viên giao hàng</span><strong><%= adminAccountSummary.getTransports() %></strong></div>
+                                <div><span>Bị khóa</span><strong><%= adminAccountSummary.getLocked() %></strong></div>
+                                <div><span>Đang hoạt động</span><strong><%= adminAccountSummary.getActive() %></strong></div>
+                            </div>
+                        </section>
                     </div>
                 </div>
 

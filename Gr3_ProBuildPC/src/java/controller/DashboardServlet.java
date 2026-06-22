@@ -1,10 +1,13 @@
 package controller;
 
+import dal.AdminDashboardDAO;
 import dal.OrderHistoryDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +43,26 @@ public class DashboardServlet extends HttpServlet {
             return;
         }
 
-        if (hasRole(user, "SHIPMENT")) {
+        if (hasRole(user, "ADMIN")) {
+            prepareAdminDashboard(request);
+        } else if (hasRole(user, "SHIPMENT")) {
             prepareShipmentDashboard(request);
         }
 
         request.getRequestDispatcher("/views/dashboard.jsp").forward(request, response);
+    }
+
+    private void prepareAdminDashboard(HttpServletRequest request) {
+        LocalDate selectedDate = parseDate(request.getParameter("date"), LocalDate.now());
+        AdminDashboardDAO dashboardDAO = new AdminDashboardDAO();
+
+        request.setAttribute("adminSelectedDate", selectedDate);
+        request.setAttribute("adminSummary", dashboardDAO.getSummary(selectedDate));
+        request.setAttribute("adminBestSellingProducts", dashboardDAO.getBestSellingProducts(selectedDate, 5));
+        request.setAttribute("adminLowStockProducts", dashboardDAO.getLowStockProducts(5));
+        request.setAttribute("adminLatestOrders", dashboardDAO.getLatestOrders(selectedDate, 5));
+        request.setAttribute("adminWarrantyStatusCounts", dashboardDAO.getWarrantyStatusCounts(selectedDate));
+        request.setAttribute("adminAccountSummary", dashboardDAO.getAccountSummary());
     }
 
     private void prepareShipmentDashboard(HttpServletRequest request) {
@@ -114,6 +132,18 @@ public class DashboardServlet extends HttpServlet {
             int parsedValue = Integer.parseInt(value);
             return parsedValue > 0 ? parsedValue : defaultValue;
         } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    private LocalDate parseDate(String value, LocalDate defaultValue) {
+        if (value == null || value.trim().isEmpty()) {
+            return defaultValue;
+        }
+
+        try {
+            return LocalDate.parse(value.trim());
+        } catch (DateTimeParseException e) {
             return defaultValue;
         }
     }

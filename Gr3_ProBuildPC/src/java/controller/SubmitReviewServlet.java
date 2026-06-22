@@ -51,53 +51,16 @@ public class SubmitReviewServlet extends HttpServlet {
         String clearImagesRaw = request.getParameter("clearImages");
         String keepImagesRaw = request.getParameter("keepImages");
 
-        if (productIdRaw == null || ratingRaw == null) {
-            session.setAttribute("orderHistoryError", "Thông tin đánh giá không đầy đủ.");
-            redirectBack(request, response, orderIdRaw);
-            return;
-        }
-
         try {
             int productId = Integer.parseInt(productIdRaw);
             int rating = Integer.parseInt(ratingRaw);
             int customerId = account.getCustomerId();
-
-            if (rating < 1 || rating > 5) {
-                session.setAttribute("orderHistoryError", "Đánh giá sao phải từ 1 đến 5.");
-                redirectBack(request, response, orderIdRaw);
-                return;
-            }
 
             // Get uploaded image parts with name "imgFiles"
             List<Part> imgParts = new ArrayList<>();
             for (Part part : request.getParts()) {
                 if ("imgFiles".equals(part.getName()) && part.getSize() > 0) {
                     imgParts.add(part);
-                }
-            }
-
-            // Validate image count (max 5)
-            if (imgParts.size() > 5) {
-                session.setAttribute("orderHistoryError", "Bạn chỉ được đăng tải tối đa 5 hình ảnh.");
-                redirectBack(request, response, orderIdRaw);
-                return;
-            }
-
-            // Validate file size and format
-            for (Part part : imgParts) {
-                // Size validation: <= 2MB
-                if (part.getSize() > 2 * 1024 * 1024) {
-                    session.setAttribute("orderHistoryError", "Kích thước mỗi ảnh không được vượt quá 2MB.");
-                    redirectBack(request, response, orderIdRaw);
-                    return;
-                }
-
-                // Type validation: must be an image
-                String contentType = part.getContentType();
-                if (contentType == null || !contentType.startsWith("image/")) {
-                    session.setAttribute("orderHistoryError", "Định dạng tệp không hợp lệ. Chỉ chấp nhận định dạng hình ảnh.");
-                    redirectBack(request, response, orderIdRaw);
-                    return;
                 }
             }
 

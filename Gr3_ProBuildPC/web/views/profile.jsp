@@ -54,19 +54,21 @@
                 <h2>Thông tin cá nhân</h2>
                 <p class="profile-subtitle">Cập nhật họ tên hoặc thay đổi mật khẩu khi cần.</p>
 
-                <% if (request.getAttribute("successMsg") != null) { %>
-                    <div class="profile-alert success">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <%= request.getAttribute("successMsg") %>
-                    </div>
-                <% } %>
+                <div class="profile-alert-placeholder" style="min-height: 68px;">
+                    <% if (request.getAttribute("successMsg") != null) { %>
+                        <div class="profile-alert success">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <%= request.getAttribute("successMsg") %>
+                        </div>
+                    <% } %>
 
-                <% if (request.getAttribute("errorMsg") != null) { %>
-                    <div class="profile-alert error">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <%= request.getAttribute("errorMsg") %>
-                    </div>
-                <% } %>
+                    <% if (request.getAttribute("errorMsg") != null) { %>
+                        <div class="profile-alert error">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <%= request.getAttribute("errorMsg") %>
+                        </div>
+                    <% } %>
+                </div>
 
                 <form action="${pageContext.request.contextPath}/updateProfile"
                       method="POST"

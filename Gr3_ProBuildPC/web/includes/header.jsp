@@ -62,8 +62,13 @@
                 placeholder = "Tìm kiếm linh kiện...";
                 searchAction = ctx + "/home";
             }
-        } else if ("EMPLOYEE".equals(roleName)) {
-            placeholder = "Tìm kiếm yêu cầu bảo hành...";
+        } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) {
+            if ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) {
+                placeholder = "Tìm kiếm mã đơn hàng...";
+                searchAction = ctx + "/order-history";
+            } else {
+                placeholder = "Tìm kiếm yêu cầu bảo hành...";
+            }
         } else if ("SHIPMENT".equals(roleName)) {
             placeholder = "Tìm kiếm mã đơn hàng...";
             searchAction = ctx + "/order-history";
@@ -155,10 +160,13 @@
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">📊 Thống kê doanh thu</a>
-        <% } else if ("EMPLOYEE".equals(roleName)) { %>
+        <% } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) { %>
 
 
         <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
+        <span class="menu-divider"></span>
+        
+        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📦 Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">🛡 Dịch vụ bảo hành</a>
@@ -219,7 +227,7 @@
                             Tài xế vận chuyển
                             <% } else if ("ADMIN".equals(roleName)) { %>
                             Admin
-                            <% } else if ("EMPLOYEE".equals(roleName)) { %>
+                            <% } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) { %>
                             Nhân viên
                             <% } else if ("CUSTOMER".equals(roleName)) { %>
                             Khách hàng

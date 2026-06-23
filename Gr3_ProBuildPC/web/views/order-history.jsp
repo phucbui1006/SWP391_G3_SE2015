@@ -132,12 +132,14 @@
             return false;
         }
 
-        if (order.getStatusId() == 1) {
+        if (order.getStatusId() == 1 || order.getStatusId() == 2) {
             return true;
         }
 
         String status = defaultText(order.getDisplayStatus(), "").toLowerCase(Locale.ROOT);
         return (status.contains("chờ") || status.contains("cho "))
+                && (status.contains("xác nhận") || status.contains("xac nhan"))
+                || (status.contains("đã") || status.contains("da ")) 
                 && (status.contains("xác nhận") || status.contains("xac nhan"));
     }
 
@@ -159,7 +161,9 @@
         return status.contains("hủy")
                 || status.contains("huy")
                 || status.contains("đã giao")
-                || status.contains("da giao");
+                || status.contains("da giao")
+                || status.contains("thất bại")
+                || status.contains("that bai");
     }
 
     private boolean isDeliveredShipmentStatus(String status) {
@@ -183,6 +187,7 @@
     Integer totalOrdersValue = (Integer) request.getAttribute("totalOrders");
     Boolean canManageShipmentValue = (Boolean) request.getAttribute("canManageShipment");
     Boolean isCustomerViewValue = (Boolean) request.getAttribute("isCustomerView");
+    Boolean isShipperValue = (Boolean) request.getAttribute("isShipper");
     String shipmentStaffName = (String) request.getAttribute("shipmentStaffName");
     Boolean deliveryHistoryModeValue = (Boolean) request.getAttribute("deliveryHistoryMode");
 
@@ -197,7 +202,8 @@
     int totalPages = totalPagesValue == null ? 1 : totalPagesValue;
     int totalOrders = totalOrdersValue == null ? 0 : totalOrdersValue;
     boolean canManageShipment = canManageShipmentValue != null && canManageShipmentValue;
-    boolean isCustomerView = isCustomerViewValue == null || isCustomerViewValue;
+    boolean isCustomerView = isCustomerViewValue != null && isCustomerViewValue;
+    boolean isShipper = isShipperValue != null && isShipperValue;
     boolean deliveryHistoryMode = deliveryHistoryModeValue != null && deliveryHistoryModeValue;
     Integer selectedOrderId = selectedOrder == null ? null : selectedOrder.getOrderId();
     List<OrderHistoryDetail> selectedDetails = selectedOrder == null
@@ -208,7 +214,18 @@
             && "VNPAY".equalsIgnoreCase(selectedOrder.getPaymentMethod())
             && "Chờ thanh toán".equals(selectedOrder.getPaymentStatus())
             && selectedOrder.getStatusId() == 1;
-    boolean selectedCanUpdateShipment = canManageShipment && !isLockedShipmentOrder(selectedOrder);
+
+    boolean isEmployee = request.getAttribute("isEmployee") != null && (Boolean) request.getAttribute("isEmployee");
+    boolean selectedCanUpdateShipment = false;
+    if (canManageShipment && selectedOrder != null) {
+        if (isShipper) {
+            selectedCanUpdateShipment = !isLockedShipmentOrder(selectedOrder);
+        } else if (isEmployee) {
+            selectedCanUpdateShipment = (selectedOrder.getStatusId() == 7);
+        } else {
+            selectedCanUpdateShipment = true;
+        }
+    }
     String selectedStatusIdValue = selectedStatusId == null ? null : String.valueOf(selectedStatusId);
 
     Locale vietnameseLocale = new Locale("vi", "VN");
@@ -418,7 +435,14 @@
                         <label>
                             <span>Trạng thái giao hàng</span>
                             <select name="shipmentStatusId" required>
-                                <% for (OrderStatus status : statusOptions) { %>
+                                <% for (OrderStatus status : statusOptions) { 
+                                       if (isShipper && status.getStatusId() != 4 && status.getStatusId() != 5 && status.getStatusId() != 7) {
+                                           continue;
+                                       }
+                                       if (isEmployee && status.getStatusId() != 2 && status.getStatusId() != 6) {
+                                           continue;
+                                       }
+                                %>
                                 <option value="<%= status.getStatusId() %>" <%= selectedOrder.getStatusId() == status.getStatusId() ? "selected" : "" %>>
                                     <%= h(status.getStatusName()) %>
                                 </option>

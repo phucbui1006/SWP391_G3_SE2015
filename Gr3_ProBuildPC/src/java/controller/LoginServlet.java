@@ -49,18 +49,23 @@ public class LoginServlet extends HttpServlet {
         if (user == null) {
             request.setAttribute("error", "Email hoac mat khau khong dung!");
             request.setAttribute("enteredEmail", email);
+            request.setAttribute("enteredPassword", password);
             request.getRequestDispatcher("/views/login.jsp").forward(request, response);
             return;
         }
 
         if (!"ACTIVE".equalsIgnoreCase(safeTrim(user.getStatus()))) {
             request.setAttribute("error", "Tai khoan cua ban da bi khoa hoac chua duoc kich hoat!");
+            request.setAttribute("enteredEmail", email);
+            request.setAttribute("enteredPassword", password);
             request.getRequestDispatcher("/views/login.jsp").forward(request, response);
             return;
         }
 
         if (!isValidAccountShape(user)) {
             request.setAttribute("error", "Tai khoan chua duoc cau hinh dung loai truy cap!");
+            request.setAttribute("enteredEmail", email);
+            request.setAttribute("enteredPassword", password);
             request.getRequestDispatcher("/views/login.jsp").forward(request, response);
             return;
         }

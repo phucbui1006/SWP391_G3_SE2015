@@ -25,7 +25,7 @@
 
                     <div class="input-group">
                         <i class="fa-regular fa-envelope left-icon"></i>
-                        <input type="email" id="email" name="email" placeholder="Email Address" value="${sessionScope.registeredEmail}" required>
+                        <input type="email" id="email" name="email" placeholder="Email Address" value="${not empty requestScope.enteredEmail ? requestScope.enteredEmail : sessionScope.registeredEmail}" required>
                     </div>
                 </div>
 
@@ -34,7 +34,7 @@
 
                     <div class="input-group">
                         <i class="fa-solid fa-lock left-icon"></i>
-                        <input type="password" id="password" name="password" placeholder="••••••••" required class="pass-input">
+                        <input type="password" id="password" name="password" placeholder="••••••••" required class="pass-input" value="${requestScope.enteredPassword}">
                         <i class="fa-regular fa-eye toggle-password" onclick="togglePass('password', this)"></i>
                     </div>
                 </div>

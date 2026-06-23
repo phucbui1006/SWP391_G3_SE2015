@@ -108,7 +108,7 @@
             <p>Quản lý tài khoản khách hàng, nhân viên, vai trò và trạng thái hoạt động trong hệ thống.</p>
         </div>
 
-        <div class="account-v2-summary">
+<!--        <div class="account-v2-summary">
             <div>
                 <strong><%= totalUsers %></strong>
                 <span>Tổng tài khoản</span>
@@ -117,7 +117,7 @@
                 <strong><%= pageNumber %>/<%= totalPages %></strong>
                 <span>Trang hiện tại</span>
             </div>
-        </div>
+        </div>-->
     </section>
 
     <% if (success != null && !success.isEmpty()) { %>

@@ -25,7 +25,7 @@
 
                     <div class="input-group">
                         <i class="fa-regular fa-envelope left-icon"></i>
-                        <input type="email" id="email" name="email" placeholder="Email Address" required>
+                        <input type="email" id="email" name="email" placeholder="Email Address" value="${sessionScope.registeredEmail}" required>
                     </div>
                 </div>
 
@@ -56,6 +56,20 @@
                 <%= error %>
             </div>
             <%
+                }
+            %>
+
+            <%
+                String successMessage = (String) session.getAttribute("successMessage");
+                if (successMessage != null && !successMessage.isEmpty()) {
+            %>
+            <div style="color: green; text-align: center; margin-top: 15px;">
+                <%= successMessage %>
+            </div>
+            <%
+                    session.removeAttribute("successMessage");
+                    // We also remove registeredEmail here so it doesn't persist forever
+                    session.removeAttribute("registeredEmail");
                 }
             %>
 

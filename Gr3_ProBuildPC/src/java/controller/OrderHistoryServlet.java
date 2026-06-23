@@ -144,6 +144,7 @@ public class OrderHistoryServlet extends HttpServlet {
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
         if (orderHistoryDAO.updateShipmentStatus(orderId, shipmentStatusId, shipmentNote)) {
             session.setAttribute(SUCCESS_FLASH, "Cap nhat trang thai giao hang thanh cong.");
+            session.setAttribute("lastDeliveryPhone", deliveryPhone);
         } else {
             session.setAttribute(ERROR_FLASH, "Khong the cap nhat trang thai giao hang.");
         }

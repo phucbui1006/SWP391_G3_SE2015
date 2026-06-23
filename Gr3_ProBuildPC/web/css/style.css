@@ -85,7 +85,7 @@ body.order-history-body * {
     border-radius: 8px;
     background: #ffffff;
     color: #111827;
-    font-size: 7px;
+    font-size: 14px;
     font-weight: 650;
     outline: none;
 }
@@ -9118,7 +9118,7 @@ body.account-management-body {
     font-weight: 600 !important;
 }
 
-.account-v2-summary {
+/*.account-v2-summary {
     display: flex !important;
     gap: 14px !important;
 }
@@ -9143,7 +9143,7 @@ body.account-management-body {
     color: #d7deea !important;
     font-size: 13px !important;
     font-weight: 700 !important;
-}
+}*/
 
 .account-v2-card {
     margin-bottom: 24px !important;

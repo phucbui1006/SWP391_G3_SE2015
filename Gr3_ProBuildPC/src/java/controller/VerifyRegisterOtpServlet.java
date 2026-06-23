@@ -52,6 +52,10 @@ public class VerifyRegisterOtpServlet extends HttpServlet {
         boolean success = dao.registerCustomer(fullName, email, password);
 
         if (success) {
+            // Save the registered email to session to pre-fill login form
+            session.setAttribute("registeredEmail", email);
+            session.setAttribute("successMessage", "Đăng ký thành công! Vui lòng đăng nhập.");
+
             // Clear session attributes
             session.removeAttribute("regOtp");
             session.removeAttribute("regOtpExpiredTime");

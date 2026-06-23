@@ -25,7 +25,7 @@
 
                     <div class="input-group">
                         <i class="fa-regular fa-envelope left-icon"></i>
-                        <input type="email" id="email" name="email" placeholder="Email Address" required>
+                        <input type="email" id="email" name="email" placeholder="Email Address" value="${not empty requestScope.enteredEmail ? requestScope.enteredEmail : sessionScope.registeredEmail}" required>
                     </div>
                 </div>
 
@@ -34,7 +34,7 @@
 
                     <div class="input-group">
                         <i class="fa-solid fa-lock left-icon"></i>
-                        <input type="password" id="password" name="password" placeholder="••••••••" required class="pass-input">
+                        <input type="password" id="password" name="password" placeholder="••••••••" required class="pass-input" value="${requestScope.enteredPassword}">
                         <i class="fa-regular fa-eye toggle-password" onclick="togglePass('password', this)"></i>
                     </div>
                 </div>
@@ -56,6 +56,20 @@
                 <%= error %>
             </div>
             <%
+                }
+            %>
+
+            <%
+                String successMessage = (String) session.getAttribute("successMessage");
+                if (successMessage != null && !successMessage.isEmpty()) {
+            %>
+            <div style="color: green; text-align: center; margin-top: 15px;">
+                <%= successMessage %>
+            </div>
+            <%
+                    session.removeAttribute("successMessage");
+                    // We also remove registeredEmail here so it doesn't persist forever
+                    session.removeAttribute("registeredEmail");
                 }
             %>
 

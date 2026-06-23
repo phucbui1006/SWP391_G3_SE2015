@@ -224,7 +224,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý giao hàng") %></title>
+        <title><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý d hàng") %></title>
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
     </head>
     <body class="order-history-body">
@@ -388,7 +388,26 @@
                         </section>
                     </div>
 
-                    <% if (selectedCanUpdateShipment) { %>
+                    <% if (selectedCanUpdateShipment) { 
+                        String currentDeliveryName = defaultText(shipmentStaffName, "");
+                        String currentDeliveryPhone = (String) session.getAttribute("lastDeliveryPhone");
+                        if (currentDeliveryPhone == null) currentDeliveryPhone = "";
+                        
+                        if (selectedOrder != null && selectedOrder.getShipmentNote() != null) {
+                            String note = selectedOrder.getShipmentNote();
+                            int sdtIndex = note.lastIndexOf("SĐT: ");
+                            if (sdtIndex != -1) {
+                                currentDeliveryPhone = note.substring(sdtIndex + 5).trim();
+                            }
+                            int nameStart = note.indexOf("Người giao hàng: ");
+                            if (nameStart != -1 && sdtIndex != -1 && nameStart < sdtIndex) {
+                                String extractedName = note.substring(nameStart + 17, note.lastIndexOf(" - SĐT: ")).trim();
+                                if (!extractedName.isEmpty()) {
+                                    currentDeliveryName = extractedName;
+                                }
+                            }
+                        }
+                    %>
                     <form class="shipment-update-form status-only" action="<%= ctx %>/order-history" method="post">
                         <input type="hidden" name="action" value="updateShipmentStatus">
                         <input type="hidden" name="orderId" value="<%= selectedOrder.getOrderId() %>">
@@ -408,11 +427,11 @@
                         </label>
                         <label>
                             <span>Tên người giao hàng</span>
-                            <input type="text" name="deliveryName" value="<%= h(defaultText(shipmentStaffName, "")) %>" required>
+                            <input type="text" name="deliveryName" value="<%= h(currentDeliveryName) %>" required>
                         </label>
                         <label>
                             <span>Số điện thoại người giao hàng</span>
-                            <input type="tel" name="deliveryPhone" value="" required>
+                            <input type="tel" name="deliveryPhone" value="<%= h(currentDeliveryPhone) %>" required>
                         </label>
                         <button type="submit">Cập nhật</button>
                     </form>

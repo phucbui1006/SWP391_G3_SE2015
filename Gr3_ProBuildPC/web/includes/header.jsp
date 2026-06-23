@@ -123,7 +123,16 @@
         <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📦 Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/AccountManagement" class="menu-item">👥 Tài khoản người dùng</a>
+        <div class="menu-dropdown">
+            <button class="menu-item menu-dropdown-toggle" type="button" aria-expanded="false">
+                👥 Quản lý tài khoản
+                <span class="menu-dropdown-arrow">▾</span>
+            </button>
+            <div class="menu-dropdown-list">
+                <a href="<%= ctx %>/AccountManagement?type=user">Tài khoản khách hàng</a>
+                <a href="<%= ctx %>/AccountManagement?type=staff">Tài khoản nhân viên</a>
+            </div>
+        </div>
         <span class="menu-divider"></span>
 
         <div class="menu-dropdown">

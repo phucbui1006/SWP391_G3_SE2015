@@ -1,97 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.User" %>
+<%@ page import="model.AdminDashboardView" %>
 <%@ page import="model.OrderHistoryItem" %>
 <%@ page import="model.OrderStatus" %>
-<%@ page import="java.net.URLEncoder" %>
-<%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-
-<%!
-    private String h(String value) {
-        if (value == null) {
-            return "";
-        }
-
-        return value
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;");
-    }
-
-    private String defaultText(String value, String fallback) {
-        return value == null || value.trim().isEmpty() ? fallback : value;
-    }
-
-    private String statusClass(String status) {
-        String value = status == null ? "" : status.toLowerCase();
-        if (value.contains("hủy") || value.contains("huy")) {
-            return "cancelled";
-        }
-        if (value.contains("đã giao") || value.contains("da giao")) {
-            return "delivered";
-        }
-        if (value.contains("đang giao") || value.contains("dang giao")) {
-            return "shipping";
-        }
-        if (value.contains("chuẩn bị") || value.contains("chuan bi")) {
-            return "preparing";
-        }
-        if (value.contains("xác nhận") || value.contains("xac nhan")) {
-            return value.contains("chờ") || value.contains("cho ") ? "pending" : "confirmed";
-        }
-        return "all";
-    }
-
-    private String statusIcon(String status) {
-        String cssClass = statusClass(status);
-        if ("pending".equals(cssClass)) {
-            return "!";
-        }
-        if ("confirmed".equals(cssClass) || "delivered".equals(cssClass)) {
-            return "✓";
-        }
-        if ("preparing".equals(cssClass)) {
-            return "□";
-        }
-        if ("shipping".equals(cssClass)) {
-            return "→";
-        }
-        if ("cancelled".equals(cssClass)) {
-            return "X";
-        }
-        return "#";
-    }
-
-    private String buildShipmentLink(String ctx, Integer statusId, boolean todayOnly, int page) {
-        StringBuilder query = new StringBuilder();
-        if (statusId != null) {
-            appendParam(query, "statusId", String.valueOf(statusId));
-        }
-        if (todayOnly) {
-            appendParam(query, "today", "1");
-        }
-        if (page > 1) {
-            appendParam(query, "page", String.valueOf(page));
-        }
-        return ctx + "/Dashboard" + (query.length() == 0 ? "" : "?" + query);
-    }
-
-    private void appendParam(StringBuilder query, String name, String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return;
-        }
-
-        if (query.length() > 0) {
-            query.append("&");
-        }
-
-        query.append(name)
-                .append("=")
-                .append(URLEncoder.encode(value.trim(), StandardCharsets.UTF_8));
-    }
-%>
+<%@ page import="util.DashboardViewHelper" %>
 
 <%
     User account = (User) session.getAttribute("account");
@@ -124,42 +38,179 @@
         <jsp:include page="/includes/header.jsp" />
 
         <div class="dashboard-content">
-            <div class="dashboard-card <%= "EMPLOYEE".equals(roleName) ? "employee-shell" : ("SHIPMENT".equals(roleName) ? "shipment-shell" : "") %>">
+            <div class="dashboard-card <%= "ADMIN".equals(roleName) ? "admin-shell" : ("EMPLOYEE".equals(roleName) ? "employee-shell" : ("SHIPMENT".equals(roleName) ? "shipment-shell" : "")) %>">
 
-                <% if ("ADMIN".equals(roleName)) { %>
+                <% if ("ADMIN".equals(roleName)) {
+                    AdminDashboardView adminDashboard = (AdminDashboardView) request.getAttribute("adminDashboard");
+                %>
 
-                <h1>Admin Dashboard</h1>
-                <p>Xin chào <b><%= account.getFullName() %></b>. Bạn đang đăng nhập với quyền <b>ADMIN</b>.</p>
-
-                <div class="role-box">
-                    <div class="role-item">
-                        <h3>Quản lý đơn hàng</h3>
-                        <p>Xem, cập nhật và xử lý đơn hàng.</p>
+                <div class="admin-dashboard">
+                    <div class="admin-dashboard-heading">
+                        <form class="admin-date-filter" action="<%= adminDashboard.getFormAction() %>" method="get">
+                            <input type="date" name="date" value="<%= adminDashboard.getSelectedDate() %>">
+                            <button type="submit">Xem</button>
+                        </form>
                     </div>
 
-                    <div class="role-item">
-                        <h3>Quản lý người dùng</h3>
-                        <p>Quản lý tài khoản, vai trò và trạng thái người dùng.</p>
+                    <div class="admin-stat-grid" >
+                        <% for (AdminDashboardView.StatCard stat : adminDashboard.getStatCards()) { %>
+                        <a class="admin-stat-card" >
+                            <span class="admin-stat-icon <%= stat.getIconClass() %>"><%= stat.getIcon() %></span>
+                            <span>
+                                <small><%= stat.getLabel() %></small>
+                                <strong><%= stat.getValue() %></strong>
+                            </span>
+                        </a>
+                        <% } %>
                     </div>
 
-                    <div class="role-item">
-                        <h3>Quản lý sản phẩm</h3>
-                        <p>Thêm, sửa, xóa và cập nhật sản phẩm.</p>
+                    <div class="admin-dashboard-grid admin-products-grid">
+                        <section class="admin-panel admin-module-panel">
+                            <div class="admin-panel-header">
+                                <h2>Sản phẩm bán chạy nhất</h2>
+                            </div>
+
+                            <table class="admin-dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã SP</th>
+                                        <th>Tên sản phẩm</th>
+                                        <th>Đã bán</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (adminDashboard.getBestSellingProducts().isEmpty()) { %>
+                                    <tr><td colspan="3" class="admin-empty-cell">Không có dữ liệu bán hàng trong ngày này.</td></tr>
+                                    <% } else {
+                                        for (AdminDashboardView.ProductRow product : adminDashboard.getBestSellingProducts()) { %>
+                                    <tr>
+                                        <td><%= product.getProductCode() %></td>
+                                        <td><%= product.getProductName() %></td>
+                                        <td><%= product.getSoldQuantity() %></td>
+                                    </tr>
+                                    <% }
+                                    } %>
+                                </tbody>
+                            </table>
+                            <% if (adminDashboard.getBestSellingFooterMessage() != null) { %>
+                            <div class="admin-panel-footer">
+                                <span><%= adminDashboard.getBestSellingFooterMessage() %></span>
+                                <a href="#">Xem tất cả</a>
+                            </div>
+                            <% } %>
+                        </section>
+
+                        <aside class="admin-panel admin-quick-panel">
+                            <div class="admin-panel-header">
+                                <h2>Sản phẩm sắp hết hàng</h2>
+                            </div>
+
+                            <table class="admin-dashboard-table compact">
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>SL</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (adminDashboard.getLowStockProducts().isEmpty()) { %>
+                                    <tr><td colspan="3" class="admin-empty-cell">Chưa có sản phẩm.</td></tr>
+                                    <% } else {
+                                        for (AdminDashboardView.ProductRow product : adminDashboard.getLowStockProducts()) { %>
+                                    <tr>
+                                        <td><%= product.getProductName() %></td>
+                                        <td><%= product.getStockQuantity() %></td>
+                                        <td><span class="admin-status <%= product.getStatusClass() %>"><%= product.getStatus() %></span></td>
+                                    </tr>
+                                    <% }
+                                    } %>
+                                </tbody>
+                            </table>
+                            <% if (adminDashboard.getLowStockFooterMessage() != null) { %>
+                            <div class="admin-panel-footer">
+                                <span><%= adminDashboard.getLowStockFooterMessage() %></span>
+                                <a href="#">Xem tất cả</a>
+                            </div>
+                            <% } %>
+                        </aside>
                     </div>
 
-                    <div class="role-item">
-                        <h3>Lô hàng</h3>
-                        <p>Quản lý lô hàng nhập vào hệ thống.</p>
-                    </div>
+                    <div class="admin-dashboard-grid admin-bottom-grid">
+                        <section class="admin-panel">
+                            <div class="admin-panel-header">
+                                <h2>Đơn hàng mới nhất</h2>
+                            </div>
 
-                    <div class="role-item">
-                        <h3>Bảo hành</h3>
-                        <p>Theo dõi và xử lý thông tin bảo hành.</p>
-                    </div>
+                            <table class="admin-dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Khách hàng</th>
+                                        <th>Tổng tiền</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thời gian</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (adminDashboard.getLatestOrders().isEmpty()) { %>
+                                    <tr><td colspan="5" class="admin-empty-cell">Không có đơn hàng trong ngày này.</td></tr>
+                                    <% } else {
+                                        for (AdminDashboardView.OrderRow order : adminDashboard.getLatestOrders()) { %>
+                                    <tr>
+                                        <td><%= order.getOrderCode() %></td>
+                                        <td><%= order.getCustomerName() %></td>
+                                        <td><%= order.getTotalAmount() %></td>
+                                        <td><span class="shipment-status <%= order.getStatusClass() %>"><%= order.getStatus() %></span></td>
+                                        <td><%= order.getOrderDate() %></td>
+                                    </tr>
+                                    <% }
+                                    } %>
+                                </tbody>
+                            </table>
+                            <% if (adminDashboard.getLatestOrdersFooterMessage() != null) { %>
+                            <div class="admin-panel-footer">
+                                <span><%= adminDashboard.getLatestOrdersFooterMessage() %></span>
+                                <a href="<%= adminDashboard.getLatestOrdersFooterUrl() %>">Xem tất cả</a>
+                            </div>
+                            <% } %>
+                        </section>
 
-                    <div class="role-item">
-                        <h3>Thống kê doanh thu</h3>
-                        <p>Xem báo cáo và thống kê doanh thu.</p>
+                        <aside class="admin-panel">
+                            <div class="admin-panel-header">
+                                <h2>Yêu cầu bảo hành</h2>
+                            </div>
+
+                            <div class="admin-count-list">
+                                <% if (adminDashboard.getWarrantyStatusCounts().isEmpty()) { %>
+                                <p class="admin-empty-message">Không có yêu cầu bảo hành trong ngày này.</p>
+                                <% } else {
+                                    for (AdminDashboardView.CountRow entry : adminDashboard.getWarrantyStatusCounts()) { %>
+                                <p>
+                                    <span><%= entry.getLabel() %></span>
+                                    <strong><%= entry.getValue() %></strong>
+                                </p>
+                                <% }
+                                } %>
+                            </div>
+                            <% if (adminDashboard.isShowWarrantyFooter()) { %>
+                            <div class="admin-panel-footer">
+                                <span><%= adminDashboard.getWarrantyFooterMessage() %></span>
+                                <a href="<%= adminDashboard.getWarrantyAllUrl() %>">Xem tất cả</a>
+                            </div>
+                            <% } %>
+                        </aside>
+                        <section class="admin-panel">
+                            <div class="admin-panel-header">
+                                <h2>Tổng quan tài khoản</h2>
+                            </div>
+
+                            <div class="admin-account-grid">
+                                <% for (AdminDashboardView.CountRow accountRow : adminDashboard.getAccountSummaries()) { %>
+                                <div><span><%= accountRow.getLabel() %></span><strong><%= accountRow.getValue() %></strong></div>
+                                <% } %>
+                            </div>
+                        </section>
                     </div>
                 </div>
 
@@ -324,9 +375,9 @@
                                 Integer countValue = shipmentStatusCounts == null ? null : shipmentStatusCounts.get(status.getStatusId());
                         %>
                         <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon <%= statusClass(status.getStatusName()) %>"><%= statusIcon(status.getStatusName()) %></span>
+                            <span class="shipment-summary-icon <%= DashboardViewHelper.statusClass(status.getStatusName()) %>"><%= DashboardViewHelper.statusIcon(status.getStatusName()) %></span>
                             <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title"><%= h(status.getStatusName()) %></p>
+                                <p class="shipment-summary-title"><%= DashboardViewHelper.h(status.getStatusName()) %></p>
                                 <div class="shipment-summary-value-row">
                                     <span class="shipment-summary-number"><%= countValue == null ? 0 : countValue %></span>
                                     <span class="shipment-summary-unit">đơn</span>
@@ -346,13 +397,13 @@
 
                             <div class="shipment-filter-tabs" aria-label="Lọc đơn hàng theo trạng thái">
                                 <a class="shipment-filter-tab <%= shipmentSelectedStatusId == null && !shipmentTodayOnly ? "active" : "" %>"
-                                   href="<%= buildShipmentLink(ctx, null, false, 1) %>">Tất cả</a>
+                                   href="<%= DashboardViewHelper.buildShipmentLink(ctx, null, false, 1) %>">Tất cả</a>
                                 <a class="shipment-filter-tab <%= shipmentTodayOnly ? "active" : "" %>"
-                                   href="<%= buildShipmentLink(ctx, shipmentSelectedStatusId, true, 1) %>">Hôm nay</a>
+                                   href="<%= DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, true, 1) %>">Hôm nay</a>
                                 <% if (shipmentStatusOptions != null) {
                                     for (OrderStatus status : shipmentStatusOptions) { %>
                                 <a class="shipment-filter-tab <%= !shipmentTodayOnly && shipmentSelectedStatusId != null && shipmentSelectedStatusId == status.getStatusId() ? "active" : "" %>"
-                                   href="<%= buildShipmentLink(ctx, status.getStatusId(), false, 1) %>"><%= h(status.getStatusName()) %></a>
+                                   href="<%= DashboardViewHelper.buildShipmentLink(ctx, status.getStatusId(), false, 1) %>"><%= DashboardViewHelper.h(status.getStatusName()) %></a>
                                 <% }
                                 } %>
                             </div>
@@ -376,18 +427,18 @@
                                 </tr>
                                 <% } else {
                                     for (OrderHistoryItem order : shipmentOrders) {
-                                        String displayStatus = defaultText(order.getDisplayStatus(), "Chờ xác nhận");
+                                        String displayStatus = DashboardViewHelper.defaultText(order.getDisplayStatus(), "Chưa cập nhật");
                                 %>
                                 <tr>
                                     <td>
                                         PB<%= order.getOrderId() %>
                                     </td>
                                     <td>
-                                        <%= h(defaultText(order.getRecipientName(), order.getCustomerName())) %>
+                                        <%= DashboardViewHelper.h(DashboardViewHelper.defaultText(order.getRecipientName(), order.getCustomerName())) %>
                                     </td>
-                                    <td><%= h(defaultText(order.getShippingAddress(), "Chưa cập nhật địa chỉ")) %></td>
+                                    <td><%= DashboardViewHelper.h(DashboardViewHelper.defaultText(order.getShippingAddress(), "Chưa cập nhật địa chỉ")) %></td>
                                     <td>
-                                        <span class="shipment-status <%= statusClass(displayStatus) %>"><%= h(displayStatus) %></span>
+                                        <span class="shipment-status <%= DashboardViewHelper.statusClass(displayStatus) %>"><%= DashboardViewHelper.h(displayStatus) %></span>
                                     </td>
                                 </tr>
                                 <% }
@@ -398,13 +449,13 @@
                         <% if (shipmentTotalPages > 1) { %>
                         <div class="shipment-pagination">
                             <a class="<%= shipmentPage <= 1 ? "disabled" : "" %>"
-                               href="<%= shipmentPage <= 1 ? "#" : buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage - 1) %>">‹</a>
+                               href="<%= shipmentPage <= 1 ? "#" : DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage - 1) %>">‹</a>
                             <% for (int pageNumber = 1; pageNumber <= shipmentTotalPages; pageNumber++) { %>
                             <a class="<%= pageNumber == shipmentPage ? "active" : "" %>"
-                               href="<%= buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, pageNumber) %>"><%= pageNumber %></a>
+                               href="<%= DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, pageNumber) %>"><%= pageNumber %></a>
                             <% } %>
                             <a class="<%= shipmentPage >= shipmentTotalPages ? "disabled" : "" %>"
-                               href="<%= shipmentPage >= shipmentTotalPages ? "#" : buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage + 1) %>">›</a>
+                               href="<%= shipmentPage >= shipmentTotalPages ? "#" : DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage + 1) %>">›</a>
                         </div>
                         <% } %>
                     </section>

@@ -61,7 +61,7 @@
         <link rel="stylesheet" href="<%= ctx %>/css/style.css">
         <link rel="stylesheet" href="<%= ctx %>/css/brands.css">
     </head>
-    <body class="brands-page" style="padding-bottom: 0px; padding-left: 0px; padding-right: 0px; padding-top: 0px">
+    <body class="brands-page" data-context-path="<%= ctx %>" style="padding-bottom: 0px; padding-left: 0px; padding-right: 0px; padding-top: 0px">
         <jsp:include page="/includes/header.jsp" />
         <main class="brand-page">
             <nav class="brand-breadcrumb" aria-label="Breadcrumb">
@@ -179,28 +179,45 @@
                         </form>
                     </div>
 
-                    <div class="brand-product-grid">
+                    <div class="brand-product-grid product-grid">
                         <% if (products != null && !products.isEmpty()) {
                             for (Product product : products) {
                         %>
-                        <article class="brand-product-card">
-                            <a class="brand-product-image" href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
+                        <article class="product-card">
+                            <figure>
                                 <% if (product.getImageUrl() != null && !product.getImageUrl().trim().isEmpty()) { %>
                                 <img src="<%= ctx %>/<%= h(product.getImageUrl()) %>" alt="<%= h(product.getProductName()) %>">
                                 <% } else { %>
                                 <span>PC</span>
                                 <% } %>
-                            </a>
-                            <h3>
-                                <a href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
-                                    <%= h(product.getProductName()) %>
-                                </a>
-                            </h3>
+                            </figure>
+
+                            <h3><%= h(product.getProductName()) %></h3>
+
                             <strong><%= String.format("%,d", product.getPrice().longValue()) %>đ</strong>
-                            <p>Số lượng: <%= product.getQuantity() %></p>
-                            <a class="detail-link" href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
-                                Chi tiết <span>›</span>
-                            </a>
+
+                            <p class="product-stock <%= product.getQuantity() > 0 ? "in-stock" : "out-of-stock" %>">
+                                <% if (product.getQuantity() > 0) { %>
+                                Còn hàng: <%= product.getQuantity() %>
+                                <% } else { %>
+                                Hết hàng
+                                <% } %>
+                            </p>
+
+                            <div class="product-actions">
+                                <a class="detail-btn" href="<%= ctx %>/product-detail?id=<%= product.getProductId() %>">
+                                    Xem chi tiết
+                                </a>
+
+                                <form class="cart-form" action="<%= ctx %>/cart" method="post">
+                                    <input type="hidden" name="action" value="addToCart">
+                                    <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button class="cart-btn" type="submit" data-add-to-cart-btn data-product-name="<%= h(product.getProductName()) %>" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
+                                        🛒
+                                    </button>
+                                </form>
+                            </div>
                         </article>
                         <% }} else { %>
                         <div class="brand-empty">
@@ -212,6 +229,13 @@
                 </section>
             </section>
         </main>
+
+        <div class="home-toast" data-home-toast hidden>
+            <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
+            <div class="home-toast-message" data-home-toast-message></div>
+        </div>
+
         <jsp:include page="/includes/footer.jsp" />
+        <script src="<%= ctx %>/js/cart.js"></script>
     </body>
 </html>

@@ -17,7 +17,7 @@ public class ProductDAO extends DBContext {
                    COALESCE(stock.batch_id, 0) AS batch_id,
                    p.description,
                    p.image_url,
-                   COALESCE(stock.warranty_months, 0) AS warranty_months,
+                   COALESCE(p.warranty_months, 0) AS warranty_months,
                    p.status,
                    p.brand_id,
                    p.category_id,
@@ -29,8 +29,7 @@ public class ProductDAO extends DBContext {
             LEFT JOIN (
                 SELECT product_id,
                        SUM(quantity) AS quantity,
-                       MIN(batch_id) AS batch_id,
-                       MAX(warranty_months) AS warranty_months
+                       MIN(batch_id) AS batch_id
                 FROM batch_items
                 GROUP BY product_id
             ) stock ON stock.product_id = p.product_id

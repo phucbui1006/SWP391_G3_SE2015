@@ -19,15 +19,14 @@ public class BuildPCDAO extends DBContext {
     private static final String PRODUCT_SELECT
             = "SELECT p.product_id, p.price, COALESCE(stock.quantity, 0) AS quantity, "
             + "COALESCE(stock.batch_id, 0) AS batch_id, p.description, p.image_url, "
-            + "COALESCE(stock.warranty_months, 0) AS warranty_months, p.product_name, "
+            + "COALESCE(p.warranty_months, 0) AS warranty_months, p.product_name, "
             + "p.status, p.brand_id, p.category_id, br.brand_name, br.status AS brand_status, "
             + "c.category_name, c.status AS category_status "
             + "FROM products p "
             + "JOIN categories c ON c.category_id = p.category_id "
             + "JOIN brands br ON br.brand_id = p.brand_id "
             + "JOIN ( "
-            + "    SELECT product_id, SUM(quantity) AS quantity, MIN(batch_id) AS batch_id, "
-            + "           MAX(warranty_months) AS warranty_months "
+            + "    SELECT product_id, SUM(quantity) AS quantity, MIN(batch_id) AS batch_id "
             + "    FROM batch_items "
             + "    GROUP BY product_id "
             + ") stock ON stock.product_id = p.product_id ";

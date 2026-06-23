@@ -1,122 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.User" %>
+<%@ page import="model.AdminDashboardView" %>
 <%@ page import="model.OrderHistoryItem" %>
 <%@ page import="model.OrderStatus" %>
-<%@ page import="dal.AdminDashboardDAO.AccountSummary" %>
-<%@ page import="dal.AdminDashboardDAO.DashboardProduct" %>
-<%@ page import="dal.AdminDashboardDAO.DashboardSummary" %>
-<%@ page import="java.math.BigDecimal" %>
-<%@ page import="java.net.URLEncoder" %>
-<%@ page import="java.nio.charset.StandardCharsets" %>
-<%@ page import="java.text.DecimalFormat" %>
-<%@ page import="java.text.SimpleDateFormat" %>
-<%@ page import="java.time.LocalDate" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-
-<%!
-    private String h(String value) {
-        if (value == null) {
-            return "";
-        }
-
-        return value
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;");
-    }
-
-    private String defaultText(String value, String fallback) {
-        return value == null || value.trim().isEmpty() ? fallback : value;
-    }
-
-    private String statusClass(String status) {
-        String value = status == null ? "" : status.toLowerCase();
-        if (value.contains("hủy") || value.contains("huy")) {
-            return "cancelled";
-        }
-        if (value.contains("đã giao") || value.contains("da giao")) {
-            return "delivered";
-        }
-        if (value.contains("đang giao") || value.contains("dang giao")) {
-            return "shipping";
-        }
-        if (value.contains("chuẩn bị") || value.contains("chuan bi")) {
-            return "preparing";
-        }
-        if (value.contains("xác nhận") || value.contains("xac nhan")) {
-            return value.contains("chờ") || value.contains("cho ") ? "pending" : "confirmed";
-        }
-        return "all";
-    }
-
-    private String statusIcon(String status) {
-        String cssClass = statusClass(status);
-        if ("pending".equals(cssClass)) {
-            return "!";
-        }
-        if ("confirmed".equals(cssClass) || "delivered".equals(cssClass)) {
-            return "✓";
-        }
-        if ("preparing".equals(cssClass)) {
-            return "□";
-        }
-        if ("shipping".equals(cssClass)) {
-            return "→";
-        }
-        if ("cancelled".equals(cssClass)) {
-            return "X";
-        }
-        return "#";
-    }
-
-    private String productStatusClass(String status) {
-        return status != null && "ACTIVE".equalsIgnoreCase(status.trim()) ? "active" : "inactive";
-    }
-
-    private String formatCurrency(BigDecimal value) {
-        DecimalFormat formatter = new DecimalFormat("#,###");
-        BigDecimal safeValue = value == null ? BigDecimal.ZERO : value;
-        return formatter.format(safeValue) + "đ";
-    }
-
-    private String formatDateTime(java.util.Date value) {
-        if (value == null) {
-            return "";
-        }
-
-        return new SimpleDateFormat("dd/MM/yyyy HH:mm").format(value);
-    }
-
-    private String buildShipmentLink(String ctx, Integer statusId, boolean todayOnly, int page) {
-        StringBuilder query = new StringBuilder();
-        if (statusId != null) {
-            appendParam(query, "statusId", String.valueOf(statusId));
-        }
-        if (todayOnly) {
-            appendParam(query, "today", "1");
-        }
-        if (page > 1) {
-            appendParam(query, "page", String.valueOf(page));
-        }
-        return ctx + "/Dashboard" + (query.length() == 0 ? "" : "?" + query);
-    }
-
-    private void appendParam(StringBuilder query, String name, String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return;
-        }
-
-        if (query.length() > 0) {
-            query.append("&");
-        }
-
-        query.append(name)
-                .append("=")
-                .append(URLEncoder.encode(value.trim(), StandardCharsets.UTF_8));
-    }
-%>
+<%@ page import="util.DashboardViewHelper" %>
 
 <%
     User account = (User) session.getAttribute("account");
@@ -151,100 +40,28 @@
         <div class="dashboard-content">
             <div class="dashboard-card <%= "ADMIN".equals(roleName) ? "admin-shell" : ("EMPLOYEE".equals(roleName) ? "employee-shell" : ("SHIPMENT".equals(roleName) ? "shipment-shell" : "")) %>">
 
-                <% if ("ADMIN".equals(roleName)) { %>
-
-                <%
-                    LocalDate adminSelectedDate = (LocalDate) request.getAttribute("adminSelectedDate");
-                    DashboardSummary adminSummary = (DashboardSummary) request.getAttribute("adminSummary");
-                    List<DashboardProduct> adminBestSellingProducts = (List<DashboardProduct>) request.getAttribute("adminBestSellingProducts");
-                    List<DashboardProduct> adminLowStockProducts = (List<DashboardProduct>) request.getAttribute("adminLowStockProducts");
-                    List<OrderHistoryItem> adminLatestOrders = (List<OrderHistoryItem>) request.getAttribute("adminLatestOrders");
-                    Map<String, Integer> adminWarrantyStatusCounts = (Map<String, Integer>) request.getAttribute("adminWarrantyStatusCounts");
-                    AccountSummary adminAccountSummary = (AccountSummary) request.getAttribute("adminAccountSummary");
-                    Integer adminBestSellingTotalObject = (Integer) request.getAttribute("adminBestSellingTotal");
-                    Integer adminLowStockTotalObject = (Integer) request.getAttribute("adminLowStockTotal");
-
-                    if (adminSelectedDate == null) {
-                        adminSelectedDate = LocalDate.now();
-                    }
-                    if (adminSummary == null) {
-                        adminSummary = new DashboardSummary();
-                    }
-                    if (adminAccountSummary == null) {
-                        adminAccountSummary = new AccountSummary();
-                    }
-
-                    int adminBestSellingVisible = adminBestSellingProducts == null ? 0 : adminBestSellingProducts.size();
-                    int adminLowStockVisible = adminLowStockProducts == null ? 0 : adminLowStockProducts.size();
-                    int adminLatestOrdersVisible = adminLatestOrders == null ? 0 : adminLatestOrders.size();
-                    int adminBestSellingTotal = adminBestSellingTotalObject == null ? adminBestSellingVisible : adminBestSellingTotalObject;
-                    int adminLowStockTotal = adminLowStockTotalObject == null ? adminLowStockVisible : adminLowStockTotalObject;
-                    int adminWarrantyStatusTotal = adminWarrantyStatusCounts == null ? 0 : adminWarrantyStatusCounts.size();
-                    boolean adminShowAllWarranty = "1".equals(request.getParameter("showWarrantyAll"));
+                <% if ("ADMIN".equals(roleName)) {
+                    AdminDashboardView adminDashboard = (AdminDashboardView) request.getAttribute("adminDashboard");
                 %>
 
                 <div class="admin-dashboard">
                     <div class="admin-dashboard-heading">
-                        <form class="admin-date-filter" action="<%= ctx %>/Dashboard" method="get">
-                            <input type="date" name="date" value="<%= adminSelectedDate %>">
+                        <form class="admin-date-filter" action="<%= adminDashboard.getFormAction() %>" method="get">
+                            <input type="date" name="date" value="<%= adminDashboard.getSelectedDate() %>">
                             <button type="submit">Xem</button>
                         </form>
                     </div>
 
-                    <div class="admin-stat-grid" aria-label="Tổng quan chức năng quản trị">
+                    <div class="admin-stat-grid" >
+                        <% for (AdminDashboardView.StatCard stat : adminDashboard.getStatCards()) { %>
                         <a class="admin-stat-card" >
-                            <span class="admin-stat-icon red">💰</span>
+                            <span class="admin-stat-icon <%= stat.getIconClass() %>"><%= stat.getIcon() %></span>
                             <span>
-                                <small>Tổng doanh thu</small>
-                                <strong><%= formatCurrency(adminSummary.getTotalRevenue()) %></strong>
-                                
+                                <small><%= stat.getLabel() %></small>
+                                <strong><%= stat.getValue() %></strong>
                             </span>
                         </a>
-
-                        <a class="admin-stat-card">
-                            <span class="admin-stat-icon dark">📦</span>
-                            <span>
-                                <small>Tổng đơn hàng</small>
-                                <strong><%= adminSummary.getTotalOrders() %></strong>
-                               
-                            </span>
-                        </a>
-
-                        <a class="admin-stat-card">
-                            <span class="admin-stat-icon blue">🖥️</span>
-                            <span>
-                                <small>Tất cả sản phẩm</small>
-                                <strong><%= adminSummary.getActiveProducts() %></strong>
-                                
-                            </span>
-                        </a>
-
-                        <a class="admin-stat-card">
-                            <span class="admin-stat-icon green">🏷️</span>
-                            <span>
-                                <small>Tất cả thương hiệu</small>
-                                <strong><%= adminSummary.getTotalBrands() %></strong>
-                              
-                            </span>
-                        </a>
-
-                        <div class="admin-stat-card">
-                            <span class="admin-stat-icon orange">🛠️</span>
-                            <span>
-                                <small>Yêu cầu bảo hành</small>
-                                <strong><%= adminSummary.getWarrantyRequests() %></strong>
-                               
-                            </span>
-                        </div>
-
-                        <a class="admin-stat-card">
-                            <span class="admin-stat-icon purple">🚚</span>
-                            <span>
-                                <small>Lô hàng đã nhập</small>
-                                <strong><%= adminSummary.getImportedBatches() %></strong>
-                               
-                            </span>
-                        </a>
+                        <% } %>
                     </div>
 
                     <div class="admin-dashboard-grid admin-products-grid">
@@ -259,28 +76,26 @@
                                         <th>Mã SP</th>
                                         <th>Tên sản phẩm</th>
                                         <th>Đã bán</th>
-                                        <th>Tồn kho</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% if (adminBestSellingProducts == null || adminBestSellingProducts.isEmpty()) { %>
-                                    <tr><td colspan="4" class="admin-empty-cell">Không có dữ liệu bán hàng trong ngày này.</td></tr>
+                                    <% if (adminDashboard.getBestSellingProducts().isEmpty()) { %>
+                                    <tr><td colspan="3" class="admin-empty-cell">Không có dữ liệu bán hàng trong ngày này.</td></tr>
                                     <% } else {
-                                        for (DashboardProduct product : adminBestSellingProducts) { %>
+                                        for (AdminDashboardView.ProductRow product : adminDashboard.getBestSellingProducts()) { %>
                                     <tr>
-                                        <td>SP<%= product.getProductId() %></td>
-                                        <td><%= h(product.getProductName()) %></td>
+                                        <td><%= product.getProductCode() %></td>
+                                        <td><%= product.getProductName() %></td>
                                         <td><%= product.getSoldQuantity() %></td>
-                                        <td><%= product.getStockQuantity() %></td>
                                     </tr>
                                     <% }
                                     } %>
                                 </tbody>
                             </table>
-                            <% if (adminBestSellingTotal > adminBestSellingVisible) { %>
+                            <% if (adminDashboard.getBestSellingFooterMessage() != null) { %>
                             <div class="admin-panel-footer">
-                                <span>Còn <%= adminBestSellingTotal - adminBestSellingVisible %> sản phẩm bán chạy khác trong ngày.</span>
-                                <a href="<%= ctx %>/order-history">Xem tất cả</a>
+                                <span><%= adminDashboard.getBestSellingFooterMessage() %></span>
+                                <a href="#">Xem tất cả</a>
                             </div>
                             <% } %>
                         </section>
@@ -299,23 +114,23 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% if (adminLowStockProducts == null || adminLowStockProducts.isEmpty()) { %>
+                                    <% if (adminDashboard.getLowStockProducts().isEmpty()) { %>
                                     <tr><td colspan="3" class="admin-empty-cell">Chưa có sản phẩm.</td></tr>
                                     <% } else {
-                                        for (DashboardProduct product : adminLowStockProducts) { %>
+                                        for (AdminDashboardView.ProductRow product : adminDashboard.getLowStockProducts()) { %>
                                     <tr>
-                                        <td><%= h(product.getProductName()) %></td>
+                                        <td><%= product.getProductName() %></td>
                                         <td><%= product.getStockQuantity() %></td>
-                                        <td><span class="admin-status <%= productStatusClass(product.getStatus()) %>"><%= h(product.getStatus()) %></span></td>
+                                        <td><span class="admin-status <%= product.getStatusClass() %>"><%= product.getStatus() %></span></td>
                                     </tr>
                                     <% }
                                     } %>
                                 </tbody>
                             </table>
-                            <% if (adminLowStockTotal > adminLowStockVisible) { %>
+                            <% if (adminDashboard.getLowStockFooterMessage() != null) { %>
                             <div class="admin-panel-footer">
-                                <span>Còn <%= adminLowStockTotal - adminLowStockVisible %> sản phẩm sắp hết hàng khác.</span>
-                                <a href="<%= ctx %>/admin/categories">Xem tất cả</a>
+                                <span><%= adminDashboard.getLowStockFooterMessage() %></span>
+                                <a href="#">Xem tất cả</a>
                             </div>
                             <% } %>
                         </aside>
@@ -338,27 +153,25 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% if (adminLatestOrders == null || adminLatestOrders.isEmpty()) { %>
+                                    <% if (adminDashboard.getLatestOrders().isEmpty()) { %>
                                     <tr><td colspan="5" class="admin-empty-cell">Không có đơn hàng trong ngày này.</td></tr>
                                     <% } else {
-                                        for (OrderHistoryItem order : adminLatestOrders) {
-                                            String displayStatus = defaultText(order.getDisplayStatus(), "Chưa cập nhật");
-                                    %>
+                                        for (AdminDashboardView.OrderRow order : adminDashboard.getLatestOrders()) { %>
                                     <tr>
-                                        <td>PB<%= order.getOrderId() %></td>
-                                        <td><%= h(order.getCustomerName()) %></td>
-                                        <td><%= formatCurrency(order.getTotalAmount()) %></td>
-                                        <td><span class="shipment-status <%= statusClass(displayStatus) %>"><%= h(displayStatus) %></span></td>
-                                        <td><%= h(formatDateTime(order.getOrderDate())) %></td>
+                                        <td><%= order.getOrderCode() %></td>
+                                        <td><%= order.getCustomerName() %></td>
+                                        <td><%= order.getTotalAmount() %></td>
+                                        <td><span class="shipment-status <%= order.getStatusClass() %>"><%= order.getStatus() %></span></td>
+                                        <td><%= order.getOrderDate() %></td>
                                     </tr>
                                     <% }
                                     } %>
                                 </tbody>
                             </table>
-                            <% if (adminSummary.getTotalOrders() > adminLatestOrdersVisible) { %>
+                            <% if (adminDashboard.getLatestOrdersFooterMessage() != null) { %>
                             <div class="admin-panel-footer">
-                                <span>Còn <%= adminSummary.getTotalOrders() - adminLatestOrdersVisible %> đơn hàng khác trong ngày.</span>
-                                <a href="<%= ctx %>/order-history">Xem tất cả</a>
+                                <span><%= adminDashboard.getLatestOrdersFooterMessage() %></span>
+                                <a href="<%= adminDashboard.getLatestOrdersFooterUrl() %>">Xem tất cả</a>
                             </div>
                             <% } %>
                         </section>
@@ -369,26 +182,21 @@
                             </div>
 
                             <div class="admin-count-list">
-                                <% if (adminWarrantyStatusCounts == null || adminWarrantyStatusCounts.isEmpty()) { %>
+                                <% if (adminDashboard.getWarrantyStatusCounts().isEmpty()) { %>
                                 <p class="admin-empty-message">Không có yêu cầu bảo hành trong ngày này.</p>
                                 <% } else {
-                                    int warrantyStatusIndex = 0;
-                                    for (Map.Entry<String, Integer> entry : adminWarrantyStatusCounts.entrySet()) { %>
-                                <% if (adminShowAllWarranty || warrantyStatusIndex < 5) { %>
+                                    for (AdminDashboardView.CountRow entry : adminDashboard.getWarrantyStatusCounts()) { %>
                                 <p>
-                                    <span><%= h(entry.getKey()) %></span>
+                                    <span><%= entry.getLabel() %></span>
                                     <strong><%= entry.getValue() %></strong>
                                 </p>
                                 <% }
-                                    warrantyStatusIndex++;
-                                %>
-                                <% }
                                 } %>
                             </div>
-                            <% if (!adminShowAllWarranty && adminWarrantyStatusTotal > 5) { %>
+                            <% if (adminDashboard.isShowWarrantyFooter()) { %>
                             <div class="admin-panel-footer">
-                                <span>Còn <%= adminWarrantyStatusTotal - 5 %> trạng thái bảo hành khác.</span>
-                                <a href="<%= ctx %>/Dashboard?date=<%= adminSelectedDate %>&showWarrantyAll=1">Xem tất cả</a>
+                                <span><%= adminDashboard.getWarrantyFooterMessage() %></span>
+                                <a href="<%= adminDashboard.getWarrantyAllUrl() %>">Xem tất cả</a>
                             </div>
                             <% } %>
                         </aside>
@@ -398,11 +206,9 @@
                             </div>
 
                             <div class="admin-account-grid">
-                                <div><span>Khách hàng</span><strong><%= adminAccountSummary.getCustomers() %></strong></div>
-                                <div><span>Nhân viên</span><strong><%= adminAccountSummary.getEmployees() %></strong></div>
-                                <div><span>Nhân viên giao hàng</span><strong><%= adminAccountSummary.getTransports() %></strong></div>
-                                <div><span>Bị khóa</span><strong><%= adminAccountSummary.getLocked() %></strong></div>
-                                <div><span>Đang hoạt động</span><strong><%= adminAccountSummary.getActive() %></strong></div>
+                                <% for (AdminDashboardView.CountRow accountRow : adminDashboard.getAccountSummaries()) { %>
+                                <div><span><%= accountRow.getLabel() %></span><strong><%= accountRow.getValue() %></strong></div>
+                                <% } %>
                             </div>
                         </section>
                     </div>
@@ -569,9 +375,9 @@
                                 Integer countValue = shipmentStatusCounts == null ? null : shipmentStatusCounts.get(status.getStatusId());
                         %>
                         <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon <%= statusClass(status.getStatusName()) %>"><%= statusIcon(status.getStatusName()) %></span>
+                            <span class="shipment-summary-icon <%= DashboardViewHelper.statusClass(status.getStatusName()) %>"><%= DashboardViewHelper.statusIcon(status.getStatusName()) %></span>
                             <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title"><%= h(status.getStatusName()) %></p>
+                                <p class="shipment-summary-title"><%= DashboardViewHelper.h(status.getStatusName()) %></p>
                                 <div class="shipment-summary-value-row">
                                     <span class="shipment-summary-number"><%= countValue == null ? 0 : countValue %></span>
                                     <span class="shipment-summary-unit">đơn</span>
@@ -591,13 +397,13 @@
 
                             <div class="shipment-filter-tabs" aria-label="Lọc đơn hàng theo trạng thái">
                                 <a class="shipment-filter-tab <%= shipmentSelectedStatusId == null && !shipmentTodayOnly ? "active" : "" %>"
-                                   href="<%= buildShipmentLink(ctx, null, false, 1) %>">Tất cả</a>
+                                   href="<%= DashboardViewHelper.buildShipmentLink(ctx, null, false, 1) %>">Tất cả</a>
                                 <a class="shipment-filter-tab <%= shipmentTodayOnly ? "active" : "" %>"
-                                   href="<%= buildShipmentLink(ctx, shipmentSelectedStatusId, true, 1) %>">Hôm nay</a>
+                                   href="<%= DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, true, 1) %>">Hôm nay</a>
                                 <% if (shipmentStatusOptions != null) {
                                     for (OrderStatus status : shipmentStatusOptions) { %>
                                 <a class="shipment-filter-tab <%= !shipmentTodayOnly && shipmentSelectedStatusId != null && shipmentSelectedStatusId == status.getStatusId() ? "active" : "" %>"
-                                   href="<%= buildShipmentLink(ctx, status.getStatusId(), false, 1) %>"><%= h(status.getStatusName()) %></a>
+                                   href="<%= DashboardViewHelper.buildShipmentLink(ctx, status.getStatusId(), false, 1) %>"><%= DashboardViewHelper.h(status.getStatusName()) %></a>
                                 <% }
                                 } %>
                             </div>
@@ -621,18 +427,18 @@
                                 </tr>
                                 <% } else {
                                     for (OrderHistoryItem order : shipmentOrders) {
-                                        String displayStatus = defaultText(order.getDisplayStatus(), "Chờ xác nhận");
+                                        String displayStatus = DashboardViewHelper.defaultText(order.getDisplayStatus(), "Chờ xác nhận");
                                 %>
                                 <tr>
                                     <td>
                                         PB<%= order.getOrderId() %>
                                     </td>
                                     <td>
-                                        <%= h(defaultText(order.getRecipientName(), order.getCustomerName())) %>
+                                        <%= DashboardViewHelper.h(DashboardViewHelper.defaultText(order.getRecipientName(), order.getCustomerName())) %>
                                     </td>
-                                    <td><%= h(defaultText(order.getShippingAddress(), "Chưa cập nhật địa chỉ")) %></td>
+                                    <td><%= DashboardViewHelper.h(DashboardViewHelper.defaultText(order.getShippingAddress(), "Chưa cập nhật địa chỉ")) %></td>
                                     <td>
-                                        <span class="shipment-status <%= statusClass(displayStatus) %>"><%= h(displayStatus) %></span>
+                                        <span class="shipment-status <%= DashboardViewHelper.statusClass(displayStatus) %>"><%= DashboardViewHelper.h(displayStatus) %></span>
                                     </td>
                                 </tr>
                                 <% }
@@ -643,13 +449,13 @@
                         <% if (shipmentTotalPages > 1) { %>
                         <div class="shipment-pagination">
                             <a class="<%= shipmentPage <= 1 ? "disabled" : "" %>"
-                               href="<%= shipmentPage <= 1 ? "#" : buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage - 1) %>">‹</a>
+                               href="<%= shipmentPage <= 1 ? "#" : DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage - 1) %>">‹</a>
                             <% for (int pageNumber = 1; pageNumber <= shipmentTotalPages; pageNumber++) { %>
                             <a class="<%= pageNumber == shipmentPage ? "active" : "" %>"
-                               href="<%= buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, pageNumber) %>"><%= pageNumber %></a>
+                               href="<%= DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, pageNumber) %>"><%= pageNumber %></a>
                             <% } %>
                             <a class="<%= shipmentPage >= shipmentTotalPages ? "disabled" : "" %>"
-                               href="<%= shipmentPage >= shipmentTotalPages ? "#" : buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage + 1) %>">›</a>
+                               href="<%= shipmentPage >= shipmentTotalPages ? "#" : DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage + 1) %>">›</a>
                         </div>
                         <% } %>
                     </section>

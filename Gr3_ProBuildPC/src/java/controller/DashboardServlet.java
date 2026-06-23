@@ -226,15 +226,21 @@ public class DashboardServlet extends HttpServlet {
         int page = parsePositiveInt(request.getParameter("page"), 1);
 
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
-        List<OrderStatus> statusOptions = orderHistoryDAO.getOrderStatuses();
+        List<OrderStatus> allStatusOptions = orderHistoryDAO.getOrderStatuses();
+        List<OrderStatus> statusOptions = filterShipmentStatuses(allStatusOptions);
+        List<Integer> removedShipmentStatusIds = getPendingConfirmationStatusIds(allStatusOptions);
+        if (isRemovedShipmentStatus(selectedStatusId, statusOptions)) {
+            selectedStatusId = null;
+        }
 
-        int totalOrders = orderHistoryDAO.countOrders(null, null, selectedStatusId, false, false, todayOnly);
+        int totalOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
+                null, null, selectedStatusId, false, false, todayOnly, removedShipmentStatusIds);
         int totalPages = Math.max(1, (int) Math.ceil(totalOrders / (double) SHIPMENT_PAGE_SIZE));
         if (page > totalPages) {
             page = totalPages;
         }
 
-        List<OrderHistoryItem> shipmentOrders = orderHistoryDAO.getOrders(
+        List<OrderHistoryItem> shipmentOrders = orderHistoryDAO.getOrdersExcludingStatusIds(
                 null,
                 null,
                 selectedStatusId,
@@ -242,16 +248,20 @@ public class DashboardServlet extends HttpServlet {
                 SHIPMENT_PAGE_SIZE,
                 false,
                 false,
-                todayOnly
+                todayOnly,
+                removedShipmentStatusIds
         );
 
         Map<Integer, Integer> shipmentStatusCounts = new LinkedHashMap<>();
-        int allActiveOrders = orderHistoryDAO.countOrders(null, null, null, false, false);
-        int todayOrders = orderHistoryDAO.countOrders(null, null, null, false, false, true);
+        int allActiveOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
+                null, null, null, false, false, false, removedShipmentStatusIds);
+        int todayOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
+                null, null, null, false, false, true, removedShipmentStatusIds);
         for (OrderStatus status : statusOptions) {
             shipmentStatusCounts.put(
                     status.getStatusId(),
-                    orderHistoryDAO.countOrders(null, null, status.getStatusId(), false, false)
+                    orderHistoryDAO.countOrdersExcludingStatusIds(
+                            null, null, status.getStatusId(), false, false, false, removedShipmentStatusIds)
             );
         }
 
@@ -265,6 +275,57 @@ public class DashboardServlet extends HttpServlet {
         request.setAttribute("shipmentPage", page);
         request.setAttribute("shipmentTotalPages", totalPages);
         request.setAttribute("shipmentTotalOrders", totalOrders);
+    }
+
+    private List<OrderStatus> filterShipmentStatuses(List<OrderStatus> statuses) {
+        List<OrderStatus> filteredStatuses = new ArrayList<>();
+        if (statuses == null) {
+            return filteredStatuses;
+        }
+
+        for (OrderStatus status : statuses) {
+            if (!isPendingConfirmationStatus(status)) {
+                filteredStatuses.add(status);
+            }
+        }
+        return filteredStatuses;
+    }
+
+    private List<Integer> getPendingConfirmationStatusIds(List<OrderStatus> statuses) {
+        List<Integer> statusIds = new ArrayList<>();
+        if (statuses == null) {
+            return statusIds;
+        }
+
+        for (OrderStatus status : statuses) {
+            if (isPendingConfirmationStatus(status)) {
+                statusIds.add(status.getStatusId());
+            }
+        }
+        return statusIds;
+    }
+
+    private boolean isRemovedShipmentStatus(Integer selectedStatusId, List<OrderStatus> statusOptions) {
+        if (selectedStatusId == null) {
+            return false;
+        }
+
+        for (OrderStatus status : statusOptions) {
+            if (status.getStatusId() == selectedStatusId) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isPendingConfirmationStatus(OrderStatus status) {
+        if (status == null || status.getStatusName() == null) {
+            return false;
+        }
+
+        String statusName = status.getStatusName().toLowerCase();
+        return (statusName.contains("chờ") || statusName.contains("cho "))
+                && (statusName.contains("xác nhận") || statusName.contains("xac nhan"));
     }
 
     private boolean hasRole(User user, String expectedRole) {

@@ -427,7 +427,7 @@
                                 </tr>
                                 <% } else {
                                     for (OrderHistoryItem order : shipmentOrders) {
-                                        String displayStatus = DashboardViewHelper.defaultText(order.getDisplayStatus(), "Chờ xác nhận");
+                                        String displayStatus = DashboardViewHelper.defaultText(order.getDisplayStatus(), "Chưa cập nhật");
                                 %>
                                 <tr>
                                     <td>

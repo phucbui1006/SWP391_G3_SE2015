@@ -57,6 +57,38 @@ public class OrderHistoryDAO extends DBContext {
         return 0;
     }
 
+    public int countOrdersExcludingStatusIds(Integer customerUserId, String trackingKeyword, Integer statusId,
+            boolean completedOnly, boolean incompleteOnly, boolean todayOnly, List<Integer> excludedStatusIds) {
+        StringBuilder sql = new StringBuilder("""
+                     SELECT COUNT(*) AS total
+                     FROM orders o
+                     INNER JOIN customers c ON c.customer_id = o.customer_id
+                     INNER JOIN users u ON u.user_id = c.user_id
+                     LEFT JOIN orders_status os ON os.status_id = o.status_id
+                     LEFT JOIN shipments sh ON sh.order_id = o.order_id
+                     WHERE 1 = 1
+                     """);
+
+        List<Object> params = new ArrayList<>();
+        appendFilters(sql, params, customerUserId, trackingKeyword, statusId, completedOnly, incompleteOnly);
+        appendExcludedStatusFilter(sql, params, excludedStatusIds);
+        appendTodayFilter(sql, todayOnly);
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            setParameters(ps, params);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
     public List<OrderHistoryItem> getOrders(Integer customerUserId, String trackingKeyword, Integer statusId, int page, int pageSize) {
         return getOrders(customerUserId, trackingKeyword, statusId, page, pageSize, false);
     }
@@ -75,6 +107,36 @@ public class OrderHistoryDAO extends DBContext {
 
         List<Object> params = new ArrayList<>();
         appendFilters(sql, params, customerUserId, trackingKeyword, statusId, completedOnly, incompleteOnly);
+        appendTodayFilter(sql, todayOnly);
+        sql.append(" ORDER BY o.order_date DESC, o.order_id DESC LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add(Math.max(0, (page - 1) * pageSize));
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            setParameters(ps, params);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    orders.add(mapOrder(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        attachDetails(orders);
+        return orders;
+    }
+
+    public List<OrderHistoryItem> getOrdersExcludingStatusIds(Integer customerUserId, String trackingKeyword, Integer statusId,
+            int page, int pageSize, boolean completedOnly, boolean incompleteOnly, boolean todayOnly,
+            List<Integer> excludedStatusIds) {
+        List<OrderHistoryItem> orders = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(baseOrderSelect());
+
+        List<Object> params = new ArrayList<>();
+        appendFilters(sql, params, customerUserId, trackingKeyword, statusId, completedOnly, incompleteOnly);
+        appendExcludedStatusFilter(sql, params, excludedStatusIds);
         appendTodayFilter(sql, todayOnly);
         sql.append(" ORDER BY o.order_date DESC, o.order_id DESC LIMIT ? OFFSET ?");
         params.add(pageSize);
@@ -347,6 +409,22 @@ public class OrderHistoryDAO extends DBContext {
                    """);
         params.add("Đã giao hàng");
         params.add("Da giao hang");
+    }
+
+    private void appendExcludedStatusFilter(StringBuilder sql, List<Object> params, List<Integer> excludedStatusIds) {
+        if (excludedStatusIds == null || excludedStatusIds.isEmpty()) {
+            return;
+        }
+
+        sql.append(" AND (o.status_id IS NULL OR o.status_id NOT IN (");
+        for (int i = 0; i < excludedStatusIds.size(); i++) {
+            if (i > 0) {
+                sql.append(", ");
+            }
+            sql.append("?");
+            params.add(excludedStatusIds.get(i));
+        }
+        sql.append("))");
     }
 
     private void appendTodayFilter(StringBuilder sql, boolean todayOnly) {

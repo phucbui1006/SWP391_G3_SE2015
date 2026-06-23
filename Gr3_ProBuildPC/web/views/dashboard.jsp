@@ -23,6 +23,7 @@
     }
 
     String ctx = request.getContextPath();
+    final int ADMIN_TABLE_ROWS = 5;
 %>
 
 <!DOCTYPE html>
@@ -45,7 +46,8 @@
                 %>
 
                 <div class="admin-dashboard">
-                    <div class="admin-dashboard-heading">
+                    <div class="dashboard-page-heading admin-dashboard-heading">
+                     
                         <form class="admin-date-filter" action="<%= adminDashboard.getFormAction() %>" method="get">
                             <input type="date" name="date" value="<%= adminDashboard.getSelectedDate() %>">
                             <button type="submit">Xem</button>
@@ -70,7 +72,7 @@
                                 <h2>Sản phẩm bán chạy nhất</h2>
                             </div>
 
-                            <table class="admin-dashboard-table">
+                            <table class="admin-dashboard-table admin-best-selling-table">
                                 <thead>
                                     <tr>
                                         <th>Mã SP</th>
@@ -79,14 +81,20 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% if (adminDashboard.getBestSellingProducts().isEmpty()) { %>
-                                    <tr><td colspan="3" class="admin-empty-cell">Không có dữ liệu bán hàng trong ngày này.</td></tr>
-                                    <% } else {
-                                        for (AdminDashboardView.ProductRow product : adminDashboard.getBestSellingProducts()) { %>
+                                    <% for (int rowIndex = 0; rowIndex < ADMIN_TABLE_ROWS; rowIndex++) {
+                                        if (rowIndex < adminDashboard.getBestSellingProducts().size()) {
+                                            AdminDashboardView.ProductRow product = adminDashboard.getBestSellingProducts().get(rowIndex);
+                                    %>
                                     <tr>
                                         <td><%= product.getProductCode() %></td>
                                         <td><%= product.getProductName() %></td>
                                         <td><%= product.getSoldQuantity() %></td>
+                                    </tr>
+                                    <% } else { %>
+                                    <tr class="admin-placeholder-row">
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
                                     </tr>
                                     <% }
                                     } %>
@@ -105,7 +113,7 @@
                                 <h2>Sản phẩm sắp hết hàng</h2>
                             </div>
 
-                            <table class="admin-dashboard-table compact">
+                            <table class="admin-dashboard-table admin-low-stock-table compact">
                                 <thead>
                                     <tr>
                                         <th>Sản phẩm</th>
@@ -114,14 +122,20 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% if (adminDashboard.getLowStockProducts().isEmpty()) { %>
-                                    <tr><td colspan="3" class="admin-empty-cell">Chưa có sản phẩm.</td></tr>
-                                    <% } else {
-                                        for (AdminDashboardView.ProductRow product : adminDashboard.getLowStockProducts()) { %>
+                                    <% for (int rowIndex = 0; rowIndex < ADMIN_TABLE_ROWS; rowIndex++) {
+                                        if (rowIndex < adminDashboard.getLowStockProducts().size()) {
+                                            AdminDashboardView.ProductRow product = adminDashboard.getLowStockProducts().get(rowIndex);
+                                    %>
                                     <tr>
                                         <td><%= product.getProductName() %></td>
                                         <td><%= product.getStockQuantity() %></td>
                                         <td><span class="admin-status <%= product.getStatusClass() %>"><%= product.getStatus() %></span></td>
+                                    </tr>
+                                    <% } else { %>
+                                    <tr class="admin-placeholder-row">
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
                                     </tr>
                                     <% }
                                     } %>
@@ -142,7 +156,7 @@
                                 <h2>Đơn hàng mới nhất</h2>
                             </div>
 
-                            <table class="admin-dashboard-table">
+                            <table class="admin-dashboard-table admin-latest-orders-table">
                                 <thead>
                                     <tr>
                                         <th>Mã đơn</th>
@@ -153,16 +167,24 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% if (adminDashboard.getLatestOrders().isEmpty()) { %>
-                                    <tr><td colspan="5" class="admin-empty-cell">Không có đơn hàng trong ngày này.</td></tr>
-                                    <% } else {
-                                        for (AdminDashboardView.OrderRow order : adminDashboard.getLatestOrders()) { %>
+                                    <% for (int rowIndex = 0; rowIndex < ADMIN_TABLE_ROWS; rowIndex++) {
+                                        if (rowIndex < adminDashboard.getLatestOrders().size()) {
+                                            AdminDashboardView.OrderRow order = adminDashboard.getLatestOrders().get(rowIndex);
+                                    %>
                                     <tr>
                                         <td><%= order.getOrderCode() %></td>
                                         <td><%= order.getCustomerName() %></td>
                                         <td><%= order.getTotalAmount() %></td>
                                         <td><span class="shipment-status <%= order.getStatusClass() %>"><%= order.getStatus() %></span></td>
                                         <td><%= order.getOrderDate() %></td>
+                                    </tr>
+                                    <% } else { %>
+                                    <tr class="admin-placeholder-row">
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
                                     </tr>
                                     <% }
                                     } %>
@@ -218,6 +240,10 @@
                 <% } else if ("EMPLOYEE".equals(roleName)) { %>
 
                 <div class="employee-dashboard">
+                    <div class="dashboard-page-heading">
+                        
+                    </div>
+
                     <div class="employee-summary-grid" aria-label="Thống kê yêu cầu bảo hành">
                         <div class="employee-summary-card">
                             <span class="summary-icon today">📚</span>
@@ -347,6 +373,10 @@
                 %>
 
                 <div class="shipment-dashboard">
+                    <div class="dashboard-page-heading">
+                     
+                    </div>
+
                     <div class="shipment-summary-grid" aria-label="Thống kê đơn hàng vận chuyển">
                         <div class="shipment-summary-card">
                             <span class="shipment-summary-icon all">#</span>

@@ -32,21 +32,28 @@ public class AccountManagementServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
+        String type = request.getParameter("type");
+        if (type == null || (!type.equals("user") && !type.equals("staff"))) {
+            type = "user";
+        }
+        String accountType = type.equals("staff") ? "STAFF" : "CUSTOMER";
+
         String keyword = normalizeText(request.getParameter("keyword"));
         Integer roleId = parseId(request.getParameter("roleId"));
         String status = normalizeStatus(request.getParameter("status"));
         int page = parsePositiveInt(request.getParameter("page"), 1);
 
-        int totalUsers = userDAO.countUsers(keyword, roleId, status);
+        int totalUsers = userDAO.countUsers(keyword, roleId, status, accountType);
         int totalPages = Math.max(1, (int) Math.ceil(totalUsers / (double) PAGE_SIZE));
 
         if (page > totalPages) {
             page = totalPages;
         }
 
-        List<User> users = userDAO.getUsers(keyword, roleId, status, page, PAGE_SIZE);
+        List<User> users = userDAO.getUsers(keyword, roleId, status, accountType, page, PAGE_SIZE);
         List<Role> roles = userDAO.getRoles();
 
+        request.setAttribute("type", type);
         request.setAttribute("users", users);
         request.setAttribute("roles", roles);
         request.setAttribute("keyword", keyword);
@@ -291,6 +298,7 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
 
     private String buildQueryString(HttpServletRequest request) {
         StringBuilder query = new StringBuilder();
+        appendQueryParam(query, "type", request.getParameter("type") != null ? request.getParameter("type") : "user");
         appendQueryParam(query, "keyword", normalizeText(request.getParameter("keyword")));
         appendQueryParam(query, "roleId", request.getParameter("filterRoleId"));
         appendQueryParam(query, "status", request.getParameter("filterStatus"));

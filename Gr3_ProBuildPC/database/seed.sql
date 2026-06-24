@@ -22,6 +22,44 @@ VALUES
 (9, 'Bàn phím', 'ACTIVE'),
 (10, 'Chuột', 'ACTIVE');
 
+INSERT INTO CATEGORY_SPEC_TEMPLATES
+(template_id, category_id, spec_name, spec_type, allowed_values, is_required, display_order)
+VALUES
+(1,  1, 'Chân cắm',    'SELECT', 'AM5,LGA1700,LGA1200,AM4',  TRUE, 1),
+(2,  1, 'Hỗ trợ RAM',  'SELECT', 'DDR4,DDR5',                TRUE, 2),
+(3,  1, 'Số nhân',      'NUMBER', NULL,                       TRUE, 3),
+(4,  1, 'Số luồng',     'NUMBER', NULL,                       TRUE, 4),
+(5,  2, 'Chân cắm',           'SELECT', 'AM5,LGA1700,LGA1200,AM4',        TRUE, 1),
+(6,  2, 'Loại RAM',            'SELECT', 'DDR4,DDR5',                      TRUE, 2),
+(7,  2, 'Kích thước bo mạch',  'SELECT', 'ATX,Micro-ATX,Mini-ITX,E-ATX',   TRUE, 3),
+(8,  2, 'Giao tiếp GPU',       'SELECT', 'PCIe 4.0,PCIe 5.0,PCIe 3.0',    TRUE, 4),
+(9,  3, 'Loại RAM',   'SELECT', 'DDR4,DDR5',                                    TRUE, 1),
+(10, 3, 'Dung lượng', 'SELECT', '8GB,16GB,32GB,64GB',                           TRUE, 2),
+(11, 3, 'Tốc độ',     'SELECT', '3200MHz,3600MHz,4800MHz,5200MHz,5600MHz,6000MHz', TRUE, 3),
+(12, 4, 'Giao tiếp',        'SELECT', 'PCIe 3.0,PCIe 4.0,PCIe 5.0',  TRUE, 1),
+(13, 4, 'Bộ nhớ đồ họa',    'SELECT', '4GB,6GB,8GB,12GB,16GB,24GB',   TRUE, 2),
+(14, 5, 'Loại kết nối', 'SELECT', 'SATA III,NVMe M.2 PCIe 3.0,NVMe M.2 PCIe 4.0,NVMe M.2 PCIe 5.0', TRUE, 1),
+(15, 5, 'Dung lượng',   'SELECT', '256GB,512GB,1TB,2TB,4TB',                                          TRUE, 2),
+(16, 5, 'Tốc độ đọc',   'TEXT',   NULL,                                                               FALSE, 3),
+(17, 5, 'Tốc độ ghi',   'TEXT',   NULL,                                                               FALSE, 4),
+(18, 6, 'Công suất',    'SELECT', '450W,550W,650W,750W,850W,1000W,1200W',              TRUE, 1),
+(19, 6, 'Chuẩn hiệu suất', 'SELECT', '80 Plus,80 Plus Bronze,80 Plus Silver,80 Plus Gold,80 Plus Platinum', TRUE, 2),
+(20, 6, 'Loại dây cáp',  'SELECT', 'Non-Modular,Semi-Modular,Full-Modular',            TRUE, 3),
+(21, 7, 'Kích thước hỗ trợ', 'SELECT', 'ATX,Micro-ATX,Mini-ITX,E-ATX',                TRUE, 1),
+(22, 7, 'Chất liệu',         'SELECT', 'Thép,Nhôm,Kính cường lực,Nhựa',               FALSE, 2),
+(23, 7, 'Số quạt đi kèm',    'NUMBER',  NULL,                                          FALSE, 3),
+(24, 8, 'Kích thước',     'SELECT', '21.5 inch,24 inch,27 inch,32 inch,34 inch',       TRUE, 1),
+(25, 8, 'Độ phân giải',   'SELECT', 'Full HD,2K QHD,4K UHD',                           TRUE, 2),
+(26, 8, 'Tấm nền',        'SELECT', 'IPS,VA,TN,OLED',                                 TRUE, 3),
+(27, 8, 'Tần số quét',    'SELECT', '60Hz,75Hz,144Hz,165Hz,240Hz,360Hz',               TRUE, 4),
+(28, 8, 'Cổng kết nối',   'TEXT',    NULL,                                              FALSE, 5),
+(29, 9, 'Loại switch',   'SELECT', 'Membrane,Mechanical Red,Mechanical Blue,Mechanical Brown,Optical', FALSE, 1),
+(30, 9, 'Kết nối',       'SELECT', 'USB,Wireless 2.4G,Bluetooth,USB + Bluetooth',                     TRUE, 2),
+(31, 9, 'Layout',        'SELECT', 'Full-size,TKL,75%,65%,60%',                                       TRUE, 3),
+(32, 10, 'Kết nối',  'SELECT', 'USB,Wireless 2.4G,Bluetooth,USB + Bluetooth',  TRUE, 1),
+(33, 10, 'DPI tối đa', 'NUMBER', NULL,                                         FALSE, 2),
+(34, 10, 'Trọng lượng', 'TEXT',  NULL,                                         FALSE, 3);
+
 INSERT INTO BRANDS (brand_id, brand_name, img, status)
 VALUES
 (1, 'AMD', 'images/brands/amd.png', 'ACTIVE'),
@@ -29,7 +67,13 @@ VALUES
 (3, 'Gigabyte', 'images/brands/gigabyte.png', 'ACTIVE'),
 (4, 'Intel', 'images/brands/intel.png', 'ACTIVE'),
 (5, 'Kingston', 'images/brands/kingston.png', 'ACTIVE'),
-(6, 'MSI', 'images/brands/msi.png', 'ACTIVE');
+(6, 'MSI', 'images/brands/msi.png', 'ACTIVE'),
+(7, 'Corsair', 'images/brands/corsair.png', 'ACTIVE'),
+(8, 'Samsung', 'images/brands/samsung.png', 'ACTIVE'),
+(9, 'Dell', 'images/brands/dell.png', 'ACTIVE'),
+(10, 'Logitech', 'images/brands/logitech.png', 'ACTIVE'),
+(11, 'Razer', 'images/brands/razer.png', 'ACTIVE'),
+(12, 'NZXT', 'images/brands/nzxt.png', 'ACTIVE');
 
 INSERT INTO ORDERS_STATUS (status_id, status_name)
 VALUES
@@ -156,7 +200,51 @@ VALUES
 
 (18, 4, 6, 'MSI RTX 4080 Super Gaming X Trio',
 'MSI RTX 4080 Super Gaming X Trio là card đồ họa cao cấp dành cho chơi game 4K và sáng tạo nội dung.',
-'images/products/msi-rtx4080super.jpg', 32900000, 'ACTIVE');
+'images/products/msi-rtx4080super.jpg', 32900000, 'ACTIVE'),
+
+(19, 5, 8, 'Samsung 980 Pro 1TB',
+'Ổ cứng SSD Samsung 980 Pro 1TB PCIe 4.0 NVMe siêu tốc, lý tưởng cho hệ thống gaming và render.',
+'images/products/samsung-980-pro-1tb.jpg', 2300000, 'ACTIVE'),
+
+(20, 5, 5, 'Kingston NV2 500GB',
+'Ổ cứng SSD Kingston NV2 500GB PCIe 4.0, giải pháp lưu trữ tiết kiệm và hiệu quả.',
+'images/products/kingston-nv2-500gb.jpg', 950000, 'ACTIVE'),
+
+(21, 6, 7, 'Corsair RM850x 850W',
+'Nguồn máy tính Corsair RM850x 850W 80 Plus Gold Full Modular, hiệu năng cao và yên tĩnh.',
+'images/products/corsair-rm850x.jpg', 3500000, 'ACTIVE'),
+
+(22, 6, 3, 'Gigabyte P650B 650W',
+'Nguồn máy tính Gigabyte P650B 650W 80 Plus Bronze, phù hợp cho cấu hình tầm trung.',
+'images/products/gigabyte-p650b.jpg', 1200000, 'ACTIVE'),
+
+(23, 7, 7, 'Corsair 4000D Airflow',
+'Vỏ case Corsair 4000D Airflow Tempered Glass, tối ưu luồng gió làm mát hệ thống.',
+'images/products/corsair-4000d.jpg', 1900000, 'ACTIVE'),
+
+(24, 7, 12, 'NZXT H510',
+'Vỏ case NZXT H510 Mid Tower thiết kế tối giản, tinh tế, tích hợp sẵn quản lý cáp.',
+'images/products/nzxt-h510.jpg', 1800000, 'ACTIVE'),
+
+(25, 8, 9, 'Dell UltraSharp U2720Q',
+'Màn hình Dell UltraSharp U2720Q 27 inch 4K IPS, màu sắc chuẩn xác cho thiết kế đồ họa.',
+'images/products/dell-u2720q.jpg', 12500000, 'ACTIVE'),
+
+(26, 8, 2, 'ASUS TUF Gaming VG27AQ',
+'Màn hình ASUS TUF Gaming VG27AQ 27 inch 2K 165Hz IPS, mượt mà cho trải nghiệm gaming.',
+'images/products/asus-tuf-vg27aq.jpg', 7500000, 'ACTIVE'),
+
+(27, 9, 10, 'Logitech G Pro X Keyboard',
+'Bàn phím cơ Logitech G Pro X chuyên game, switch thay thế được.',
+'images/products/logitech-g-pro-x-kb.jpg', 3200000, 'ACTIVE'),
+
+(28, 10, 10, 'Logitech G502 Hero',
+'Chuột gaming Logitech G502 Hero cảm biến 25K cao cấp, thiết kế công thái học.',
+'images/products/logitech-g502-hero.jpg', 1100000, 'ACTIVE'),
+
+(29, 10, 11, 'Razer DeathAdder V3 Pro',
+'Chuột không dây siêu nhẹ Razer DeathAdder V3 Pro, thiết kế ergonomic hàng đầu.',
+'images/products/razer-dav3-pro.jpg', 3500000, 'ACTIVE');
 
 -- =========================
 -- THÔNG SỐ SẢN PHẨM
@@ -241,7 +329,57 @@ VALUES
 (17, 'Bộ nhớ đồ họa', '12GB'),
 
 (18, 'Giao tiếp', 'PCIe 4.0'),
-(18, 'Bộ nhớ đồ họa', '16GB');
+(18, 'Bộ nhớ đồ họa', '16GB'),
+
+(19, 'Loại kết nối', 'NVMe M.2 PCIe 4.0'),
+(19, 'Dung lượng', '1TB'),
+(19, 'Tốc độ đọc', '7000 MB/s'),
+(19, 'Tốc độ ghi', '5000 MB/s'),
+
+(20, 'Loại kết nối', 'NVMe M.2 PCIe 4.0'),
+(20, 'Dung lượng', '500GB'),
+(20, 'Tốc độ đọc', '3500 MB/s'),
+(20, 'Tốc độ ghi', '2100 MB/s'),
+
+(21, 'Công suất', '850W'),
+(21, 'Chuẩn hiệu suất', '80 Plus Gold'),
+(21, 'Loại dây cáp', 'Full-Modular'),
+
+(22, 'Công suất', '650W'),
+(22, 'Chuẩn hiệu suất', '80 Plus Bronze'),
+(22, 'Loại dây cáp', 'Non-Modular'),
+
+(23, 'Kích thước hỗ trợ', 'ATX'),
+(23, 'Chất liệu', 'Thép, Kính cường lực'),
+(23, 'Số quạt đi kèm', '2'),
+
+(24, 'Kích thước hỗ trợ', 'ATX'),
+(24, 'Chất liệu', 'Thép, Kính cường lực'),
+(24, 'Số quạt đi kèm', '2'),
+
+(25, 'Kích thước', '27 inch'),
+(25, 'Độ phân giải', '4K UHD'),
+(25, 'Tấm nền', 'IPS'),
+(25, 'Tần số quét', '60Hz'),
+(25, 'Cổng kết nối', 'HDMI, DisplayPort, USB-C'),
+
+(26, 'Kích thước', '27 inch'),
+(26, 'Độ phân giải', '2K QHD'),
+(26, 'Tấm nền', 'IPS'),
+(26, 'Tần số quét', '165Hz'),
+(26, 'Cổng kết nối', 'HDMI, DisplayPort'),
+
+(27, 'Loại switch', 'Mechanical Blue'),
+(27, 'Kết nối', 'USB'),
+(27, 'Layout', 'TKL'),
+
+(28, 'Kết nối', 'USB'),
+(28, 'DPI tối đa', '25600'),
+(28, 'Trọng lượng', '121g'),
+
+(29, 'Kết nối', 'Wireless 2.4G'),
+(29, 'DPI tối đa', '30000'),
+(29, 'Trọng lượng', '63g');
 
 INSERT INTO COMPATIBILITY_RULES
 (rule_id, source_category_id, target_category_id, source_spec_name, target_spec_name, comparison_operator)

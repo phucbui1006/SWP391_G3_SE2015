@@ -184,6 +184,33 @@ public class AdminDashboardDAO extends DBContext {
         return orders;
     }
 
+    public Map<String, Integer> getOrderStatusCounts(LocalDate selectedDate) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        String sql = """
+                SELECT COALESCE(os.status_name, 'Chưa cập nhật') AS status_name,
+                       COUNT(o.order_id) AS total
+                FROM orders o
+                LEFT JOIN orders_status os ON os.status_id = o.status_id
+                WHERE DATE(o.order_date) = ?
+                GROUP BY COALESCE(os.status_name, 'Chưa cập nhật')
+                ORDER BY total DESC, status_name ASC
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setDate(1, Date.valueOf(selectedDate));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    counts.put(rs.getString("status_name"), rs.getInt("total"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return counts;
+    }
+
     public Map<String, Integer> getWarrantyStatusCounts(LocalDate selectedDate) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         String sql = """

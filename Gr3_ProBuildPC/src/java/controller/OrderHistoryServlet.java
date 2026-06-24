@@ -88,6 +88,8 @@ public class OrderHistoryServlet extends HttpServlet {
         request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("canManageShipment", canManageShipment(account));
         request.setAttribute("isCustomerView", account.isCustomer());
+        request.setAttribute("isShipper", isShipment(account));
+        request.setAttribute("isEmployee", isEmployee(account));
         request.setAttribute("shipmentStaffName", account.getFullName());
         request.setAttribute("deliveryHistoryMode", deliveryHistoryMode);
 
@@ -131,6 +133,15 @@ public class OrderHistoryServlet extends HttpServlet {
             return;
         }
 
+        if (isShipment(account)) {
+            // Shipper can only set to 4 (Đang giao hàng), 5 (Đã giao hàng), 7 (Giao hàng thất bại)
+            if (shipmentStatusId != 4 && shipmentStatusId != 5 && shipmentStatusId != 7) {
+                session.setAttribute(ERROR_FLASH, "Shipper chỉ được phép cập nhật thành: Đang giao hàng, Đã giao hàng, hoặc Giao hàng thất bại.");
+                response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
+                return;
+            }
+        }
+
         String deliveryName = normalizeText(request.getParameter("deliveryName"));
         String deliveryPhone = normalizeText(request.getParameter("deliveryPhone"));
         if (deliveryName == null || deliveryPhone == null) {
@@ -142,10 +153,26 @@ public class OrderHistoryServlet extends HttpServlet {
         String shipmentNote = "Người giao hàng: " + deliveryName + " - SĐT: " + deliveryPhone;
 
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
-        if (orderHistoryDAO.updateShipmentStatus(orderId, shipmentStatusId, shipmentNote)) {
+        
+        if (isEmployee(account) && !isAdmin(account) && !isShipment(account)) {
+            String currentStatusName = orderHistoryDAO.findCurrentOrderStatusName(orderId);
+            if (currentStatusName == null || !currentStatusName.trim().equalsIgnoreCase("Giao hàng thất bại")) {
+                session.setAttribute(ERROR_FLASH, "Nhân viên chỉ được phép cập nhật đơn hàng khi trạng thái hiện tại là Giao hàng thất bại.");
+                response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
+                return;
+            }
+            if (shipmentStatusId != 2 && shipmentStatusId != 6) {
+                session.setAttribute(ERROR_FLASH, "Nhân viên chỉ được phép cập nhật sang Đã xác nhận hoặc Đã hủy.");
+                response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
+                return;
+            }
+        }
+
+        if (orderHistoryDAO.updateShipmentStatus(orderId, shipmentStatusId, shipmentNote, isShipment(account))) {
             session.setAttribute(SUCCESS_FLASH, "Cap nhat trang thai giao hang thanh cong.");
+            session.setAttribute("lastDeliveryPhone", deliveryPhone);
         } else {
-            session.setAttribute(ERROR_FLASH, "Khong the cap nhat trang thai giao hang.");
+            session.setAttribute(ERROR_FLASH, "Khong the cap nhat trang thai giao hang hoac trang thai da bi khoa.");
         }
 
         response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
@@ -174,7 +201,7 @@ public class OrderHistoryServlet extends HttpServlet {
         if (cancelled) {
             session.setAttribute(SUCCESS_FLASH, "Da huy don hang thanh cong.");
         } else {
-            session.setAttribute(ERROR_FLASH, "Chi co the huy don hang dang o trang thai Cho xac nhan.");
+            session.setAttribute(ERROR_FLASH, "Chỉ có thể hủy đơn hàng đang ở trạng thái Chờ xác nhận hoặc Đã xác nhận.");
         }
 
         response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
@@ -213,7 +240,7 @@ public class OrderHistoryServlet extends HttpServlet {
             return null;
         }
 
-        if (account.isCustomer() || isAdmin(account) || isShipment(account)) {
+        if (account.isCustomer() || isAdmin(account) || isShipment(account) || isEmployee(account)) {
             return account;
         }
 
@@ -222,7 +249,7 @@ public class OrderHistoryServlet extends HttpServlet {
     }
 
     private boolean canManageShipment(User account) {
-        return isShipment(account);
+        return isShipment(account) || isAdmin(account) || isEmployee(account);
     }
 
     private boolean isAdmin(User account) {
@@ -231,6 +258,10 @@ public class OrderHistoryServlet extends HttpServlet {
 
     private boolean isShipment(User account) {
         return hasRole(account, "SHIPMENT");
+    }
+
+    private boolean isEmployee(User account) {
+        return account != null && account.isStaff() && !isAdmin(account) && !isShipment(account);
     }
 
     private boolean hasRole(User account, String expectedRole) {

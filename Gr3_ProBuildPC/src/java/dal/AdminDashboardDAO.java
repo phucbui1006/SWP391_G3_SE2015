@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import model.AccountSummary;
+import model.DashboardProduct;
+import model.DashboardSummary;
 import model.OrderHistoryItem;
 
 public class AdminDashboardDAO extends DBContext {
@@ -38,26 +41,21 @@ public class AdminDashboardDAO extends DBContext {
         List<DashboardProduct> products = new ArrayList<>();
         String sql = """
                 SELECT p.product_id,
-                       p.product_name,
-                       p.status,
-                       COALESCE(stock.quantity, 0) AS stock_quantity,
-                       COALESCE(SUM(od.quantity), 0) AS sold_quantity
-                FROM order_details od
-                INNER JOIN orders o ON o.order_id = od.order_id
-                INNER JOIN products p ON p.product_id = od.product_id
-                LEFT JOIN orders_status os ON os.status_id = o.status_id
-                LEFT JOIN (
-                    SELECT product_id, SUM(quantity) AS quantity
-                    FROM batch_items
-                    GROUP BY product_id
-                ) stock ON stock.product_id = p.product_id
-                WHERE DATE(o.order_date) = ?
-                  AND (os.status_name IS NULL
-                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
-                           AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
-                GROUP BY p.product_id, p.product_name, p.status, stock.quantity
-                ORDER BY sold_quantity DESC, p.product_id DESC
-                LIMIT ?
+                      p.product_name,
+                      p.status,
+                      COALESCE(SUM(od.quantity), 0) AS sold_quantity
+               FROM order_details od
+               INNER JOIN orders o ON o.order_id = od.order_id
+               INNER JOIN products p ON p.product_id = od.product_id
+               LEFT JOIN orders_status os ON os.status_id = o.status_id
+               WHERE DATE(o.order_date) = ?
+                 AND (
+                       os.status_name IS NULL
+                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%'))
+                     )
+               GROUP BY p.product_id, p.product_name, p.status
+               ORDER BY sold_quantity DESC
+               LIMIT ?
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -66,7 +64,7 @@ public class AdminDashboardDAO extends DBContext {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    products.add(mapProduct(rs));
+                    products.add(mapBestSellingProduct(rs));
                 }
             }
         } catch (SQLException e) {
@@ -74,6 +72,24 @@ public class AdminDashboardDAO extends DBContext {
         }
 
         return products;
+    }
+
+    public int countBestSellingProducts(LocalDate selectedDate) {
+        String sql = """
+                SELECT COUNT(*) AS value
+                FROM (
+                    SELECT p.product_id
+                    FROM order_details od
+                    INNER JOIN orders o ON o.order_id = od.order_id
+                    INNER JOIN products p ON p.product_id = od.product_id
+                    LEFT JOIN orders_status os ON os.status_id = o.status_id
+                    WHERE DATE(o.order_date) = ?
+                      AND (os.status_name IS NULL
+                           OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')))
+                    GROUP BY p.product_id
+                ) sold_products
+                """;
+        return queryInt(sql, selectedDate);
     }
 
     public List<DashboardProduct> getLowStockProducts(int limit) {
@@ -108,6 +124,20 @@ public class AdminDashboardDAO extends DBContext {
         }
 
         return products;
+    }
+
+    public int countLowStockProducts() {
+        String sql = """
+                SELECT COUNT(*) AS value
+                FROM products p
+                LEFT JOIN (
+                    SELECT product_id, SUM(quantity) AS quantity
+                    FROM batch_items
+                    GROUP BY product_id
+                ) stock ON stock.product_id = p.product_id
+                WHERE COALESCE(stock.quantity, 0) <= 5
+                """;
+        return queryInt(sql);
     }
 
     public List<OrderHistoryItem> getLatestOrders(LocalDate selectedDate, int limit) {
@@ -213,9 +243,17 @@ public class AdminDashboardDAO extends DBContext {
         return product;
     }
 
+    private DashboardProduct mapBestSellingProduct(ResultSet rs) throws SQLException {
+        DashboardProduct product = new DashboardProduct();
+        product.setProductId(rs.getInt("product_id"));
+        product.setProductName(rs.getString("product_name"));
+        product.setStatus(rs.getString("status"));
+        product.setSoldQuantity(rs.getInt("sold_quantity"));
+        return product;
+    }
+
     private int queryInt(String sql) {
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 return rs.getInt("value");
             }
@@ -257,156 +295,4 @@ public class AdminDashboardDAO extends DBContext {
         return value == null ? BigDecimal.ZERO : value;
     }
 
-    public static class DashboardSummary {
-        private BigDecimal totalRevenue = BigDecimal.ZERO;
-        private int totalOrders;
-        private int activeProducts;
-        private int totalBrands;
-        private int warrantyRequests;
-        private int importedBatches;
-
-        public BigDecimal getTotalRevenue() {
-            return totalRevenue;
-        }
-
-        public void setTotalRevenue(BigDecimal totalRevenue) {
-            this.totalRevenue = totalRevenue;
-        }
-
-        public int getTotalOrders() {
-            return totalOrders;
-        }
-
-        public void setTotalOrders(int totalOrders) {
-            this.totalOrders = totalOrders;
-        }
-
-        public int getActiveProducts() {
-            return activeProducts;
-        }
-
-        public void setActiveProducts(int activeProducts) {
-            this.activeProducts = activeProducts;
-        }
-
-        public int getTotalBrands() {
-            return totalBrands;
-        }
-
-        public void setTotalBrands(int totalBrands) {
-            this.totalBrands = totalBrands;
-        }
-
-        public int getWarrantyRequests() {
-            return warrantyRequests;
-        }
-
-        public void setWarrantyRequests(int warrantyRequests) {
-            this.warrantyRequests = warrantyRequests;
-        }
-
-        public int getImportedBatches() {
-            return importedBatches;
-        }
-
-        public void setImportedBatches(int importedBatches) {
-            this.importedBatches = importedBatches;
-        }
-    }
-
-    public static class DashboardProduct {
-        private int productId;
-        private String productName;
-        private String status;
-        private int stockQuantity;
-        private int soldQuantity;
-
-        public int getProductId() {
-            return productId;
-        }
-
-        public void setProductId(int productId) {
-            this.productId = productId;
-        }
-
-        public String getProductName() {
-            return productName;
-        }
-
-        public void setProductName(String productName) {
-            this.productName = productName;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public void setStatus(String status) {
-            this.status = status;
-        }
-
-        public int getStockQuantity() {
-            return stockQuantity;
-        }
-
-        public void setStockQuantity(int stockQuantity) {
-            this.stockQuantity = stockQuantity;
-        }
-
-        public int getSoldQuantity() {
-            return soldQuantity;
-        }
-
-        public void setSoldQuantity(int soldQuantity) {
-            this.soldQuantity = soldQuantity;
-        }
-    }
-
-    public static class AccountSummary {
-        private int customers;
-        private int employees;
-        private int transports;
-        private int locked;
-        private int active;
-
-        public int getCustomers() {
-            return customers;
-        }
-
-        public void setCustomers(int customers) {
-            this.customers = customers;
-        }
-
-        public int getEmployees() {
-            return employees;
-        }
-
-        public void setEmployees(int employees) {
-            this.employees = employees;
-        }
-
-        public int getTransports() {
-            return transports;
-        }
-
-        public void setTransports(int transports) {
-            this.transports = transports;
-        }
-
-        public int getLocked() {
-            return locked;
-        }
-
-        public void setLocked(int locked) {
-            this.locked = locked;
-        }
-
-        public int getActive() {
-            return active;
-        }
-
-        public void setActive(int active) {
-            this.active = active;
-        }
-    }
 }

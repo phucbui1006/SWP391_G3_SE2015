@@ -172,13 +172,13 @@ public class UserDAO {
         return false;
     }
 
-    public List<User> getUsers(String keyword, Integer roleId, String status, int page, int pageSize) {
+    public List<User> getUsers(String keyword, Integer roleId, String status, String accountType, int page, int pageSize) {
         List<User> users = new ArrayList<>();
         StringBuilder sql = new StringBuilder(baseUserSelect());
         sql.append(" WHERE 1 = 1 ");
 
         List<Object> params = new ArrayList<>();
-        appendUserFilters(sql, params, keyword, roleId, status);
+        appendUserFilters(sql, params, keyword, roleId, status, accountType);
         sql.append(" ORDER BY u.user_id ASC LIMIT ? OFFSET ?");
         params.add(pageSize);
         params.add((page - 1) * pageSize);
@@ -200,7 +200,7 @@ public class UserDAO {
         return users;
     }
 
-    public int countUsers(String keyword, Integer roleId, String status) {
+    public int countUsers(String keyword, Integer roleId, String status, String accountType) {
         StringBuilder sql = new StringBuilder("""
                      SELECT COUNT(*) AS total
                      FROM users u
@@ -211,7 +211,7 @@ public class UserDAO {
                      """);
 
         List<Object> params = new ArrayList<>();
-        appendUserFilters(sql, params, keyword, roleId, status);
+        appendUserFilters(sql, params, keyword, roleId, status, accountType);
 
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
@@ -369,7 +369,7 @@ public class UserDAO {
                """;
     }
 
-    private void appendUserFilters(StringBuilder sql, List<Object> params, String keyword, Integer roleId, String status) {
+    private void appendUserFilters(StringBuilder sql, List<Object> params, String keyword, Integer roleId, String status, String accountType) {
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (LOWER(u.full_name) LIKE ? OR LOWER(u.email) LIKE ?) ");
             String search = "%" + keyword.trim().toLowerCase() + "%";
@@ -386,6 +386,9 @@ public class UserDAO {
                 sql.append(" AND UPPER(u.account_type) = 'STAFF' AND s.role_id = ? ");
                 params.add(roleId);
             }
+        } else if (accountType != null && !accountType.isEmpty()) {
+            sql.append(" AND UPPER(u.account_type) = ? ");
+            params.add(accountType.trim().toUpperCase());
         }
 
         if (status != null && !status.trim().isEmpty()) {

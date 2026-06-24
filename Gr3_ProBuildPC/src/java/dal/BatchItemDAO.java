@@ -14,6 +14,7 @@ public class BatchItemDAO extends DBContext {
         item.setBatchItemId(rs.getInt("batch_item_id"));
         item.setBatchId(rs.getInt("batch_id"));
         item.setProductId(rs.getInt("product_id"));
+        item.setImportQuantity(rs.getInt("import_quantity"));
         item.setQuantity(rs.getInt("quantity"));
         item.setPrice(rs.getBigDecimal("price"));
         item.setWarrantyMonths(rs.getInt("warranty_months"));
@@ -25,7 +26,7 @@ public class BatchItemDAO extends DBContext {
         List<BatchItem> list = new ArrayList<>();
 
         String sql = """
-            SELECT batch_item_id, batch_id, product_id, quantity, price, warranty_months
+            SELECT batch_item_id, batch_id, product_id, import_quantity, quantity, price, warranty_months
             FROM BATCH_ITEMS
             WHERE batch_id = ?
             ORDER BY batch_item_id DESC
@@ -50,7 +51,7 @@ public class BatchItemDAO extends DBContext {
 
     public BatchItem getItemById(int batchItemId) {
         String sql = """
-            SELECT batch_item_id, batch_id, product_id, quantity, price, warranty_months
+            SELECT batch_item_id, batch_id, product_id, import_quantity, quantity, price, warranty_months
             FROM BATCH_ITEMS
             WHERE batch_item_id = ?
         """;
@@ -75,9 +76,9 @@ public class BatchItemDAO extends DBContext {
     public boolean addItem(BatchItem item) {
         String sql = """
             INSERT INTO BATCH_ITEMS 
-                (batch_id, product_id, quantity, price, warranty_months)
+                (batch_id, product_id, import_quantity, quantity, price, warranty_months)
             VALUES 
-                (?, ?, ?, ?, ?)
+                (?, ?, ?, ?, ?, ?)
         """;
 
         try {
@@ -85,9 +86,10 @@ public class BatchItemDAO extends DBContext {
 
             ps.setInt(1, item.getBatchId());
             ps.setInt(2, item.getProductId());
-            ps.setInt(3, item.getQuantity());
-            ps.setBigDecimal(4, item.getPrice());
-            ps.setInt(5, item.getWarrantyMonths());
+            ps.setInt(3, item.getImportQuantity());
+            ps.setInt(4, item.getQuantity());
+            ps.setBigDecimal(5, item.getPrice());
+            ps.setInt(6, item.getWarrantyMonths());
 
             return ps.executeUpdate() > 0;
 
@@ -103,6 +105,7 @@ public class BatchItemDAO extends DBContext {
             UPDATE BATCH_ITEMS
             SET batch_id = ?,
                 product_id = ?,
+                import_quantity = ?,
                 quantity = ?,
                 price = ?,
                 warranty_months = ?
@@ -114,10 +117,11 @@ public class BatchItemDAO extends DBContext {
 
             ps.setInt(1, item.getBatchId());
             ps.setInt(2, item.getProductId());
-            ps.setInt(3, item.getQuantity());
-            ps.setBigDecimal(4, item.getPrice());
-            ps.setInt(5, item.getWarrantyMonths());
-            ps.setInt(6, item.getBatchItemId());
+            ps.setInt(3, item.getImportQuantity());
+            ps.setInt(4, item.getQuantity());
+            ps.setBigDecimal(5, item.getPrice());
+            ps.setInt(6, item.getWarrantyMonths());
+            ps.setInt(7, item.getBatchItemId());
 
             return ps.executeUpdate() > 0;
 

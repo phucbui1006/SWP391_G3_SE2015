@@ -345,8 +345,6 @@ CREATE TABLE WARRANTIES (
     response_date   DATETIME NULL,
     request         TEXT,
 
- 
-
     CONSTRAINT FK_WARRANTIES_CUSTOMERS
         FOREIGN KEY (customer_id) REFERENCES CUSTOMERS(customer_id),
 

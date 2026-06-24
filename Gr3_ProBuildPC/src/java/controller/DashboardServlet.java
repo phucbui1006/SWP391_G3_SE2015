@@ -297,7 +297,7 @@ public class DashboardServlet extends HttpServlet {
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
         List<OrderStatus> allStatusOptions = orderHistoryDAO.getOrderStatuses();
         List<OrderStatus> statusOptions = filterShipmentStatuses(allStatusOptions);
-        List<Integer> removedShipmentStatusIds = getPendingConfirmationStatusIds(allStatusOptions);
+        List<Integer> removedShipmentStatusIds = getRemovedShipmentStatusIds(allStatusOptions);
         if (isRemovedShipmentStatus(selectedStatusId, statusOptions)) {
             selectedStatusId = null;
         }
@@ -353,21 +353,21 @@ public class DashboardServlet extends HttpServlet {
         }
 
         for (OrderStatus status : statuses) {
-            if (!isPendingConfirmationStatus(status)) {
+            if (!isHiddenShipmentStatus(status)) {
                 filteredStatuses.add(status);
             }
         }
         return filteredStatuses;
     }
 
-    private List<Integer> getPendingConfirmationStatusIds(List<OrderStatus> statuses) {
+    private List<Integer> getRemovedShipmentStatusIds(List<OrderStatus> statuses) {
         List<Integer> statusIds = new ArrayList<>();
         if (statuses == null) {
             return statusIds;
         }
 
         for (OrderStatus status : statuses) {
-            if (isPendingConfirmationStatus(status)) {
+            if (isHiddenShipmentStatus(status)) {
                 statusIds.add(status.getStatusId());
             }
         }
@@ -387,6 +387,10 @@ public class DashboardServlet extends HttpServlet {
         return true;
     }
 
+    private boolean isHiddenShipmentStatus(OrderStatus status) {
+        return isPendingConfirmationStatus(status) || isPreparingOrderStatus(status);
+    }
+
     private boolean isPendingConfirmationStatus(OrderStatus status) {
         if (status == null || status.getStatusName() == null) {
             return false;
@@ -395,6 +399,15 @@ public class DashboardServlet extends HttpServlet {
         String statusName = status.getStatusName().toLowerCase();
         return (statusName.contains("chờ") || statusName.contains("cho "))
                 && (statusName.contains("xác nhận") || statusName.contains("xac nhan"));
+    }
+
+    private boolean isPreparingOrderStatus(OrderStatus status) {
+        if (status == null || status.getStatusName() == null) {
+            return false;
+        }
+
+        String statusName = status.getStatusName().toLowerCase();
+        return statusName.contains("chuẩn bị") || statusName.contains("chuan bi");
     }
 
     private boolean hasRole(User user, String expectedRole) {

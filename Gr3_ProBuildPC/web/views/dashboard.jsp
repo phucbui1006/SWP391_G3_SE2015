@@ -415,7 +415,7 @@
                         <div class="shipment-order-header">
                             <div class="shipment-order-title-row">
                                 <h2 class="shipment-order-title">Danh sách đơn hàng vận chuyển</h2>
-                                <span><%= shipmentTotalOrders %> đơn phù hợp</span>
+                                <span style="background: none";><%= shipmentTotalOrders %> đơn phù hợp</span>
                             </div>
 
                             <div class="shipment-filter-tabs" aria-label="Lọc đơn hàng theo trạng thái">

@@ -9209,9 +9209,18 @@ body.dashboard-body .dashboard-card.shipment-shell {
 }
 
 .shipment-order-title-row span {
-    color: #64748b;
-    font-size: 13px;
-    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 6px 12px;
+    border: 1px solid #bfd7ff;
+    border-radius: 8px;
+    background: #eef6ff;
+    color: #0f172a;
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 900;
     white-space: nowrap;
 }
 

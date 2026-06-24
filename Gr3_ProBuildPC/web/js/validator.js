@@ -58,7 +58,7 @@ const Validator = {
     validateBrandName(name) {
         if (!name) return false;
         const trimmed = name.trim();
-        return trimmed.length > 2 && trimmed.length < 20;
+        return trimmed.length >= 2 && trimmed.length < 20;
     },
 
     validateFileSize(file, maxBytes = 2 * 1024 * 1024) {

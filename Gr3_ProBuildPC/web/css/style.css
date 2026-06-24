@@ -9019,6 +9019,7 @@ body.dashboard-body .dashboard-card.shipment-shell {
 .admin-stat-card,
 .employee-summary-card,
 .shipment-summary-card {
+    min-width: 0;
     min-height: 104px;
     display: grid;
     grid-template-columns: 46px minmax(0, 1fr);
@@ -9030,6 +9031,12 @@ body.dashboard-body .dashboard-card.shipment-shell {
     background: #ffffff;
     color: #111827;
     box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+.admin-stat-card > span:last-child,
+.employee-summary-card > div,
+.shipment-summary-card > div {
+    min-width: 0;
 }
 
 .admin-stat-card:hover {
@@ -9115,11 +9122,15 @@ body.dashboard-body .dashboard-card.shipment-shell {
 .admin-stat-card strong,
 .summary-number,
 .shipment-summary-number {
+    display: block;
+    max-width: 100%;
     color: #0f172a;
     font-size: 24px;
-    line-height: 1;
+    line-height: 1.08;
     font-weight: 900;
     font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .summary-unit,

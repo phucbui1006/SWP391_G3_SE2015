@@ -153,49 +153,42 @@
                     <div class="admin-dashboard-grid admin-bottom-grid">
                         <section class="admin-panel">
                             <div class="admin-panel-header">
-                                <h2>Đơn hàng mới nhất</h2>
+                                <h2>Tổng quan đơn hàng trong ngày</h2>
                             </div>
 
-                            <table class="admin-dashboard-table admin-latest-orders-table">
+                            <table class="admin-dashboard-table admin-order-summary-table">
                                 <thead>
                                     <tr>
-                                        <th>Mã đơn</th>
-                                        <th>Khách hàng</th>
-                                        <th>Tổng tiền</th>
-                                        <th>Trạng thái</th>
-                                        <th>Thời gian</th>
+                                        <th>Thông tin</th>
+                                        <th>Giá trị</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% for (int rowIndex = 0; rowIndex < ADMIN_TABLE_ROWS; rowIndex++) {
-                                        if (rowIndex < adminDashboard.getLatestOrders().size()) {
-                                            AdminDashboardView.OrderRow order = adminDashboard.getLatestOrders().get(rowIndex);
+                                    <% if (adminDashboard.getOrderSummaries().isEmpty()) { %>
+                                    <tr>
+                                        <td colspan="2">
+                                            <p class="admin-empty-message">Không có đơn hàng trong ngày đã chọn.</p>
+                                        </td>
+                                    </tr>
+                                    <% } else {
+                                        for (AdminDashboardView.OrderSummaryRow orderSummary : adminDashboard.getOrderSummaries()) {
+                                            String orderSummaryStatusClass = orderSummary.getStatusClass();
+                                            boolean hasStatusClass = orderSummaryStatusClass != null && !orderSummaryStatusClass.trim().isEmpty();
                                     %>
                                     <tr>
-                                        <td><%= order.getOrderCode() %></td>
-                                        <td><%= order.getCustomerName() %></td>
-                                        <td><%= order.getTotalAmount() %></td>
-                                        <td><span class="shipment-status <%= order.getStatusClass() %>"><%= order.getStatus() %></span></td>
-                                        <td><%= order.getOrderDate() %></td>
-                                    </tr>
-                                    <% } else { %>
-                                    <tr class="admin-placeholder-row">
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
+                                        <td><%= orderSummary.getLabel() %></td>
+                                        <td>
+                                            <% if (hasStatusClass) { %>
+                                            <span class="shipment-status <%= orderSummaryStatusClass %>"><%= orderSummary.getValue() %></span>
+                                            <% } else { %>
+                                            <strong><%= orderSummary.getValue() %></strong>
+                                            <% } %>
+                                        </td>
                                     </tr>
                                     <% }
                                     } %>
                                 </tbody>
                             </table>
-                            <% if (adminDashboard.getLatestOrdersFooterMessage() != null) { %>
-                            <div class="admin-panel-footer">
-                                <span><%= adminDashboard.getLatestOrdersFooterMessage() %></span>
-                                <a href="<%= adminDashboard.getLatestOrdersFooterUrl() %>">Xem tất cả</a>
-                            </div>
-                            <% } %>
                         </section>
 
                         <aside class="admin-panel">

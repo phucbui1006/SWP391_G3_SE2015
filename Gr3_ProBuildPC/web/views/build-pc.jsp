@@ -226,7 +226,7 @@
                         <form action="<%= ctx %>/build-pc" method="post">
                             <input type="hidden" name="action" value="addToCart">
                             <button class="build-cart-btn" type="submit">
-                                <span aria-hidden="true">🛒</span>
+                                <span aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></span>
                                 Thêm cấu hình vào giỏ hàng
                             </button>
                         </form>

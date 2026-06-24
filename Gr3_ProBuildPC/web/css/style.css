@@ -2768,12 +2768,22 @@ body.home-page .home-pagination a.active {
 }
 
 .header-menu .menu-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     color: #FFFFFF !important;
     text-decoration: none;
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
     transition: color 0.3s ease;
+}
+
+.header-menu .menu-item i {
+    width: 16px;
+    font-size: 14px;
+    line-height: 1;
+    text-align: center;
 }
 
 .header-menu .menu-item:hover,
@@ -2938,6 +2948,11 @@ body.home-page .home-pagination a.active {
 .cart-icon {
     position: relative;
     font-size: 28px;
+    line-height: 1;
+}
+
+.cart-icon i {
+    font-size: 27px;
 }
 
 .cart-icon span {
@@ -2969,7 +2984,8 @@ body.home-page .home-pagination a.active {
 
 .user-icon {
     color: #ed1c24;
-    font-size: 30px;
+    font-size: 28px;
+    line-height: 1;
 }
 
 .user-box h4 {
@@ -3022,7 +3038,15 @@ body.home-page .home-pagination a.active {
     color: black;
     padding: 12px 16px;
     text-decoration: none;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dropdown-menu a i,
+.login-buttons a i {
+    width: 16px;
+    text-align: center;
 }
 
 .dropdown-menu a:first-child {
@@ -3053,6 +3077,10 @@ body.home-page .home-pagination a.active {
 }
 
 .login-buttons a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     padding: 8px 16px;
     text-decoration: none;
     border-radius: 4px;

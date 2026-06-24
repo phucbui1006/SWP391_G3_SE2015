@@ -131,17 +131,17 @@ public class DashboardServlet extends HttpServlet {
 
     private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary) {
         List<AdminDashboardView.StatCard> cards = new ArrayList<>();
-        cards.add(new AdminDashboardView.StatCard("red", "💰", "Tổng doanh thu",
+        cards.add(new AdminDashboardView.StatCard("red", "fa-solid fa-coins", "Tổng doanh thu",
                 DashboardViewHelper.formatCurrency(summary.getTotalRevenue())));
-        cards.add(new AdminDashboardView.StatCard("dark", "📦", "Tổng đơn hàng",
+        cards.add(new AdminDashboardView.StatCard("dark", "fa-solid fa-receipt", "Tổng đơn hàng",
                 String.valueOf(summary.getTotalOrders())));
-        cards.add(new AdminDashboardView.StatCard("blue", "🖥️", "Tất cả sản phẩm",
+        cards.add(new AdminDashboardView.StatCard("blue", "fa-solid fa-desktop", "Tất cả sản phẩm",
                 String.valueOf(summary.getActiveProducts())));
-        cards.add(new AdminDashboardView.StatCard("green", "🏷️", "Tất cả thương hiệu",
+        cards.add(new AdminDashboardView.StatCard("green", "fa-solid fa-tags", "Tất cả thương hiệu",
                 String.valueOf(summary.getTotalBrands())));
-        cards.add(new AdminDashboardView.StatCard("orange", "🛠️", "Yêu cầu bảo hành",
+        cards.add(new AdminDashboardView.StatCard("orange", "fa-solid fa-screwdriver-wrench", "Yêu cầu bảo hành",
                 String.valueOf(summary.getWarrantyRequests())));
-        cards.add(new AdminDashboardView.StatCard("purple", "🚚", "Lô hàng đã nhập",
+        cards.add(new AdminDashboardView.StatCard("purple", "fa-solid fa-truck-ramp-box", "Lô hàng đã nhập",
                 String.valueOf(summary.getImportedBatches())));
         return cards;
     }
@@ -446,11 +446,11 @@ public class DashboardServlet extends HttpServlet {
         }
     }
 
-    private String normalizeText(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
-
-        return value.trim();
-    }
+//    private String normalizeText(String value) {
+//        if (value == null || value.trim().isEmpty()) {
+//            return null;
+//        }
+//
+//        return value.trim();
+//    }
 }

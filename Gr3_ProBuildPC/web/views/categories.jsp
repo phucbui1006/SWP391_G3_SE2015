@@ -123,7 +123,7 @@
             <section class="category-layout">
 
                 <aside class="category-sidebar">
-                    <h2>📦 Danh mục sản phẩm</h2>
+                    <h2><i class="fa-solid fa-layer-group"></i> Danh mục sản phẩm</h2>
 
                     <form action="<%= ctx %>/categories" method="get"
                           class="category-filter-form">
@@ -374,7 +374,7 @@
                                             class="add-to-cart-btn"
                                             data-add-to-cart-btn
                                             title="Thêm vào giỏ hàng">
-                                        🛒
+                                        <i class="fa-solid fa-cart-shopping"></i>
                                     </button>
                                 </form>
                                 <% } else { %>
@@ -383,7 +383,7 @@
                                         style="opacity: 0.6; cursor: not-allowed; background: #e5e7eb; border-color: #e5e7eb; color: #9ca3af;"
                                         title="Sản phẩm tạm hết hàng"
                                         disabled>
-                                    🛒
+                                    <i class="fa-solid fa-cart-shopping"></i>
                                 </button>
                                 <% } %>
                             </div>

@@ -118,7 +118,7 @@
                 </div>
 
                 <div class="warranty-hero-mark" aria-hidden="true">
-                    <div class="warranty-shield">✓</div>
+                    <div class="warranty-shield"><i class="fa-solid fa-check"></i></div>
                     <div class="warranty-card-icon">
                         <span></span>
                         <span></span>
@@ -141,7 +141,7 @@
                                 required>
                             <button type="submit">Kiểm tra</button>
                         </div>
-                        <p class="warranty-help-text">ⓘ Mã đơn hàng có trong email xác nhận hoặc trang chi tiết đơn hàng.</p>
+                        <p class="warranty-help-text"><i class="fa-solid fa-circle-info"></i> Mã đơn hàng có trong email xác nhận hoặc trang chi tiết đơn hàng.</p>
 
                         <% if (errorMessage != null && !errorMessage.trim().isEmpty()) { %>
                         <div class="warranty-alert">
@@ -153,7 +153,7 @@
                     <% if (result != null) { %>
                     <section class="warranty-result-card">
                         <header class="warranty-result-header">
-                            <div class="warranty-success-icon">✓</div>
+                            <div class="warranty-success-icon"><i class="fa-solid fa-check"></i></div>
                             <div>
                                 <h2>Đơn hàng <%= displayOrderCode(result.getOrderId()) %></h2>
                                 <p>
@@ -211,11 +211,11 @@
                             <% }} %>
                         </div>
 
-                        <p class="warranty-note">ⓘ Thời gian bảo hành được tính từ ngày mua hàng.</p>
+                        <p class="warranty-note"><i class="fa-solid fa-circle-info"></i> Thời gian bảo hành được tính từ ngày mua hàng.</p>
                     </section>
                     <% } else { %>
                     <section class="warranty-empty-state">
-                        <div class="warranty-empty-icon">?</div>
+                        <div class="warranty-empty-icon"><i class="fa-regular fa-circle-question"></i></div>
                         <div>
                             <h2>Chưa có đơn hàng để hiển thị</h2>
                             <p>Nhập order ID trong hệ thống để xem ngày hết hạn bảo hành của từng linh kiện.</p>
@@ -257,7 +257,7 @@
                         </dl>
 
                         <a class="warranty-detail-link" href="#">
-                            ⟳ Xem chi tiết đơn hàng
+                            <i class="fa-solid fa-arrow-rotate-right"></i> Xem chi tiết đơn hàng
                         </a>
                     </section>
                     <% } %>
@@ -266,15 +266,15 @@
                         <h2>Chính sách bảo hành</h2>
                         <div class="warranty-policy-list">
                             <div>
-                                <span>✓</span>
+                                <span><i class="fa-solid fa-check"></i></span>
                                 <p>Sản phẩm được bảo hành theo chính sách của nhà sản xuất.</p>
                             </div>
                             <div>
-                                <span>□</span>
+                                <span><i class="fa-regular fa-calendar-days"></i></span>
                                 <p>Thời gian bảo hành có thể khác nhau tùy thuộc vào từng sản phẩm.</p>
                             </div>
                             <div>
-                                <span>☎</span>
+                                <span><i class="fa-solid fa-phone"></i></span>
                                 <p>Vui lòng liên hệ 1900 9999 nếu bạn cần hỗ trợ thêm.</p>
                             </div>
                         </div>

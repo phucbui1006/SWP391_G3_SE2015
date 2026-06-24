@@ -91,21 +91,23 @@
     }
 %>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <header class="main-header">
     <div class="header-top-line"></div>
 
     <nav class="header-menu">
         <% if ("CUSTOMER".equals(roleName)) { %>
 
-        <a href="<%= ctx %>/home" class="menu-item <%= "/home".equals(currentPath) || "/Home".equals(currentPath) ? "active" : "" %>">🏠 Trang chủ</a>
+        <a href="<%= ctx %>/home" class="menu-item <%= "/home".equals(currentPath) || "/Home".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-house"></i> Trang chủ</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/build-pc" class="menu-item <%= "/build-pc".equals(currentPath) || "/BuildPC".equals(currentPath) ? "active" : "" %>">🛠 BUILD PC</a>
+        <a href="<%= ctx %>/build-pc" class="menu-item <%= "/build-pc".equals(currentPath) || "/BuildPC".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-screwdriver-wrench"></i> BUILD PC</a>
         <span class="menu-divider"></span>
 
         <div class="menu-dropdown">
             <button class="menu-item menu-dropdown-toggle" type="button">
-                📦 Danh mục sản phẩm
+                <i class="fa-solid fa-layer-group"></i> Danh mục sản phẩm
                 <span class="menu-dropdown-arrow">▾</span>
             </button>
             <div class="menu-dropdown-list">
@@ -115,22 +117,22 @@
         </div>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📋 Lịch sử đơn hàng</a>
+        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-clipboard-list"></i> Lịch sử đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>">🛡 Tra cứu bảo hành</a>
+        <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-shield-halved"></i> Tra cứu bảo hành</a>
         <% } else if ("ADMIN".equals(roleName)) { %>
 
 
-        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
+        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📦 Quản lý đơn hàng</a>
+        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-boxes-stacked"></i> Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
         <div class="menu-dropdown">
             <button class="menu-item menu-dropdown-toggle" type="button" aria-expanded="false">
-                👥 Quản lý tài khoản
+                <i class="fa-solid fa-users-gear"></i> Quản lý tài khoản
                 <span class="menu-dropdown-arrow">▾</span>
             </button>
             <div class="menu-dropdown-list">
@@ -142,7 +144,7 @@
 
         <div class="menu-dropdown">
             <button class="menu-item menu-dropdown-toggle" type="button">
-                📦 Sản phẩm
+                <i class="fa-solid fa-microchip"></i> Sản phẩm
                 <span class="menu-dropdown-arrow">▾</span>
             </button>
             <div class="menu-dropdown-list">
@@ -153,34 +155,34 @@
         </div>
         <span class="menu-divider"></span>
 
-        <a href="${pageContext.request.contextPath}/BatchServlet" class="menu-item <%= "/BatchServlet".equals(currentPath) ? "active" : "" %>">🏬 Lô hàng</a>
+        <a href="${pageContext.request.contextPath}/BatchServlet" class="menu-item <%= "/BatchServlet".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-warehouse"></i> Lô hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">🛡 Bảo hành</a>
+        <a href="#" class="menu-item"><i class="fa-solid fa-shield-halved"></i> Bảo hành</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">📊 Thống kê doanh thu</a>
+        <a href="#" class="menu-item"><i class="fa-solid fa-chart-line"></i> Thống kê doanh thu</a>
         <% } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) { %>
 
 
-        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
+        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
         <span class="menu-divider"></span>
         
-        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📦 Quản lý đơn hàng</a>
+        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-boxes-stacked"></i> Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">🛡 Dịch vụ bảo hành</a>
+        <a href="#" class="menu-item"><i class="fa-solid fa-shield-heart"></i> Dịch vụ bảo hành</a>
 
         <% } else if ("SHIPMENT".equals(roleName)) { %>
 
 
-        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
+        <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/order-history" class="menu-item <%= ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) && !deliveryHistoryMode ? "active" : "" %>">📦 Đơn hàng của tôi</a>
+        <a href="<%= ctx %>/order-history" class="menu-item <%= ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) && !deliveryHistoryMode ? "active" : "" %>"><i class="fa-solid fa-box"></i> Đơn hàng của tôi</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/order-history?deliveryHistory=1" class="menu-item <%= ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) && deliveryHistoryMode ? "active" : "" %>">🚚 Lịch sử giao hàng</a>
+        <a href="<%= ctx %>/order-history?deliveryHistory=1" class="menu-item <%= ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) && deliveryHistoryMode ? "active" : "" %>"><i class="fa-solid fa-truck-fast"></i> Lịch sử giao hàng</a>
         <% } %>
 
 
@@ -209,7 +211,7 @@
             <% if ("CUSTOMER".equals(roleName) && account != null) { %>
             <a class="cart-box" href="<%= ctx %>/cart">
                 <div class="cart-icon">
-                    🛒
+                    <i class="fa-solid fa-cart-shopping"></i>
                     <span><%= cartItemCount %></span>
                 </div>
                 <p>Giỏ hàng</p>
@@ -219,7 +221,7 @@
             <% if (account != null) { %>
             <div class="user-dropdown">
                 <button class="dropdown-toggle" type="button">
-                    <div class="user-icon">👤</div>
+                    <div class="user-icon"><i class="fa-solid fa-user"></i></div>
                     <div>
                         <h4><%= fullName %></h4>
                         <p>
@@ -236,11 +238,11 @@
                     </div>
                 </button>
                 <div class="dropdown-menu">
-                    <a href="<%= ctx %>/views/profile.jsp">📋 Thông tin cá nhân</a>
+                    <a href="<%= ctx %>/views/profile.jsp"><i class="fa-regular fa-id-card"></i> Thông tin cá nhân</a>
                     <% if ("CUSTOMER".equals(roleName)) { %>
-                    <a href="<%= ctx %>/shipping-address">📍 Địa chỉ giao hàng</a>
+                    <a href="<%= ctx %>/shipping-address"><i class="fa-solid fa-location-dot"></i> Địa chỉ giao hàng</a>
                     <% } %>
-                    <a href="<%= ctx %>/Logout" class="menu-item logout">Đăng xuất</a>
+                    <a href="<%= ctx %>/Logout" class="menu-item logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
 
                 </div>
 
@@ -249,7 +251,7 @@
             <!-- Nếu chưa đăng nhập -->
             <div class="login-buttons">
                 <a href="<%= ctx %>/Login" class="login-btn">
-                    👤 Đăng nhập
+                    <i class="fa-solid fa-user"></i> Đăng nhập
                 </a>
                 <a href="<%= ctx %>/Register" class="register-btn1">
                     Đăng ký

@@ -118,7 +118,9 @@
         <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📋 Lịch sử đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>">🛡 Tra cứu bảo hành</a>
+        <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>">🛡 Tra cứu bảo hành</a>   <span class="menu-divider"></span></span>
+        <a href="<%= ctx %>/warranty-history" class="menu-item <%= "/warranty-history".equals(currentPath) || "/WarrantyHistory".equals(currentPath) ? "active" : "" %>">🛡 Lịch sử yêu cầu bảo hành</a>
+
         <% } else if ("ADMIN".equals(roleName)) { %>
 
 
@@ -146,9 +148,9 @@
                 <span class="menu-dropdown-arrow">▾</span>
             </button>
             <div class="menu-dropdown-list">
-                <a href="#">Quản lý sản phẩm</a>
+                <a href="<%= ctx %>/admin/products">Quản lý sản phẩm</a>
                 <a href="<%= ctx %>/AdminBrands">Quản lý thương hiệu</a>
-                <a href="<%= ctx %>/admin/categories">Quản lý các loại sản phẩm</a>
+                <a href="<%= ctx %>/admin/categories">Quản lý các danh mục sản phẩm</a>
             </div>
         </div>
         <span class="menu-divider"></span>
@@ -156,7 +158,7 @@
         <a href="${pageContext.request.contextPath}/BatchServlet" class="menu-item <%= "/BatchServlet".equals(currentPath) ? "active" : "" %>">🏬 Lô hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">🛡 Bảo hành</a>
+        <a href="<%= ctx %>/ManageWarranty" class="menu-item <%= "/ManageWarranty".equals(currentPath) || "/manage-warranty".equals(currentPath) ? "active" : "" %>">🛡 Bảo hành</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">📊 Thống kê doanh thu</a>
@@ -169,7 +171,7 @@
         <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📦 Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item">🛡 Dịch vụ bảo hành</a>
+        <a href="<%= ctx %>/ManageWarranty" class="menu-item <%= "/ManageWarranty".equals(currentPath) || "/manage-warranty".equals(currentPath) ? "active" : "" %>">🛡 Dịch vụ bảo hành</a>
 
         <% } else if ("SHIPMENT".equals(roleName)) { %>
 

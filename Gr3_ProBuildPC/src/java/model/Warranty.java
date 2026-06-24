@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 
 public class Warranty {
     private int warrantyId;
-    private int orderDetailId;
     private int customerId;
     private int productId;
     private int statusId;
@@ -33,10 +32,9 @@ public class Warranty {
     public Warranty() {
     }
 
-    public Warranty(int warrantyId, int orderDetailId, int customerId, int productId,
+    public Warranty(int warrantyId, int customerId, int productId,
                     int statusId, Date requestDate, String request) {
         this.warrantyId = warrantyId;
-        this.orderDetailId = orderDetailId;
         this.customerId = customerId;
         this.productId = productId;
         this.statusId = statusId;
@@ -52,13 +50,7 @@ public class Warranty {
         this.warrantyId = warrantyId;
     }
 
-    public int getOrderDetailId() {
-        return orderDetailId;
-    }
 
-    public void setOrderDetailId(int orderDetailId) {
-        this.orderDetailId = orderDetailId;
-    }
 
     public int getUserId() {
         return customerId;

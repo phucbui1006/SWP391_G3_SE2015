@@ -81,82 +81,82 @@ VALUES
 
 -- =========================
 -- SẢN PHẨM
--- warranty_months lưu ở PRODUCTS
+-- warranty_months lưu ở BATCH_ITEMS
 -- =========================
 INSERT INTO PRODUCTS
-(product_id, category_id, brand_id, product_name, description, image_url, price, warranty_months, status)
+(product_id, category_id, brand_id, product_name, description, image_url, price, status)
 VALUES
 (1, 1, 1, 'AMD Ryzen 5 7600',
 'AMD Ryzen 5 7600 có 6 nhân 12 luồng, hỗ trợ socket AM5, RAM DDR5 và mang lại hiệu năng chơi game tốt trong tầm giá.',
-'images/products/amd-ryzen-5-7600.jpg', 5500000, 36, 'ACTIVE'),
+'images/products/amd-ryzen-5-7600.jpg', 5500000, 'ACTIVE'),
 
 (2, 1, 1, 'AMD Ryzen 7 7700X',
 'AMD Ryzen 7 7700X có 8 nhân 16 luồng, phù hợp cho chơi game, livestream và sáng tạo nội dung trên nền tảng AM5.',
-'images/products/amd-ryzen-7-7700x.jpg', 8500000, 36, 'ACTIVE'),
+'images/products/amd-ryzen-7-7700x.jpg', 8500000, 'ACTIVE'),
 
 (3, 1, 4, 'Intel Core i5-12400F',
 'Intel Core i5-12400F có 6 nhân 12 luồng, sử dụng socket LGA1700 và phù hợp cho học tập, làm việc văn phòng, chơi game.',
-'images/products/intel-core-i5-12400f.jpg', 4200000, 36, 'ACTIVE'),
+'images/products/intel-core-i5-12400f.jpg', 4200000, 'ACTIVE'),
 
 (4, 2, 2, 'ASUS PRIME B650M-A',
 'ASUS PRIME B650M-A là bo mạch chủ AM5 hỗ trợ RAM DDR5, hoạt động ổn định cho các bộ máy dùng Ryzen 7000.',
-'images/products/asus-prime-b650m-a.jpg', 3800000, 36, 'ACTIVE'),
+'images/products/asus-prime-b650m-a.jpg', 3800000, 'ACTIVE'),
 
 (5, 3, 5, 'Kingston Fury Beast 16GB DDR5',
 'Kingston Fury Beast 16GB DDR5 mang lại hiệu năng ổn định cho các nền tảng AMD và Intel đời mới.',
-'images/products/kingston-fury-beast-16gb-ddr5.jpg', 1500000, 60, 'ACTIVE'),
+'images/products/kingston-fury-beast-16gb-ddr5.jpg', 1500000, 'ACTIVE'),
 
 (6, 4, 6, 'MSI GeForce RTX 4060 Ventus 2X',
 'MSI GeForce RTX 4060 Ventus 2X hỗ trợ Ray Tracing, DLSS 3 và chơi game Full HD mượt mà.',
-'images/products/msi-rtx-4060-ventus-2x.jpg', 9500000, 36, 'ACTIVE'),
+'images/products/msi-rtx-4060-ventus-2x.jpg', 9500000, 'ACTIVE'),
 
 (7, 1, 1, 'AMD Ryzen 9 7900X',
 'AMD Ryzen 9 7900X có 12 nhân 24 luồng, phù hợp cho chơi game cao cấp, livestream và xử lý công việc chuyên nghiệp.',
-'images/products/amd-ryzen-9-7900x.jpg', 11900000, 36, 'ACTIVE'),
+'images/products/amd-ryzen-9-7900x.jpg', 11900000, 'ACTIVE'),
 
 (8, 1, 4, 'Intel Core i7-13700K',
 'Intel Core i7-13700K mang lại hiệu năng mạnh cho chơi game và các tác vụ làm việc nặng trên nền tảng LGA1700.',
-'images/products/intel-core-i7-13700k.jpg', 10500000, 36, 'ACTIVE'),
+'images/products/intel-core-i7-13700k.jpg', 10500000, 'ACTIVE'),
 
 (9, 1, 4, 'Intel Core i9-13900K',
 'Intel Core i9-13900K là bộ vi xử lý cao cấp dành cho đa nhiệm nặng, dựng hình và chơi game tần số quét cao.',
-'images/products/intel-core-i9-13900k.jpg', 14900000, 36, 'ACTIVE'),
+'images/products/intel-core-i9-13900k.jpg', 14900000, 'ACTIVE'),
 
 (10, 2, 2, 'ASUS ROG STRIX B650-A GAMING WIFI',
 'ASUS ROG STRIX B650-A GAMING WIFI hỗ trợ AMD AM5, RAM DDR5, card đồ họa PCIe 4.0 và kết nối WiFi.',
-'images/products/asus-rog-strix-b650a.jpg', 5900000, 36, 'ACTIVE'),
+'images/products/asus-rog-strix-b650a.jpg', 5900000, 'ACTIVE'),
 
 (11, 2, 2, 'ASUS TUF GAMING B760M-PLUS WIFI',
 'ASUS TUF GAMING B760M-PLUS WIFI hỗ trợ CPU Intel LGA1700, RAM DDR5 và các cấu hình chơi game ổn định.',
-'images/products/asus-tuf-b760m.jpg', 4700000, 36, 'ACTIVE'),
+'images/products/asus-tuf-b760m.jpg', 4700000, 'ACTIVE'),
 
 (12, 2, 3, 'Gigabyte B760M DS3H DDR5',
 'Gigabyte B760M DS3H DDR5 hỗ trợ CPU Intel thế hệ 12 và 13 cùng bộ nhớ DDR5.',
-'images/products/gigabyte-b760m-ds3h.jpg', 3200000, 36, 'ACTIVE'),
+'images/products/gigabyte-b760m-ds3h.jpg', 3200000, 'ACTIVE'),
 
 (13, 2, 3, 'Gigabyte B650 Gaming X AX',
 'Gigabyte B650 Gaming X AX hỗ trợ CPU AMD AM5, RAM DDR5 và nhiều tính năng mở rộng hiện đại.',
-'images/products/gigabyte-b650-gamingx.jpg', 5200000, 36, 'ACTIVE'),
+'images/products/gigabyte-b650-gamingx.jpg', 5200000, 'ACTIVE'),
 
 (14, 3, 5, 'Kingston Fury Beast 32GB DDR5',
 'Kingston Fury Beast 32GB DDR5 phù hợp cho chơi game, đa nhiệm và công việc sáng tạo nội dung.',
-'images/products/kingston-fury-32gb.jpg', 2800000, 60, 'ACTIVE'),
+'images/products/kingston-fury-32gb.jpg', 2800000, 'ACTIVE'),
 
 (15, 3, 5, 'Kingston Fury Beast 64GB DDR5',
 'Kingston Fury Beast 64GB DDR5 dành cho máy trạm, dựng phim, chỉnh ảnh và đa nhiệm nặng.',
-'images/products/kingston-fury-64gb.jpg', 5900000, 60, 'ACTIVE'),
+'images/products/kingston-fury-64gb.jpg', 5900000, 'ACTIVE'),
 
 (16, 4, 6, 'MSI RTX 4070 Ventus 3X',
 'MSI RTX 4070 Ventus 3X hỗ trợ DLSS 3 và Ray Tracing, phù hợp cho chơi game 2K hiệu năng cao.',
-'images/products/msi-rtx4070.jpg', 16500000, 36, 'ACTIVE'),
+'images/products/msi-rtx4070.jpg', 16500000, 'ACTIVE'),
 
 (17, 4, 6, 'MSI RTX 4070 Ti Gaming X Trio',
 'MSI RTX 4070 Ti Gaming X Trio mang lại hiệu năng mạnh cho chơi game 2K và 4K.',
-'images/products/msi-rtx4070ti.jpg', 21900000, 36, 'ACTIVE'),
+'images/products/msi-rtx4070ti.jpg', 21900000, 'ACTIVE'),
 
 (18, 4, 6, 'MSI RTX 4080 Super Gaming X Trio',
 'MSI RTX 4080 Super Gaming X Trio là card đồ họa cao cấp dành cho chơi game 4K và sáng tạo nội dung.',
-'images/products/msi-rtx4080super.jpg', 32900000, 36, 'ACTIVE');
+'images/products/msi-rtx4080super.jpg', 32900000, 'ACTIVE');
 
 -- =========================
 -- THÔNG SỐ SẢN PHẨM
@@ -253,7 +253,9 @@ VALUES
 
 -- =========================
 -- LÔ NHẬP KHO
--- BATCH_ITEMS không lưu warranty_months
+-- import_quantity: số lượng nhập ban đầu
+-- quantity: số lượng tồn kho hiện tại
+-- warranty_months: thời gian bảo hành theo lô
 -- =========================
 INSERT INTO BATCH (batch_id, batch_name, `date`)
 VALUES
@@ -265,31 +267,31 @@ VALUES
 (6, 'Lô card đồ họa MSI 2026', '2026-02-08');
 
 INSERT INTO BATCH_ITEMS
-(batch_item_id, batch_id, product_id, quantity, price)
+(batch_item_id, batch_id, product_id, import_quantity, quantity, price, warranty_months)
 VALUES
-(1, 1, 1, 20, 4800000),
-(2, 1, 2, 15, 7300000),
-(3, 1, 7, 10, 10200000),
+(1, 1, 1, 20, 20, 4800000, 36),
+(2, 1, 2, 15, 15, 7300000, 36),
+(3, 1, 7, 10, 10, 10200000, 36),
 
-(4, 2, 3, 25, 3600000),
-(5, 2, 8, 12, 9200000),
-(6, 2, 9, 8, 13200000),
+(4, 2, 3, 25, 25, 3600000, 36),
+(5, 2, 8, 12, 12, 9200000, 36),
+(6, 2, 9, 8, 8, 13200000, 36),
 
-(7, 3, 4, 10, 3200000),
-(8, 3, 10, 8, 5100000),
-(9, 3, 11, 10, 4000000),
+(7, 3, 4, 10, 10, 3200000, 36),
+(8, 3, 10, 8, 8, 5100000, 36),
+(9, 3, 11, 10, 10, 4000000, 36),
 
-(10, 4, 12, 15, 2700000),
-(11, 4, 13, 10, 4500000),
+(10, 4, 12, 15, 15, 2700000, 36),
+(11, 4, 13, 10, 10, 4500000, 36),
 
-(12, 5, 5, 30, 1200000),
-(13, 5, 14, 20, 2350000),
-(14, 5, 15, 10, 5100000),
+(12, 5, 5, 30, 30, 1200000, 60),
+(13, 5, 14, 20, 20, 2350000, 60),
+(14, 5, 15, 10, 10, 5100000, 60),
 
-(16, 6, 6, 8, 8300000),
-(17, 6, 16, 6, 14500000),
-(18, 6, 17, 4, 19500000),
-(19, 6, 18, 3, 29800000);
+(16, 6, 6, 8, 8, 8300000, 36),
+(17, 6, 16, 6, 6, 14500000, 36),
+(18, 6, 17, 4, 4, 19500000, 36),
+(19, 6, 18, 3, 3, 29800000, 36);
 
 -- =========================
 -- GIỎ HÀNG

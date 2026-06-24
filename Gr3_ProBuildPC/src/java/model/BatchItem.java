@@ -6,6 +6,7 @@ public class BatchItem {
     private int batchItemId;
     private int batchId;
     private int productId;
+    private int importQuantity;
     private int quantity;
     private BigDecimal price;
     private int warrantyMonths;
@@ -13,10 +14,12 @@ public class BatchItem {
     public BatchItem() {
     }
 
-    public BatchItem(int batchItemId, int batchId, int productId, int quantity, BigDecimal price, int warrantyMonths) {
+    public BatchItem(int batchItemId, int batchId, int productId,
+                     int importQuantity, int quantity, BigDecimal price, int warrantyMonths) {
         this.batchItemId = batchItemId;
         this.batchId = batchId;
         this.productId = productId;
+        this.importQuantity = importQuantity;
         this.quantity = quantity;
         this.price = price;
         this.warrantyMonths = warrantyMonths;
@@ -44,6 +47,14 @@ public class BatchItem {
 
     public void setProductId(int productId) {
         this.productId = productId;
+    }
+
+    public int getImportQuantity() {
+        return importQuantity;
+    }
+
+    public void setImportQuantity(int importQuantity) {
+        this.importQuantity = importQuantity;
     }
 
     public int getQuantity() {

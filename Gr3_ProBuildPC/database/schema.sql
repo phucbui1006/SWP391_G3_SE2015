@@ -96,7 +96,6 @@ CREATE TABLE PRODUCTS (
     description     TEXT,
     image_url       VARCHAR(255),
     price           DECIMAL(18, 2) NOT NULL,
-    warranty_months INT NOT NULL DEFAULT 0,
     status          ENUM('ACTIVE', 'INACTIVE') DEFAULT 'ACTIVE',
 
     CONSTRAINT FK_PRODUCTS_CATEGORY
@@ -148,13 +147,18 @@ CREATE TABLE BATCH (
 
 -- =========================
 -- CHI TIẾT LÔ NHẬP
+-- import_quantity: số lượng nhập ban đầu (không thay đổi)
+-- quantity: số lượng tồn kho (trừ khi bán, cộng khi hủy)
+-- warranty_months: thời gian bảo hành theo lô
 -- =========================
 CREATE TABLE BATCH_ITEMS (
-    batch_item_id INT AUTO_INCREMENT PRIMARY KEY,
-    batch_id      INT NOT NULL,
-    product_id    INT NOT NULL,
-    quantity      INT NOT NULL,
-    price         DECIMAL(18, 2) NOT NULL,
+    batch_item_id   INT AUTO_INCREMENT PRIMARY KEY,
+    batch_id        INT NOT NULL,
+    product_id      INT NOT NULL,
+    import_quantity INT NOT NULL,
+    quantity        INT NOT NULL,
+    price           DECIMAL(18, 2) NOT NULL,
+    warranty_months INT NOT NULL DEFAULT 0,
 
     CONSTRAINT FK_BATCH_ITEMS_BATCH
         FOREIGN KEY (batch_id) REFERENCES BATCH(batch_id),

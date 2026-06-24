@@ -235,14 +235,26 @@
                     </div>
 
                     <div class="batch-form-group">
-                        <label>Số lượng</label>
+                        <label>Số lượng nhập</label>
+                        <input 
+                            type="number"
+                            name="importQuantity"
+                            min="1"
+                            required
+                            value="<%= editItem != null ? editItem.getImportQuantity() : "" %>">
+                    </div>
+
+                    <% if (editItem != null) { %>
+                    <div class="batch-form-group">
+                        <label>Số lượng tồn</label>
                         <input 
                             type="number"
                             name="quantity"
-                            min="1"
+                            min="0"
                             required
-                            value="<%= editItem != null ? editItem.getQuantity() : "" %>">
+                            value="<%= editItem.getQuantity() %>">
                     </div>
+                    <% } %>
 
                     <div class="batch-form-group">
                         <label>Giá nhập</label>
@@ -256,7 +268,7 @@
                     </div>
 
                     <div class="batch-form-group">
-                        <label>Bảo hành</label>
+                        <label>Bảo hành (tháng)</label>
                         <input 
                             type="number"
                             name="warrantyMonths"
@@ -299,7 +311,8 @@
                                 <th>Mã chi tiết</th>
                                 <th>Mã lô</th>
                                 <th>Mã sản phẩm</th>
-                                <th>Số lượng</th>
+                                <th>SL nhập</th>
+                                <th>SL tồn</th>
                                 <th>Giá nhập</th>
                                 <th>Bảo hành</th>
                                 <th>Thao tác</th>
@@ -309,7 +322,7 @@
                         <tbody>
                             <% if (batchItems.isEmpty()) { %>
                             <tr>
-                                <td colspan="7" class="batch-empty-row">
+                                <td colspan="8" class="batch-empty-row">
                                     Bấm nút <b>Chi tiết</b> ở một lô hàng để xem sản phẩm trong lô.
                                 </td>
                             </tr>
@@ -319,6 +332,7 @@
                                 <td>#<%= item.getBatchItemId() %></td>
                                 <td>#<%= item.getBatchId() %></td>
                                 <td>#<%= item.getProductId() %></td>
+                                <td><%= item.getImportQuantity() %></td>
                                 <td><%= item.getQuantity() %></td>
                                 <td><%= item.getPrice() %></td>
                                 <td><%= item.getWarrantyMonths() %> tháng</td>

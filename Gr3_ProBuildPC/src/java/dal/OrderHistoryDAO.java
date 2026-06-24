@@ -468,7 +468,14 @@ public class OrderHistoryDAO extends DBContext {
                             od.product_id,
                             od.quantity,
                             od.unit_price,
-                            COALESCE(p.warranty_months, 0) AS warranty_months,
+                            COALESCE((
+                                SELECT bi_w.warranty_months
+                                FROM batch_items bi_w
+                                JOIN batch b_w ON b_w.batch_id = bi_w.batch_id
+                                WHERE bi_w.product_id = p.product_id
+                                ORDER BY b_w.date ASC, bi_w.batch_item_id ASC
+                                LIMIT 1
+                            ), 0) AS warranty_months,
                             od.subtotal,
                             p.product_name,
                             p.image_url,

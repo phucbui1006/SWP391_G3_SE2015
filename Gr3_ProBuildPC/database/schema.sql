@@ -318,6 +318,7 @@ CREATE TABLE WARRANTIES (
     product_id      INT NOT NULL,
     status_id       INT,
     request_date    DATETIME NOT NULL,
+    response_date   DATETIME NULL,
     request         TEXT,
 
     CONSTRAINT FK_WARRANTIES_ORDER_DETAILS

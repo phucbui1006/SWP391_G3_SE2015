@@ -13,10 +13,12 @@ public class CategoryDAO extends DBContext {
         List<Category> list = new ArrayList<>();
 
         String sql = """
-            SELECT category_id, category_name, status
-            FROM categories
-            WHERE status = 'ACTIVE'
-            ORDER BY category_name ASC
+            SELECT c.category_id, c.category_name, c.status, COUNT(p.product_id) AS product_count
+            FROM categories c
+            LEFT JOIN products p ON c.category_id = p.category_id AND p.status = 'ACTIVE'
+            WHERE c.status = 'ACTIVE'
+            GROUP BY c.category_id, c.category_name, c.status
+            ORDER BY c.category_name ASC
         """;
 
         try {
@@ -28,10 +30,12 @@ public class CategoryDAO extends DBContext {
                 c.setCategoryId(rs.getInt("category_id"));
                 c.setCategoryName(rs.getString("category_name"));
                 c.setStatus(rs.getString("status"));
+                c.setProductCount(rs.getInt("product_count"));
                 list.add(c);
             }
 
         } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return list;

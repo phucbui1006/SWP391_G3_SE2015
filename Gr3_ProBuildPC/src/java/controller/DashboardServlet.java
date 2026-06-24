@@ -8,12 +8,18 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import model.AccountSummary;
+import model.AdminDashboardView;
+import model.DashboardProduct;
+import model.DashboardSummary;
 import model.OrderHistoryItem;
 import model.OrderStatus;
 import model.User;
+import util.DashboardViewHelper;
 
 @WebServlet(name = "DashboardServlet", urlPatterns = {"/Dashboard"})
 public class DashboardServlet extends HttpServlet {
@@ -55,14 +61,163 @@ public class DashboardServlet extends HttpServlet {
     private void prepareAdminDashboard(HttpServletRequest request) {
         LocalDate selectedDate = parseDate(request.getParameter("date"), LocalDate.now());
         AdminDashboardDAO dashboardDAO = new AdminDashboardDAO();
+        DashboardSummary summary = dashboardDAO.getSummary(selectedDate);
+        List<DashboardProduct> bestSellingProducts = dashboardDAO.getBestSellingProducts(selectedDate, 5);
+        List<DashboardProduct> lowStockProducts = dashboardDAO.getLowStockProducts(5);
+        List<OrderHistoryItem> latestOrders = dashboardDAO.getLatestOrders(selectedDate, 5);
+        Map<String, Integer> warrantyStatusCounts = dashboardDAO.getWarrantyStatusCounts(selectedDate);
+        AccountSummary accountSummary = dashboardDAO.getAccountSummary();
+        int bestSellingTotal = dashboardDAO.countBestSellingProducts(selectedDate);
+        int lowStockTotal = dashboardDAO.countLowStockProducts();
+        boolean showWarrantyAll = "1".equals(request.getParameter("showWarrantyAll"));
 
-        request.setAttribute("adminSelectedDate", selectedDate);
-        request.setAttribute("adminSummary", dashboardDAO.getSummary(selectedDate));
-        request.setAttribute("adminBestSellingProducts", dashboardDAO.getBestSellingProducts(selectedDate, 5));
-        request.setAttribute("adminLowStockProducts", dashboardDAO.getLowStockProducts(5));
-        request.setAttribute("adminLatestOrders", dashboardDAO.getLatestOrders(selectedDate, 5));
-        request.setAttribute("adminWarrantyStatusCounts", dashboardDAO.getWarrantyStatusCounts(selectedDate));
-        request.setAttribute("adminAccountSummary", dashboardDAO.getAccountSummary());
+        request.setAttribute("adminDashboard", buildAdminDashboardView(
+                request,
+                selectedDate,
+                summary,
+                bestSellingProducts,
+                bestSellingTotal,
+                lowStockProducts,
+                lowStockTotal,
+                latestOrders,
+                warrantyStatusCounts,
+                accountSummary,
+                showWarrantyAll
+        ));
+    }
+
+    private AdminDashboardView buildAdminDashboardView(HttpServletRequest request, LocalDate selectedDate,
+            DashboardSummary summary, List<DashboardProduct> bestSellingProducts, int bestSellingTotal,
+            List<DashboardProduct> lowStockProducts, int lowStockTotal, List<OrderHistoryItem> latestOrders,
+            Map<String, Integer> warrantyStatusCounts, AccountSummary accountSummary, boolean showWarrantyAll) {
+        AdminDashboardView view = new AdminDashboardView();
+        String ctx = request.getContextPath();
+        DashboardSummary safeSummary = summary == null ? new DashboardSummary() : summary;
+        AccountSummary safeAccountSummary = accountSummary == null ? new AccountSummary() : accountSummary;
+
+        view.setSelectedDate(selectedDate);
+        view.setFormAction(ctx + "/Dashboard");
+        view.setWarrantyAllUrl(ctx + "/Dashboard?date=" + selectedDate + "&showWarrantyAll=1");
+        view.setStatCards(buildAdminStatCards(safeSummary));
+        view.setBestSellingProducts(buildProductRows(bestSellingProducts));
+        view.setLowStockProducts(buildProductRows(lowStockProducts));
+        view.setLatestOrders(buildOrderRows(latestOrders));
+        view.setWarrantyStatusCounts(buildWarrantyRows(warrantyStatusCounts, showWarrantyAll));
+        view.setAccountSummaries(buildAccountRows(safeAccountSummary));
+
+        int bestSellingVisible = view.getBestSellingProducts().size();
+        if (bestSellingTotal > bestSellingVisible) {
+            view.setBestSellingFooterMessage("Còn " + (bestSellingTotal - bestSellingVisible)
+                    + " sản phẩm bán chạy khác trong ngày.");
+            view.setBestSellingFooterUrl(ctx + "/order-history");
+        }
+
+        int lowStockVisible = view.getLowStockProducts().size();
+        if (lowStockTotal > lowStockVisible) {
+            view.setLowStockFooterMessage("Còn " + (lowStockTotal - lowStockVisible)
+                    + " sản phẩm sắp hết hàng khác.");
+            view.setLowStockFooterUrl(ctx + "/admin/categories");
+        }
+
+        int latestOrdersVisible = view.getLatestOrders().size();
+        if (safeSummary.getTotalOrders() > latestOrdersVisible) {
+            view.setLatestOrdersFooterMessage("Còn " + (safeSummary.getTotalOrders() - latestOrdersVisible)
+                    + " đơn hàng khác trong ngày.");
+            view.setLatestOrdersFooterUrl(ctx + "/order-history");
+        }
+
+        int warrantyStatusTotal = warrantyStatusCounts == null ? 0 : warrantyStatusCounts.size();
+        if (!showWarrantyAll && warrantyStatusTotal > 5) {
+            view.setShowWarrantyFooter(true);
+            view.setWarrantyFooterMessage("Còn " + (warrantyStatusTotal - 5) + " trạng thái bảo hành khác.");
+        }
+
+        return view;
+    }
+
+    private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary) {
+        List<AdminDashboardView.StatCard> cards = new ArrayList<>();
+        cards.add(new AdminDashboardView.StatCard("red", "💰", "Tổng doanh thu",
+                DashboardViewHelper.formatCurrency(summary.getTotalRevenue())));
+        cards.add(new AdminDashboardView.StatCard("dark", "📦", "Tổng đơn hàng",
+                String.valueOf(summary.getTotalOrders())));
+        cards.add(new AdminDashboardView.StatCard("blue", "🖥️", "Tất cả sản phẩm",
+                String.valueOf(summary.getActiveProducts())));
+        cards.add(new AdminDashboardView.StatCard("green", "🏷️", "Tất cả thương hiệu",
+                String.valueOf(summary.getTotalBrands())));
+        cards.add(new AdminDashboardView.StatCard("orange", "🛠️", "Yêu cầu bảo hành",
+                String.valueOf(summary.getWarrantyRequests())));
+        cards.add(new AdminDashboardView.StatCard("purple", "🚚", "Lô hàng đã nhập",
+                String.valueOf(summary.getImportedBatches())));
+        return cards;
+    }
+
+    private List<AdminDashboardView.ProductRow> buildProductRows(List<DashboardProduct> products) {
+        List<AdminDashboardView.ProductRow> rows = new ArrayList<>();
+        if (products == null) {
+            return rows;
+        }
+
+        for (DashboardProduct product : products) {
+            rows.add(new AdminDashboardView.ProductRow(
+                    "SP" + product.getProductId(),
+                    DashboardViewHelper.h(product.getProductName()),
+                    product.getSoldQuantity(),
+                    product.getStockQuantity(),
+                    DashboardViewHelper.h(product.getStatus()),
+                    DashboardViewHelper.productStatusClass(product.getStatus())
+            ));
+        }
+        return rows;
+    }
+
+    private List<AdminDashboardView.OrderRow> buildOrderRows(List<OrderHistoryItem> orders) {
+        List<AdminDashboardView.OrderRow> rows = new ArrayList<>();
+        if (orders == null) {
+            return rows;
+        }
+
+        for (OrderHistoryItem order : orders) {
+            String displayStatus = DashboardViewHelper.defaultText(order.getDisplayStatus(), "Chưa cập nhật");
+            rows.add(new AdminDashboardView.OrderRow(
+                    "PB" + order.getOrderId(),
+                    DashboardViewHelper.h(order.getCustomerName()),
+                    DashboardViewHelper.formatCurrency(order.getTotalAmount()),
+                    DashboardViewHelper.h(displayStatus),
+                    DashboardViewHelper.statusClass(displayStatus),
+                    DashboardViewHelper.h(DashboardViewHelper.formatDateTime(order.getOrderDate()))
+            ));
+        }
+        return rows;
+    }
+
+    private List<AdminDashboardView.CountRow> buildWarrantyRows(Map<String, Integer> counts, boolean showAll) {
+        List<AdminDashboardView.CountRow> rows = new ArrayList<>();
+        if (counts == null) {
+            return rows;
+        }
+
+        int index = 0;
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+            if (showAll || index < 5) {
+                rows.add(new AdminDashboardView.CountRow(
+                        DashboardViewHelper.h(entry.getKey()),
+                        entry.getValue() == null ? 0 : entry.getValue()
+                ));
+            }
+            index++;
+        }
+        return rows;
+    }
+
+    private List<AdminDashboardView.CountRow> buildAccountRows(AccountSummary summary) {
+        List<AdminDashboardView.CountRow> rows = new ArrayList<>();
+        rows.add(new AdminDashboardView.CountRow("Khách hàng", summary.getCustomers()));
+        rows.add(new AdminDashboardView.CountRow("Nhân viên", summary.getEmployees()));
+        rows.add(new AdminDashboardView.CountRow("Nhân viên giao hàng", summary.getTransports()));
+        rows.add(new AdminDashboardView.CountRow("Bị khóa", summary.getLocked()));
+        rows.add(new AdminDashboardView.CountRow("Đang hoạt động", summary.getActive()));
+        return rows;
     }
 
     private void prepareShipmentDashboard(HttpServletRequest request) {
@@ -71,15 +226,21 @@ public class DashboardServlet extends HttpServlet {
         int page = parsePositiveInt(request.getParameter("page"), 1);
 
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
-        List<OrderStatus> statusOptions = orderHistoryDAO.getOrderStatuses();
+        List<OrderStatus> allStatusOptions = orderHistoryDAO.getOrderStatuses();
+        List<OrderStatus> statusOptions = filterShipmentStatuses(allStatusOptions);
+        List<Integer> removedShipmentStatusIds = getPendingConfirmationStatusIds(allStatusOptions);
+        if (isRemovedShipmentStatus(selectedStatusId, statusOptions)) {
+            selectedStatusId = null;
+        }
 
-        int totalOrders = orderHistoryDAO.countOrders(null, null, selectedStatusId, false, false, todayOnly);
+        int totalOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
+                null, null, selectedStatusId, false, false, todayOnly, removedShipmentStatusIds);
         int totalPages = Math.max(1, (int) Math.ceil(totalOrders / (double) SHIPMENT_PAGE_SIZE));
         if (page > totalPages) {
             page = totalPages;
         }
 
-        List<OrderHistoryItem> shipmentOrders = orderHistoryDAO.getOrders(
+        List<OrderHistoryItem> shipmentOrders = orderHistoryDAO.getOrdersExcludingStatusIds(
                 null,
                 null,
                 selectedStatusId,
@@ -87,16 +248,20 @@ public class DashboardServlet extends HttpServlet {
                 SHIPMENT_PAGE_SIZE,
                 false,
                 false,
-                todayOnly
+                todayOnly,
+                removedShipmentStatusIds
         );
 
         Map<Integer, Integer> shipmentStatusCounts = new LinkedHashMap<>();
-        int allActiveOrders = orderHistoryDAO.countOrders(null, null, null, false, false);
-        int todayOrders = orderHistoryDAO.countOrders(null, null, null, false, false, true);
+        int allActiveOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
+                null, null, null, false, false, false, removedShipmentStatusIds);
+        int todayOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
+                null, null, null, false, false, true, removedShipmentStatusIds);
         for (OrderStatus status : statusOptions) {
             shipmentStatusCounts.put(
                     status.getStatusId(),
-                    orderHistoryDAO.countOrders(null, null, status.getStatusId(), false, false)
+                    orderHistoryDAO.countOrdersExcludingStatusIds(
+                            null, null, status.getStatusId(), false, false, false, removedShipmentStatusIds)
             );
         }
 
@@ -110,6 +275,57 @@ public class DashboardServlet extends HttpServlet {
         request.setAttribute("shipmentPage", page);
         request.setAttribute("shipmentTotalPages", totalPages);
         request.setAttribute("shipmentTotalOrders", totalOrders);
+    }
+
+    private List<OrderStatus> filterShipmentStatuses(List<OrderStatus> statuses) {
+        List<OrderStatus> filteredStatuses = new ArrayList<>();
+        if (statuses == null) {
+            return filteredStatuses;
+        }
+
+        for (OrderStatus status : statuses) {
+            if (!isPendingConfirmationStatus(status)) {
+                filteredStatuses.add(status);
+            }
+        }
+        return filteredStatuses;
+    }
+
+    private List<Integer> getPendingConfirmationStatusIds(List<OrderStatus> statuses) {
+        List<Integer> statusIds = new ArrayList<>();
+        if (statuses == null) {
+            return statusIds;
+        }
+
+        for (OrderStatus status : statuses) {
+            if (isPendingConfirmationStatus(status)) {
+                statusIds.add(status.getStatusId());
+            }
+        }
+        return statusIds;
+    }
+
+    private boolean isRemovedShipmentStatus(Integer selectedStatusId, List<OrderStatus> statusOptions) {
+        if (selectedStatusId == null) {
+            return false;
+        }
+
+        for (OrderStatus status : statusOptions) {
+            if (status.getStatusId() == selectedStatusId) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isPendingConfirmationStatus(OrderStatus status) {
+        if (status == null || status.getStatusName() == null) {
+            return false;
+        }
+
+        String statusName = status.getStatusName().toLowerCase();
+        return (statusName.contains("chờ") || statusName.contains("cho "))
+                && (statusName.contains("xác nhận") || statusName.contains("xac nhan"));
     }
 
     private boolean hasRole(User user, String expectedRole) {

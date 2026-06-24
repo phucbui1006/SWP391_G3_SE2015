@@ -62,8 +62,13 @@
                 placeholder = "Tìm kiếm linh kiện...";
                 searchAction = ctx + "/home";
             }
-        } else if ("EMPLOYEE".equals(roleName)) {
-            placeholder = "Tìm kiếm yêu cầu bảo hành...";
+        } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) {
+            if ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) {
+                placeholder = "Tìm kiếm mã đơn hàng...";
+                searchAction = ctx + "/order-history";
+            } else {
+                placeholder = "Tìm kiếm yêu cầu bảo hành...";
+            }
         } else if ("SHIPMENT".equals(roleName)) {
             placeholder = "Tìm kiếm mã đơn hàng...";
             searchAction = ctx + "/order-history";
@@ -125,7 +130,16 @@
         <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📦 Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/AccountManagement" class="menu-item">👥 Tài khoản người dùng</a>
+        <div class="menu-dropdown">
+            <button class="menu-item menu-dropdown-toggle" type="button" aria-expanded="false">
+                👥 Quản lý tài khoản
+                <span class="menu-dropdown-arrow">▾</span>
+            </button>
+            <div class="menu-dropdown-list">
+                <a href="<%= ctx %>/AccountManagement?type=user">Tài khoản khách hàng</a>
+                <a href="<%= ctx %>/AccountManagement?type=staff">Tài khoản nhân viên</a>
+            </div>
+        </div>
         <span class="menu-divider"></span>
 
         <div class="menu-dropdown">
@@ -148,10 +162,13 @@
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">📊 Thống kê doanh thu</a>
-        <% } else if ("EMPLOYEE".equals(roleName)) { %>
+        <% } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) { %>
 
 
         <a href="<%= ctx %>/Dashboard" class="menu-item <%= "/Dashboard".equals(currentPath) ? "active" : "" %>">🛡 Dashboard</a>
+        <span class="menu-divider"></span>
+        
+        <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📦 Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
         <a href="<%= ctx %>/ManageWarranty" class="menu-item <%= "/ManageWarranty".equals(currentPath) || "/manage-warranty".equals(currentPath) ? "active" : "" %>">🛡 Dịch vụ bảo hành</a>
@@ -212,7 +229,7 @@
                             Tài xế vận chuyển
                             <% } else if ("ADMIN".equals(roleName)) { %>
                             Admin
-                            <% } else if ("EMPLOYEE".equals(roleName)) { %>
+                            <% } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) { %>
                             Nhân viên
                             <% } else if ("CUSTOMER".equals(roleName)) { %>
                             Khách hàng

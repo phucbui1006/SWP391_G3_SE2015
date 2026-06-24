@@ -57,6 +57,38 @@ public class OrderHistoryDAO extends DBContext {
         return 0;
     }
 
+    public int countOrdersExcludingStatusIds(Integer customerUserId, String trackingKeyword, Integer statusId,
+            boolean completedOnly, boolean incompleteOnly, boolean todayOnly, List<Integer> excludedStatusIds) {
+        StringBuilder sql = new StringBuilder("""
+                     SELECT COUNT(*) AS total
+                     FROM orders o
+                     INNER JOIN customers c ON c.customer_id = o.customer_id
+                     INNER JOIN users u ON u.user_id = c.user_id
+                     LEFT JOIN orders_status os ON os.status_id = o.status_id
+                     LEFT JOIN shipments sh ON sh.order_id = o.order_id
+                     WHERE 1 = 1
+                     """);
+
+        List<Object> params = new ArrayList<>();
+        appendFilters(sql, params, customerUserId, trackingKeyword, statusId, completedOnly, incompleteOnly);
+        appendExcludedStatusFilter(sql, params, excludedStatusIds);
+        appendTodayFilter(sql, todayOnly);
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            setParameters(ps, params);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
     public List<OrderHistoryItem> getOrders(Integer customerUserId, String trackingKeyword, Integer statusId, int page, int pageSize) {
         return getOrders(customerUserId, trackingKeyword, statusId, page, pageSize, false);
     }
@@ -75,6 +107,36 @@ public class OrderHistoryDAO extends DBContext {
 
         List<Object> params = new ArrayList<>();
         appendFilters(sql, params, customerUserId, trackingKeyword, statusId, completedOnly, incompleteOnly);
+        appendTodayFilter(sql, todayOnly);
+        sql.append(" ORDER BY o.order_date DESC, o.order_id DESC LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add(Math.max(0, (page - 1) * pageSize));
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            setParameters(ps, params);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    orders.add(mapOrder(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        attachDetails(orders);
+        return orders;
+    }
+
+    public List<OrderHistoryItem> getOrdersExcludingStatusIds(Integer customerUserId, String trackingKeyword, Integer statusId,
+            int page, int pageSize, boolean completedOnly, boolean incompleteOnly, boolean todayOnly,
+            List<Integer> excludedStatusIds) {
+        List<OrderHistoryItem> orders = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(baseOrderSelect());
+
+        List<Object> params = new ArrayList<>();
+        appendFilters(sql, params, customerUserId, trackingKeyword, statusId, completedOnly, incompleteOnly);
+        appendExcludedStatusFilter(sql, params, excludedStatusIds);
         appendTodayFilter(sql, todayOnly);
         sql.append(" ORDER BY o.order_date DESC, o.order_id DESC LIMIT ? OFFSET ?");
         params.add(pageSize);
@@ -159,7 +221,7 @@ public class OrderHistoryDAO extends DBContext {
         return statuses;
     }
 
-    public boolean updateShipmentStatus(int orderId, int statusId, String shipmentNote) {
+    public boolean updateShipmentStatus(int orderId, int statusId, String shipmentNote, boolean checkLock) {
         if (orderId <= 0 || statusId <= 0) {
             return false;
         }
@@ -169,7 +231,7 @@ public class OrderHistoryDAO extends DBContext {
 
             String statusName = findOrderStatusName(statusId);
             String currentStatusName = findCurrentOrderStatusName(orderId);
-            if (statusName == null || currentStatusName == null || isLockedShipmentStatus(currentStatusName)) {
+            if (statusName == null || currentStatusName == null || (checkLock && isLockedShipmentStatus(currentStatusName))) {
                 connection.rollback();
                 return false;
             }
@@ -182,6 +244,13 @@ public class OrderHistoryDAO extends DBContext {
             }
 
             updateOrderStatus(orderId, statusId);
+            
+            // If the status is changing to 'Đã hủy' (id = 6), release the stock
+            if (statusId == 6 && !currentStatusName.trim().equalsIgnoreCase("Đã hủy")) {
+                OrderDAO orderDAO = new OrderDAO();
+                orderDAO.releaseStock(orderId);
+            }
+            
             connection.commit();
             return true;
         } catch (SQLException e) {
@@ -207,11 +276,9 @@ public class OrderHistoryDAO extends DBContext {
         }
 
         try {
-            Integer waitingStatusId = findOrderStatusId("Chờ xác nhận");
-            Integer cancelledStatusId = findOrderStatusId("Đã hủy");
-            if (waitingStatusId == null || cancelledStatusId == null) {
-                return false;
-            }
+            Integer waitingStatusId = 1; // Chờ xác nhận
+            Integer confirmedStatusId = 2; // Đã xác nhận
+            Integer cancelledStatusId = 6; // Đã hủy
 
             String sql = """
                          UPDATE orders
@@ -224,7 +291,7 @@ public class OrderHistoryDAO extends DBContext {
                              END
                          WHERE order_id = ?
                            AND customer_id = ?
-                           AND status_id = ?
+                           AND status_id IN (?, ?)
                          """;
 
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -232,10 +299,19 @@ public class OrderHistoryDAO extends DBContext {
                 ps.setInt(2, orderId);
                 ps.setInt(3, customerId);
                 ps.setInt(4, waitingStatusId);
+                ps.setInt(5, confirmedStatusId);
                 boolean success = ps.executeUpdate() > 0;
                 if (success) {
                     OrderDAO orderDAO = new OrderDAO();
                     orderDAO.releaseStock(orderId);
+                    
+                    // Also update shipment status if it exists
+                    try (PreparedStatement psShipment = connection.prepareStatement(
+                            "UPDATE shipments SET shipment_status = ? WHERE order_id = ?")) {
+                        psShipment.setString(1, "Đã hủy");
+                        psShipment.setInt(2, orderId);
+                        psShipment.executeUpdate();
+                    }
                 }
                 return success;
             }
@@ -349,6 +425,22 @@ public class OrderHistoryDAO extends DBContext {
         params.add("Da giao hang");
     }
 
+    private void appendExcludedStatusFilter(StringBuilder sql, List<Object> params, List<Integer> excludedStatusIds) {
+        if (excludedStatusIds == null || excludedStatusIds.isEmpty()) {
+            return;
+        }
+
+        sql.append(" AND (o.status_id IS NULL OR o.status_id NOT IN (");
+        for (int i = 0; i < excludedStatusIds.size(); i++) {
+            if (i > 0) {
+                sql.append(", ");
+            }
+            sql.append("?");
+            params.add(excludedStatusIds.get(i));
+        }
+        sql.append("))");
+    }
+
     private void appendTodayFilter(StringBuilder sql, boolean todayOnly) {
         if (todayOnly) {
             sql.append(" AND DATE(o.order_date) = CURDATE()");
@@ -376,7 +468,14 @@ public class OrderHistoryDAO extends DBContext {
                             od.product_id,
                             od.quantity,
                             od.unit_price,
-                            od.warranty_months,
+                            COALESCE((
+                                SELECT bi_w.warranty_months
+                                FROM batch_items bi_w
+                                JOIN batch b_w ON b_w.batch_id = bi_w.batch_id
+                                WHERE bi_w.product_id = p.product_id
+                                ORDER BY b_w.date ASC, bi_w.batch_item_id ASC
+                                LIMIT 1
+                            ), 0) AS warranty_months,
                             od.subtotal,
                             p.product_name,
                             p.image_url,
@@ -485,7 +584,7 @@ public class OrderHistoryDAO extends DBContext {
         return null;
     }
 
-    private String findCurrentOrderStatusName(int orderId) throws SQLException {
+    public String findCurrentOrderStatusName(int orderId) {
         String sql = """
                      SELECT os.status_name
                      FROM orders o
@@ -501,6 +600,8 @@ public class OrderHistoryDAO extends DBContext {
                     return rs.getString("status_name");
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return null;
@@ -515,7 +616,9 @@ public class OrderHistoryDAO extends DBContext {
         return normalizedStatus.contains("hủy")
                 || normalizedStatus.contains("huy")
                 || normalizedStatus.contains("đã giao")
-                || normalizedStatus.contains("da giao");
+                || normalizedStatus.contains("da giao")
+                || normalizedStatus.contains("thất bại")
+                || normalizedStatus.contains("that bai");
     }
 
     private Integer findShipmentId(int orderId) throws SQLException {

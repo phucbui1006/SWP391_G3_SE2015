@@ -154,7 +154,7 @@ public class DashboardServlet extends HttpServlet {
 
         for (DashboardProduct product : products) {
             rows.add(new AdminDashboardView.ProductRow(
-                    "SP" + product.getProductId(),
+                    String.valueOf(product.getProductId()),
                     DashboardViewHelper.h(product.getProductName()),
                     product.getSoldQuantity(),
                     product.getStockQuantity(),
@@ -199,7 +199,7 @@ public class DashboardServlet extends HttpServlet {
                 ""
         ));
         rows.add(new AdminDashboardView.OrderSummaryRow(
-                "Doanh thu hợp lệ",
+                "Doanh thu",
                 DashboardViewHelper.formatCurrency(totalRevenue),
                 "Không tính đơn đã hủy",
                 ""

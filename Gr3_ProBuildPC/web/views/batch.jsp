@@ -47,84 +47,49 @@
         <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
 
-    <body class="batch-page-body">
+    <body class="dashboard-body admin-brand-body" style="padding-bottom: 0px">
 
         <jsp:include page="/includes/header.jsp" />
 
-        <main class="batch-main">
+        <main class="admin-brand-page">
 
-            <!-- TIÊU ĐỀ TRANG -->
-            <section class="batch-title-box">
+            <section class="admin-page-heading" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h1>📦 Quản lý lô hàng</h1>
-                    <p>Thêm, sửa và xem chi tiết sản phẩm trong từng lô nhập.</p>
+                    <h1>Quản lý lô hàng</h1>
+                    <div class="admin-breadcrumb">
+                        <a href="${pageContext.request.contextPath}/Dashboard">Dashboard</a>
+                        <span>›</span>
+                        <span>Sản phẩm</span>
+                        <span>›</span>
+                        <strong>Quản lý lô hàng</strong>
+                    </div>
                 </div>
-
-                <a href="${pageContext.request.contextPath}/BatchServlet" class="batch-btn-reset">
-                    Làm mới
-                </a>
+                <div style="display: flex; gap: 10px;">
+                    <a href="${pageContext.request.contextPath}/BatchServlet" class="brand-secondary-button" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 18px;">
+                        Làm mới
+                    </a>
+                    <a href="#add-batch-modal" class="brand-add-button" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+                        + Thêm lô hàng
+                    </a>
+                    <a href="#add-item-modal" class="brand-add-button" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background-color: #28a745;">
+                        + Thêm sản phẩm vào lô
+                    </a>
+                </div>
             </section>
 
             <!-- THÔNG BÁO -->
             <% if (message != null) { %>
-            <div class="batch-alert-success">
+            <div class="brand-alert success">
                 <%= message %>
             </div>
             <% } %>
 
             <% if (error != null) { %>
-            <div class="batch-alert-error">
+            <div class="brand-alert error">
                 <%= error %>
             </div>
             <% } %>
 
-            <!-- FORM THÊM / SỬA LÔ HÀNG -->
-            <section class="batch-card">
-                <div class="batch-card-header">
-                    <h2>
-                        <%= editBatch == null ? "Thêm lô hàng mới" : "Cập nhật lô hàng" %>
-                    </h2>
-                </div>
-
-                <form action="${pageContext.request.contextPath}/BatchServlet" method="post" class="batch-form">
-                    <input type="hidden" name="action" value="<%= editBatch == null ? "addBatch" : "updateBatch" %>">
-
-                    <% if (editBatch != null) { %>
-                    <input type="hidden" name="batchId" value="<%= editBatch.getBatchId() %>">
-                    <% } %>
-
-                    <div class="batch-form-group">
-                        <label>Tên lô hàng</label>
-                        <input 
-                            type="text"
-                            name="batchName"
-                            placeholder="Ví dụ: Lô nhập tháng 06"
-                            required
-                            value="<%= editBatch != null ? editBatch.getBatchName() : (request.getParameter("batchName") != null ? request.getParameter("batchName") : "") %>">
-                    </div>
-
-                    <div class="batch-form-group">
-                        <label>Ngày nhập</label>
-                        <input 
-                            type="date"
-                            name="date"
-                            required
-                            value="<%= editBatch != null && editBatch.getDate() != null ? editBatch.getDate() : (request.getParameter("date") != null ? request.getParameter("date") : "") %>">
-                    </div>
-
-                    <div class="batch-form-actions">
-                        <button type="submit" class="batch-btn-primary">
-                            <%= editBatch == null ? "Thêm lô hàng" : "Cập nhật" %>
-                        </button>
-
-                        <% if (editBatch != null) { %>
-                        <a href="${pageContext.request.contextPath}/BatchServlet" class="batch-btn-cancel">
-                            Hủy
-                        </a>
-                        <% } %>
-                    </div>
-                </form>
-            </section>
 
             <!-- DANH SÁCH LÔ HÀNG -->
             <section class="batch-card">
@@ -168,10 +133,6 @@
                                            href="${pageContext.request.contextPath}/BatchServlet?action=editBatch&batchId=<%= b.getBatchId() %>">
                                             Sửa
                                         </a>
-
-
-                                        </form>
-
                                     </div>
                                 </td>
                             </tr>
@@ -182,103 +143,6 @@
                 </div>
             </section>
 
-            <!-- FORM THÊM / SỬA SẢN PHẨM TRONG LÔ -->
-            <section class="batch-card">
-                <div class="batch-card-header">
-                    <h2>
-                        <%= editItem == null ? "Thêm sản phẩm vào lô" : "Cập nhật sản phẩm trong lô" %>
-                    </h2>
-                </div>
-
-                <form action="${pageContext.request.contextPath}/BatchItemServlet" method="post" class="batch-form batch-item-form">
-                    <input type="hidden" name="action" value="<%= editItem == null ? "addItem" : "updateItem" %>">
-
-                    <% if (editItem != null) { %>
-                    <input type="hidden" name="batchItemId" value="<%= editItem.getBatchItemId() %>">
-                    <% } %>
-
-                    <div class="batch-form-group">
-                        <label>Lô hàng</label>
-                        <select name="batchId" required>
-                            <option value="">-- Chọn lô hàng --</option>
-
-                            <% for (Batch b : batches) { 
-                                boolean selected = false;
-
-                                if (editItem != null && editItem.getBatchId() == b.getBatchId()) {
-                                    selected = true;
-                                }
-
-                                if (selectedBatchId != null && selectedBatchId == b.getBatchId()) {
-                                    selected = true;
-                                }
-                            %>
-                            <option value="<%= b.getBatchId() %>" <%= selected ? "selected" : "" %>>
-                                <%= b.getBatchName() %>
-                            </option>
-                            <% } %>
-                        </select>
-                    </div>
-
-                    <div class="batch-form-group">
-                        <label>Sản phẩm</label>
-                        <select name="productId" required>
-                            <option value="">-- Chọn sản phẩm --</option>
-
-                            <% for (Product p : products) { %>
-                            <option value="<%= p.getProductId() %>"
-                                    <%= editItem != null && editItem.getProductId() == p.getProductId() ? "selected" : "" %>>
-                                <%= p.getProductName() %>
-                            </option>
-                            <% } %>
-                        </select>
-                    </div>
-
-                    <div class="batch-form-group">
-                        <label>Số lượng</label>
-                        <input 
-                            type="number"
-                            name="quantity"
-                            min="1"
-                            required
-                            value="<%= editItem != null ? editItem.getQuantity() : "" %>">
-                    </div>
-
-                    <div class="batch-form-group">
-                        <label>Giá nhập</label>
-                        <input 
-                            type="number"
-                            name="price"
-                            min="0"
-                            step="1000"
-                            required
-                            value="<%= editItem != null ? editItem.getPrice() : "" %>">
-                    </div>
-
-                    <div class="batch-form-group">
-                        <label>Bảo hành</label>
-                        <input 
-                            type="number"
-                            name="warrantyMonths"
-                            min="0"
-                            required
-                            value="<%= editItem != null ? editItem.getWarrantyMonths() : 0 %>">
-                    </div>
-
-                    <div class="batch-form-actions">
-                        <button type="submit" class="batch-btn-primary">
-                            <%= editItem == null ? "Thêm sản phẩm" : "Cập nhật" %>
-                        </button>
-
-                        <% if (editItem != null) { %>
-                        <a href="${pageContext.request.contextPath}/BatchServlet?action=viewDetail&batchId=<%= editItem.getBatchId() %>"
-                           class="batch-btn-cancel">
-                            Hủy
-                        </a>
-                        <% } %>
-                    </div>
-                </form>
-            </section>
 
             <!-- CHI TIẾT LÔ NHẬP -->
             <section class="batch-card">
@@ -299,7 +163,8 @@
                                 <th>Mã chi tiết</th>
                                 <th>Mã lô</th>
                                 <th>Mã sản phẩm</th>
-                                <th>Số lượng</th>
+                                <th>SL nhập</th>
+                                <th>SL tồn</th>
                                 <th>Giá nhập</th>
                                 <th>Bảo hành</th>
                                 <th>Thao tác</th>
@@ -309,7 +174,7 @@
                         <tbody>
                             <% if (batchItems.isEmpty()) { %>
                             <tr>
-                                <td colspan="7" class="batch-empty-row">
+                                <td colspan="8" class="batch-empty-row">
                                     Bấm nút <b>Chi tiết</b> ở một lô hàng để xem sản phẩm trong lô.
                                 </td>
                             </tr>
@@ -319,6 +184,7 @@
                                 <td>#<%= item.getBatchItemId() %></td>
                                 <td>#<%= item.getBatchId() %></td>
                                 <td>#<%= item.getProductId() %></td>
+                                <td><%= item.getImportQuantity() %></td>
                                 <td><%= item.getQuantity() %></td>
                                 <td><%= item.getPrice() %></td>
                                 <td><%= item.getWarrantyMonths() %> tháng</td>
@@ -343,6 +209,264 @@
             </section>
 
         </main>
+
+        <!-- MODAL THÊM LÔ HÀNG -->
+        <div class="brand-modal-overlay" id="add-batch-modal">
+            <section class="brand-modal" role="dialog" aria-modal="true" aria-labelledby="addBatchTitle">
+                <div class="brand-form-header">
+                    <h2 id="addBatchTitle">Thêm lô hàng mới</h2>
+                    <a href="#" aria-label="Đóng" style="text-decoration: none; font-size: 24px; color: #6c757d;">×</a>
+                </div>
+
+                <form action="${pageContext.request.contextPath}/BatchServlet" method="post" class="brand-modal-form">
+                    <input type="hidden" name="action" value="addBatch">
+
+                    <div class="batch-form-group">
+                        <label>Tên lô hàng</label>
+                        <input 
+                            type="text"
+                            name="batchName"
+                            placeholder="Ví dụ: Lô nhập tháng 06"
+                            required
+                            value="">
+                    </div>
+
+                    <div class="batch-form-group" style="margin-top: 12px;">
+                        <label>Ngày nhập</label>
+                        <input 
+                            type="date"
+                            name="date"
+                            required
+                            value="">
+                    </div>
+
+                    <div class="brand-form-actions" style="margin-top: 20px;">
+                        <a class="brand-secondary-button" href="#" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Hủy</a>
+                        <button class="brand-primary-button" type="submit">Thêm lô hàng</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <!-- MODAL SỬA LÔ HÀNG -->
+        <% if (editBatch != null) { %>
+        <div class="brand-modal-overlay" id="edit-batch-modal" style="display: grid;">
+            <section class="brand-modal" role="dialog" aria-modal="true" aria-labelledby="editBatchTitle">
+                <div class="brand-form-header">
+                    <h2 id="editBatchTitle">Cập nhật lô hàng</h2>
+                    <a href="${pageContext.request.contextPath}/BatchServlet" aria-label="Đóng" style="text-decoration: none; font-size: 24px; color: #6c757d;">×</a>
+                </div>
+
+                <form action="${pageContext.request.contextPath}/BatchServlet" method="post" class="brand-modal-form">
+                    <input type="hidden" name="action" value="updateBatch">
+                    <input type="hidden" name="batchId" value="<%= editBatch.getBatchId() %>">
+
+                    <div class="batch-form-group">
+                        <label>Tên lô hàng</label>
+                        <input 
+                            type="text"
+                            name="batchName"
+                            placeholder="Ví dụ: Lô nhập tháng 06"
+                            required
+                            value="<%= editBatch.getBatchName() != null ? editBatch.getBatchName().replace("\"", "&quot;") : "" %>">
+                    </div>
+
+                    <div class="batch-form-group" style="margin-top: 12px;">
+                        <label>Ngày nhập</label>
+                        <input 
+                            type="date"
+                            name="date"
+                            required
+                            value="<%= editBatch.getDate() != null ? editBatch.getDate() : "" %>">
+                    </div>
+
+                    <div class="brand-form-actions" style="margin-top: 20px;">
+                        <a class="brand-secondary-button" href="${pageContext.request.contextPath}/BatchServlet" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Hủy</a>
+                        <button class="brand-primary-button" type="submit">Cập nhật</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+        <% } %>
+
+        <!-- MODAL THÊM SẢN PHẨM VÀO LÔ -->
+        <div class="brand-modal-overlay" id="add-item-modal">
+            <section class="brand-modal" style="width: min(600px, 100%);" role="dialog" aria-modal="true" aria-labelledby="addItemTitle">
+                <div class="brand-form-header">
+                    <h2 id="addItemTitle">Thêm sản phẩm vào lô</h2>
+                    <a href="#" aria-label="Đóng" style="text-decoration: none; font-size: 24px; color: #6c757d;">×</a>
+                </div>
+
+                <form action="${pageContext.request.contextPath}/BatchItemServlet" method="post" class="brand-modal-form">
+                    <input type="hidden" name="action" value="addItem">
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="batch-form-group">
+                            <label>Lô hàng</label>
+                            <select name="batchId" required style="width: 100%;">
+                                <option value="">-- Chọn lô hàng --</option>
+                                <% for (Batch b : batches) { 
+                                    boolean selected = false;
+                                    if (selectedBatchId != null && selectedBatchId == b.getBatchId()) {
+                                        selected = true;
+                                    }
+                                %>
+                                <option value="<%= b.getBatchId() %>" <%= selected ? "selected" : "" %>>
+                                    <%= b.getBatchName() %>
+                                </option>
+                                <% } %>
+                            </select>
+                        </div>
+
+                        <div class="batch-form-group">
+                            <label>Sản phẩm</label>
+                            <select name="productId" required style="width: 100%;">
+                                <option value="">-- Chọn sản phẩm --</option>
+                                <% for (Product p : products) { %>
+                                <option value="<%= p.getProductId() %>">
+                                    <%= p.getProductName() %>
+                                </option>
+                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                        <div class="batch-form-group">
+                            <label>Số lượng nhập</label>
+                            <input 
+                                type="number"
+                                name="importQuantity"
+                                min="1"
+                                placeholder="Số lượng nhập ban đầu"
+                                required
+                                value="">
+                        </div>
+
+                        <div class="batch-form-group">
+                            <label>Giá nhập (VNĐ)</label>
+                            <input 
+                                type="number"
+                                name="price"
+                                min="0"
+                                step="1000"
+                                placeholder="Giá nhập sản phẩm"
+                                required
+                                value="">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                        <div class="batch-form-group">
+                            <label>Bảo hành (tháng)</label>
+                            <input 
+                                type="number"
+                                name="warrantyMonths"
+                                min="0"
+                                placeholder="Thời hạn bảo hành"
+                                required
+                                value="0">
+                        </div>
+                    </div>
+
+                    <div class="brand-form-actions" style="margin-top: 20px;">
+                        <a class="brand-secondary-button" href="#" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Hủy</a>
+                        <button class="brand-primary-button" type="submit">Thêm sản phẩm</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <!-- MODAL SỬA SẢN PHẨM TRONG LÔ -->
+        <% if (editItem != null) { %>
+        <div class="brand-modal-overlay" id="edit-item-modal" style="display: grid;">
+            <section class="brand-modal" style="width: min(600px, 100%);" role="dialog" aria-modal="true" aria-labelledby="editItemTitle">
+                <div class="brand-form-header">
+                    <h2 id="editItemTitle">Cập nhật sản phẩm trong lô</h2>
+                    <a href="${pageContext.request.contextPath}/BatchServlet?action=viewDetail&batchId=<%= editItem.getBatchId() %>" aria-label="Đóng" style="text-decoration: none; font-size: 24px; color: #6c757d;">×</a>
+                </div>
+
+                <form action="${pageContext.request.contextPath}/BatchItemServlet" method="post" class="brand-modal-form">
+                    <input type="hidden" name="action" value="updateItem">
+                    <input type="hidden" name="batchItemId" value="<%= editItem.getBatchItemId() %>">
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="batch-form-group">
+                            <label>Lô hàng</label>
+                            <select name="batchId" required style="width: 100%;">
+                                <% for (Batch b : batches) { %>
+                                <option value="<%= b.getBatchId() %>" <%= editItem.getBatchId() == b.getBatchId() ? "selected" : "" %>>
+                                    <%= b.getBatchName() %>
+                                </option>
+                                <% } %>
+                            </select>
+                        </div>
+
+                        <div class="batch-form-group">
+                            <label>Sản phẩm</label>
+                            <select name="productId" required style="width: 100%;">
+                                <% for (Product p : products) { %>
+                                <option value="<%= p.getProductId() %>" <%= editItem.getProductId() == p.getProductId() ? "selected" : "" %>>
+                                    <%= p.getProductName() %>
+                                </option>
+                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                        <div class="batch-form-group">
+                            <label>Số lượng nhập</label>
+                            <input 
+                                type="number"
+                                name="importQuantity"
+                                min="1"
+                                required
+                                value="<%= editItem.getImportQuantity() %>">
+                        </div>
+
+                        <div class="batch-form-group">
+                            <label>Số lượng tồn</label>
+                            <input 
+                                type="number"
+                                name="quantity"
+                                min="0"
+                                required
+                                value="<%= editItem.getQuantity() %>">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                        <div class="batch-form-group">
+                            <label>Giá nhập (VNĐ)</label>
+                            <input 
+                                type="number"
+                                name="price"
+                                min="0"
+                                step="1000"
+                                required
+                                value="<%= editItem.getPrice() != null ? editItem.getPrice().toBigInteger() : "" %>">
+                        </div>
+
+                        <div class="batch-form-group">
+                            <label>Bảo hành (tháng)</label>
+                            <input 
+                                type="number"
+                                name="warrantyMonths"
+                                min="0"
+                                required
+                                value="<%= editItem.getWarrantyMonths() %>">
+                        </div>
+                    </div>
+
+                    <div class="brand-form-actions" style="margin-top: 20px;">
+                        <a class="brand-secondary-button" href="${pageContext.request.contextPath}/BatchServlet?action=viewDetail&batchId=<%= editItem.getBatchId() %>" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Hủy</a>
+                        <button class="brand-primary-button" type="submit">Cập nhật</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+        <% } %>
 
         <jsp:include page="/includes/footer.jsp" />
 

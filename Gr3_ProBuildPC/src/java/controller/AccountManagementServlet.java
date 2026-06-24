@@ -275,7 +275,7 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
             return;
         }
 
-        if ("ADMIN".equalsIgnoreCase(targetUser.getRoleName()) && "BANNED".equals(status)) {
+        if ("ADMIN".equalsIgnoreCase(targetUser.getRoleName()) && "INACTIVE".equals(status)) {
             session.setAttribute("accountError", "Khong the khoa tai khoan Admin.");
             return;
         }
@@ -360,7 +360,7 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
         }
 
         String status = value.trim().toUpperCase();
-        if ("ACTIVE".equals(status) || "BANNED".equals(status)) {
+        if ("ACTIVE".equals(status) || "INACTIVE".equals(status)) {
             return status;
         }
 

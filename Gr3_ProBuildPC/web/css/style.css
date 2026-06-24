@@ -7392,8 +7392,11 @@ body.warranty-lookup-page .main-header {
 
 .batch-form-actions {
     display: flex;
-    align-items: end;
+    align-items: center;
+    justify-content: flex-end;
     gap: 12px;
+    grid-column: 1 / -1;
+    margin-top: 8px;
 }
 
 /* Button chung */

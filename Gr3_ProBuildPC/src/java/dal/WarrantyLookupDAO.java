@@ -22,11 +22,32 @@ public class WarrantyLookupDAO extends DBContext {
                    od.quantity,
                    p.product_name,
                    p.image_url,
-                   COALESCE(p.warranty_months, 0) AS warranty_months,
+                   COALESCE((
+                       SELECT bi_w.warranty_months
+                       FROM batch_items bi_w
+                       JOIN batch b_w ON b_w.batch_id = bi_w.batch_id
+                       WHERE bi_w.product_id = p.product_id
+                       ORDER BY b_w.date ASC, bi_w.batch_item_id ASC
+                       LIMIT 1
+                   ), 0) AS warranty_months,
                    br.brand_name,
                    ca.category_name,
-                   DATE_ADD(o.order_date, INTERVAL COALESCE(p.warranty_months, 0) MONTH) AS warranty_end_date,
-                   DATEDIFF(DATE_ADD(o.order_date, INTERVAL COALESCE(p.warranty_months, 0) MONTH), CURDATE()) AS remaining_days
+                   DATE_ADD(o.order_date, INTERVAL COALESCE((
+                       SELECT bi_w2.warranty_months
+                       FROM batch_items bi_w2
+                       JOIN batch b_w2 ON b_w2.batch_id = bi_w2.batch_id
+                       WHERE bi_w2.product_id = p.product_id
+                       ORDER BY b_w2.date ASC, bi_w2.batch_item_id ASC
+                       LIMIT 1
+                   ), 0) MONTH) AS warranty_end_date,
+                   DATEDIFF(DATE_ADD(o.order_date, INTERVAL COALESCE((
+                       SELECT bi_w3.warranty_months
+                       FROM batch_items bi_w3
+                       JOIN batch b_w3 ON b_w3.batch_id = bi_w3.batch_id
+                       WHERE bi_w3.product_id = p.product_id
+                       ORDER BY b_w3.date ASC, bi_w3.batch_item_id ASC
+                       LIMIT 1
+                   ), 0) MONTH), CURDATE()) AS remaining_days
             FROM orders o
             LEFT JOIN orders_status os ON o.status_id = os.status_id
             INNER JOIN order_details od ON o.order_id = od.order_id

@@ -140,7 +140,7 @@
                             <select name="status" onchange="this.form.submit()">
                                 <option value="">Tất cả trạng thái</option>
                                 <option value="ACTIVE" <%= "ACTIVE".equals(selectedStatus) ? "selected" : "" %>>ACTIVE</option>
-                                <option value="BANNED" <%= "BANNED".equals(selectedStatus) ? "selected" : "" %>>BANNED</option>
+                                <option value="INACTIVE" <%= "INACTIVE".equals(selectedStatus) ? "selected" : "" %>>INACTIVE</option>
                             </select>
 
                             <button type="submit">Tìm kiếm</button>
@@ -217,8 +217,8 @@
                                         <% } %>
                                     </td>
                                     <td>
-                                        <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; <%= "BANNED".equals(status) ? "background-color: #f8d7da; color: #721c24;" : "background-color: #d4edda; color: #155724;" %>">
-                                            <%= "BANNED".equals(status) ? "Banned" : "Active" %>
+                                        <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; <%= "INACTIVE".equals(status) ? "background-color: #f8d7da; color: #721c24;" : "background-color: #d4edda; color: #155724;" %>">
+                                            <%= "INACTIVE".equals(status) ? "Ban" : "Active" %>
                                         </span>
                                     </td>
                                     <td>
@@ -229,7 +229,7 @@
                                                 <form action="<%= ctx %>/AccountManagement" method="post" style="margin: 0;">
                                                     <input type="hidden" name="action" value="updateStatus">
                                                     <input type="hidden" name="userId" value="<%= user.getUserId() %>">
-                                                    <input type="hidden" name="status" value="<%= "ACTIVE".equals(status) ? "BANNED" : "ACTIVE" %>">
+                                                    <input type="hidden" name="status" value="<%= "ACTIVE".equals(status) ? "INACTIVE" : "ACTIVE" %>">
                                                     <input type="hidden" name="type" value="<%= h(type) %>">
                                                     <input type="hidden" name="keyword" value="<%= h(keyword) %>">
                                                     <input type="hidden" name="filterRoleId" value="<%= selectedRoleId == null ? "" : selectedRoleId %>">

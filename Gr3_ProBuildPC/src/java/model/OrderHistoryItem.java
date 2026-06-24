@@ -201,6 +201,10 @@ public class OrderHistoryItem {
     }
 
     public String getDisplayStatus() {
+        if (statusId == 6) {
+            return statusName;
+        }
+        
         if (shipmentStatus != null && !shipmentStatus.trim().isEmpty()) {
             return shipmentStatus;
         }

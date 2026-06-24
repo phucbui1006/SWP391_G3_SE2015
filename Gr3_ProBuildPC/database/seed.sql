@@ -38,7 +38,8 @@ VALUES
 (3, 'Đang chuẩn bị hàng'),
 (4, 'Đang giao hàng'),
 (5, 'Đã giao hàng'),
-(6, 'Đã hủy');
+(6, 'Đã hủy'),
+(7, 'Giao hàng thất bại');
 
 INSERT INTO WARRANTY_STATUS (status_id, status_name)
 VALUES

@@ -130,6 +130,18 @@
 
                     <h1><%= product.getProductName() %></h1>
 
+                    <div class="product-meta-details">
+                        <div class="meta-item">
+                            <span class="meta-label">Thương hiệu:</span>
+                            <span class="meta-value"><%= product.getBrandName() %></span>
+                        </div>
+                        <span class="meta-divider">|</span>
+                        <div class="meta-item">
+                            <span class="meta-label">Danh mục:</span>
+                            <span class="meta-value"><%= product.getCategoryName() %></span>
+                        </div>
+                    </div>
+
                     <div class="rating-row">
                         <span class="rating-badge">
                             <%= String.format("%.1f", avgRating) %>

@@ -63,42 +63,34 @@
                 </c:choose>
             </c:forEach>
 
-            <!-- Search & Filters -->
-            <section class="warranty-filters">
-                <form class="filters-form" action="${ctx}/ManageWarranty" method="get">
-                    <div class="filter-group">
-                        <label for="search">Tìm kiếm mã yêu cầu / mã đơn hàng</label>
+            <!-- Unified Panel matching Brand style -->
+            <div class="brand-table-panel">
+                <!-- Toolbar matching Brand style -->
+                <div class="brand-toolbar">
+                    <form class="brand-search-form" action="${ctx}/ManageWarranty" method="get">
                         <input 
                             type="text" 
-                            id="search" 
                             name="search" 
-                            placeholder="Nhập mã yêu cầu (VD: 1) hoặc mã đơn (VD: 10000)..." 
+                            placeholder="Nhập mã yêu cầu (VD: 1)..." 
                             value="<c:out value="${searchQuery}"/>"
-                            class="filter-input"
                         >
-                    </div>
 
-                    <div class="filter-group">
-                        <label for="statusFilter">Trạng thái bảo hành</label>
-                        <select id="statusFilter" name="statusFilter" class="filter-select">
+                        <select name="statusFilter" onchange="this.form.submit()">
                             <option value="" ${empty statusFilterId ? 'selected' : ''}>Tất cả trạng thái</option>
                             <option value="1" ${statusFilterId == 1 ? 'selected' : ''}>Chờ tiếp nhận (Pending)</option>
                             <option value="2" ${statusFilterId == 2 ? 'selected' : ''}>Đã tiếp nhận (Processing)</option>
                             <option value="3" ${statusFilterId == 3 ? 'selected' : ''}>Từ chối (Rejected)</option>
                             <option value="4" ${statusFilterId == 4 ? 'selected' : ''}>Hoàn tất (Completed)</option>
                         </select>
-                    </div>
 
-                    <div class="filters-actions">
-                        <button type="submit" class="btn-search">Tìm kiếm</button>
-                        <a href="${ctx}/ManageWarranty" class="btn-reset">Làm mới</a>
-                    </div>
-                </form>
-            </section>
+                        <button type="submit">Tìm kiếm</button>
+                    </form>
 
-            <!-- Master Data Table Card -->
-            <section class="warranty-card">
-                <div class="table-wrapper">
+                    <a href="${ctx}/ManageWarranty" class="brand-add-button" style="background-color: #ed1c24; text-decoration: none;">Làm mới</a>
+                </div>
+
+                <!-- Table Wrapper matching Brand style -->
+                <div class="brand-table-wrap">
                     <table class="warranty-table">
                         <thead>
                             <tr>
@@ -126,7 +118,7 @@
                                                 <strong><c:out value="${item.customerName}"/></strong>
                                             </td>
                                             <td>
-                                                <div style="max-width: 200px; font-weight: 500;">
+                                                <div style="max-width: 240px; font-weight: 500; margin: 0 auto; text-align: left;">
                                                     <c:out value="${item.productName}"/>
                                                 </div>
                                             </td>
@@ -152,9 +144,8 @@
                                                     <a 
                                                         class="btn-action btn-view" 
                                                         href="${ctx}/ManageWarranty?action=viewCondition&productId=${item.productId}&customerId=${item.customerId}&search=<c:out value="${searchQuery}"/>&statusFilter=${statusFilterId}"
-                                                        style="text-decoration: none;"
                                                     >
-                                                        🔍 Xem tình trạng
+                                                        Xem tình trạng
                                                     </a>
                                                     
                                                     <!-- Employee exclusive action button -->
@@ -162,9 +153,8 @@
                                                         <a 
                                                             class="btn-action btn-edit" 
                                                             href="${ctx}/ManageWarranty?action=edit&warrantyId=${item.warrantyId}&search=<c:out value="${searchQuery}"/>&statusFilter=${statusFilterId}"
-                                                            style="text-decoration: none;"
                                                         >
-                                                            ⚙ Xử lý
+                                                            Xử lý
                                                         </a>
                                                     </c:if>
                                                 </div>
@@ -174,11 +164,9 @@
                                 </c:when>
                                 <c:otherwise>
                                     <tr>
-                                        <td colspan="8">
-                                            <div class="empty-table-state">
-                                                <span class="icon">🛡</span>
-                                                <h3>Không tìm thấy yêu cầu bảo hành nào</h3>
-                                                <p>Vui lòng đổi từ khóa tìm kiếm hoặc chọn bộ lọc trạng thái khác.</p>
+                                        <td colspan="7">
+                                            <div class="empty-table-state" style="padding: 40px 0; text-align: center; color: #7a808c; font-weight: 700;">
+                                                Không tìm thấy yêu cầu bảo hành nào.
                                             </div>
                                         </td>
                                     </tr>
@@ -187,7 +175,7 @@
                         </tbody>
                     </table>
                 </div>
-            </section>
+            </div>
         </main>
 
         <!-- MODAL 1: VIEW WARRANTY CONDITION -->

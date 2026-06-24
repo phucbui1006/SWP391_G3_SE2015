@@ -259,17 +259,7 @@ public class WarrantyDAO extends DBContext {
         if (search != null && !search.trim().isEmpty()) {
             String digits = search.replaceAll("[^0-9]", "").trim();
             if (!digits.isEmpty()) {
-                sql.append("""
-                     AND (w.warranty_id = ? OR (
-                         SELECT od.order_id
-                         FROM order_details od
-                         JOIN orders o ON od.order_id = o.order_id
-                         WHERE od.product_id = w.product_id AND o.customer_id = w.customer_id
-                         ORDER BY o.order_date DESC
-                         LIMIT 1
-                     ) = ?) 
-                """);
-                params.add(Integer.parseInt(digits));
+                sql.append(" AND w.warranty_id = ? ");
                 params.add(Integer.parseInt(digits));
             } else {
                 sql.append(" AND (p.product_name LIKE ? OR u.full_name LIKE ?) ");
@@ -761,17 +751,7 @@ public class WarrantyDAO extends DBContext {
         if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
             String digits = searchKeyword.replaceAll("[^0-9]", "").trim();
             if (!digits.isEmpty()) {
-                sql.append("""
-                     AND (w.warranty_id = ? OR (
-                         SELECT od.order_id
-                         FROM order_details od
-                         JOIN orders o ON od.order_id = o.order_id
-                         WHERE od.product_id = w.product_id AND o.customer_id = w.customer_id
-                         ORDER BY o.order_date DESC
-                         LIMIT 1
-                     ) = ?) 
-                """);
-                params.add(Integer.parseInt(digits));
+                sql.append(" AND w.warranty_id = ? ");
                 params.add(Integer.parseInt(digits));
             } else {
                 sql.append(" AND (p.product_name LIKE ? OR u.full_name LIKE ?) ");

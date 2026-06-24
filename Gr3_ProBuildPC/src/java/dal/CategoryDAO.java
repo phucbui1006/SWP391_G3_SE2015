@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Category;
+import model.CategorySpecTemplate;
 
 public class CategoryDAO extends DBContext {
 
@@ -74,27 +75,31 @@ public class CategoryDAO extends DBContext {
         String orderBy;
 
         if ("name_asc".equalsIgnoreCase(sort)) {
-            orderBy = "category_name ASC";
+            orderBy = "c.category_name ASC";
         } else if ("name_desc".equalsIgnoreCase(sort)) {
-            orderBy = "category_name DESC";
+            orderBy = "c.category_name DESC";
         } else if ("oldest".equalsIgnoreCase(sort)) {
-            orderBy = "category_id ASC";
+            orderBy = "c.category_id ASC";
         } else {
-            orderBy = "category_id DESC";
+            orderBy = "c.category_id DESC";
         }
 
-        String sql = "SELECT category_id, category_name, status "
-                + "FROM categories "
-                + "WHERE 1 = 1 ";
+        String sql = """
+            SELECT c.category_id, c.category_name, c.status, COUNT(p.product_id) AS total_products
+            FROM categories c
+            LEFT JOIN products p ON c.category_id = p.category_id
+            WHERE 1 = 1
+        """;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            sql += "AND category_name LIKE ? ";
+            sql += "AND c.category_name LIKE ? ";
         }
 
         if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) {
-            sql += "AND status = ? ";
+            sql += "AND c.status = ? ";
         }
 
+        sql += "GROUP BY c.category_id, c.category_name, c.status ";
         sql += "ORDER BY " + orderBy + " LIMIT ? OFFSET ?";
 
         try {
@@ -123,11 +128,13 @@ public class CategoryDAO extends DBContext {
                 c.setCategoryId(rs.getInt("category_id"));
                 c.setCategoryName(rs.getString("category_name"));
                 c.setStatus(rs.getString("status"));
+                c.setProductCount(rs.getInt("total_products"));
 
                 list.add(c);
             }
 
         } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return list;
@@ -243,5 +250,34 @@ public class CategoryDAO extends DBContext {
         }
 
         return false;
+    }
+
+    public List<CategorySpecTemplate> getTemplatesByCategoryId(int categoryId) {
+        List<CategorySpecTemplate> list = new ArrayList<>();
+        String sql = """
+            SELECT template_id, category_id, spec_name, spec_type, allowed_values, is_required, display_order
+            FROM CATEGORY_SPEC_TEMPLATES
+            WHERE category_id = ?
+            ORDER BY display_order ASC
+        """;
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, categoryId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                CategorySpecTemplate t = new CategorySpecTemplate();
+                t.setTemplateId(rs.getInt("template_id"));
+                t.setCategoryId(rs.getInt("category_id"));
+                t.setSpecName(rs.getString("spec_name"));
+                t.setSpecType(rs.getString("spec_type"));
+                t.setAllowedValues(rs.getString("allowed_values"));
+                t.setRequired(rs.getBoolean("is_required"));
+                t.setDisplayOrder(rs.getInt("display_order"));
+                list.add(t);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

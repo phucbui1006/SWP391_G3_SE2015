@@ -187,6 +187,8 @@
                                 <option value="oldest" <%= "oldest".equals(sort) ? "selected" : "" %>>Cũ nhất</option>
                                 <option value="price_asc" <%= "price_asc".equals(sort) ? "selected" : "" %>>Giá tăng dần</option>
                                 <option value="price_desc" <%= "price_desc".equals(sort) ? "selected" : "" %>>Giá giảm dần</option>
+                                <option value="qty_asc" <%= "qty_asc".equals(sort) ? "selected" : "" %>>Số lượng tăng dần</option>
+                                <option value="qty_desc" <%= "qty_desc".equals(sort) ? "selected" : "" %>>Số lượng giảm dần</option>
                             </select>
                         </div>
 
@@ -371,6 +373,12 @@
                             <% } %>
                         </div>
 
+                        <!-- Dynamic Category Specific specifications container -->
+                        <div class="form-group full-width" id="dynamicSpecsContainer" style="display: none; border: 1px solid #e5e7eb; padding: 16px; border-radius: 6px; background-color: #fafbfe;">
+                            <h3 style="font-size: 14px; font-weight: 700; margin: 0 0 12px 0; color: #111827;">Thông số kỹ thuật theo danh mục</h3>
+                            <div id="dynamicSpecsFields" class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 15px; display: grid;"></div>
+                        </div>
+
                         <div class="form-group full-width">
                             <label for="addDescription">Mô tả chi tiết</label>
                             <textarea id="addDescription" name="description" rows="4" placeholder="Nhập mô tả sản phẩm, thông số kỹ thuật..."><%= "add".equals(failedAction) ? h(enteredDescription) : "" %></textarea>
@@ -553,6 +561,94 @@
 
             // JavaScript Media & Input Validations
             document.addEventListener("DOMContentLoaded", function () {
+                // Dynamic specs generation based on Category
+                var addCategorySelect = document.getElementById("addCategory");
+                if (addCategorySelect) {
+                    addCategorySelect.addEventListener("change", function () {
+                        var categoryId = this.value;
+                        var container = document.getElementById("dynamicSpecsContainer");
+                        var fieldsDiv = document.getElementById("dynamicSpecsFields");
+                        
+                        if (!categoryId) {
+                            container.style.display = "none";
+                            fieldsDiv.innerHTML = "";
+                            return;
+                        }
+                        
+                        // Call Servlet using AJAX
+                        fetch("<%= contextPath %>/GetCategoryTemplates?categoryId=" + categoryId)
+                            .then(function(response) {
+                                return response.json();
+                            })
+                            .then(function(data) {
+                                fieldsDiv.innerHTML = "";
+                                if (data.length === 0) {
+                                    container.style.display = "none";
+                                    return;
+                                }
+                                
+                                container.style.display = "block";
+                                data.forEach(function(template) {
+                                    var formGroup = document.createElement("div");
+                                    formGroup.className = "form-group";
+                                    
+                                    var label = document.createElement("label");
+                                    label.innerHTML = template.specName + (template.isRequired ? " <span>*</span>" : "");
+                                    formGroup.appendChild(label);
+                                    
+                                    // Hidden field for spec name
+                                    var hiddenName = document.createElement("input");
+                                    hiddenName.type = "hidden";
+                                    hiddenName.name = "spec_names[]";
+                                    hiddenName.value = template.specName;
+                                    formGroup.appendChild(hiddenName);
+                                    
+                                    // Spec value input based on type
+                                    var inputElement;
+                                    if (template.specType === "SELECT") {
+                                        inputElement = document.createElement("select");
+                                        inputElement.name = "spec_values[]";
+                                        
+                                        var defaultOpt = document.createElement("option");
+                                        defaultOpt.value = "";
+                                        defaultOpt.textContent = "-- Chọn " + template.specName + " --";
+                                        inputElement.appendChild(defaultOpt);
+                                        
+                                        if (template.allowedValues) {
+                                            var options = template.allowedValues.split(",");
+                                            options.forEach(function(optVal) {
+                                                var opt = document.createElement("option");
+                                                opt.value = optVal.trim();
+                                                opt.textContent = optVal.trim();
+                                                inputElement.appendChild(opt);
+                                            });
+                                        }
+                                    } else if (template.specType === "NUMBER") {
+                                        inputElement = document.createElement("input");
+                                        inputElement.type = "number";
+                                        inputElement.name = "spec_values[]";
+                                        inputElement.placeholder = "Nhập số lượng/thông số...";
+                                    } else {
+                                        inputElement = document.createElement("input");
+                                        inputElement.type = "text";
+                                        inputElement.name = "spec_values[]";
+                                        inputElement.placeholder = "Nhập thông tin...";
+                                    }
+                                    
+                                    if (template.isRequired) {
+                                        inputElement.required = true;
+                                    }
+                                    
+                                    formGroup.appendChild(inputElement);
+                                    fieldsDiv.appendChild(formGroup);
+                                });
+                            })
+                            .catch(function(err) {
+                                console.error("Error fetching specifications:", err);
+                            });
+                    });
+                }
+
                 // Function to validate file input immediately on selection
                 function setupImageValidation(inputId, formId, errorId) {
                     var fileInput = document.getElementById(inputId);

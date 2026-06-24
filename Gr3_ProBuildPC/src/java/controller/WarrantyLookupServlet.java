@@ -51,7 +51,7 @@ public class WarrantyLookupServlet extends HttpServlet {
                         "Mã đơn hàng không hợp lệ. Vui lòng nhập số order ID trong hệ thống."
                 );
             } else {
-                List<Warranty> result = warrantyDAO.findByOrderIdAndCustomerId(
+                List<Warranty> result = warrantyDAO.getWarrantyInfoByOrderId(
                         orderId,
                         account.getCustomerId()
                 );
@@ -102,7 +102,6 @@ public class WarrantyLookupServlet extends HttpServlet {
         }
 
         try {
-            int orderDetailId = Integer.parseInt(request.getParameter("orderDetailId"));
             int productId = Integer.parseInt(request.getParameter("productId"));
             String requestReason = normalizeText(request.getParameter("request"));
 
@@ -130,8 +129,8 @@ public class WarrantyLookupServlet extends HttpServlet {
                 return;
             }
 
+            // Decoupled validation: uses customer_id + product_id (no orderDetailId)
             boolean valid = warrantyDAO.isWarrantyRequestValid(
-                    orderDetailId,
                     account.getCustomerId(),
                     productId
             );
@@ -156,7 +155,6 @@ public class WarrantyLookupServlet extends HttpServlet {
             }
 
             Warranty warranty = new Warranty();
-            warranty.setOrderDetailId(orderDetailId);
             warranty.setCustomerId(account.getCustomerId());
             warranty.setProductId(productId);
             warranty.setStatusId(1);

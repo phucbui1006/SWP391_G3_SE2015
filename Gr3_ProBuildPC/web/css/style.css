@@ -7606,24 +7606,26 @@ body.warranty-lookup-page .main-header {
 
 /* Card */
 .batch-card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 24px 28px;
+    min-width: 0;
+    background: #fff;
+    border: 1px solid #eceff4;
+    border-radius: 6px;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
     margin-bottom: 24px;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e7eaf0;
 }
 
 .batch-card-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    margin-bottom: 18px;
+    gap: 12px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #eceff4;
 }
 
 .batch-card-header h2 {
     margin: 0;
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 800;
     color: #07152b;
 }
@@ -7685,20 +7687,21 @@ body.warranty-lookup-page .main-header {
 .batch-btn-view,
 .batch-btn-edit,
 .batch-btn-delete {
-    border: none;
+    border: 0;
     outline: none;
     text-decoration: none;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 38px;
-    padding: 0 15px;
-    border-radius: 8px;
-    font-size: 14px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 5px;
+    font-size: 13px;
     font-weight: 700;
     transition: 0.2s ease;
     white-space: nowrap;
+    min-width: 54px;
 }
 
 /* Button riêng */
@@ -7724,7 +7727,7 @@ body.warranty-lookup-page .main-header {
 
 .batch-btn-view {
     background: #07152b;
-    color: #ffffff;
+    color: #fff;
 }
 
 .batch-btn-view:hover {
@@ -7732,21 +7735,21 @@ body.warranty-lookup-page .main-header {
 }
 
 .batch-btn-edit {
-    background: #fff3cd;
-    color: #8a6100;
+    background: #ff9f0a;
+    color: #fff;
 }
 
 .batch-btn-edit:hover {
-    background: #ffe29a;
+    background: #e68e00;
 }
 
 .batch-btn-delete {
-    background: #ffe1e4;
-    color: #d00012;
+    background: #ed1c24;
+    color: #fff;
 }
 
 .batch-btn-delete:hover {
-    background: #ffc7ce;
+    background: #c9171e;
 }
 
 /* Table */
@@ -7757,13 +7760,14 @@ body.warranty-lookup-page .main-header {
 
 .batch-table {
     width: 100%;
+    min-width: 920px;
     border-collapse: collapse;
-    background: #ffffff;
+    color: #30333a;
+    font-size: 14px;
 }
 
 .batch-table thead {
-    background: #07152b;
-    color: #ffffff;
+    /* removed dark background */
 }
 
 .batch-table th,
@@ -7771,10 +7775,19 @@ body.warranty-lookup-page .main-header {
     padding: 14px 16px;
     text-align: left;
     font-size: 14px;
-    border-bottom: 1px solid #e7eaf0;
+    border-bottom: 1px solid #eceff4;
+    border-right: 1px solid #eceff4;
+    vertical-align: middle;
+}
+
+.batch-table th:last-child,
+.batch-table td:last-child {
+    border-right: 0;
 }
 
 .batch-table th {
+    background: #fafbfe;
+    color: #252932;
     font-weight: 800;
 }
 

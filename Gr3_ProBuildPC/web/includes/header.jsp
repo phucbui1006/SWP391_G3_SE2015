@@ -118,7 +118,7 @@
         <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>">📋 Lịch sử đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>">🛡 Tra cứu bảo hành</a>   <span class="menu-divider"></span></span>
+        <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-shield-halved"></i> Tra cứu bảo hành</a>   <span class="menu-divider"></span></span>
         <a href="<%= ctx %>/warranty-history" class="menu-item <%= "/warranty-history".equals(currentPath) || "/WarrantyHistory".equals(currentPath) ? "active" : "" %>">🛡 Lịch sử yêu cầu bảo hành</a>
 
         <% } else if ("ADMIN".equals(roleName)) { %>
@@ -159,6 +159,7 @@
         <span class="menu-divider"></span>
 
         <a href="<%= ctx %>/ManageWarranty" class="menu-item <%= "/ManageWarranty".equals(currentPath) || "/manage-warranty".equals(currentPath) ? "active" : "" %>">🛡 Bảo hành</a>
+        <a href="#" class="menu-item"><i class="fa-solid fa-shield-halved"></i> Bảo hành</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item">📊 Thống kê doanh thu</a>
@@ -172,6 +173,7 @@
         <span class="menu-divider"></span>
 
         <a href="<%= ctx %>/ManageWarranty" class="menu-item <%= "/ManageWarranty".equals(currentPath) || "/manage-warranty".equals(currentPath) ? "active" : "" %>">🛡 Dịch vụ bảo hành</a>
+        <a href="#" class="menu-item"><i class="fa-solid fa-shield-heart"></i> Dịch vụ bảo hành</a>
 
         <% } else if ("SHIPMENT".equals(roleName)) { %>
 

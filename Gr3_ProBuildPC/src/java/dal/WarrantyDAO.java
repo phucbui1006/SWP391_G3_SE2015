@@ -1,0 +1,499 @@
+package dal;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import model.Warranty;
+
+public class WarrantyDAO extends DBContext {
+
+    //Kiểm tra yêu cầu bảo hành có hiệu lực không
+    public boolean isWarrantyRequestValid(int orderDetailId, int customerId, int productId) {
+        String sql = """
+            SELECT o.order_date, od.warranty_months
+            FROM orders o
+            INNER JOIN order_details od ON o.order_id = od.order_id
+            WHERE od.order_detail_id = ?
+              AND o.customer_id = ?
+              AND od.product_id = ?
+        """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderDetailId);
+            ps.setInt(2, customerId);
+            ps.setInt(3, productId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    java.sql.Timestamp orderDate = rs.getTimestamp("order_date");
+                    int warrantyMonths = rs.getInt("warranty_months");
+                    if (orderDate != null) {
+                        java.util.Calendar cal = java.util.Calendar.getInstance();
+                        cal.setTimeInMillis(orderDate.getTime());
+                        cal.add(java.util.Calendar.MONTH, warrantyMonths);
+                        java.util.Date endDate = cal.getTime();
+                        java.util.Date now = new java.util.Date();
+                        
+                        return endDate.after(now) && warrantyMonths > 0;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    //Lấy trạng thái đơn hàng
+    public String getOrderStatus(int orderId, int customerId) {
+        String sql = """
+            SELECT os.status_name 
+            FROM orders o
+            INNER JOIN orders_status os ON o.status_id = os.status_id
+            WHERE o.order_id = ? AND o.customer_id = ?
+        """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.setInt(2, customerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("status_name");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    //Tạo yêu cầu bảo hành
+    public boolean createWarrantyRequest(Warranty warranty) {
+        String sql = """
+            INSERT INTO warranties (order_detail_id, customer_id, product_id, status_id, request_date, request)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, warranty.getOrderDetailId());
+            ps.setInt(2, warranty.getCustomerId());
+            ps.setInt(3, warranty.getProductId());
+            ps.setInt(4, warranty.getStatusId());
+            ps.setTimestamp(5, new Timestamp(warranty.getRequestDate().getTime()));
+            ps.setString(6, warranty.getRequest());
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public List<Warranty> getWarrantiesByProduct(int customerId, String searchProduct, Integer filterStatusId) {
+        List<Warranty> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+            SELECT w.warranty_id,
+                   w.customer_id,
+                   w.product_id,
+                   w.status_id,
+                   w.request_date,
+                   w.response_date,
+                   w.request,
+                   p.product_name,
+                   p.image_url,
+                   b.brand_name,
+                   c.category_name,
+                   ws.status_name,
+                   u.full_name AS customer_name,
+                   od.order_id
+            FROM warranties w
+            LEFT JOIN products p ON w.product_id = p.product_id
+            LEFT JOIN brands b ON p.brand_id = b.brand_id
+            LEFT JOIN categories c ON p.category_id = c.category_id
+            LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
+            LEFT JOIN customers cust ON w.customer_id = cust.customer_id
+            LEFT JOIN users u ON cust.user_id = u.user_id
+            LEFT JOIN order_details od ON w.order_detail_id = od.order_detail_id
+            WHERE w.customer_id = ?
+        """);
+
+        List<Object> params = new ArrayList<>();
+        params.add(customerId);
+
+        if (searchProduct != null && !searchProduct.trim().isEmpty()) {
+            String clean = searchProduct.trim();
+            if (clean.matches("\\d+")) {
+                sql.append(" AND w.product_id = ? ");
+                params.add(Integer.parseInt(clean));
+            } else {
+                sql.append(" AND LOWER(p.product_name) LIKE LOWER(?) ");
+                params.add("%" + clean + "%");
+            }
+        }
+
+        if (filterStatusId != null) {
+            sql.append(" AND w.status_id = ? ");
+            params.add(filterStatusId);
+        }
+        sql.append(" ORDER BY w.request_date DESC ");
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            for (Object param : params) {
+                ps.setObject(paramIndex++, param);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Warranty w = new Warranty();
+                    w.setWarrantyId(rs.getInt("warranty_id"));
+                    w.setCustomerId(rs.getInt("customer_id"));
+                    w.setProductId(rs.getInt("product_id"));
+                    w.setStatusId(rs.getInt("status_id"));
+                    w.setRequestDate(rs.getTimestamp("request_date"));
+                    w.setResponseDate(rs.getTimestamp("response_date"));
+                    w.setRequest(rs.getString("request"));
+                    w.setProductName(rs.getString("product_name"));
+                    w.setImageUrl(rs.getString("image_url"));
+                    w.setBrandName(rs.getString("brand_name"));
+                    w.setCategoryName(rs.getString("category_name"));
+                    w.setCustomerName(rs.getString("customer_name"));
+                    w.setOrderId(rs.getInt("order_id"));
+                    
+                    String statusName = rs.getString("status_name");
+                    if (statusName == null || statusName.trim().isEmpty()) {
+                        if (w.getStatusId() == 1) statusName = "Chờ tiếp nhận";
+                        else if (w.getStatusId() == 2) statusName = "Đã tiếp nhận";
+                        else if (w.getStatusId() == 3) statusName = "Từ chối";
+                        else if (w.getStatusId() == 4) statusName = "Hoàn tất";
+                    }
+                    w.setStatusName(statusName);
+
+                    if (w.getStatusId() == 1) {
+                        w.setStoreResponse("Yêu cầu đang chờ cửa hàng duyệt và tiếp nhận.");
+                    } else if (w.getStatusId() == 2) {
+                        w.setStoreResponse("Cửa hàng đã tiếp nhận thiết bị bảo hành và đang xử lý kỹ thuật.");
+                    } else if (w.getStatusId() == 3) {
+                        w.setStoreResponse("Cửa hàng từ chối bảo hành (sản phẩm vi phạm chính sách hoặc rách tem).");
+                    } else if (w.getStatusId() == 4) {
+                        w.setStoreResponse("Sản phẩm bảo hành xong. Vui lòng nhận lại tại quầy hoặc chờ shipper liên hệ.");
+                    } else {
+                        w.setStoreResponse("Yêu cầu của bạn đang được xem xét.");
+                    }
+
+                    list.add(w);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Warranty> getAllWarranties(String search, Integer statusId) {
+        List<Warranty> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+            SELECT w.warranty_id,
+                   w.order_detail_id,
+                   w.customer_id,
+                   w.product_id,
+                   w.status_id,
+                   w.request_date,
+                   w.response_date,
+                   w.request,
+                   p.product_name,
+                   ws.status_name,
+                   u.full_name AS customer_name,
+                   od.order_id
+            FROM warranties w
+            LEFT JOIN products p ON w.product_id = p.product_id
+            LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
+            LEFT JOIN customers c ON w.customer_id = c.customer_id
+            LEFT JOIN users u ON c.user_id = u.user_id
+            LEFT JOIN order_details od ON w.order_detail_id = od.order_detail_id
+            WHERE 1=1
+        """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (search != null && !search.trim().isEmpty()) {
+            String digits = search.replaceAll("[^0-9]", "").trim();
+            if (!digits.isEmpty()) {
+                sql.append(" AND (w.warranty_id = ? OR od.order_id = ?) ");
+                params.add(Integer.parseInt(digits));
+                params.add(Integer.parseInt(digits));
+            } else {
+                sql.append(" AND (p.product_name LIKE ? OR u.full_name LIKE ?) ");
+                params.add("%" + search.trim() + "%");
+                params.add("%" + search.trim() + "%");
+            }
+        }
+
+        if (statusId != null && statusId > 0) {
+            sql.append(" AND w.status_id = ? ");
+            params.add(statusId);
+        }
+
+        sql.append(" ORDER BY w.request_date DESC ");
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                Object p = params.get(i);
+                if (p instanceof Integer) {
+                    ps.setInt(i + 1, (Integer) p);
+                } else {
+                    ps.setString(i + 1, (String) p);
+                }
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Warranty w = new Warranty();
+                    w.setWarrantyId(rs.getInt("warranty_id"));
+                    w.setOrderDetailId(rs.getInt("order_detail_id"));
+                    w.setCustomerId(rs.getInt("customer_id"));
+                    w.setProductId(rs.getInt("product_id"));
+                    w.setStatusId(rs.getInt("status_id"));
+                    w.setRequestDate(rs.getTimestamp("request_date"));
+                    w.setResponseDate(rs.getTimestamp("response_date"));
+                    w.setRequest(rs.getString("request"));
+                    w.setProductName(rs.getString("product_name"));
+                    w.setCustomerName(rs.getString("customer_name"));
+                    w.setOrderId(rs.getInt("order_id"));
+
+                    String statusName = rs.getString("status_name");
+                    if (statusName == null || statusName.trim().isEmpty()) {
+                        if (w.getStatusId() == 1) statusName = "Chờ tiếp nhận";
+                        else if (w.getStatusId() == 2) statusName = "Đã tiếp nhận";
+                        else if (w.getStatusId() == 3) statusName = "Từ chối";
+                        else if (w.getStatusId() == 4) statusName = "Hoàn tất";
+                    }
+                    w.setStatusName(statusName);
+
+                    w.setStoreResponse("");
+
+                    list.add(w);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public boolean updateWarrantyStatusAndResponse(int warrantyId, int statusId, Date responseDate) {
+        String sql = "UPDATE warranties SET status_id = ?, response_date = ? WHERE warranty_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, statusId);
+            ps.setTimestamp(2, responseDate != null ? new Timestamp(responseDate.getTime()) : null);
+            ps.setInt(3, warrantyId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateWarrantyStatus(int warrantyId, int statusId) {
+        String sql = "UPDATE warranties SET status_id = ?, response_date = CURRENT_TIMESTAMP WHERE warranty_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, statusId);
+            ps.setInt(2, warrantyId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
+    public Warranty getProductWarrantyCondition(int orderDetailId) {
+        String sql = """
+            SELECT od.order_detail_id,
+                   od.product_id,
+                   od.quantity,
+                   od.unit_price,
+                   p.product_name,
+                   b.brand_name,
+                   c.category_name,
+                   o.order_id,
+                   o.order_date,
+                   u.full_name AS customer_name,
+                   COALESCE(od.warranty_months, 0) AS warranty_months,
+                   DATE_ADD(o.order_date, INTERVAL COALESCE(od.warranty_months, 0) MONTH) AS warranty_end_date,
+                   DATEDIFF(DATE_ADD(o.order_date, INTERVAL COALESCE(od.warranty_months, 0) MONTH), CURDATE()) AS remaining_days
+            FROM order_details od
+            INNER JOIN orders o ON od.order_id = o.order_id
+            INNER JOIN customers cust ON o.customer_id = cust.customer_id
+            INNER JOIN users u ON cust.user_id = u.user_id
+            INNER JOIN products p ON od.product_id = p.product_id
+            INNER JOIN brands b ON p.brand_id = b.brand_id
+            INNER JOIN categories c ON p.category_id = c.category_id
+            WHERE od.order_detail_id = ?
+        """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderDetailId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Warranty item = new Warranty();
+                    item.setOrderDetailId(rs.getInt("order_detail_id"));
+                    item.setProductId(rs.getInt("product_id"));
+                    item.setQuantity(rs.getInt("quantity"));
+                    item.setProductName(rs.getString("product_name"));
+                    item.setBrandName(rs.getString("brand_name"));
+                    item.setCategoryName(rs.getString("category_name"));
+                    item.setWarrantyMonths(rs.getInt("warranty_months"));
+                    item.setWarrantyEndDate(rs.getDate("warranty_end_date"));
+                    item.setRemainingDays(rs.getLong("remaining_days"));
+                    item.setCustomerName(rs.getString("customer_name"));
+                    item.setOrderDate(rs.getTimestamp("order_date"));
+                    item.setOrderId(rs.getInt("order_id"));
+                    
+                    return item;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Warranty> findByOrderIdAndCustomerId(int orderId, int customerId) {
+        String sql = """
+            SELECT o.order_id,
+                   o.customer_id,
+                   o.order_date,
+                   o.total_amount,
+                   o.payment_method,
+                   o.payment_status,
+                   os.status_name AS order_status_name,
+                   od.order_detail_id,
+                   od.product_id,
+                   od.quantity,
+                   p.product_name,
+                   p.image_url,
+                   COALESCE(od.warranty_months, 0) AS warranty_months,
+                   br.brand_name,
+                   ca.category_name,
+                   DATE_ADD(o.order_date, INTERVAL COALESCE(od.warranty_months, 0) MONTH) AS warranty_end_date,
+                   DATEDIFF(DATE_ADD(o.order_date, INTERVAL COALESCE(od.warranty_months, 0) MONTH), CURDATE()) AS remaining_days
+            FROM orders o
+            INNER JOIN orders_status os ON o.status_id = os.status_id
+            INNER JOIN order_details od ON o.order_id = od.order_id
+            INNER JOIN products p ON od.product_id = p.product_id
+            INNER JOIN brands br ON p.brand_id = br.brand_id
+            INNER JOIN categories ca ON p.category_id = ca.category_id
+            WHERE o.order_id = ?
+              AND o.customer_id = ?
+            ORDER BY od.order_detail_id
+        """;
+
+        List<Warranty> list = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.setInt(2, customerId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Warranty w = new Warranty();
+                    w.setOrderId(rs.getInt("order_id"));
+                    w.setCustomerId(rs.getInt("customer_id"));
+                    w.setOrderDate(rs.getTimestamp("order_date"));
+                    w.setTotalAmount(rs.getBigDecimal("total_amount"));
+                    w.setPaymentMethod(rs.getString("payment_method"));
+                    w.setPaymentStatus(rs.getString("payment_status"));
+                    w.setOrderStatusName(rs.getString("order_status_name"));
+                    w.setOrderDetailId(rs.getInt("order_detail_id"));
+                    w.setProductId(rs.getInt("product_id"));
+                    w.setQuantity(rs.getInt("quantity"));
+                    w.setProductName(rs.getString("product_name"));
+                    w.setImageUrl(rs.getString("image_url"));
+                    w.setWarrantyMonths(rs.getInt("warranty_months"));
+                    w.setBrandName(rs.getString("brand_name"));
+                    w.setCategoryName(rs.getString("category_name"));
+                    w.setWarrantyEndDate(rs.getDate("warranty_end_date"));
+                    w.setRemainingDays(rs.getLong("remaining_days"));
+                    list.add(w);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list.isEmpty() ? null : list;
+    }
+
+    public List<Warranty> getWarrantyHistoryByOrderDetailId(int orderDetailId) {
+        List<Warranty> list = new ArrayList<>();
+        String sql = """
+            SELECT w.warranty_id,
+                   w.order_detail_id,
+                   w.customer_id,
+                   w.product_id,
+                   w.status_id,
+                   w.request_date,
+                   w.response_date,
+                   w.request,
+                   ws.status_name
+            FROM warranties w
+            LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
+            WHERE w.order_detail_id = ?
+            ORDER BY w.request_date DESC
+        """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderDetailId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Warranty w = new Warranty();
+                    w.setWarrantyId(rs.getInt("warranty_id"));
+                    w.setOrderDetailId(rs.getInt("order_detail_id"));
+                    w.setCustomerId(rs.getInt("customer_id"));
+                    w.setProductId(rs.getInt("product_id"));
+                    w.setStatusId(rs.getInt("status_id"));
+                    w.setRequestDate(rs.getTimestamp("request_date"));
+                    w.setResponseDate(rs.getTimestamp("response_date"));
+                    w.setRequest(rs.getString("request"));
+
+                    String statusName = rs.getString("status_name");
+                    if (statusName == null || statusName.trim().isEmpty()) {
+                        if (w.getStatusId() == 1) statusName = "Chờ tiếp nhận";
+                        else if (w.getStatusId() == 2) statusName = "Đã tiếp nhận";
+                        else if (w.getStatusId() == 3) statusName = "Từ chối";
+                        else if (w.getStatusId() == 4) statusName = "Hoàn tất";
+                    }
+                    w.setStatusName(statusName);
+                    
+                    w.setStoreResponse("");
+                    list.add(w);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public boolean isWarrantyPendingOrActive(int customerId, int productId) {
+        String sql = """
+            SELECT COUNT(*) 
+            FROM warranties 
+            WHERE customer_id = ? 
+              AND product_id = ? 
+              AND status_id IN (1, 2)
+        """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            ps.setInt(2, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+}

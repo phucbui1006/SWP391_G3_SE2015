@@ -337,12 +337,17 @@ CREATE TABLE WARRANTY_STATUS (
 -- Chỉ nối CUSTOMERS, PRODUCTS, WARRANTY_STATUS
 -- =========================
 CREATE TABLE WARRANTIES (
-    warranty_id  INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id  INT NOT NULL,
-    product_id   INT NOT NULL,
-    status_id    INT,
-    request_date DATETIME NOT NULL,
-    request      TEXT,
+    warranty_id     INT AUTO_INCREMENT PRIMARY KEY,
+    order_detail_id INT NOT NULL,
+    customer_id     INT NOT NULL,
+    product_id      INT NOT NULL,
+    status_id       INT,
+    request_date    DATETIME NOT NULL,
+    response_date   DATETIME NULL,
+    request         TEXT,
+
+    CONSTRAINT FK_WARRANTIES_ORDER_DETAILS
+        FOREIGN KEY (order_detail_id) REFERENCES ORDER_DETAILS(order_detail_id),
 
     CONSTRAINT FK_WARRANTIES_CUSTOMERS
         FOREIGN KEY (customer_id) REFERENCES CUSTOMERS(customer_id),

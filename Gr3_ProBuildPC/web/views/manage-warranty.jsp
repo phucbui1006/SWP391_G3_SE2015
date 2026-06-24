@@ -1,0 +1,328 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%
+    String ctx = request.getContextPath();
+%>
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Quản lý yêu cầu bảo hành - Dashboard</title>
+        
+        <link rel="stylesheet" type="text/css" href="<%= ctx %>/css/style.css">
+        <link rel="stylesheet" type="text/css" href="<%= ctx %>/css/manage-warranty.css">
+    </head>
+    <body class="dashboard-body manage-warranty-page">
+        <jsp:include page="/includes/header.jsp" />
+
+        <main class="warranty-shell">
+            <!-- Breadcrumbs -->
+            <nav class="warranty-breadcrumb" aria-label="breadcrumb">
+                <a href="<%= ctx %>/Dashboard">Dashboard</a>
+                <span>›</span>
+                <strong>Quản lý bảo hành</strong>
+            </nav>
+
+            <!-- Hero Header -->
+            <div class="warranty-hero">
+                <div class="warranty-hero-copy">
+                    <h1>Quản lý yêu cầu bảo hành</h1>
+                   
+                </div>
+            </div>
+
+            <!-- Success/Error Alerts -->
+            <c:if test="${not empty sessionScope.successMsg}">
+                <div class="alert-box success">
+                    <c:out value="${sessionScope.successMsg}"/>
+                </div>
+                <c:remove var="successMsg" scope="session"/>
+            </c:if>
+            <c:if test="${not empty sessionScope.errorMsg}">
+                <div class="alert-box error">
+                    <c:out value="${sessionScope.errorMsg}"/>
+                </div>
+                <c:remove var="errorMsg" scope="session"/>
+            </c:if>
+
+            <!-- Dynamic Statistics Counters via JSTL -->
+            <c:set var="totalCount" value="0"/>
+            <c:set var="pendingCount" value="0"/>
+            <c:set var="processingCount" value="0"/>
+            <c:set var="completedCount" value="0"/>
+            <c:set var="rejectedCount" value="0"/>
+
+            <c:forEach var="w" items="${warrantyList}">
+                <c:set var="totalCount" value="${totalCount + 1}"/>
+                <c:choose>
+                    <c:when test="${w.statusId == 1}"><c:set var="pendingCount" value="${pendingCount + 1}"/></c:when>
+                    <c:when test="${w.statusId == 2}"><c:set var="processingCount" value="${processingCount + 1}"/></c:when>
+                    <c:when test="${w.statusId == 3}"><c:set var="rejectedCount" value="${rejectedCount + 1}"/></c:when>
+                    <c:when test="${w.statusId == 4}"><c:set var="completedCount" value="${completedCount + 1}"/></c:when>
+                </c:choose>
+            </c:forEach>
+
+           
+
+            <!-- Search & Filters -->
+            <section class="warranty-filters">
+                <form class="filters-form" action="<%= ctx %>/ManageWarranty" method="get">
+                    <div class="filter-group">
+                        <label for="search">Tìm kiếm mã yêu cầu / mã đơn hàng</label>
+                        <input 
+                            type="text" 
+                            id="search" 
+                            name="search" 
+                            placeholder="Nhập mã yêu cầu (VD: 1) hoặc mã đơn (VD: 10000)..." 
+                            value="<c:out value="${searchQuery}"/>"
+                            class="filter-input"
+                        >
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="statusFilter">Trạng thái bảo hành</label>
+                        <select id="statusFilter" name="statusFilter" class="filter-select">
+                            <option value="" ${empty statusFilterId ? 'selected' : ''}>Tất cả trạng thái</option>
+                            <option value="1" ${statusFilterId == 1 ? 'selected' : ''}>Chờ tiếp nhận (Pending)</option>
+                            <option value="2" ${statusFilterId == 2 ? 'selected' : ''}>Đã tiếp nhận (Processing)</option>
+                            <option value="3" ${statusFilterId == 3 ? 'selected' : ''}>Từ chối (Rejected)</option>
+                            <option value="4" ${statusFilterId == 4 ? 'selected' : ''}>Hoàn tất (Completed)</option>
+                        </select>
+                    </div>
+
+                    <div class="filters-actions">
+                        <button type="submit" class="btn-search">Tìm kiếm</button>
+                        <a href="<%= ctx %>/ManageWarranty" class="btn-reset">Làm mới</a>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Master Data Table Card -->
+            <section class="warranty-card">
+                <div class="table-wrapper">
+                    <table class="warranty-table">
+                        <thead>
+                            <tr>
+                                <th>Mã yêu cầu</th>
+                                <th>Mã đơn hàng</th>
+                                <th>Khách hàng</th>
+                                <th>Sản phẩm</th>
+                                <th>Ngày gửi</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:choose>
+                                <c:when test="${not empty warrantyList}">
+                                    <c:forEach var="item" items="${warrantyList}">
+                                        <tr>
+                                            <td>
+                                                <span class="req-id">#WR${item.warrantyId}</span>
+                                            </td>
+                                            <td>
+                                                <span class="order-link">#PB${item.orderId}</span>
+                                            </td>
+                                            <td>
+                                                <strong><c:out value="${item.customerName}"/></strong>
+                                            </td>
+                                            <td>
+                                                <div style="max-width: 200px; font-weight: 500;">
+                                                    <c:out value="${item.productName}"/>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div style="font-size: 13px; color: #555;">
+                                                    <div>Gửi: <fmt:formatDate value="${item.requestDate}" pattern="dd/MM/yyyy HH:mm" /></div>
+                                                    <c:if test="${not empty item.responseDate}">
+                                                        <div style="margin-top: 6px; font-size: 12px; color: #2b8a3e; font-weight: 500;">
+                                                            Phản hồi: <fmt:formatDate value="${item.responseDate}" pattern="dd/MM/yyyy HH:mm" />
+                                                        </div>
+                                                    </c:if>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="status-badge status-${item.statusId}">
+                                                    <c:out value="${item.statusName}"/>
+                                                </span>
+                                            </td>
+                                            
+                                            <td>
+                                                <div class="btn-action-group">
+                                                    <!-- Share button: view warranty details -->
+                                                    <a 
+                                                        class="btn-action btn-view" 
+                                                        href="<%= ctx %>/ManageWarranty?action=viewCondition&orderDetailId=${item.orderDetailId}&search=<c:out value="${searchQuery}"/>&statusFilter=${statusFilterId}"
+                                                        style="text-decoration: none;"
+                                                    >
+                                                        🔍 Xem tình trạng
+                                                    </a>
+                                                    
+                                                    <!-- Employee exclusive action button -->
+                                                    <c:if test="${sessionScope.account.roleName == 'EMPLOYEE'}">
+                                                        <a 
+                                                            class="btn-action btn-edit" 
+                                                            href="<%= ctx %>/ManageWarranty?action=edit&warrantyId=${item.warrantyId}&search=<c:out value="${searchQuery}"/>&statusFilter=${statusFilterId}"
+                                                            style="text-decoration: none;"
+                                                        >
+                                                            ⚙ Xử lý
+                                                        </a>
+                                                    </c:if>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                </c:when>
+                                <c:otherwise>
+                                    <tr>
+                                        <td colspan="8">
+                                            <div class="empty-table-state">
+                                                <span class="icon">🛡</span>
+                                                <h3>Không tìm thấy yêu cầu bảo hành nào</h3>
+                                                <p>Vui lòng đổi từ khóa tìm kiếm hoặc chọn bộ lọc trạng thái khác.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </c:otherwise>
+                            </c:choose>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- MODAL 1: VIEW WARRANTY CONDITION -->
+        <div id="conditionModal" class="modal-overlay ${not empty condItem ? 'active' : ''}">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3>🔍 Chi tiết tình trạng bảo hành sản phẩm</h3>
+                    <a href="<%= ctx %>/ManageWarranty?search=<c:out value="${searchQuery}"/>&statusFilter=${statusFilterId}" class="modal-close" style="text-decoration: none;">&times;</a>
+                </div>
+                <div class="modal-body">
+                    <!-- Product & Purchase Info Grid -->
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Sản phẩm</label>
+                            <span><c:out value="${condItem.productName}"/></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Mã đơn hàng</label>
+                            <span>#PB<c:out value="${condItem.orderId}"/></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Khách hàng</label>
+                            <span><c:out value="${condItem.customerName}"/></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Thương hiệu / Loại</label>
+                            <span><c:out value="${condItem.brandName}"/> / <c:out value="${condItem.categoryName}"/></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Ngày mua hàng</label>
+                            <span><fmt:formatDate value="${condItem.orderDate}" pattern="dd/MM/yyyy" /></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Thời hạn bảo hành</label>
+                            <span><c:out value="${condItem.warrantyMonths}"/> tháng</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Ngày hết hạn</label>
+                            <span><fmt:formatDate value="${condItem.warrantyEndDate}" pattern="dd/MM/yyyy" /></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Tình trạng bảo hành</label>
+                            <c:set var="wState" value="${condItem.warrantyState}"/>
+                            <span class="remaining-${wState}">
+                                <c:out value="${condItem.warrantyStatusLabel}"/> (<c:out value="${condItem.remainingDaysLabel}"/>)
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Coverage History Timeline -->
+                    <div class="timeline-section">
+                        <h4>📋 Lịch sử tiếp nhận & bảo hành sản phẩm này</h4>
+                        <ul class="timeline-list" id="condTimeline">
+                            <c:choose>
+                                <c:when test="${not empty condHistory}">
+                                    <c:forEach var="hist" items="${condHistory}" varStatus="loop">
+                                        <li class="timeline-item ${loop.first ? 'active' : ''}">
+                                            <div class="timeline-header">
+                                                <span class="timeline-date"><fmt:formatDate value="${hist.requestDate}" pattern="dd/MM/yyyy HH:mm" /></span>
+                                                <span class="status-badge status-${hist.statusId}">#WR${hist.warrantyId} - <c:out value="${hist.statusName}"/></span>
+                                            </div>
+                                            <div class="timeline-request">
+                                                <strong>Khách mô tả:</strong> <c:out value="${hist.request}"/>
+                                            </div>
+                                            <c:if test="${not empty hist.responseDate}">
+                                                <div class="timeline-response">
+                                                    <strong>Phản hồi ngày:</strong> <fmt:formatDate value="${hist.responseDate}" pattern="dd/MM/yyyy HH:mm" />
+                                                </div>
+                                            </c:if>
+                                        </li>
+                                    </c:forEach>
+                                </c:when>
+                                <c:otherwise>
+                                    <p style="color:#868e96; font-style:italic;">Không có lịch sử yêu cầu bảo hành trước đây cho sản phẩm này.</p>
+                                </c:otherwise>
+                            </c:choose>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="<%= ctx %>/ManageWarranty?search=<c:out value="${searchQuery}"/>&statusFilter=${statusFilterId}" class="btn-reset" style="text-decoration: none;">Đóng</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 2: UPDATE WARRANTY STATUS & NOTES (EMPLOYEE ONLY) -->
+        <c:if test="${sessionScope.account.roleName == 'EMPLOYEE'}">
+            <div id="editModal" class="modal-overlay ${not empty editWarranty ? 'active' : ''}">
+                <div class="modal-card">
+                    <form action="<%= ctx %>/ManageWarranty" method="post">
+                        <input type="hidden" name="search" value="<c:out value="${searchQuery}"/>">
+                        <input type="hidden" name="statusFilter" value="<c:out value="${statusFilterId}"/>">
+                        
+                        <div class="modal-header">
+                            <h3>⚙ Cập nhật yêu cầu bảo hành</h3>
+                            <a href="<%= ctx %>/ManageWarranty?search=<c:out value="${searchQuery}"/>&statusFilter=${statusFilterId}" class="modal-close" style="text-decoration: none;">&times;</a>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" id="editWarrantyId" name="warrantyId" value="${editWarranty.warrantyId}">
+                            
+                            <div class="info-grid" style="margin-bottom: 20px;">
+                                <div class="info-item">
+                                    <label>Mã yêu cầu</label>
+                                    <span>#WR${editWarranty.warrantyId} (Đơn hàng #PB${editWarranty.orderId})</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Sản phẩm</label>
+                                    <span style="font-size:14px; font-weight:600;"><c:out value="${editWarranty.productName}"/></span>
+                                </div>
+                            </div>
+
+                            <!-- Update Status Dropdown -->
+                            <div class="form-group">
+                                <label for="editStatusId">Thay đổi trạng thái</label>
+                                <select id="editStatusId" name="statusId" class="filter-select" required>
+                                    <option value="1" ${editWarranty.statusId == 1 ? 'selected' : ''}>Chờ tiếp nhận (Pending)</option>
+                                    <option value="2" ${editWarranty.statusId == 2 ? 'selected' : ''}>Đã tiếp nhận (Processing)</option>
+                                    <option value="3" ${editWarranty.statusId == 3 ? 'selected' : ''}>Từ chối (Rejected)</option>
+                                    <option value="4" ${editWarranty.statusId == 4 ? 'selected' : ''}>Hoàn tất (Completed)</option>
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <a href="<%= ctx %>/ManageWarranty?search=<c:out value="${searchQuery}"/>&statusFilter=${statusFilterId}" class="btn-reset" style="text-decoration: none;">Hủy bỏ</a>
+                            <button type="submit" class="btn-search">Lưu thay đổi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </c:if>
+
+        <jsp:include page="/includes/footer.jsp" />
+    </body>
+</html>

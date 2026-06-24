@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 import model.Product;
 
 public class ProductDAO extends DBContext {
@@ -279,6 +280,61 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
+    public List<Product> getProductsByCategory(Integer categoryId, String priceRange, String sort, String keyword) {
+        List<Product> list = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+
+        String sql = PRODUCT_SELECT
+                + "WHERE " + getActiveProductCondition();
+
+        if (categoryId != null) {
+            sql += "AND p.category_id = ? ";
+            params.add(categoryId);
+        }
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql += "AND LOWER(p.product_name) LIKE LOWER(?) ";
+            params.add("%" + keyword.trim() + "%");
+        }
+
+        if ("under5".equals(priceRange)) {
+            sql += "AND p.price < ? ";
+            params.add(5000000);
+        } else if ("5to10".equals(priceRange)) {
+            sql += "AND p.price BETWEEN ? AND ? ";
+            params.add(5000000);
+            params.add(10000000);
+        } else if ("10to20".equals(priceRange)) {
+            sql += "AND p.price BETWEEN ? AND ? ";
+            params.add(10000000);
+            params.add(20000000);
+        } else if ("over20".equals(priceRange)) {
+            sql += "AND p.price > ? ";
+            params.add(20000000);
+        }
+
+        sql += getOrderBy(sort);
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapProduct(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     public double getAverageRating(int productId) {
         String sql = """
             SELECT AVG(rating) AS avg_rating
@@ -476,5 +532,165 @@ public class ProductDAO extends DBContext {
         }
         return false;
     }
+
+    public int countProductsForAdmin(String keyword, Integer categoryId, Integer brandId, String status) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT COUNT(*) 
+            FROM products p
+            JOIN brands br ON p.brand_id = br.brand_id
+            JOIN categories c ON p.category_id = c.category_id
+            WHERE 1=1
+        """);
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (p.product_name LIKE ? OR br.brand_name LIKE ? OR c.category_name LIKE ?) ");
+            String searchVal = "%" + keyword.trim() + "%";
+            params.add(searchVal);
+            params.add(searchVal);
+            params.add(searchVal);
+        }
+        if (categoryId != null && categoryId > 0) {
+            sql.append(" AND p.category_id = ? ");
+            params.add(categoryId);
+        }
+        if (brandId != null && brandId > 0) {
+            sql.append(" AND p.brand_id = ? ");
+            params.add(brandId);
+        }
+        if (status != null && !status.equalsIgnoreCase("ALL")) {
+            sql.append(" AND p.status = ? ");
+            params.add(status.toUpperCase());
+        }
+        
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public List<Product> getProductsForAdmin(String keyword, Integer categoryId, Integer brandId, String status, String sort, int page, int pageSize) {
+        List<Product> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(PRODUCT_SELECT);
+        sql.append(" WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (p.product_name LIKE ? OR br.brand_name LIKE ? OR c.category_name LIKE ?) ");
+            String searchVal = "%" + keyword.trim() + "%";
+            params.add(searchVal);
+            params.add(searchVal);
+            params.add(searchVal);
+        }
+        if (categoryId != null && categoryId > 0) {
+            sql.append(" AND p.category_id = ? ");
+            params.add(categoryId);
+        }
+        if (brandId != null && brandId > 0) {
+            sql.append(" AND p.brand_id = ? ");
+            params.add(brandId);
+        }
+        if (status != null && !status.equalsIgnoreCase("ALL")) {
+            sql.append(" AND p.status = ? ");
+            params.add(status.toUpperCase());
+        }
+        
+        // Sorting
+        if ("price_asc".equals(sort)) {
+            sql.append(" ORDER BY p.price ASC ");
+        } else if ("price_desc".equals(sort)) {
+            sql.append(" ORDER BY p.price DESC ");
+        } else if ("oldest".equals(sort)) {
+            sql.append(" ORDER BY p.created_at ASC ");
+        } else {
+            sql.append(" ORDER BY p.created_at DESC, p.product_id DESC "); // newest default
+        }
+        
+        // Paging
+        sql.append(" LIMIT ? OFFSET ? ");
+        params.add(pageSize);
+        params.add((page - 1) * pageSize);
+        
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapProduct(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public boolean addProduct(String productName, int categoryId, int brandId, BigDecimal price, String description, String imageUrl) {
+        int nextProductId = getNextProductId();
+        String sql = """
+            INSERT INTO products (product_id, product_name, category_id, brand_id, price, description, image_url, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE')
+        """;
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, nextProductId);
+            ps.setString(2, productName);
+            ps.setInt(3, categoryId);
+            ps.setInt(4, brandId);
+            ps.setBigDecimal(5, price);
+            ps.setString(6, description);
+            ps.setString(7, imageUrl);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private int getNextProductId() {
+        String sql = "SELECT COALESCE(MAX(product_id), 0) + 1 AS next_id FROM products";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("next_id");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 1;
+    }
+
+    public boolean updateProduct(int productId, String productName, int categoryId, int brandId, BigDecimal price, String description, String imageUrl) {
+        String sql = """
+            UPDATE products
+            SET product_name = ?, category_id = ?, brand_id = ?, price = ?, description = ?, image_url = ?
+            WHERE product_id = ?
+        """;
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, productName);
+            ps.setInt(2, categoryId);
+            ps.setInt(3, brandId);
+            ps.setBigDecimal(4, price);
+            ps.setString(5, description);
+            ps.setString(6, imageUrl);
+            ps.setInt(7, productId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    
 }
 

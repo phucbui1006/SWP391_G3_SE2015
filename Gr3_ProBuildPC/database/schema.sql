@@ -76,6 +76,25 @@ CREATE TABLE CATEGORIES (
 );
 
 -- =========================
+-- THÔNG SỐ DANH MỤC (TEMPLATE)
+-- =========================
+CREATE TABLE CATEGORY_SPEC_TEMPLATES (
+    template_id    INT AUTO_INCREMENT PRIMARY KEY,
+    category_id    INT NOT NULL,
+    spec_name      VARCHAR(255) NOT NULL,
+    spec_type      ENUM('TEXT', 'SELECT', 'NUMBER') NOT NULL,
+    allowed_values VARCHAR(500) NULL,
+    is_required    BOOLEAN DEFAULT TRUE,
+    display_order  INT DEFAULT 0,
+
+    CONSTRAINT FK_TEMPLATE_CATEGORY
+        FOREIGN KEY (category_id) REFERENCES CATEGORIES(category_id),
+
+    CONSTRAINT UQ_CATEGORY_SPEC
+        UNIQUE (category_id, spec_name)
+);
+
+-- =========================
 -- THƯƠNG HIỆU
 -- =========================
 CREATE TABLE BRANDS (
@@ -318,12 +337,13 @@ CREATE TABLE WARRANTY_STATUS (
 -- Chỉ nối CUSTOMERS, PRODUCTS, WARRANTY_STATUS
 -- =========================
 CREATE TABLE WARRANTIES (
-    warranty_id  INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id  INT NOT NULL,
-    product_id   INT NOT NULL,
-    status_id    INT,
-    request_date DATETIME NOT NULL,
-    request      TEXT,
+    warranty_id     INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id     INT NOT NULL,
+    product_id      INT NOT NULL,
+    status_id       INT,
+    request_date    DATETIME NOT NULL,
+    response_date   DATETIME NULL,
+    request         TEXT,
 
     CONSTRAINT FK_WARRANTIES_CUSTOMERS
         FOREIGN KEY (customer_id) REFERENCES CUSTOMERS(customer_id),

@@ -118,7 +118,7 @@
         <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-clipboard-list"></i> Lịch sử đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-shield-halved"></i> Tra cứu bảo hành</a>
+        <a href="<%= ctx %>/warranty-lookup" class="menu-item <%= "/warranty-lookup".equals(currentPath) || "/WarrantyLookup".equals(currentPath) ? "active" : "" %>">🛡 Tra cứu bảo hành</a>
         <% } else if ("ADMIN".equals(roleName)) { %>
 
 
@@ -146,9 +146,9 @@
                 <span class="menu-dropdown-arrow">▾</span>
             </button>
             <div class="menu-dropdown-list">
-                <a href="#">Quản lý sản phẩm</a>
+                <a href="<%= ctx %>/admin/products">Quản lý sản phẩm</a>
                 <a href="<%= ctx %>/AdminBrands">Quản lý thương hiệu</a>
-                <a href="<%= ctx %>/admin/categories">Quản lý các loại sản phẩm</a>
+                <a href="<%= ctx %>/admin/categories">Quản lý các danh mục sản phẩm</a>
             </div>
         </div>
         <span class="menu-divider"></span>
@@ -156,7 +156,7 @@
         <a href="${pageContext.request.contextPath}/BatchServlet" class="menu-item <%= "/BatchServlet".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-warehouse"></i> Lô hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item"><i class="fa-solid fa-shield-halved"></i> Bảo hành</a>
+        <a href="#" class="menu-item">🛡 Bảo hành</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item"><i class="fa-solid fa-chart-line"></i> Thống kê doanh thu</a>
@@ -169,7 +169,7 @@
         <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-boxes-stacked"></i> Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item"><i class="fa-solid fa-shield-heart"></i> Dịch vụ bảo hành</a>
+        <a href="#" class="menu-item">🛡 Dịch vụ bảo hành</a>
 
         <% } else if ("SHIPMENT".equals(roleName)) { %>
 

@@ -1,21 +1,17 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ page import="java.math.BigDecimal" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
-<%@ page import="model.WarrantyLookupItem" %>
-<%@ page import="model.WarrantyLookupResult" %>
+<%@ page import="model.Warranty" %>
 
 <%!
     private String h(String value) {
-        if (value == null) {
-            return "";
-        }
-
-        return value
-                .replace("&", "&amp;")
+        if (value == null) return "";
+        return value.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
@@ -40,39 +36,23 @@
     }
 
     private String paymentMethodLabel(String paymentMethod) {
-        if (paymentMethod == null) {
-            return "Chưa cập nhật";
-        }
+        if (paymentMethod == null) return "Chưa cập nhật";
 
         String normalized = paymentMethod.trim();
-        if ("COD".equalsIgnoreCase(normalized)) {
-            return "Thanh toán khi nhận hàng";
-        }
-
-        if ("VNPAY".equalsIgnoreCase(normalized)) {
-            return "Thanh toán qua VNPAY";
-        }
+        if ("COD".equalsIgnoreCase(normalized)) return "Thanh toán khi nhận hàng";
+        if ("VNPAY".equalsIgnoreCase(normalized)) return "Thanh toán qua VNPAY";
 
         return normalized;
     }
 
     private String orderStatusClass(String statusName) {
-        if (statusName == null) {
-            return "neutral";
-        }
+        if (statusName == null) return "neutral";
 
         String normalized = statusName.toLowerCase();
-        if (normalized.contains("hủy")) {
-            return "cancelled";
-        }
-
-        if (normalized.contains("giao") || normalized.contains("hoàn")) {
-            return "complete";
-        }
-
-        if (normalized.contains("chờ") || normalized.contains("đang")) {
-            return "processing";
-        }
+        if (normalized.contains("hủy")) return "cancelled";
+        if (normalized.contains("giao") || normalized.contains("hoàn")) return "complete";
+        if (normalized.contains("chờ") || normalized.contains("đang")) return "processing";
+        if (normalized.contains("xác nhận")) return "confirmed";
 
         return "neutral";
     }
@@ -80,16 +60,20 @@
 
 <%
     String ctx = request.getContextPath();
+
     String orderIdInput = (String) request.getAttribute("orderIdInput");
-    String errorMessage = (String) request.getAttribute("warrantyLookupError");
-    WarrantyLookupResult result = (WarrantyLookupResult) request.getAttribute("warrantyLookupResult");
-    List<WarrantyLookupItem> items = result == null ? java.util.Collections.emptyList() : result.getItems();
+
+    List<Warranty> items = (List<Warranty>) request.getAttribute("warrantyItems");
+    Warranty orderInfo = (items == null || items.isEmpty()) ? null : items.get(0);
 
     Locale vietnameseLocale = new Locale("vi", "VN");
     NumberFormat currencyFormatter = NumberFormat.getNumberInstance(vietnameseLocale);
     currencyFormatter.setMinimumFractionDigits(0);
     currencyFormatter.setMaximumFractionDigits(0);
+
     DateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy");
+
+    boolean isDelivered = orderInfo != null && "Đã giao hàng".equalsIgnoreCase(orderInfo.getOrderStatusName());
 %>
 
 <!DOCTYPE html>
@@ -97,28 +81,33 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Tra cứu bảo hành</title>
+        <title>Tra cứu bảo hành – ProBuild PC</title>
+        <meta name="description" content="Tra cứu thời hạn bảo hành linh kiện PC theo mã đơn hàng tại ProBuild PC.">
         <link rel="stylesheet" type="text/css" href="<%= ctx %>/css/style.css">
-        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     </head>
+
     <body class="warranty-lookup-page">
         <jsp:include page="/includes/header.jsp" />
 
-        <main class="warranty-shell">
-            <nav class="warranty-breadcrumb" aria-label="breadcrumb">
-                <a href="<%= ctx %>/home">Trang chủ</a>
-                <span>›</span>
-                <strong>Kiểm tra bảo hành</strong>
-            </nav>
+        <main class="wl-shell">
+            <div class="wl-container">
+                <!-- 1. Breadcrumbs & Header sitting directly on the flat light background -->
+                <nav class="wl-breadcrumb" aria-label="breadcrumb">
+                    <a href="<%= ctx %>/home">Trang chủ</a>
+                    <span class="wl-breadcrumb-sep">›</span>
+                    <span>Kiểm tra bảo hành</span>
+                </nav>
 
-            <section class="warranty-intro">
-                <div class="warranty-intro-copy">
-                    <h1>Kiểm tra bảo hành</h1>
-                    <p>Nhập mã đơn hàng để xem thời hạn bảo hành các sản phẩm trong đơn.</p>
-                </div>
+                <header class="wl-page-header">
+                    <h1 id="warranty-page-title">Kiểm tra bảo hành</h1>
+                    <p class="wl-subtitle">Nhập mã đơn hàng để tra cứu trạng thái bảo hành từng linh kiện.</p>
+                </header>
 
                 <div class="warranty-hero-mark" aria-hidden="true">
-                    <div class="warranty-shield"><i class="fa-solid fa-check"></i></div>
+                    <div class="warranty-shield">✓</div>
                     <div class="warranty-card-icon">
                         <span></span>
                         <span></span>
@@ -141,19 +130,18 @@
                                 required>
                             <button type="submit">Kiểm tra</button>
                         </div>
-                        <p class="warranty-help-text"><i class="fa-solid fa-circle-info"></i> Mã đơn hàng có trong email xác nhận hoặc trang chi tiết đơn hàng.</p>
+                        <p class="warranty-help-text">ⓘ Mã đơn hàng có trong email xác nhận hoặc trang chi tiết đơn hàng.</p>
 
                         <% if (errorMessage != null && !errorMessage.trim().isEmpty()) { %>
                         <div class="warranty-alert">
                             <%= h(errorMessage) %>
                         </div>
                         <% } %>
-                    </form>
 
                     <% if (result != null) { %>
                     <section class="warranty-result-card">
                         <header class="warranty-result-header">
-                            <div class="warranty-success-icon"><i class="fa-solid fa-check"></i></div>
+                            <div class="warranty-success-icon">✓</div>
                             <div>
                                 <h2>Đơn hàng <%= displayOrderCode(result.getOrderId()) %></h2>
                                 <p>
@@ -174,48 +162,69 @@
                             </div>
 
                             <% if (items.isEmpty()) { %>
-                            <div class="warranty-empty-row">
-                                Đơn hàng này chưa có sản phẩm để tra cứu bảo hành.
+                            <div class="wl-empty-products">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                                <p>Đơn hàng này chưa có sản phẩm để tra cứu bảo hành.</p>
                             </div>
                             <% } else { %>
-                            <% for (WarrantyLookupItem item : items) { %>
-                            <%
-                                String imageUrl = defaultText(item.getImageUrl(), "");
-                                String imageSrc = imageUrl.isEmpty()
-                                        ? ctx + "/images/background.jpg"
-                                        : (imageUrl.startsWith("http://") || imageUrl.startsWith("https://") ? imageUrl : ctx + "/" + imageUrl);
-                                String state = item.getWarrantyState();
-                            %>
-                            <article class="warranty-row">
-                                <div class="warranty-product-cell">
-                                    <img src="<%= h(imageSrc) %>" alt="<%= h(defaultText(item.getProductName(), "Sản phẩm")) %>">
-                                    <div>
-                                        <strong><%= h(defaultText(item.getProductName(), "Sản phẩm")) %></strong>
-                                        <span><%= h(defaultText(item.getCategoryName(), "Khác")) %> | <%= h(defaultText(item.getBrandName(), "Khác")) %></span>
-                                        <small>Số lượng: <%= item.getQuantity() %></small>
+                            <div class="wl-product-list">
+                                <% for (Warranty item : items) { %>
+                                <%
+                                    String imageUrl = defaultText(item.getImageUrl(), "");
+                                    String imageSrc = imageUrl.isEmpty()
+                                            ? ctx + "/images/background.jpg"
+                                            : (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")
+                                            ? imageUrl
+                                            : ctx + "/" + imageUrl);
+
+                                    String state = item.getWarrantyState();
+
+                                    boolean isWarrantyValid =
+                                            item.getRemainingDays() > 0
+                                                    && item.getWarrantyMonths() > 0
+                                                    && item.getWarrantyEndDate() != null;
+                                %>
+
+                                <article class="wl-product-card" id="product-<%= item.getProductId() %>">
+                                    <div class="wl-product-info">
+                                        <img class="wl-product-img"
+                                             src="<%= h(imageSrc) %>"
+                                             alt="<%= h(defaultText(item.getProductName(), "Sản phẩm")) %>"
+                                             loading="lazy">
+
+                                        <div class="wl-product-text">
+                                            <h3 class="wl-product-name" title="<%= h(defaultText(item.getProductName(), "Sản phẩm")) %>">
+                                                <%= h(defaultText(item.getProductName(), "Sản phẩm")) %>
+                                            </h3>
+                                            <div class="wl-product-meta">
+                                                <span class="wl-meta-tag"><%= h(defaultText(item.getCategoryName(), "Khác")) %></span>
+                                                <span class="wl-meta-tag"><%= h(defaultText(item.getBrandName(), "Khác")) %></span>
+                                                <span class="wl-meta-tag wl-meta-tag--qty">SL: <%= item.getQuantity() %></span>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="warranty-time-cell warranty-state-<%= state %>">
-                                    <strong><%= h(item.getRemainingDaysLabel()) %></strong>
-                                    <span>Hết hạn: <%= formatDate(item.getWarrantyEndDate(), dateFormatter) %></span>
-                                    <small><%= item.getWarrantyMonths() %> tháng bảo hành</small>
-                                </div>
+                                    <div class="wl-warranty-timeline">
+                                        <div class="wl-timeline-top">
+                                            <span class="wl-remaining-days wl-state-<%= state %>">
+                                                <%= h(item.getRemainingDaysLabel()) %>
+                                            </span>
+                                            <span class="wl-warranty-badge wl-state-<%= state %>">
+                                                <%= h(item.getWarrantyStatusLabel()) %>
+                                            </span>
+                                        </div>
+                                        <div class="wl-timeline-bottom">
+                                            <span>Hết hạn: <%= formatDate(item.getWarrantyEndDate(), dateFormatter) %></span>
+                                            <span class="wl-timeline-sep">•</span>
+                                            <span><%= item.getWarrantyMonths() %> tháng bảo hành</span>
+                                        </div>
+                                    </div>
 
-                                <div>
-                                    <span class="warranty-status-pill warranty-status-<%= state %>">
-                                        <%= h(item.getWarrantyStatusLabel()) %>
-                                    </span>
-                                </div>
-                            </article>
-                            <% }} %>
-                        </div>
-
-                        <p class="warranty-note"><i class="fa-solid fa-circle-info"></i> Thời gian bảo hành được tính từ ngày mua hàng.</p>
+                        <p class="warranty-note">ⓘ Thời gian bảo hành được tính từ ngày mua hàng.</p>
                     </section>
                     <% } else { %>
                     <section class="warranty-empty-state">
-                        <div class="warranty-empty-icon"><i class="fa-regular fa-circle-question"></i></div>
+                        <div class="warranty-empty-icon">?</div>
                         <div>
                             <h2>Chưa có đơn hàng để hiển thị</h2>
                             <p>Nhập order ID trong hệ thống để xem ngày hết hạn bảo hành của từng linh kiện.</p>
@@ -234,13 +243,25 @@
                                 <dt>Mã đơn hàng</dt>
                                 <dd><%= displayOrderCode(result.getOrderId()) %></dd>
                             </div>
-                            <div>
-                                <dt>Ngày đặt hàng</dt>
-                                <dd><%= formatDate(result.getOrderDate(), dateFormatter) %></dd>
+                            <% } %>
+
+                            <p class="wl-footnote">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                Thời gian bảo hành được tính từ ngày đơn hàng giao thành công.
+                            </p>
+                        </section>
+                        <% } else { %>
+                        <!-- ═══════════════ EMPTY STATE ALERT CARD ═══════════════ -->
+                        <div class="wl-empty-alert-card" id="warranty-empty">
+                            <div class="wl-empty-alert-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="16" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                </svg>
                             </div>
-                            <div>
-                                <dt>Hình thức thanh toán</dt>
-                                <dd><%= h(paymentMethodLabel(result.getPaymentMethod())) %></dd>
+                            <div class="wl-empty-alert-content">
+                                Chưa có đơn hàng để hiển thị - Nhập order ID trong hệ thống để xem ngày hết hạn bảo hành của từng linh kiện.
                             </div>
                             <div>
                                 <dt>Trạng thái đơn hàng</dt>
@@ -257,7 +278,7 @@
                         </dl>
 
                         <a class="warranty-detail-link" href="#">
-                            <i class="fa-solid fa-arrow-rotate-right"></i> Xem chi tiết đơn hàng
+                            ⟳ Xem chi tiết đơn hàng
                         </a>
                     </section>
                     <% } %>
@@ -266,40 +287,32 @@
                         <h2>Chính sách bảo hành</h2>
                         <div class="warranty-policy-list">
                             <div>
-                                <span><i class="fa-solid fa-check"></i></span>
+                                <span>✓</span>
                                 <p>Sản phẩm được bảo hành theo chính sách của nhà sản xuất.</p>
                             </div>
                             <div>
-                                <span><i class="fa-regular fa-calendar-days"></i></span>
+                                <span>□</span>
                                 <p>Thời gian bảo hành có thể khác nhau tùy thuộc vào từng sản phẩm.</p>
                             </div>
                             <div>
-                                <span><i class="fa-solid fa-phone"></i></span>
+                                <span>☎</span>
                                 <p>Vui lòng liên hệ 1900 9999 nếu bạn cần hỗ trợ thêm.</p>
                             </div>
                         </div>
-                    </section>
-                </aside>
-            </section>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <jsp:include page="/includes/footer.jsp" />
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                Validator.setupRealTimeValidation([
-                    {
-                        selector: '#orderId',
-                        validateFn: (val) => Validator.validateOrderId(val),
-                        getErrorMsg: () => 'Mã đơn hàng không hợp lệ. Vui lòng nhập số ID (VD: 10006 hoặc PB10006).'
-                    }
-                ]);
-            });
 
-            function validateForm() {
-                const orderIdInput = document.getElementById("orderId");
-                const isValid = Validator.validateOrderId(orderIdInput.value);
-                Validator.showFeedback(orderIdInput, isValid, 'Mã đơn hàng không hợp lệ. Vui lòng nhập số ID (VD: 10006 hoặc PB10006).');
-                return isValid;
+        <script>
+            function submitInlineWarrantyRequest(event, form) {
+                var btn = form.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="wl-btn-spinner"></span> Đang gửi...';
+                }
             }
         </script>
     </body>

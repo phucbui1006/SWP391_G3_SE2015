@@ -12,6 +12,7 @@ public class AdminDashboardView {
     private List<ProductRow> bestSellingProducts = new ArrayList<>();
     private List<ProductRow> lowStockProducts = new ArrayList<>();
     private List<OrderRow> latestOrders = new ArrayList<>();
+    private List<OrderSummaryRow> orderSummaries = new ArrayList<>();
     private List<CountRow> warrantyStatusCounts = new ArrayList<>();
     private List<CountRow> accountSummaries = new ArrayList<>();
     private String bestSellingFooterMessage;
@@ -77,6 +78,14 @@ public class AdminDashboardView {
 
     public void setLatestOrders(List<OrderRow> latestOrders) {
         this.latestOrders = latestOrders == null ? new ArrayList<>() : latestOrders;
+    }
+
+    public List<OrderSummaryRow> getOrderSummaries() {
+        return orderSummaries;
+    }
+
+    public void setOrderSummaries(List<OrderSummaryRow> orderSummaries) {
+        this.orderSummaries = orderSummaries == null ? new ArrayList<>() : orderSummaries;
     }
 
     public List<CountRow> getWarrantyStatusCounts() {
@@ -272,6 +281,36 @@ public class AdminDashboardView {
 
         public String getOrderDate() {
             return orderDate;
+        }
+    }
+
+    public static class OrderSummaryRow {
+        private final String label;
+        private final String value;
+        private final String note;
+        private final String statusClass;
+
+        public OrderSummaryRow(String label, String value, String note, String statusClass) {
+            this.label = label;
+            this.value = value;
+            this.note = note;
+            this.statusClass = statusClass;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public String getNote() {
+            return note;
+        }
+
+        public String getStatusClass() {
+            return statusClass;
         }
     }
 

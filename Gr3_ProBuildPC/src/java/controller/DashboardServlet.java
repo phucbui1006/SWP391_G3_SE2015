@@ -5,6 +5,7 @@ import dal.OrderHistoryDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+import java.math.BigDecimal;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -64,7 +65,7 @@ public class DashboardServlet extends HttpServlet {
         DashboardSummary summary = dashboardDAO.getSummary(selectedDate);
         List<DashboardProduct> bestSellingProducts = dashboardDAO.getBestSellingProducts(selectedDate, 5);
         List<DashboardProduct> lowStockProducts = dashboardDAO.getLowStockProducts(5);
-        List<OrderHistoryItem> latestOrders = dashboardDAO.getLatestOrders(selectedDate, 5);
+        Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(selectedDate);
         Map<String, Integer> warrantyStatusCounts = dashboardDAO.getWarrantyStatusCounts(selectedDate);
         AccountSummary accountSummary = dashboardDAO.getAccountSummary();
         int bestSellingTotal = dashboardDAO.countBestSellingProducts(selectedDate);
@@ -79,7 +80,7 @@ public class DashboardServlet extends HttpServlet {
                 bestSellingTotal,
                 lowStockProducts,
                 lowStockTotal,
-                latestOrders,
+                orderStatusCounts,
                 warrantyStatusCounts,
                 accountSummary,
                 showWarrantyAll
@@ -88,7 +89,7 @@ public class DashboardServlet extends HttpServlet {
 
     private AdminDashboardView buildAdminDashboardView(HttpServletRequest request, LocalDate selectedDate,
             DashboardSummary summary, List<DashboardProduct> bestSellingProducts, int bestSellingTotal,
-            List<DashboardProduct> lowStockProducts, int lowStockTotal, List<OrderHistoryItem> latestOrders,
+            List<DashboardProduct> lowStockProducts, int lowStockTotal, Map<String, Integer> orderStatusCounts,
             Map<String, Integer> warrantyStatusCounts, AccountSummary accountSummary, boolean showWarrantyAll) {
         AdminDashboardView view = new AdminDashboardView();
         String ctx = request.getContextPath();
@@ -101,7 +102,7 @@ public class DashboardServlet extends HttpServlet {
         view.setStatCards(buildAdminStatCards(safeSummary));
         view.setBestSellingProducts(buildProductRows(bestSellingProducts));
         view.setLowStockProducts(buildProductRows(lowStockProducts));
-        view.setLatestOrders(buildOrderRows(latestOrders));
+        view.setOrderSummaries(buildOrderSummaryRows(safeSummary, orderStatusCounts));
         view.setWarrantyStatusCounts(buildWarrantyRows(warrantyStatusCounts, showWarrantyAll));
         view.setAccountSummaries(buildAccountRows(safeAccountSummary));
 
@@ -117,13 +118,6 @@ public class DashboardServlet extends HttpServlet {
             view.setLowStockFooterMessage("Còn " + (lowStockTotal - lowStockVisible)
                     + " sản phẩm sắp hết hàng khác.");
             view.setLowStockFooterUrl(ctx + "/admin/categories");
-        }
-
-        int latestOrdersVisible = view.getLatestOrders().size();
-        if (safeSummary.getTotalOrders() > latestOrdersVisible) {
-            view.setLatestOrdersFooterMessage("Còn " + (safeSummary.getTotalOrders() - latestOrdersVisible)
-                    + " đơn hàng khác trong ngày.");
-            view.setLatestOrdersFooterUrl(ctx + "/order-history");
         }
 
         int warrantyStatusTotal = warrantyStatusCounts == null ? 0 : warrantyStatusCounts.size();
@@ -189,6 +183,81 @@ public class DashboardServlet extends HttpServlet {
             ));
         }
         return rows;
+    }
+
+    private List<AdminDashboardView.OrderSummaryRow> buildOrderSummaryRows(
+            DashboardSummary summary, Map<String, Integer> orderStatusCounts) {
+        List<AdminDashboardView.OrderSummaryRow> rows = new ArrayList<>();
+        int totalOrders = summary.getTotalOrders();
+        BigDecimal totalRevenue = summary.getTotalRevenue() == null ? BigDecimal.ZERO : summary.getTotalRevenue();
+        int successfulOrders = countSuccessfulOrders(orderStatusCounts);
+
+        rows.add(new AdminDashboardView.OrderSummaryRow(
+                "Tổng đơn hàng",
+                String.valueOf(totalOrders),
+                "Tất cả đơn phát sinh trong ngày đã chọn",
+                ""
+        ));
+        rows.add(new AdminDashboardView.OrderSummaryRow(
+                "Doanh thu hợp lệ",
+                DashboardViewHelper.formatCurrency(totalRevenue),
+                "Không tính đơn đã hủy",
+                ""
+        ));
+        rows.add(new AdminDashboardView.OrderSummaryRow(
+                "Đã giao thành công/hoàn thành",
+                String.valueOf(successfulOrders),
+                "Tổng đơn đã giao thành công hoặc đã hoàn thành",
+                "delivered"
+        ));
+
+        if (orderStatusCounts != null) {
+            for (Map.Entry<String, Integer> entry : orderStatusCounts.entrySet()) {
+                String status = DashboardViewHelper.defaultText(entry.getKey(), "Chưa cập nhật");
+                if (isConfirmedOrderStatus(status) || isSuccessfulOrderStatus(status)) {
+                    continue;
+                }
+                rows.add(new AdminDashboardView.OrderSummaryRow(
+                        DashboardViewHelper.h(status),
+                        String.valueOf(entry.getValue() == null ? 0 : entry.getValue()),
+                        "Theo trạng thái đơn hàng",
+                        DashboardViewHelper.statusClass(status)
+                ));
+            }
+        }
+
+        return rows;
+    }
+
+    private int countSuccessfulOrders(Map<String, Integer> orderStatusCounts) {
+        if (orderStatusCounts == null) {
+            return 0;
+        }
+
+        int total = 0;
+        for (Map.Entry<String, Integer> entry : orderStatusCounts.entrySet()) {
+            if (isSuccessfulOrderStatus(entry.getKey())) {
+                total += entry.getValue() == null ? 0 : entry.getValue();
+            }
+        }
+        return total;
+    }
+
+    private boolean isSuccessfulOrderStatus(String status) {
+        String value = status == null ? "" : status.toLowerCase();
+        return value.contains("đã giao")
+                || value.contains("da giao")
+                || value.contains("hoàn thành")
+                || value.contains("hoan thanh")
+                || value.contains("thành công")
+                || value.contains("thanh cong");
+    }
+
+    private boolean isConfirmedOrderStatus(String status) {
+        String value = status == null ? "" : status.toLowerCase();
+        return (value.contains("xác nhận") || value.contains("xac nhan"))
+                && !value.contains("chờ")
+                && !value.contains("cho ");
     }
 
     private List<AdminDashboardView.CountRow> buildWarrantyRows(Map<String, Integer> counts, boolean showAll) {

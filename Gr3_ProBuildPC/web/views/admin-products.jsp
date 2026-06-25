@@ -259,7 +259,7 @@
                                         <div class="product-actions">
                                             <!-- Edit Details -->
                                             <a href="#edit-product-modal" class="action-btn btn-edit" title="Sửa thông tin sản phẩm"
-                                               onclick="openEditModal(<%= p.getProductId() %>, '<%= h(p.getProductName()) %>', <%= p.getCategoryId() %>, <%= p.getBrandId() %>, <%= p.getPrice() %>, '<%= h(p.getDescription()) %>', '<%= p.getImageUrl() %>')">
+                                               onclick="openEditModal(<%= p.getProductId() %>, '<%= h(p.getProductName()) %>', <%= p.getCategoryId() %>, <%= p.getBrandId() %>, <%= p.getPrice() %>, <%= p.getWarrantyMonths() %>, '<%= h(p.getDescription()) %>', '<%= p.getImageUrl() %>')">
                                                 <i class="fa-solid fa-pen"></i> Sửa
                                             </a>
 
@@ -364,6 +364,12 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="addWarrantyMonths">Bảo hành (tháng) <span>*</span></label>
+                            <input id="addWarrantyMonths" name="warrantyMonths" type="number" min="0" placeholder="VD: 12" value="<%= "add".equals(failedAction) && request.getAttribute("enteredWarrantyMonths") != null ? h((String)request.getAttribute("enteredWarrantyMonths")) : "" %>" required>
+                            <small class="form-error-text" id="addWarrantyMonthsError"></small>
+                        </div>
+
+                        <div class="form-group">
                             <label for="addImageFile">Hình ảnh sản phẩm</label>
                             <input id="addImageFile" name="imgFile" type="file" accept=".jpg,.jpeg,.png,.webp">
                             <small class="image-hint">Tối đa 2MB | Hỗ trợ .png, .jpg, .jpeg, .webp</small>
@@ -437,6 +443,12 @@
                             <label for="editPrice">Giá bán (VND) <span>*</span></label>
                             <input id="editPrice" name="price" type="number" min="0" step="1000" value="<%= "update".equals(failedAction) ? h(enteredPrice) : "" %>" required>
                             <small class="form-error-text" id="editPriceError"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editWarrantyMonths">Bảo hành (tháng) <span>*</span></label>
+                            <input id="editWarrantyMonths" name="warrantyMonths" type="number" min="0" value="<%= "update".equals(failedAction) && request.getAttribute("enteredWarrantyMonths") != null ? h((String)request.getAttribute("enteredWarrantyMonths")) : "" %>" required>
+                            <small class="form-error-text" id="editWarrantyMonthsError"></small>
                         </div>
 
                         <div class="form-group">
@@ -525,13 +537,14 @@
                 document.getElementById("quickPriceVal").value = currentPrice;
             }
 
-            function openEditModal(productId, productName, categoryId, brandId, price, description, currentImgUrl) {
+            function openEditModal(productId, productName, categoryId, brandId, price, warrantyMonths, description, currentImgUrl) {
                 clearFormErrors("editProductForm");
                 document.getElementById("editProductId").value = productId;
                 document.getElementById("editProductName").value = productName;
                 document.getElementById("editCategory").value = categoryId;
                 document.getElementById("editBrand").value = brandId;
                 document.getElementById("editPrice").value = price;
+                document.getElementById("editWarrantyMonths").value = warrantyMonths;
                 document.getElementById("editDescription").value = description;
                 document.getElementById("editCurrentImg").value = currentImgUrl;
 

@@ -155,7 +155,6 @@ public class BatchItemServlet extends HttpServlet {
                     int productId = Integer.parseInt(request.getParameter("productId"));
                     int importQuantity = Integer.parseInt(request.getParameter("importQuantity"));
                     BigDecimal price = new BigDecimal(request.getParameter("price"));
-                    int warrantyMonths = Integer.parseInt(request.getParameter("warrantyMonths"));
 
                     if (importQuantity <= 0) {
                         request.setAttribute("error", "Số lượng nhập phải lớn hơn 0.");
@@ -165,12 +164,6 @@ public class BatchItemServlet extends HttpServlet {
 
                     if (price.compareTo(BigDecimal.ZERO) < 0) {
                         request.setAttribute("error", "Giá nhập không được âm.");
-                        forwardWithBatchDetail(request, response, batchId);
-                        return;
-                    }
-
-                    if (warrantyMonths < 0) {
-                        request.setAttribute("error", "Thời gian bảo hành không được âm.");
                         forwardWithBatchDetail(request, response, batchId);
                         return;
                     }
@@ -189,7 +182,6 @@ public class BatchItemServlet extends HttpServlet {
                     item.setImportQuantity(importQuantity);
                     item.setQuantity(importQuantity);
                     item.setPrice(price);
-                    item.setWarrantyMonths(warrantyMonths);
 
                     boolean success = batchItemDAO.addItem(item);
 
@@ -211,7 +203,6 @@ public class BatchItemServlet extends HttpServlet {
                     int importQuantity = Integer.parseInt(request.getParameter("importQuantity"));
                     int quantity = Integer.parseInt(request.getParameter("quantity"));
                     BigDecimal price = new BigDecimal(request.getParameter("price"));
-                    int warrantyMonths = Integer.parseInt(request.getParameter("warrantyMonths"));
 
                     if (importQuantity <= 0) {
                         request.setAttribute("error", "Số lượng nhập phải lớn hơn 0.");
@@ -231,12 +222,6 @@ public class BatchItemServlet extends HttpServlet {
                         return;
                     }
 
-                    if (warrantyMonths < 0) {
-                        request.setAttribute("error", "Thời gian bảo hành không được âm.");
-                        forwardWithBatchDetail(request, response, batchId);
-                        return;
-                    }
-
                     BatchItem item = new BatchItem();
                     item.setBatchItemId(batchItemId);
                     item.setBatchId(batchId);
@@ -244,7 +229,6 @@ public class BatchItemServlet extends HttpServlet {
                     item.setImportQuantity(importQuantity);
                     item.setQuantity(quantity);
                     item.setPrice(price);
-                    item.setWarrantyMonths(warrantyMonths);
 
                     boolean success = batchItemDAO.updateItem(item);
 

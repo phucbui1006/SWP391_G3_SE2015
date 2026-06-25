@@ -24,6 +24,7 @@ public class Warranty {
     private Date warrantyEndDate;
     private long remainingDays;
     private Date orderDate;
+    private Date deliveryDate;
     private BigDecimal totalAmount;
     private String paymentMethod;
     private String paymentStatus;
@@ -211,6 +212,14 @@ public class Warranty {
 
     public void setOrderDate(Date orderDate) {
         this.orderDate = orderDate;
+    }
+
+    public Date getDeliveryDate() {
+        return deliveryDate;
+    }
+
+    public void setDeliveryDate(Date deliveryDate) {
+        this.deliveryDate = deliveryDate;
     }
 
     public BigDecimal getTotalAmount() {

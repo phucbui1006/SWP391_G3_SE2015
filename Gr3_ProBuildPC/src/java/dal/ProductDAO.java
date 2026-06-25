@@ -781,5 +781,18 @@ public class ProductDAO extends DBContext {
         }
         return list;
     }
+
+    public boolean updatePrice(int productId, BigDecimal price) {
+        String sql = "UPDATE products SET price = ? WHERE product_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setBigDecimal(1, price);
+            ps.setInt(2, productId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
 

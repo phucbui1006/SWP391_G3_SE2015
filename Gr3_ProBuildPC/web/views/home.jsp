@@ -94,7 +94,7 @@
 
                 <section class="service-row">
                     <article>
-                        <span>🛡</span>
+                        <span><i class="fa-solid fa-shield-halved"></i></span>
                         <div>
                             <strong>Hàng chính hãng</strong>
                             <small>100% chính hãng</small>
@@ -102,7 +102,7 @@
                     </article>
 
                     <article>
-                        <span>🔄</span>
+                        <span><i class="fa-solid fa-rotate"></i></span>
                         <div>
                             <strong>Bảo hành uy tín</strong>
                             <small>Bảo hành chính hãng</small>
@@ -110,7 +110,7 @@
                     </article>
 
                     <article>
-                        <span>🚚</span>
+                        <span><i class="fa-solid fa-truck-fast"></i></span>
                         <div>
                             <strong>Giao hàng toàn Thạch Thất</strong>
                             <small>Miễn phí đơn từ 1 triệu</small>
@@ -118,7 +118,7 @@
                     </article>
 
                     <article>
-                        <span>🎧</span>
+                        <span><i class="fa-solid fa-headset"></i></span>
                         <div>
                             <strong>Hỗ trợ 24/7</strong>
                             <small>Tư vấn tận tâm</small>
@@ -187,7 +187,7 @@
 
                         <div class="product-rating">
                             <% for (int i = 1; i <= 5; i++) { %>
-                            <%= i <= fullStars ? "★" : "☆" %>
+                            <i class="<%= i <= fullStars ? "fa-solid" : "fa-regular" %> fa-star"></i>
                             <% } %>
                             <span><%= String.format("%.1f", rating) %></span>
                         </div>
@@ -210,7 +210,7 @@
                                 <input type="hidden" name="productId" value="<%= product.getProductId() %>">
                                 <input type="hidden" name="quantity" value="1">
                                 <button class="cart-btn" type="submit" data-add-to-cart-btn data-product-name="<%= h(product.getProductName()) %>" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
-                                    🛒
+                                    <i class="fa-solid fa-cart-shopping"></i>
                                 </button>
                             </form>
                         </div>

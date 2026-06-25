@@ -26,7 +26,6 @@
     <title>Thông tin cá nhân - ProBuild PC</title>
 
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     <script src="${pageContext.request.contextPath}/js/profile.js"></script>

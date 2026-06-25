@@ -6,6 +6,130 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Local Font Awesome fallback: keeps icons visible when the CDN webfont is blocked. */
+.fa-solid,
+.fa-regular {
+    display: inline-block;
+    width: 1em;
+    min-width: 1em;
+    font-family: inherit !important;
+    font-style: normal;
+    font-weight: inherit;
+    line-height: 1;
+    vertical-align: -0.125em;
+}
+
+.fa-solid::before,
+.fa-regular::before {
+    content: "" !important;
+    display: block;
+    width: 1em;
+    height: 1em;
+    background: currentColor;
+    -webkit-mask: var(--local-fa-icon, var(--local-fa-default)) center / contain no-repeat;
+    mask: var(--local-fa-icon, var(--local-fa-default)) center / contain no-repeat;
+}
+
+:root {
+    --local-fa-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3C/svg%3E");
+    --local-fa-arrow-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11 5 4 12l7 7v-5h9v-4h-9z'/%3E%3C/svg%3E");
+    --local-fa-arrow-rotate-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M18 7V3l5 5-5 5V9h-7a5 5 0 1 0 4.6 7H20a9 9 0 1 1-8-13c2.4 0 4.6.9 6 2.4z'/%3E%3C/svg%3E");
+    --local-fa-box: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zm2.8 1.2L12 11.8l6.2-3.1L12 5.6zm5 11.1v-6.2L5 10.7v5.1zm2.4 0 5.8-4v-5.1l-5.8 2.9z'/%3E%3C/svg%3E");
+    --local-fa-calendar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 2h3v3h4V2h3v3h3v17H4V5h3zm-1 9v9h12v-9zm0-4v2h12V7z'/%3E%3C/svg%3E");
+    --local-fa-cart: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 4h3l2.2 10.5A3 3 0 0 0 11.1 17h6.7a3 3 0 0 0 2.8-2l2.2-6H8.1L7.5 6H3zm7 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4m8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4'/%3E%3C/svg%3E");
+    --local-fa-chart: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 19h17v3H1V3h3zm2-3 5-6 4 3 5-8 3 2-7 11-4-3-4 5z'/%3E%3C/svg%3E");
+    --local-fa-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m9.2 16.6-4.4-4.4-2.1 2.1 6.5 6.5L22 8 19.9 5.9z'/%3E%3C/svg%3E");
+    --local-fa-clock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m1.5 10.2 4 2.4-1.5 2.5-5.5-3.3V6h3z'/%3E%3C/svg%3E");
+    --local-fa-coins: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3c4.4 0 8 1.6 8 3.5S16.4 10 12 10 4 8.4 4 6.5 7.6 3 12 3m-8 6c1.6 1.3 4.6 2 8 2s6.4-.7 8-2v3c0 1.9-3.6 3.5-8 3.5S4 13.9 4 12zm0 5.5c1.6 1.3 4.6 2 8 2s6.4-.7 8-2v3C20 19.4 16.4 21 12 21s-8-1.6-8-3.5z'/%3E%3C/svg%3E");
+    --local-fa-credit-card: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 5h20v14H2zm2 4h16V7H4zm0 4v4h7v-4z'/%3E%3C/svg%3E");
+    --local-fa-desktop: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 4h18v12H3zm7 14h4v2h5v2H5v-2h5z'/%3E%3C/svg%3E");
+    --local-fa-envelope: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 5h20v14H2zm2.7 2 7.3 5.2L19.3 7zm-.7 9.5h16V9.2l-8 5.7-8-5.7z'/%3E%3C/svg%3E");
+    --local-fa-eye: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 5c6 0 10 7 10 7s-4 7-10 7S2 12 2 12s4-7 10-7m0 3.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7'/%3E%3C/svg%3E");
+    --local-fa-eye-slash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3.3 2 22 20.7 20.7 22l-3.1-3.1A10.7 10.7 0 0 1 12 20C6 20 2 12 2 12a18.5 18.5 0 0 1 5-5.7L2 3.3zm7 7 4.7 4.7A3.5 3.5 0 0 0 10.3 9M12 4c6 0 10 8 10 8a17.8 17.8 0 0 1-2.8 3.7L16.5 13A4.7 4.7 0 0 0 11 7.5L8.9 5.4A10.5 10.5 0 0 1 12 4'/%3E%3C/svg%3E");
+    --local-fa-gauge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 4a10 10 0 0 1 10 10v5H2v-5A10 10 0 0 1 12 4M5 16h14v-2a7 7 0 0 0-14 0zm8.2-1.7 4.6-5.4-6.1 3.2A2.2 2.2 0 1 0 13.2 14.3'/%3E%3C/svg%3E");
+    --local-fa-headset: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3a9 9 0 0 0-9 9v5h5v-7H5.4a6.8 6.8 0 0 1 13.2 0H16v7h3v1h-5v3h5a3 3 0 0 0 3-3v-6a9 9 0 0 0-9-9'/%3E%3C/svg%3E");
+    --local-fa-house: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m12 3 10 9h-3v9h-5v-6h-4v6H5v-9H2z'/%3E%3C/svg%3E");
+    --local-fa-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m1.5 15h-3v-7h3zm0-9h-3V5h3z'/%3E%3C/svg%3E");
+    --local-fa-list: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 5h4v4H4zm6 1h10v2H10zM4 10h4v4H4zm6 1h10v2H10zM4 15h4v4H4zm6 1h10v2H10z'/%3E%3C/svg%3E");
+    --local-fa-location: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8m0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6'/%3E%3C/svg%3E");
+    --local-fa-lock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 10V7a6 6 0 0 1 12 0v3h2v12H4V10zm4 0h4V7a2 2 0 0 0-4 0z'/%3E%3C/svg%3E");
+    --local-fa-pen: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m4 16.8 11.7-11.7 3.2 3.2L7.2 20H4zm13-13 1.2-1.2a2 2 0 0 1 2.8 2.8L19.8 6.6z'/%3E%3C/svg%3E");
+    --local-fa-phone: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.6 2 11 6.4 8.4 9c1.1 2.3 3.3 4.5 5.6 5.6l2.6-2.6 4.4 4.4-2.2 4.2c-.4.8-1.3 1.2-2.1 1C9.6 19.8 4.2 14.4 2.4 7.3c-.2-.8.2-1.7 1-2.1z'/%3E%3C/svg%3E");
+    --local-fa-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z'/%3E%3C/svg%3E");
+    --local-fa-power: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 2h4v10h-4zm-3.5 4.5 2.8 2.8A5 5 0 1 0 14.7 9.3l2.8-2.8a9 9 0 1 1-11 0'/%3E%3C/svg%3E");
+    --local-fa-question: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m1.5 16h-3v-3h3zm.4-5.2-1.1.8h-2.4v-2.1l1.9-1.4c.9-.7 1.2-1 1.2-1.7 0-.8-.6-1.3-1.6-1.3-1.1 0-1.8.5-2.5 1.4L7.2 6.8C8.3 5.2 9.8 4.4 12 4.4c2.9 0 4.8 1.6 4.8 4 0 2-1 3-2.9 4.4'/%3E%3C/svg%3E");
+    --local-fa-receipt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 2h14v20l-3-2-2 2-2-2-2 2-2-2-3 2zm3 5v2h8V7zm0 4v2h8v-2zm0 4v2h5v-2z'/%3E%3C/svg%3E");
+    --local-fa-save: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 3h15l3 3v15H3zm4 2v6h10V5zm1 11v5h8v-5z'/%3E%3C/svg%3E");
+    --local-fa-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 3a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8m5.6 9.6L22 22l-2 2-6.4-6.4z'/%3E%3C/svg%3E");
+    --local-fa-shield: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2 21 6v6c0 5.4-3.6 8.8-9 10-5.4-1.2-9-4.6-9-10V6zm-1 14.5 6-6-2.1-2.1-3.9 3.9-1.9-1.9L7 12.5z'/%3E%3C/svg%3E");
+    --local-fa-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m12 2 2.9 6 6.6 1-4.8 4.7 1.1 6.6L12 17.2l-5.8 3.1 1.1-6.6L2.5 9l6.6-1z'/%3E%3C/svg%3E");
+    --local-fa-tags: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 4h8l9 9-7 7-9-9zm5 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4m6-5h3l5 5-2 2z'/%3E%3C/svg%3E");
+    --local-fa-truck: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 5h12v10h2V9h3l3 4v2h-2a3 3 0 0 1-6 0H9a3 3 0 0 1-6 0H2zm3 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2m12 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2'/%3E%3C/svg%3E");
+    --local-fa-user: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10m-9 9a9 9 0 0 1 18 0z'/%3E%3C/svg%3E");
+    --local-fa-users: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8m-7 9a7 7 0 0 1 14 0zm14-9a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.2 2c2.8.4 4.8 2.7 4.8 5.5V20h-4.5a8.8 8.8 0 0 0-2-5.7z'/%3E%3C/svg%3E");
+    --local-fa-warehouse: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 9 12 3l10 6v12h-4v-7H6v7H2zm6 7v2h8v-2zm0-4v2h8v-2z'/%3E%3C/svg%3E");
+    --local-fa-wrench: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M22 6.5a6.5 6.5 0 0 1-8.4 6.2L6.8 19.5a3 3 0 1 1-2.1-2.1l6.8-6.8A6.5 6.5 0 0 1 19.5 2l-4 4 2.5 2.5z'/%3E%3C/svg%3E");
+    --local-fa-xmark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 4 6 6 6-6 2 2-6 6 6 6-2 2-6-6-6 6-2-2 6-6-6-6z'/%3E%3C/svg%3E");
+}
+
+.fa-arrow-left { --local-fa-icon: var(--local-fa-arrow-left); }
+.fa-arrow-rotate-right { --local-fa-icon: var(--local-fa-arrow-rotate-right); }
+.fa-box,
+.fa-box-open,
+.fa-boxes-stacked,
+.fa-layer-group,
+.fa-folder-open,
+.fa-inbox,
+.fa-microchip { --local-fa-icon: var(--local-fa-box); }
+.fa-calendar-check,
+.fa-calendar-days { --local-fa-icon: var(--local-fa-calendar); }
+.fa-cart-shopping { --local-fa-icon: var(--local-fa-cart); }
+.fa-chart-line { --local-fa-icon: var(--local-fa-chart); }
+.fa-check,
+.fa-circle-check { --local-fa-icon: var(--local-fa-check); }
+.fa-clock,
+.fa-hourglass-half { --local-fa-icon: var(--local-fa-clock); }
+.fa-coins { --local-fa-icon: var(--local-fa-coins); }
+.fa-credit-card { --local-fa-icon: var(--local-fa-credit-card); }
+.fa-desktop { --local-fa-icon: var(--local-fa-desktop); }
+.fa-envelope { --local-fa-icon: var(--local-fa-envelope); }
+.fa-eye { --local-fa-icon: var(--local-fa-eye); }
+.fa-eye-slash { --local-fa-icon: var(--local-fa-eye-slash); }
+.fa-gauge-high { --local-fa-icon: var(--local-fa-gauge); }
+.fa-headset,
+.fa-comment-dots { --local-fa-icon: var(--local-fa-headset); }
+.fa-house { --local-fa-icon: var(--local-fa-house); }
+.fa-circle-info,
+.fa-triangle-exclamation { --local-fa-icon: var(--local-fa-info); }
+.fa-list-check,
+.fa-clipboard-list,
+.fa-id-card { --local-fa-icon: var(--local-fa-list); }
+.fa-location-dot { --local-fa-icon: var(--local-fa-location); }
+.fa-lock { --local-fa-icon: var(--local-fa-lock); }
+.fa-pen { --local-fa-icon: var(--local-fa-pen); }
+.fa-phone { --local-fa-icon: var(--local-fa-phone); }
+.fa-plus { --local-fa-icon: var(--local-fa-plus); }
+.fa-power-off,
+.fa-right-from-bracket { --local-fa-icon: var(--local-fa-power); }
+.fa-circle-question { --local-fa-icon: var(--local-fa-question); }
+.fa-receipt { --local-fa-icon: var(--local-fa-receipt); }
+.fa-floppy-disk { --local-fa-icon: var(--local-fa-save); }
+.fa-magnifying-glass { --local-fa-icon: var(--local-fa-search); }
+.fa-shield-halved,
+.fa-shield-heart { --local-fa-icon: var(--local-fa-shield); }
+.fa-star,
+.fa-star-half-stroke { --local-fa-icon: var(--local-fa-star); }
+.fa-tags { --local-fa-icon: var(--local-fa-tags); }
+.fa-truck-fast,
+.fa-truck-ramp-box { --local-fa-icon: var(--local-fa-truck); }
+.fa-user { --local-fa-icon: var(--local-fa-user); }
+.fa-users-gear { --local-fa-icon: var(--local-fa-users); }
+.fa-warehouse { --local-fa-icon: var(--local-fa-warehouse); }
+.fa-screwdriver-wrench { --local-fa-icon: var(--local-fa-wrench); }
+.fa-xmark { --local-fa-icon: var(--local-fa-xmark); }
+.fa-chevron-right { --local-fa-icon: var(--local-fa-arrow-rotate-right); transform: rotate(0deg); }
+.fa-rotate { --local-fa-icon: var(--local-fa-arrow-rotate-right); }
+
 /* ==================== ORDER HISTORY PAGE ==================== */
 
 body.order-history-body {
@@ -2768,12 +2892,22 @@ body.home-page .home-pagination a.active {
 }
 
 .header-menu .menu-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     color: #FFFFFF !important;
     text-decoration: none;
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
     transition: color 0.3s ease;
+}
+
+.header-menu .menu-item i {
+    width: 16px;
+    font-size: 14px;
+    line-height: 1;
+    text-align: center;
 }
 
 .header-menu .menu-item:hover,
@@ -2938,6 +3072,11 @@ body.home-page .home-pagination a.active {
 .cart-icon {
     position: relative;
     font-size: 28px;
+    line-height: 1;
+}
+
+.cart-icon i {
+    font-size: 27px;
 }
 
 .cart-icon span {
@@ -2969,7 +3108,8 @@ body.home-page .home-pagination a.active {
 
 .user-icon {
     color: #ed1c24;
-    font-size: 30px;
+    font-size: 28px;
+    line-height: 1;
 }
 
 .user-box h4 {
@@ -3022,7 +3162,15 @@ body.home-page .home-pagination a.active {
     color: black;
     padding: 12px 16px;
     text-decoration: none;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dropdown-menu a i,
+.login-buttons a i {
+    width: 16px;
+    text-align: center;
 }
 
 .dropdown-menu a:first-child {
@@ -3053,6 +3201,10 @@ body.home-page .home-pagination a.active {
 }
 
 .login-buttons a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     padding: 8px 16px;
     text-decoration: none;
     border-radius: 4px;
@@ -9451,10 +9603,10 @@ body.dashboard-body .dashboard-card.shipment-shell {
 .admin-panel,
 .employee-request-panel,
 .shipment-order-panel {
-    border: 1px solid #e4e9f2;
-    border-radius: 8px;
+    border: 1px solid #eceff4;
+    border-radius: 6px;
     background: #ffffff;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
     overflow: auto;
 }
 
@@ -9476,7 +9628,7 @@ body.dashboard-body .dashboard-card.shipment-shell {
     min-height: 62px;
     margin: 0;
     padding: 18px 20px;
-    border-bottom: 1px solid #edf0f5;
+    border-bottom: 1px solid #eceff4;
 }
 
 .employee-request-title,
@@ -9492,7 +9644,7 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
 .employee-request-title {
     padding: 18px 20px;
-    border-bottom: 1px solid #edf0f5;
+    border-bottom: 1px solid #eceff4;
 }
 
 .shipment-order-header {
@@ -9500,9 +9652,18 @@ body.dashboard-body .dashboard-card.shipment-shell {
 }
 
 .shipment-order-title-row span {
-    color: #64748b;
-    font-size: 13px;
-    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 6px 12px;
+    border: 1px solid #bfd7ff;
+    border-radius: 8px;
+    background: #eef6ff;
+    color: #0f172a;
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 900;
     white-space: nowrap;
 }
 
@@ -9513,7 +9674,7 @@ body.dashboard-body .dashboard-card.shipment-shell {
     gap: 8px;
     margin: 0;
     padding: 14px 20px;
-    border-bottom: 1px solid #edf0f5;
+    border-bottom: 1px solid #eceff4;
     overflow-x: auto;
 }
 
@@ -9553,6 +9714,9 @@ body.dashboard-body .dashboard-card.shipment-shell {
     min-width: 760px;
     border-collapse: collapse;
     background: #ffffff;
+    color: black;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
     text-align: left;
 }
 
@@ -9573,12 +9737,27 @@ body.dashboard-body .dashboard-card.shipment-shell {
 .shipment-order-table th,
 .shipment-order-table td {
     padding: 14px 16px;
-    border-bottom: 1px solid #edf0f5;
-    color: #334155;
-    font-size: 13px;
-    line-height: 1.45;
-    font-weight: 700;
+    border-bottom: 1px solid #eceff4;
+    border-right: 1px solid #eceff4;
     vertical-align: middle;
+}
+
+.admin-dashboard-table td,
+.employee-request-table td,
+.shipment-order-table td {
+    color: black;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.admin-dashboard-table th:last-child,
+.admin-dashboard-table td:last-child,
+.employee-request-table th:last-child,
+.employee-request-table td:last-child,
+.shipment-order-table th:last-child,
+.shipment-order-table td:last-child {
+    border-right: 0;
 }
 
 .admin-dashboard-table th,
@@ -9628,18 +9807,50 @@ body.dashboard-body .dashboard-card.shipment-shell {
 .admin-dashboard-table th,
 .employee-request-table th,
 .shipment-order-table th {
-    background: #f8fafc;
-    color: #475569;
-    font-size: 12px;
-    font-weight: 900;
+    background: #fafbfe;
+    color: #252932;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: left;
     white-space: nowrap;
+}
+
+.admin-dashboard-table tbody tr:hover,
+.employee-request-table tbody tr:hover,
+.shipment-order-table tbody tr:hover {
+    background: #fbfcff;
 }
 
 .admin-dashboard-table td:first-child,
 .employee-request-table td:first-child,
 .shipment-order-table td:first-child {
-    color: #0f172a;
-    font-weight: 900;
+    color: black;
+    font-weight: 400;
+}
+
+.admin-dashboard-table td strong,
+.employee-request-table td strong,
+.shipment-order-table td strong {
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 400;
+}
+
+.admin-dashboard-table .admin-status,
+.admin-dashboard-table .shipment-status,
+.employee-request-table .request-status,
+.shipment-order-table .shipment-status {
+    color: black !important;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 400;
 }
 
 .admin-dashboard-table .admin-placeholder-row td {
@@ -9654,8 +9865,8 @@ body.dashboard-body .dashboard-card.shipment-shell {
     justify-content: space-between;
     gap: 12px;
     padding: 10px 16px;
-    border-top: 1px solid #edf0f5;
-    background: #f8fafc;
+    border-top: 1px solid #eceff4;
+    background: #fafbfe;
 }
 
 .admin-panel-footer span {
@@ -9674,21 +9885,25 @@ body.dashboard-body .dashboard-card.shipment-shell {
 .admin-account-grid {
     display: grid;
     gap: 0;
-    padding: 8px 18px 18px;
+    padding: 0;
 }
 
 .admin-count-list p,
 .admin-account-grid div {
-    min-height: 46px;
+    min-height: 49px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     margin: 0;
-    padding: 10px 0;
+    padding: 14px 16px;
     border: 0;
-    border-bottom: 1px solid #edf0f5;
+    border-bottom: 1px solid #eceff4;
     background: transparent;
+    color: black;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
 }
 
 .admin-count-list p:last-child,
@@ -9698,16 +9913,24 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
 .admin-count-list span,
 .admin-account-grid span {
-    color: #475569;
-    font-size: 13px;
-    font-weight: 800;
+    color: black;
+    font-size: 14px;
+    font-weight: 400;
 }
 
 .admin-count-list strong,
 .admin-account-grid strong {
-    color: #0f172a;
-    font-size: 18px;
-    font-weight: 900;
+    color: black;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.admin-count-list .admin-empty-message,
+.admin-account-grid .admin-empty-message,
+.admin-dashboard-table .admin-empty-message {
+    color: black !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
 }
 
 .admin-status,
@@ -9725,33 +9948,48 @@ body.dashboard-body .dashboard-card.shipment-shell {
     white-space: nowrap;
 }
 
+.admin-dashboard-table .admin-status,
+.admin-dashboard-table .shipment-status,
+.employee-request-table .request-status,
+.shipment-order-table .shipment-status {
+    color: black !important;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 400;
+}
+
 .admin-status.active,
 .request-status.received,
-.shipment-status.confirmed,
-.shipment-status.delivered {
-    background: #e9f8ef;
-    color: #16894a;
+.shipment-status.confirmed {
+    color: black !important;
 }
 
 .request-status.waiting,
 .shipment-status.pending {
-    background: #fff7e6;
-    color: #b77900;
+        color: black !important;
+
+
 }
 
 .shipment-status.shipping {
-    background: #e8f1ff;
-    color: #1d5edb;
+          color: black !important;
+
+
 }
 
 .shipment-status.preparing {
-    background: #f0edff;
-    color: #5b43c5;
+            color: black !important;
+
+
 }
 
 .admin-status.inactive,
-.request-status.rejected,
-.shipment-status.cancelled {
+.request-status.rejected {
     background: #fff1f2;
     color: #dc2626;
 }
@@ -9860,4 +10098,3 @@ body.dashboard-body .dashboard-card.shipment-shell {
         min-width: 0;
     }
 }
-

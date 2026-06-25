@@ -66,7 +66,6 @@
         <title>Chi tiết danh mục - <%= category != null ? h(category.getCategoryName()) : "" %></title>
         <link rel="stylesheet" type="text/css" href="<%= ctx %>/css/style.css">
         <link rel="stylesheet" type="text/css" href="<%= ctx %>/css/admin-categories.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     </head>
     <body class="admin-category-body">
         <jsp:include page="/includes/header.jsp" />

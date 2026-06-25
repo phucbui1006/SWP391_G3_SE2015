@@ -214,7 +214,7 @@
                                     <input type="hidden" name="productId" value="<%= product.getProductId() %>">
                                     <input type="hidden" name="quantity" value="1">
                                     <button class="cart-btn" type="submit" data-add-to-cart-btn data-product-name="<%= h(product.getProductName()) %>" <%= product.getQuantity() > 0 ? "" : "disabled" %>>
-                                        🛒
+                                        <i class="fa-solid fa-cart-shopping"></i>
                                     </button>
                                 </form>
                             </div>

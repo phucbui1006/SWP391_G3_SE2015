@@ -30,11 +30,25 @@ public class ForgotPasswordServlet extends HttpServlet {
             return;
         }
 
+        HttpSession session = request.getSession();
+        Long expiredTime = (Long) session.getAttribute("otpExpiredTime");
+        String currentEmail = (String) session.getAttribute("resetEmail");
+
+        if (expiredTime != null && currentEmail != null && currentEmail.equals(email)) {
+            long remainingTime = expiredTime - System.currentTimeMillis();
+            if (remainingTime > 0) {
+                long minutes = remainingTime / 60000;
+                long seconds = (remainingTime % 60000) / 1000;
+                request.setAttribute("error", String.format("Mã OTP đã được gửi. Vui lòng kiểm tra hòm thư hoặc thử lại sau %d phút %d giây.", minutes, seconds));
+                request.getRequestDispatcher("/views/forget-password.jsp").forward(request, response);
+                return;
+            }
+        }
+
         String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 
         //com.mifmif.common.regex.Generex generex = new com.mifmif.common.regex.Generex("[0-9]{6}");
         //String otp = generex.random();
-        HttpSession session = request.getSession();
         session.setAttribute("resetEmail", email);
         session.setAttribute("resetOtp", otp);
         session.setAttribute("otpExpiredTime", System.currentTimeMillis() + 5 * 60 * 1000);

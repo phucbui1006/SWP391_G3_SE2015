@@ -263,44 +263,7 @@ body.product-detail-body {
     box-shadow: var(--shadow-sm);
 }
 
-.warranty-box {
-    margin-bottom: 24px;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: #ffffff;
-    border: 1px solid var(--card-border);
-    border-left: 4px solid var(--primary);
-    border-radius: var(--radius-md);
-}
-
-.warranty-icon {
-    width: 42px;
-    height: 42px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--primary-light);
-    color: var(--primary);
-    border-radius: 50%;
-    font-size: 18px;
-}
-
-.warranty-box span {
-    display: block;
-    margin-bottom: 3px;
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.warranty-box strong {
-    color: var(--text-main);
-    font-size: 15px;
-    font-weight: 800;
-}
+/* warranty-box removed */
 
 .purchase-form {
     width: 100%;
@@ -313,7 +276,7 @@ body.product-detail-body {
     gap: 14px;
 }
 
-.quantity-box > span {
+.quantity-box>span {
     font-size: 15px;
     font-weight: 800;
 }
@@ -866,5 +829,149 @@ body.product-detail-body {
 
     .description-content {
         padding: 18px;
+    }
+}
+
+/* ================================================
+   Thông số kỹ thuật — mirrors .description-card
+   ================================================ */
+.probuild-specs-container {
+    margin-top: 32px;
+    margin-bottom: 32px;
+}
+
+.probuild-specs-box {
+    padding: 32px 34px;
+    background: #ffffff;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Header row — mirrors .description-title-row */
+.probuild-specs-header {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.probuild-specs-header h2 {
+    margin: 0 0 6px;
+    color: var(--text-main);
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.probuild-specs-header p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Table wrapper — mirrors .description-content */
+.probuild-specs-table-wrap {
+    padding: 0;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid var(--primary);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+/* Table */
+.probuild-specs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.probuild-specs-table tr {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.probuild-specs-table tr:last-child {
+    border-bottom: none;
+}
+
+.probuild-specs-table tr:nth-child(even) {
+    background-color: #ffffff;
+}
+
+.probuild-specs-table tr:nth-child(odd) {
+    background-color: #f8fafc;
+}
+
+.probuild-specs-table td {
+    padding: 12px 18px;
+    vertical-align: middle;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.probuild-specs-table .probuild-item-name {
+    width: 30%;
+    color: var(--text-main);
+    font-weight: 700;
+    border-right: 1px solid #e5e7eb;
+}
+
+.probuild-specs-table .probuild-item-value {
+    color: #374151;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .probuild-specs-box {
+        padding: 24px 18px;
+    }
+
+    .probuild-specs-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .probuild-specs-table,
+    .probuild-specs-table tbody,
+    .probuild-specs-table tr,
+    .probuild-specs-table td {
+        display: block;
+        width: 100% !important;
+    }
+
+    .probuild-specs-table tr {
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .probuild-specs-table tr:last-child {
+        border-bottom: none;
+    }
+
+    .probuild-specs-table tr:nth-child(even),
+    .probuild-specs-table tr:nth-child(odd) {
+        background-color: transparent;
+    }
+
+    .probuild-specs-table td {
+        padding: 8px 14px;
+        border-right: none;
+    }
+
+    .probuild-specs-table .probuild-item-name {
+        width: 100%;
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 600;
+        padding-bottom: 2px;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .probuild-specs-table .probuild-item-value {
+        font-size: 14px;
+        padding-top: 6px;
     }
 }

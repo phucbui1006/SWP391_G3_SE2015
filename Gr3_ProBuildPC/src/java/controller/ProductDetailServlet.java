@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import model.Product;
+import model.ProductSpecification;
 import model.Review;
 import model.User;
 
@@ -72,8 +73,10 @@ public class ProductDetailServlet extends HttpServlet {
             double avgRating = productDAO.getAverageRating(productId);
 
             List<Product> similarProducts = productDAO.getSimilarProducts(productId);
+            List<ProductSpecification> specList = productDAO.getSpecificationsByProductId(productId);
 
             request.setAttribute("product", product);
+            request.setAttribute("specifications", specList);
             request.setAttribute("reviews", reviews);
             request.setAttribute("allReviews", allReviews);
             request.setAttribute("avgRating", avgRating);

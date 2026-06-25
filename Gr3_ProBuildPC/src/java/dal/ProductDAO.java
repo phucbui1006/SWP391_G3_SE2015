@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.math.BigDecimal;
 import model.Product;
+import model.ProductSpecification;
 
 public class ProductDAO extends DBContext {
 
@@ -759,6 +760,26 @@ public class ProductDAO extends DBContext {
         return false;
     }
 
-    
+    public List<ProductSpecification> getSpecificationsByProductId(int productId) {
+        List<ProductSpecification> list = new ArrayList<>();
+        String sql = "SELECT spec_id, product_id, specification_name, specification_value FROM PRODUCT_SPECIFICATIONS WHERE product_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, productId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ProductSpecification spec = new ProductSpecification(
+                    rs.getInt("spec_id"),
+                    rs.getInt("product_id"),
+                    rs.getString("specification_name"),
+                    rs.getString("specification_value")
+                );
+                list.add(spec);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
 

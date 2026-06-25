@@ -115,6 +115,7 @@ CREATE TABLE PRODUCTS (
     description     TEXT,
     image_url       VARCHAR(255),
     price           DECIMAL(18, 2) NOT NULL,
+    warranty_months INT NOT NULL DEFAULT 0,
     status          ENUM('ACTIVE', 'INACTIVE') DEFAULT 'ACTIVE',
 
     CONSTRAINT FK_PRODUCTS_CATEGORY
@@ -177,7 +178,6 @@ CREATE TABLE BATCH_ITEMS (
     import_quantity INT NOT NULL,
     quantity        INT NOT NULL,
     price           DECIMAL(18, 2) NOT NULL,
-    warranty_months INT NOT NULL DEFAULT 0,
 
     CONSTRAINT FK_BATCH_ITEMS_BATCH
         FOREIGN KEY (batch_id) REFERENCES BATCH(batch_id),

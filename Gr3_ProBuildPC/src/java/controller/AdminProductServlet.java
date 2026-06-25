@@ -192,12 +192,14 @@ public class AdminProductServlet extends HttpServlet {
         Integer categoryId = parseId(request.getParameter("categoryId"));
         Integer brandId = parseId(request.getParameter("brandId"));
         String priceRaw = request.getParameter("price");
+        String warrantyMonthsRaw = request.getParameter("warrantyMonths");
         String description = normalizeText(request.getParameter("description"));
 
         request.setAttribute("enteredProductName", productName);
         request.setAttribute("enteredCategoryId", categoryId);
         request.setAttribute("enteredBrandId", brandId);
         request.setAttribute("enteredPrice", priceRaw);
+        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw);
         request.setAttribute("enteredDescription", description);
         request.setAttribute("failedAction", "add");
 
@@ -219,6 +221,20 @@ public class AdminProductServlet extends HttpServlet {
             }
         } catch (Exception e) {
             request.setAttribute("error", "Giá bán không hợp lệ.");
+            return false;
+        }
+
+        int warrantyMonths = 0;
+        try {
+            if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
+                warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
+                if (warrantyMonths < 0) {
+                    request.setAttribute("error", "Thời gian bảo hành không được nhỏ hơn 0.");
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Thời gian bảo hành không hợp lệ.");
             return false;
         }
 
@@ -247,7 +263,7 @@ public class AdminProductServlet extends HttpServlet {
         String[] specNames = request.getParameterValues("spec_names[]");
         String[] specValues = request.getParameterValues("spec_values[]");
 
-        if (productDAO.addProduct(productName, categoryId, brandId, price, description, imageUrl, specNames, specValues)) {
+        if (productDAO.addProduct(productName, categoryId, brandId, price, description, imageUrl, warrantyMonths, specNames, specValues)) {
             session.setAttribute("productSuccess", "Thêm sản phẩm mới thành công.");
             return true;
         } else {
@@ -263,6 +279,7 @@ public class AdminProductServlet extends HttpServlet {
         Integer categoryId = parseId(request.getParameter("categoryId"));
         Integer brandId = parseId(request.getParameter("brandId"));
         String priceRaw = request.getParameter("price");
+        String warrantyMonthsRaw = request.getParameter("warrantyMonths");
         String description = normalizeText(request.getParameter("description"));
         String currentImg = normalizeText(request.getParameter("currentImg"));
 
@@ -272,6 +289,7 @@ public class AdminProductServlet extends HttpServlet {
         request.setAttribute("enteredCategoryId", categoryId);
         request.setAttribute("enteredBrandId", brandId);
         request.setAttribute("enteredPrice", priceRaw);
+        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw);
         request.setAttribute("enteredDescription", description);
         request.setAttribute("enteredCurrentImg", currentImg);
         request.setAttribute("failedAction", "update");
@@ -301,6 +319,20 @@ public class AdminProductServlet extends HttpServlet {
             return false;
         }
 
+        int warrantyMonths = 0;
+        try {
+            if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
+                warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
+                if (warrantyMonths < 0) {
+                    request.setAttribute("error", "Thời gian bảo hành không được nhỏ hơn 0.");
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Thời gian bảo hành không hợp lệ.");
+            return false;
+        }
+
         Part filePart = request.getPart("imgFile");
         String imageUrl = currentImg;
 
@@ -327,7 +359,7 @@ public class AdminProductServlet extends HttpServlet {
             imageUrl = newImg;
         }
 
-        if (productDAO.updateProduct(productId, productName, categoryId, brandId, price, description, imageUrl)) {
+        if (productDAO.updateProduct(productId, productName, categoryId, brandId, price, description, imageUrl, warrantyMonths)) {
             session.setAttribute("productSuccess", "Cập nhật sản phẩm thành công.");
             return true;
         } else {

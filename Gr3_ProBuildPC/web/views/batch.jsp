@@ -166,7 +166,6 @@
                                 <th>SL nhập</th>
                                 <th>SL tồn</th>
                                 <th>Giá nhập</th>
-                                <th>Bảo hành</th>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
@@ -187,7 +186,6 @@
                                 <td><%= item.getImportQuantity() %></td>
                                 <td><%= item.getQuantity() %></td>
                                 <td><%= item.getPrice() %></td>
-                                <td><%= item.getWarrantyMonths() %> tháng</td>
                                 <td>
                                     <div class="batch-table-actions">
 
@@ -356,17 +354,6 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
-                        <div class="batch-form-group">
-                            <label>Bảo hành (tháng)</label>
-                            <input 
-                                type="number"
-                                name="warrantyMonths"
-                                min="0"
-                                placeholder="Thời hạn bảo hành"
-                                required
-                                value="0">
-                        </div>
                     </div>
 
                     <div class="brand-form-actions" style="margin-top: 20px;">
@@ -448,15 +435,6 @@
                                 value="<%= editItem.getPrice() != null ? editItem.getPrice().toBigInteger() : "" %>">
                         </div>
 
-                        <div class="batch-form-group">
-                            <label>Bảo hành (tháng)</label>
-                            <input 
-                                type="number"
-                                name="warrantyMonths"
-                                min="0"
-                                required
-                                value="<%= editItem.getWarrantyMonths() %>">
-                        </div>
                     </div>
 
                     <div class="brand-form-actions" style="margin-top: 20px;">

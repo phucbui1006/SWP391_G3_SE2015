@@ -15,12 +15,14 @@ public class WarrantyDAO extends DBContext {
     //Kiểm tra yêu cầu bảo hành có hiệu lực không
     public boolean isWarrantyRequestValid(int orderDetailId, int customerId, int productId) {
         String sql = """
-            SELECT o.order_date, od.warranty_months
+            SELECT o.received_date, 
+                   (SELECT MAX(warranty_months) FROM batch_items bi WHERE bi.product_id = od.product_id) AS warranty_months
             FROM orders o
             INNER JOIN order_details od ON o.order_id = od.order_id
             WHERE od.order_detail_id = ?
               AND o.customer_id = ?
               AND od.product_id = ?
+              AND o.status_id = 5
         """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, orderDetailId);
@@ -29,11 +31,11 @@ public class WarrantyDAO extends DBContext {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    java.sql.Timestamp orderDate = rs.getTimestamp("order_date");
+                    java.sql.Timestamp receivedDate = rs.getTimestamp("received_date");
                     int warrantyMonths = rs.getInt("warranty_months");
-                    if (orderDate != null) {
+                    if (receivedDate != null) {
                         java.util.Calendar cal = java.util.Calendar.getInstance();
-                        cal.setTimeInMillis(orderDate.getTime());
+                        cal.setTimeInMillis(receivedDate.getTime());
                         cal.add(java.util.Calendar.MONTH, warrantyMonths);
                         java.util.Date endDate = cal.getTime();
                         java.util.Date now = new java.util.Date();
@@ -319,11 +321,11 @@ public class WarrantyDAO extends DBContext {
                    b.brand_name,
                    c.category_name,
                    o.order_id,
-                   o.order_date,
+                   o.received_date,
                    u.full_name AS customer_name,
-                   COALESCE(od.warranty_months, 0) AS warranty_months,
-                   DATE_ADD(o.order_date, INTERVAL COALESCE(od.warranty_months, 0) MONTH) AS warranty_end_date,
-                   DATEDIFF(DATE_ADD(o.order_date, INTERVAL COALESCE(od.warranty_months, 0) MONTH), CURDATE()) AS remaining_days
+                   COALESCE((SELECT MAX(warranty_months) FROM batch_items bi WHERE bi.product_id = od.product_id), 0) AS warranty_months,
+                   DATE_ADD(o.received_date, INTERVAL COALESCE((SELECT MAX(warranty_months) FROM batch_items bi WHERE bi.product_id = od.product_id), 0) MONTH) AS warranty_end_date,
+                   DATEDIFF(DATE_ADD(o.received_date, INTERVAL COALESCE((SELECT MAX(warranty_months) FROM batch_items bi WHERE bi.product_id = od.product_id), 0) MONTH), CURDATE()) AS remaining_days
             FROM order_details od
             INNER JOIN orders o ON od.order_id = o.order_id
             INNER JOIN customers cust ON o.customer_id = cust.customer_id
@@ -332,6 +334,7 @@ public class WarrantyDAO extends DBContext {
             INNER JOIN brands b ON p.brand_id = b.brand_id
             INNER JOIN categories c ON p.category_id = c.category_id
             WHERE od.order_detail_id = ?
+              AND o.status_id = 5
         """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -349,7 +352,7 @@ public class WarrantyDAO extends DBContext {
                     item.setWarrantyEndDate(rs.getDate("warranty_end_date"));
                     item.setRemainingDays(rs.getLong("remaining_days"));
                     item.setCustomerName(rs.getString("customer_name"));
-                    item.setOrderDate(rs.getTimestamp("order_date"));
+                    item.setOrderDate(rs.getTimestamp("received_date"));
                     item.setOrderId(rs.getInt("order_id"));
                     
                     return item;
@@ -365,7 +368,7 @@ public class WarrantyDAO extends DBContext {
         String sql = """
             SELECT o.order_id,
                    o.customer_id,
-                   o.order_date,
+                   o.received_date AS order_date,
                    o.total_amount,
                    o.payment_method,
                    o.payment_status,
@@ -375,11 +378,11 @@ public class WarrantyDAO extends DBContext {
                    od.quantity,
                    p.product_name,
                    p.image_url,
-                   COALESCE(od.warranty_months, 0) AS warranty_months,
+                   COALESCE((SELECT MAX(warranty_months) FROM batch_items bi WHERE bi.product_id = od.product_id), 0) AS warranty_months,
                    br.brand_name,
                    ca.category_name,
-                   DATE_ADD(o.order_date, INTERVAL COALESCE(od.warranty_months, 0) MONTH) AS warranty_end_date,
-                   DATEDIFF(DATE_ADD(o.order_date, INTERVAL COALESCE(od.warranty_months, 0) MONTH), CURDATE()) AS remaining_days
+                   DATE_ADD(o.received_date, INTERVAL COALESCE((SELECT MAX(warranty_months) FROM batch_items bi WHERE bi.product_id = od.product_id), 0) MONTH) AS warranty_end_date,
+                   DATEDIFF(DATE_ADD(o.received_date, INTERVAL COALESCE((SELECT MAX(warranty_months) FROM batch_items bi WHERE bi.product_id = od.product_id), 0) MONTH), CURDATE()) AS remaining_days
             FROM orders o
             INNER JOIN orders_status os ON o.status_id = os.status_id
             INNER JOIN order_details od ON o.order_id = od.order_id
@@ -388,6 +391,7 @@ public class WarrantyDAO extends DBContext {
             INNER JOIN categories ca ON p.category_id = ca.category_id
             WHERE o.order_id = ?
               AND o.customer_id = ?
+              AND o.status_id = 5
             ORDER BY od.order_detail_id
         """;
 

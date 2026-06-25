@@ -268,6 +268,7 @@ CREATE TABLE ORDERS (
     payment_status   VARCHAR(50) DEFAULT 'Chưa thanh toán',
     note             TEXT,
     vnpay_expires_at DATETIME NULL DEFAULT NULL,
+    received_date    DATETIME NULL,
 
     CONSTRAINT FK_ORDERS_CUSTOMERS
         FOREIGN KEY (customer_id) REFERENCES CUSTOMERS(customer_id),

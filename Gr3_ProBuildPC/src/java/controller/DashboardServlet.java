@@ -110,14 +110,12 @@ public class DashboardServlet extends HttpServlet {
         if (bestSellingTotal > bestSellingVisible) {
             view.setBestSellingFooterMessage("Còn " + (bestSellingTotal - bestSellingVisible)
                     + " sản phẩm bán chạy khác trong ngày.");
-            view.setBestSellingFooterUrl(ctx + "/order-history");
         }
 
         int lowStockVisible = view.getLowStockProducts().size();
         if (lowStockTotal > lowStockVisible) {
             view.setLowStockFooterMessage("Còn " + (lowStockTotal - lowStockVisible)
                     + " sản phẩm sắp hết hàng khác.");
-            view.setLowStockFooterUrl(ctx + "/admin/categories");
         }
 
         int warrantyStatusTotal = warrantyStatusCounts == null ? 0 : warrantyStatusCounts.size();
@@ -160,26 +158,6 @@ public class DashboardServlet extends HttpServlet {
                     product.getStockQuantity(),
                     DashboardViewHelper.h(product.getStatus()),
                     DashboardViewHelper.productStatusClass(product.getStatus())
-            ));
-        }
-        return rows;
-    }
-
-    private List<AdminDashboardView.OrderRow> buildOrderRows(List<OrderHistoryItem> orders) {
-        List<AdminDashboardView.OrderRow> rows = new ArrayList<>();
-        if (orders == null) {
-            return rows;
-        }
-
-        for (OrderHistoryItem order : orders) {
-            String displayStatus = DashboardViewHelper.defaultText(order.getDisplayStatus(), "Chưa cập nhật");
-            rows.add(new AdminDashboardView.OrderRow(
-                    "PB" + order.getOrderId(),
-                    DashboardViewHelper.h(order.getCustomerName()),
-                    DashboardViewHelper.formatCurrency(order.getTotalAmount()),
-                    DashboardViewHelper.h(displayStatus),
-                    DashboardViewHelper.statusClass(displayStatus),
-                    DashboardViewHelper.h(DashboardViewHelper.formatDateTime(order.getOrderDate()))
             ));
         }
         return rows;

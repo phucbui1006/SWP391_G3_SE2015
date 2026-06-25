@@ -11,16 +11,11 @@ public class AdminDashboardView {
     private List<StatCard> statCards = new ArrayList<>();
     private List<ProductRow> bestSellingProducts = new ArrayList<>();
     private List<ProductRow> lowStockProducts = new ArrayList<>();
-    private List<OrderRow> latestOrders = new ArrayList<>();
     private List<OrderSummaryRow> orderSummaries = new ArrayList<>();
     private List<CountRow> warrantyStatusCounts = new ArrayList<>();
     private List<CountRow> accountSummaries = new ArrayList<>();
     private String bestSellingFooterMessage;
-    private String bestSellingFooterUrl;
     private String lowStockFooterMessage;
-    private String lowStockFooterUrl;
-    private String latestOrdersFooterMessage;
-    private String latestOrdersFooterUrl;
     private String warrantyFooterMessage;
     private boolean showWarrantyFooter;
 
@@ -72,14 +67,6 @@ public class AdminDashboardView {
         this.lowStockProducts = lowStockProducts == null ? new ArrayList<>() : lowStockProducts;
     }
 
-    public List<OrderRow> getLatestOrders() {
-        return latestOrders;
-    }
-
-    public void setLatestOrders(List<OrderRow> latestOrders) {
-        this.latestOrders = latestOrders == null ? new ArrayList<>() : latestOrders;
-    }
-
     public List<OrderSummaryRow> getOrderSummaries() {
         return orderSummaries;
     }
@@ -112,44 +99,12 @@ public class AdminDashboardView {
         this.bestSellingFooterMessage = bestSellingFooterMessage;
     }
 
-    public String getBestSellingFooterUrl() {
-        return bestSellingFooterUrl;
-    }
-
-    public void setBestSellingFooterUrl(String bestSellingFooterUrl) {
-        this.bestSellingFooterUrl = bestSellingFooterUrl;
-    }
-
     public String getLowStockFooterMessage() {
         return lowStockFooterMessage;
     }
 
     public void setLowStockFooterMessage(String lowStockFooterMessage) {
         this.lowStockFooterMessage = lowStockFooterMessage;
-    }
-
-    public String getLowStockFooterUrl() {
-        return lowStockFooterUrl;
-    }
-
-    public void setLowStockFooterUrl(String lowStockFooterUrl) {
-        this.lowStockFooterUrl = lowStockFooterUrl;
-    }
-
-    public String getLatestOrdersFooterMessage() {
-        return latestOrdersFooterMessage;
-    }
-
-    public void setLatestOrdersFooterMessage(String latestOrdersFooterMessage) {
-        this.latestOrdersFooterMessage = latestOrdersFooterMessage;
-    }
-
-    public String getLatestOrdersFooterUrl() {
-        return latestOrdersFooterUrl;
-    }
-
-    public void setLatestOrdersFooterUrl(String latestOrdersFooterUrl) {
-        this.latestOrdersFooterUrl = latestOrdersFooterUrl;
     }
 
     public String getWarrantyFooterMessage() {
@@ -238,49 +193,6 @@ public class AdminDashboardView {
 
         public String getStatusClass() {
             return statusClass;
-        }
-    }
-
-    public static class OrderRow {
-        private final String orderCode;
-        private final String customerName;
-        private final String totalAmount;
-        private final String status;
-        private final String statusClass;
-        private final String orderDate;
-
-        public OrderRow(String orderCode, String customerName, String totalAmount, String status,
-                String statusClass, String orderDate) {
-            this.orderCode = orderCode;
-            this.customerName = customerName;
-            this.totalAmount = totalAmount;
-            this.status = status;
-            this.statusClass = statusClass;
-            this.orderDate = orderDate;
-        }
-
-        public String getOrderCode() {
-            return orderCode;
-        }
-
-        public String getCustomerName() {
-            return customerName;
-        }
-
-        public String getTotalAmount() {
-            return totalAmount;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public String getStatusClass() {
-            return statusClass;
-        }
-
-        public String getOrderDate() {
-            return orderDate;
         }
     }
 

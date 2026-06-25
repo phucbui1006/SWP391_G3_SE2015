@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 
 public final class DashboardViewHelper {
 
@@ -75,14 +74,6 @@ public final class DashboardViewHelper {
         DecimalFormat formatter = new DecimalFormat("#,###");
         BigDecimal safeValue = value == null ? BigDecimal.ZERO : value;
         return formatter.format(safeValue) + "đ";
-    }
-
-    public static String formatDateTime(java.util.Date value) {
-        if (value == null) {
-            return "";
-        }
-
-        return new SimpleDateFormat("dd/MM/yyyy HH:mm").format(value);
     }
 
     public static String buildShipmentLink(String ctx, Integer statusId, boolean todayOnly, int page) {

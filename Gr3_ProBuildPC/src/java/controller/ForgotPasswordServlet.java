@@ -30,9 +30,10 @@ public class ForgotPasswordServlet extends HttpServlet {
             return;
         }
 
-        
-        com.mifmif.common.regex.Generex generex = new com.mifmif.common.regex.Generex("[0-9]{6}");
-        String otp = generex.random();
+        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+
+        //com.mifmif.common.regex.Generex generex = new com.mifmif.common.regex.Generex("[0-9]{6}");
+        //String otp = generex.random();
         HttpSession session = request.getSession();
         session.setAttribute("resetEmail", email);
         session.setAttribute("resetOtp", otp);

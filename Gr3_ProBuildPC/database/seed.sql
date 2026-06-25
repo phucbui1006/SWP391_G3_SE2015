@@ -450,63 +450,63 @@ VALUES
 -- ĐƠN HÀNG
 -- =========================
 INSERT INTO ORDERS
-(order_id, customer_id, status_id, order_date, total_amount, shipping_address, payment_method, payment_status, note)
+(order_id, customer_id, status_id, order_date, total_amount, shipping_address, payment_method, payment_status, note, received_date)
 VALUES
 (10000, 1, 5, '2026-01-15 10:00:00', 8500000,
 'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội',
-'COD', 'Đã thanh toán', 'Khách hàng đã thanh toán khi nhận hàng'),
+'COD', 'Đã thanh toán', 'Khách hàng đã thanh toán khi nhận hàng', '2026-01-16 10:00:00'),
 
 (10001, 2, 4, '2026-01-18 14:30:00', 13700000,
 'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội',
-'VNPAY', 'Đã thanh toán', 'Thanh toán trực tuyến qua VNPAY'),
+'VNPAY', 'Đã thanh toán', 'Thanh toán trực tuyến qua VNPAY', NULL),
 
 (10002, 1, 5, '2023-02-18 09:15:00', 8500000,
 'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội',
-'COD', 'Đã thanh toán', 'Đơn hàng CPU và RAM trong năm 2023'),
+'COD', 'Đã thanh toán', 'Đơn hàng CPU và RAM trong năm 2023', '2023-02-19 10:00:00'),
 
 (10003, 2, 5, '2023-06-07 15:40:00', 8900000,
 'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Hà Nội',
-'VNPAY', 'Đã thanh toán', 'Đơn hàng combo Intel trong năm 2023'),
+'VNPAY', 'Đã thanh toán', 'Đơn hàng combo Intel trong năm 2023', '2023-06-08 10:00:00'),
 
 (10004, 1, 6, '2023-11-25 20:05:00', 9500000,
 'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội',
-'COD', 'Đã hủy', 'Đơn hàng card đồ họa đã hủy trong năm 2023'),
+'COD', 'Đã hủy', 'Đơn hàng card đồ họa đã hủy trong năm 2023', NULL),
 
 (10005, 2, 5, '2024-01-12 10:30:00', 13300000,
 'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Hà Nội',
-'VNPAY', 'Đã thanh toán', 'Đơn hàng CPU và RAM trong năm 2024'),
+'VNPAY', 'Đã thanh toán', 'Đơn hàng CPU và RAM trong năm 2024', '2024-01-13 10:00:00'),
 
 (10006, 1, 5, '2024-04-30 13:25:00', 15300000,
 'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội',
-'COD', 'Đã thanh toán', 'Đơn hàng cấu hình AMD trong năm 2024'),
+'COD', 'Đã thanh toán', 'Đơn hàng cấu hình AMD trong năm 2024', '2024-05-01 10:00:00'),
 
 (10007, 2, 4, '2024-09-14 17:50:00', 22400000,
 'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Hà Nội',
-'VNPAY', 'Đã thanh toán', 'Đơn hàng đang giao trong năm 2024'),
+'VNPAY', 'Đã thanh toán', 'Đơn hàng đang giao trong năm 2024', NULL),
 
 (10008, 1, 5, '2025-03-03 08:10:00', 19900000,
 'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội',
-'COD', 'Đã thanh toán', 'Đơn hàng combo Ryzen 9 trong năm 2025'),
+'COD', 'Đã thanh toán', 'Đơn hàng combo Ryzen 9 trong năm 2025', '2025-03-04 10:00:00'),
 
 (10009, 2, 2, '2025-07-21 19:35:00', 20800000,
 'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Hà Nội',
-'VNPAY', 'Đã thanh toán', 'Đơn hàng đã xác nhận trong năm 2025'),
+'VNPAY', 'Đã thanh toán', 'Đơn hàng đã xác nhận trong năm 2025', NULL),
 
 (10010, 1, 5, '2025-12-05 11:45:00', 29600000,
 'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội',
-'VNPAY', 'Đã thanh toán', 'Đơn hàng cấu hình card đồ họa trong năm 2025'),
+'VNPAY', 'Đã thanh toán', 'Đơn hàng cấu hình card đồ họa trong năm 2025', '2025-12-06 10:00:00'),
 
 (10011, 2, 1, '2026-02-16 14:20:00', 38800000,
 'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Hà Nội',
-'VNPAY', 'Chờ thanh toán', 'Đơn hàng chờ xác nhận trong năm 2026'),
+'VNPAY', 'Chờ thanh toán', 'Đơn hàng chờ xác nhận trong năm 2026', NULL),
 
 (10012, 1, 3, '2026-05-09 16:05:00', 19300000,
 'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội',
-'COD', 'Chưa thanh toán', 'Đơn hàng đang chuẩn bị trong năm 2026'),
+'COD', 'Chưa thanh toán', 'Đơn hàng đang chuẩn bị trong năm 2026', NULL),
 
 (10013, 2, 4, '2026-06-10 09:55:00', 14800000,
 'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Hà Nội',
-'COD', 'Chưa thanh toán', 'Đơn hàng COD đang giao trong năm 2026');
+'COD', 'Chưa thanh toán', 'Đơn hàng COD đang giao trong năm 2026', NULL);
 
 INSERT INTO ORDER_DETAILS
 (order_detail_id, order_id, product_id, quantity, unit_price, subtotal)

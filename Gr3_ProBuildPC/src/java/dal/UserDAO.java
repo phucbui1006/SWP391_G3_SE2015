@@ -48,7 +48,7 @@ public class UserDAO {
         return null;
     }
 
-    public boolean checkEmailExist(String email) {
+       public boolean checkEmailExist(String email) {
         String sql = "SELECT user_id FROM users WHERE email = ?";
 
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {

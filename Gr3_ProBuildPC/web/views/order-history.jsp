@@ -310,7 +310,7 @@
                         %>
                         <a class="order-list-card <%= active ? "active" : "" %>"
                            href="<%= buildOrderLink(ctx, keyword, selectedStatusIdValue, currentPage, order.getOrderId(), deliveryHistoryMode) %>">
-                            <span class="order-card-icon" aria-hidden="true">🛒</span>
+                            <span class="order-card-icon" aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></span>
                             <span class="order-card-main">
                                 <strong>PB<%= order.getOrderId() %></strong>
                                 <small><%= formatDate(order.getOrderDate(), dateFormatter) %> · <%= formatTime(order.getOrderDate(), timeFormatter) %></small>
@@ -364,14 +364,14 @@
                             <% if (selectedCanRetryVnpay) { %>
                             <form class="order-vnpay-retry-form" action="<%= ctx %>/vnpay-retry" method="post">
                                 <input type="hidden" name="orderId" value="<%= selectedOrder.getOrderId() %>">
-                                <button type="submit" class="order-vnpay-retry-btn">💳 Tiếp tục thanh toán VNPAY</button>
+                                <button type="submit" class="order-vnpay-retry-btn"><i class="fa-regular fa-credit-card"></i> Tiếp tục thanh toán VNPAY</button>
                             </form>
                             <% } %>
                         </div>
                     </div>
 
                     <article class="order-summary-card">
-                        <div class="order-summary-icon" aria-hidden="true">🛒</div>
+                        <div class="order-summary-icon" aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></div>
                         <div>
                             <strong>Mã đơn hàng: PB<%= selectedOrder.getOrderId() %></strong>
                             <span>Đặt hàng: <%= formatDate(selectedOrder.getOrderDate(), dateFormatter) %> · <%= formatTime(selectedOrder.getOrderDate(), timeFormatter) %></span>
@@ -498,7 +498,7 @@
                                         <div class="order-reviewed-status">
                                             <div class="order-reviewed-stars">
                                                 <% for (int i = 1; i <= 5; i++) { %>
-                                                    <span class="<%= i <= detail.getReview().getRating() ? "" : "star-empty" %>">★</span>
+                                                    <span class="<%= i <= detail.getReview().getRating() ? "" : "star-empty" %>"><i class="fa-solid fa-star"></i></span>
                                                 <% } %>
                                             </div>
                                             <span class="order-reviewed-text">Bạn đã đánh giá</span>
@@ -611,11 +611,11 @@
                             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Chất lượng sản phẩm</label>
                             <div class="star-rating-picker" style="display: flex; gap: 6px;">
                                 <input type="hidden" name="rating" id="reviewRatingInput" value="5" required>
-                                <span class="rating-star-btn" data-star="1" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;">★</span>
-                                <span class="rating-star-btn" data-star="2" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;">★</span>
-                                <span class="rating-star-btn" data-star="3" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;">★</span>
-                                <span class="rating-star-btn" data-star="4" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;">★</span>
-                                <span class="rating-star-btn" data-star="5" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;">★</span>
+                                <span class="rating-star-btn" data-star="1" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;"><i class="fa-solid fa-star"></i></span>
+                                <span class="rating-star-btn" data-star="2" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;"><i class="fa-solid fa-star"></i></span>
+                                <span class="rating-star-btn" data-star="3" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;"><i class="fa-solid fa-star"></i></span>
+                                <span class="rating-star-btn" data-star="4" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;"><i class="fa-solid fa-star"></i></span>
+                                <span class="rating-star-btn" data-star="5" style="font-size: 32px; cursor: pointer; color: #fbbf24; line-height: 1;"><i class="fa-solid fa-star"></i></span>
                             </div>
                         </div>
                         

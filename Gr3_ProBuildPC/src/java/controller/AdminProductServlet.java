@@ -160,11 +160,8 @@ public class AdminProductServlet extends HttpServlet {
         int totalProducts = productDAO.countProductsForAdmin(keyword, categoryId, brandId, status);
         int totalPages = totalProducts == 0 ? 1 : (int) Math.ceil((double) totalProducts / PAGE_SIZE);
 
-        if (currentPage < 1) {
+        if (currentPage < 1 || currentPage > totalPages) {
             currentPage = 1;
-        }
-        if (currentPage > totalPages) {
-            currentPage = totalPages;
         }
 
         List<Product> products = productDAO.getProductsForAdmin(keyword, categoryId, brandId, status, sort, currentPage, PAGE_SIZE);
@@ -247,7 +244,10 @@ public class AdminProductServlet extends HttpServlet {
             }
         }
 
-        if (productDAO.addProduct(productName, categoryId, brandId, price, description, imageUrl)) {
+        String[] specNames = request.getParameterValues("spec_names[]");
+        String[] specValues = request.getParameterValues("spec_values[]");
+
+        if (productDAO.addProduct(productName, categoryId, brandId, price, description, imageUrl, specNames, specValues)) {
             session.setAttribute("productSuccess", "Thêm sản phẩm mới thành công.");
             return true;
         } else {

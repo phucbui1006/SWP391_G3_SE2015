@@ -50,21 +50,21 @@ public final class DashboardViewHelper {
     public static String statusIcon(String status) {
         String cssClass = statusClass(status);
         if ("pending".equals(cssClass)) {
-            return "!";
+            return "fa-solid fa-hourglass-half";
         }
         if ("confirmed".equals(cssClass) || "delivered".equals(cssClass)) {
-            return "✓";
+            return "fa-solid fa-check";
         }
         if ("preparing".equals(cssClass)) {
-            return "□";
+            return "fa-solid fa-box-open";
         }
         if ("shipping".equals(cssClass)) {
-            return "→";
+            return "fa-solid fa-truck-fast";
         }
         if ("cancelled".equals(cssClass)) {
-            return "X";
+            return "fa-solid fa-xmark";
         }
-        return "#";
+        return "fa-solid fa-box";
     }
 
     public static String productStatusClass(String status) {

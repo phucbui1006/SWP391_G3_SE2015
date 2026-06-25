@@ -90,7 +90,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><%= product.getProductName() %> - ProBuild PC</title>
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="<%= contextPath %>/css/style.css">
         <link rel="stylesheet" href="<%= contextPath %>/css/product-detail.css?v=100">
     </head>
@@ -129,6 +128,18 @@
                 <div class="product-info">
 
                     <h1><%= product.getProductName() %></h1>
+
+                    <div class="product-meta-details">
+                        <div class="meta-item">
+                            <span class="meta-label">Thương hiệu:</span>
+                            <span class="meta-value"><%= product.getBrandName() %></span>
+                        </div>
+                        <span class="meta-divider">|</span>
+                        <div class="meta-item">
+                            <span class="meta-label">Danh mục:</span>
+                            <span class="meta-value"><%= product.getCategoryName() %></span>
+                        </div>
+                    </div>
 
                     <div class="rating-row">
                         <span class="rating-badge">

@@ -57,7 +57,7 @@
                     <div class="admin-stat-grid" >
                         <% for (AdminDashboardView.StatCard stat : adminDashboard.getStatCards()) { %>
                         <a class="admin-stat-card" >
-                            <span class="admin-stat-icon <%= stat.getIconClass() %>"><%= stat.getIcon() %></span>
+                            <span class="admin-stat-icon <%= stat.getIconClass() %>"><i class="<%= stat.getIcon() %>"></i></span>
                             <span>
                                 <small><%= stat.getLabel() %></small>
                                 <strong><%= stat.getValue() %></strong>
@@ -239,7 +239,7 @@
 
                     <div class="employee-summary-grid" aria-label="Thống kê yêu cầu bảo hành">
                         <div class="employee-summary-card">
-                            <span class="summary-icon today">📚</span>
+                            <span class="summary-icon today"><i class="fa-solid fa-list-check"></i></span>
                             <div class="summary-copy">
                                 <p class="summary-title">Tất cả yêu cầu</p>
                                 <div class="summary-value-row">
@@ -250,7 +250,7 @@
                         </div>
 
                         <div class="employee-summary-card">
-                            <span class="summary-icon waiting">⏳</span>
+                            <span class="summary-icon waiting"><i class="fa-regular fa-clock"></i></span>
                             <div class="summary-copy">
                                 <p class="summary-title">Chờ xác nhận</p>
                                 <div class="summary-value-row">
@@ -261,7 +261,7 @@
                         </div>
 
                         <div class="employee-summary-card">
-                            <span class="summary-icon received">📥</span>
+                            <span class="summary-icon received"><i class="fa-solid fa-inbox"></i></span>
                             <div class="summary-copy">
                                 <p class="summary-title">Đã tiếp nhận</p>
                                 <div class="summary-value-row">
@@ -272,7 +272,7 @@
                         </div>
 
                         <div class="employee-summary-card">
-                            <span class="summary-icon rejected">❌</span>
+                            <span class="summary-icon rejected"><i class="fa-solid fa-xmark"></i></span>
                             <div class="summary-copy">
                                 <p class="summary-title">Từ chối</p>
                                 <div class="summary-value-row">
@@ -372,7 +372,7 @@
 
                     <div class="shipment-summary-grid" aria-label="Thống kê đơn hàng vận chuyển">
                         <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon all">#</span>
+                            <span class="shipment-summary-icon all"><i class="fa-solid fa-boxes-stacked"></i></span>
                             <div class="shipment-summary-copy">
                                 <p class="shipment-summary-title">Tất cả đơn hàng</p>
                                 <div class="shipment-summary-value-row">
@@ -383,7 +383,7 @@
                         </div>
 
                         <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon today">✓</span>
+                            <span class="shipment-summary-icon today"><i class="fa-solid fa-calendar-check"></i></span>
                             <div class="shipment-summary-copy">
                                 <p class="shipment-summary-title">Đơn hàng hôm nay</p>
                                 <div class="shipment-summary-value-row">
@@ -398,7 +398,7 @@
                                 Integer countValue = shipmentStatusCounts == null ? null : shipmentStatusCounts.get(status.getStatusId());
                         %>
                         <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon <%= DashboardViewHelper.statusClass(status.getStatusName()) %>"><%= DashboardViewHelper.statusIcon(status.getStatusName()) %></span>
+                            <span class="shipment-summary-icon <%= DashboardViewHelper.statusClass(status.getStatusName()) %>"><i class="<%= DashboardViewHelper.statusIcon(status.getStatusName()) %>"></i></span>
                             <div class="shipment-summary-copy">
                                 <p class="shipment-summary-title"><%= DashboardViewHelper.h(status.getStatusName()) %></p>
                                 <div class="shipment-summary-value-row">
@@ -415,7 +415,7 @@
                         <div class="shipment-order-header">
                             <div class="shipment-order-title-row">
                                 <h2 class="shipment-order-title">Danh sách đơn hàng vận chuyển</h2>
-                                <span><%= shipmentTotalOrders %> đơn phù hợp</span>
+                                <span style="background: none";><%= shipmentTotalOrders %> đơn phù hợp</span>
                             </div>
 
                             <div class="shipment-filter-tabs" aria-label="Lọc đơn hàng theo trạng thái">

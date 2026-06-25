@@ -230,32 +230,39 @@
 .warranty-table {
     width: 100%;
     border-collapse: collapse;
-    text-align: left;
+    color: #30333a;
     font-size: 14px;
 }
 
-.warranty-table th {
-    background-color: #f8f9fa;
-    color: #495057;
-    font-weight: 600;
-    padding: 16px 20px;
-    border-bottom: 2px solid #dee2e6;
+.warranty-table th,
+.warranty-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #eceff4;
+    border-right: 1px solid #eceff4;
+    vertical-align: middle;
+    text-align: center;
 }
 
-.warranty-table td {
-    padding: 16px 20px;
-    border-bottom: 1px solid #e9ecef;
-    vertical-align: middle;
+.warranty-table th:last-child,
+.warranty-table td:last-child {
+    border-right: 0;
+}
+
+.warranty-table th {
+    background: #fafbfe;
+    color: #252932;
+    font-weight: 800;
+    text-align: center;
 }
 
 .warranty-table tr:hover {
-    background-color: #f8f9fa;
+    background-color: #fafbfe;
 }
 
 .req-id {
     font-family: monospace;
     font-weight: 700;
-    color: #dc3545;
+    color: #ed1c24;
     background: #fdf2f2;
     padding: 4px 8px;
     border-radius: 4px;
@@ -273,14 +280,15 @@
     text-decoration: underline;
 }
 
-/* Colored Status Badges */
+/* Colored Status Badges - Sleek Rectangular Layout matching Brand */
 .status-badge {
     display: inline-block;
-    padding: 6px 12px;
-    border-radius: 50px;
+    padding: 6px 10px;
+    border-radius: 4px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
+    white-space: nowrap;
 }
 
 .status-badge.status-1 { background-color: #ffe8cc; color: #d9480f; } /* Chờ tiếp nhận */
@@ -288,45 +296,45 @@
 .status-badge.status-3 { background-color: #fff0f6; color: #c2255c; } /* Từ chối */
 .status-badge.status-4 { background-color: #ebfbee; color: #2b8a3e; } /* Hoàn tất */
 
-/* Action buttons */
+/* Action buttons - Blocky, rectangular layout matching Brand */
 .btn-action-group {
     display: flex;
-    gap: 8px;
+    justify-content: center;
+    gap: 10px;
 }
 
 .btn-action {
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    border: 1px solid transparent;
-    cursor: pointer;
+    min-width: 110px;
+    height: 34px;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    transition: all 0.2s ease;
+    justify-content: center;
+    border: 0;
+    border-radius: 5px;
+    color: #fff;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
 }
 
 .btn-view {
-    background-color: #e7f5ff;
-    color: #1971c2;
-    border-color: #a5d8ff;
+    background-color: #ff9f0a; /* Warning yellow/orange matching brand edit */
 }
 
 .btn-view:hover {
-    background-color: #1971c2;
-    color: #fff;
+    background-color: #e08b00;
 }
 
 .btn-edit {
-    background-color: #ebfbee;
-    color: #2b8a3e;
-    border-color: #b2f2bb;
+    background-color: #ed1c24; /* Red color matching Brand delete/primary red */
 }
 
 .btn-edit:hover {
-    background-color: #2b8a3e;
-    color: #fff;
+    background-color: #d1121b;
 }
 
 /* Modals Overlay */

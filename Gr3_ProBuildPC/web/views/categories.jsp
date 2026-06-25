@@ -226,28 +226,48 @@
                                 <strong><%= String.format("%,d", p.getPrice().longValue()) %>đ</strong>
                                 <p class="stock">Số lượng: <%= p.getQuantity() %></p>
 
-                                <div class="card-actions">
-                                    <% if (p.getQuantity() > 0) { %>
-                                    <form action="<%= ctx %>/cart" method="post" class="cart-form">
-                                        <input type="hidden" name="action" value="addToCart">
-                                        <input type="hidden" name="productId" value="<%= p.getProductId() %>">
-                                        <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="add-to-cart-btn" data-add-to-cart-btn title="Thêm vào giỏ hàng">
-                                            🛒
-                                        </button>
-                                    </form>
-                                    <% } else { %>
-                                    <button type="button" class="add-to-cart-btn" style="opacity: 0.6; cursor: not-allowed; background: #e5e7eb; border-color: #e5e7eb; color: #9ca3af;" title="Sản phẩm tạm hết hàng" disabled>
-                                        🛒
-                                    </button>
-                                    <% } %>
+                            <div class="card-actions">
+                                <a
+                                    href="<%= ctx %>/product-detail?id=<%= p.getProductId() %>">
+                                    Xem chi tiết
+                                </a>
 
-                                    <a class="detail-link" href="<%= ctx %>/product-detail?id=<%= p.getProductId() %>">
-                                        Chi tiết <span>›</span>
-                                    </a>
-                                </div>
-                            </article>
-                            <% } %>
+                                <% if (p.getQuantity()> 0) { %>
+                                <form action="<%= ctx %>/cart"
+                                      method="post"
+                                      class="cart-form">
+                                    <input type="hidden"
+                                           name="action"
+                                           value="addToCart">
+                                    <input type="hidden"
+                                           name="productId"
+                                           value="<%= p.getProductId() %>">
+                                    <input type="hidden"
+                                           name="quantity"
+                                           value="1">
+
+                                    <button type="submit"
+                                            class="add-to-cart-btn"
+                                            data-add-to-cart-btn
+                                            title="Thêm vào giỏ hàng">
+                                        <i class="fa-solid fa-cart-shopping"></i>
+                                    </button>
+                                </form>
+                                <% } else { %>
+                                <button type="button"
+                                        class="add-to-cart-btn"
+                                        style="opacity: 0.6; cursor: not-allowed; background: #e5e7eb; border-color: #e5e7eb; color: #9ca3af;"
+                                        title="Sản phẩm tạm hết hàng"
+                                        disabled>
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                </button>
+                                <% } %>
+                            </div>
+
+                        </article>
+
+                        <% } %>
+
                         <% } else { %>
                             <div class="category-empty">
                                 <h3>Chưa có sản phẩm trong danh mục này</h3>

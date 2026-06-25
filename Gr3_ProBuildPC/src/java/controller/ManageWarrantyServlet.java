@@ -8,10 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import model.User;
 import model.Warranty;
+import model.WarrantyRequest;
 
 @WebServlet(name = "ManageWarrantyServlet", urlPatterns = {"/ManageWarranty", "/manage-warranty"})
 public class ManageWarrantyServlet extends HttpServlet {
@@ -44,8 +44,11 @@ public class ManageWarrantyServlet extends HttpServlet {
             return;
         }
 
-        // Search & Filter Parameters
-        String search = request.getParameter("search");
+        // Intercept dashboard search parameters (query, status)
+        String search = request.getParameter("query");
+        if (search == null) {
+            search = request.getParameter("search");
+        }
         if (search == null) {
             search = request.getParameter("searchQuery");
         }
@@ -53,31 +56,41 @@ public class ManageWarrantyServlet extends HttpServlet {
             search = "";
         }
 
-        String statusFilterRaw = request.getParameter("statusFilter");
-        Integer statusFilterId = null;
-        if (statusFilterRaw != null && !statusFilterRaw.trim().isEmpty()) {
+        String statusRaw = request.getParameter("status");
+        if (statusRaw == null) {
+            statusRaw = request.getParameter("statusFilter");
+        }
+        Integer statusId = null;
+        if (statusRaw != null && !statusRaw.trim().isEmpty()) {
             try {
-                statusFilterId = Integer.parseInt(statusFilterRaw);
+                statusId = Integer.parseInt(statusRaw);
             } catch (NumberFormatException e) {
                 // ignore
             }
         }
 
-        List<Warranty> warrantyList = warrantyDAO.getAllWarranties(search, statusFilterId);
+        // Execute the backend global query
+        List<WarrantyRequest> adminList = warrantyDAO.getAllWarrantyRequestsForAdmin(search, statusId);
         
-        request.setAttribute("warrantyList", warrantyList);
+        // Securely bind the output lists
+        request.setAttribute("adminWarrantyList", adminList);
+        request.setAttribute("warrantyList", adminList); // compatibility for existing view variable name
         request.setAttribute("searchQuery", search.trim());
-        request.setAttribute("statusFilterId", statusFilterId);
+        request.setAttribute("statusFilterId", statusId);
 
         String action = request.getParameter("action");
         if ("viewCondition".equalsIgnoreCase(action)) {
-            String orderDetailIdRaw = request.getParameter("orderDetailId");
-            if (orderDetailIdRaw != null && !orderDetailIdRaw.trim().isEmpty()) {
+            // Decoupled: use productId + customerId instead of orderDetailId
+            String productIdRaw = request.getParameter("productId");
+            String customerIdRaw = request.getParameter("customerId");
+            if (productIdRaw != null && !productIdRaw.trim().isEmpty()
+                    && customerIdRaw != null && !customerIdRaw.trim().isEmpty()) {
                 try {
-                    int orderDetailId = Integer.parseInt(orderDetailIdRaw);
-                    Warranty condItem = warrantyDAO.getProductWarrantyCondition(orderDetailId);
+                    int productId = Integer.parseInt(productIdRaw);
+                    int customerId = Integer.parseInt(customerIdRaw);
+                    Warranty condItem = warrantyDAO.getProductWarrantyCondition(productId, customerId);
                     if (condItem != null) {
-                        List<Warranty> condHistory = warrantyDAO.getWarrantyHistoryByOrderDetailId(orderDetailId);
+                        List<Warranty> condHistory = warrantyDAO.getWarrantyHistoryByProductAndCustomer(productId, customerId);
                         request.setAttribute("condItem", condItem);
                         request.setAttribute("condHistory", condHistory);
                     }
@@ -90,8 +103,8 @@ public class ManageWarrantyServlet extends HttpServlet {
             if (warrantyIdRaw != null && !warrantyIdRaw.trim().isEmpty()) {
                 try {
                     int warrantyId = Integer.parseInt(warrantyIdRaw);
-                    Warranty editWarranty = null;
-                    for (Warranty w : warrantyList) {
+                    WarrantyRequest editWarranty = null;
+                    for (WarrantyRequest w : adminList) {
                         if (w.getWarrantyId() == warrantyId) {
                             editWarranty = w;
                             break;

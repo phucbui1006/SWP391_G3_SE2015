@@ -1,17 +1,17 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-<%
-    String ctx = request.getContextPath();
-%>
+
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+
 <!DOCTYPE html>
 <html lang="vi">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Lịch sử yêu cầu bảo hành</title>
-        <link rel="stylesheet" type="text/css" href="<%= ctx %>/css/style.css">
-        <link rel="stylesheet" type="text/css" href="<%= ctx %>/css/warranty-history.css">
+        <link rel="stylesheet" type="text/css" href="${ctx}/css/style.css">
+        <link rel="stylesheet" type="text/css" href="${ctx}/css/warranty-history.css">
     </head>
     <body class="warranty-history-page">
         <jsp:include page="/includes/header.jsp" />
@@ -21,7 +21,7 @@
             <!-- Centered Content Wrapper -->
             <main class="history-shell">
                 <nav class="history-breadcrumb" aria-label="breadcrumb">
-                    <a href="<%= ctx %>/home">Trang chủ</a>
+                    <a href="${ctx}/home">Trang chủ</a>
                     <span>›</span>
                     <strong>Lịch sử bảo hành</strong>
                 </nav>
@@ -34,7 +34,7 @@
                     </header>
 
                     <!-- Filter & Search Bar (Compact Horizontal Row) -->
-                    <form class="tracking-filter-form" action="<%= ctx %>/warranty-history" method="get">
+                    <form class="tracking-filter-form" action="${ctx}/warranty-history" method="get">
                         <div class="filter-form-row">
                             <div class="filter-form-group input-product">
                                 <label for="searchProduct" class="filter-label">SẢN PHẨM</label>
@@ -65,7 +65,7 @@
 
                             <div class="filter-form-group filter-actions">
                                 <button type="submit" class="btn-filter-submit">Tìm kiếm</button>
-                                <a href="<%= ctx %>/warranty-history" class="btn-filter-clear">Xóa lọc</a>
+                                <a href="${ctx}/warranty-history" class="btn-filter-clear">Xóa lọc</a>
                             </div>
                         </div>
                     </form>
@@ -75,7 +75,7 @@
                 <div class="tracking-results-card">
                     <div class="tracking-results">
                         <c:choose>
-                            <c:when test="${not empty warrantyList}">
+                            <c:when test="${not empty clientWarrantyList}">
                                 <div class="history-table-wrapper">
                                     <table class="history-table">
                                         <thead>
@@ -89,7 +89,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <c:forEach var="item" items="${warrantyList}">
+                                            <c:forEach var="item" items="${clientWarrantyList}">
                                                 <tr>
                                                     <td>
                                                         <span class="req-id">#WR${item.warrantyId}</span>
@@ -133,12 +133,12 @@
                                         <c:when test="${not empty searchProduct or not empty filterStatusId}">
                                             <h2>Không tìm thấy kết quả phù hợp</h2>
                                             <p>Không tìm thấy yêu cầu bảo hành nào khớp với sản phẩm hoặc trạng thái bạn đã chọn. Vui lòng thử lại với từ khóa khác.</p>
-                                            <a href="<%= ctx %>/warranty-history" class="btn-primary-red">Xóa bộ lọc</a>
+                                            <a href="${ctx}/warranty-history" class="btn-primary-red">Xóa bộ lọc</a>
                                         </c:when>
                                         <c:otherwise>
                                             <h2>Không tìm thấy yêu cầu bảo hành nào</h2>
                                             <p>Bạn chưa gửi bất kỳ yêu cầu bảo hành nào. Nếu sản phẩm của bạn bị lỗi hoặc gặp sự cố, bạn có thể tra cứu và gửi yêu cầu bảo hành ngay lập tức.</p>
-                                            <a href="<%= ctx %>/warranty-lookup" class="btn-primary-red">Tra cứu & gửi yêu cầu</a>
+                                            <a href="${ctx}/warranty-lookup" class="btn-primary-red">Tra cứu & gửi yêu cầu</a>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>

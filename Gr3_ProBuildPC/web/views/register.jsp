@@ -7,7 +7,6 @@
         <title>ProBuild PC - Register</title>
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
         <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
 

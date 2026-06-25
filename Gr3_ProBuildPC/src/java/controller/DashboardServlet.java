@@ -131,17 +131,17 @@ public class DashboardServlet extends HttpServlet {
 
     private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary) {
         List<AdminDashboardView.StatCard> cards = new ArrayList<>();
-        cards.add(new AdminDashboardView.StatCard("red", "💰", "Tổng doanh thu",
+        cards.add(new AdminDashboardView.StatCard("red", "fa-solid fa-coins", "Tổng doanh thu",
                 DashboardViewHelper.formatCurrency(summary.getTotalRevenue())));
-        cards.add(new AdminDashboardView.StatCard("dark", "📦", "Tổng đơn hàng",
+        cards.add(new AdminDashboardView.StatCard("dark", "fa-solid fa-receipt", "Tổng đơn hàng",
                 String.valueOf(summary.getTotalOrders())));
-        cards.add(new AdminDashboardView.StatCard("blue", "🖥️", "Tất cả sản phẩm",
+        cards.add(new AdminDashboardView.StatCard("blue", "fa-solid fa-desktop", "Tất cả sản phẩm",
                 String.valueOf(summary.getActiveProducts())));
-        cards.add(new AdminDashboardView.StatCard("green", "🏷️", "Tất cả thương hiệu",
+        cards.add(new AdminDashboardView.StatCard("green", "fa-solid fa-tags", "Tất cả thương hiệu",
                 String.valueOf(summary.getTotalBrands())));
-        cards.add(new AdminDashboardView.StatCard("orange", "🛠️", "Yêu cầu bảo hành",
+        cards.add(new AdminDashboardView.StatCard("orange", "fa-solid fa-screwdriver-wrench", "Yêu cầu bảo hành",
                 String.valueOf(summary.getWarrantyRequests())));
-        cards.add(new AdminDashboardView.StatCard("purple", "🚚", "Lô hàng đã nhập",
+        cards.add(new AdminDashboardView.StatCard("purple", "fa-solid fa-truck-ramp-box", "Lô hàng đã nhập",
                 String.valueOf(summary.getImportedBatches())));
         return cards;
     }
@@ -154,7 +154,7 @@ public class DashboardServlet extends HttpServlet {
 
         for (DashboardProduct product : products) {
             rows.add(new AdminDashboardView.ProductRow(
-                    "SP" + product.getProductId(),
+                    String.valueOf(product.getProductId()),
                     DashboardViewHelper.h(product.getProductName()),
                     product.getSoldQuantity(),
                     product.getStockQuantity(),
@@ -199,7 +199,7 @@ public class DashboardServlet extends HttpServlet {
                 ""
         ));
         rows.add(new AdminDashboardView.OrderSummaryRow(
-                "Doanh thu hợp lệ",
+                "Doanh thu",
                 DashboardViewHelper.formatCurrency(totalRevenue),
                 "Không tính đơn đã hủy",
                 ""
@@ -297,7 +297,7 @@ public class DashboardServlet extends HttpServlet {
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
         List<OrderStatus> allStatusOptions = orderHistoryDAO.getOrderStatuses();
         List<OrderStatus> statusOptions = filterShipmentStatuses(allStatusOptions);
-        List<Integer> removedShipmentStatusIds = getPendingConfirmationStatusIds(allStatusOptions);
+        List<Integer> removedShipmentStatusIds = getRemovedShipmentStatusIds(allStatusOptions);
         if (isRemovedShipmentStatus(selectedStatusId, statusOptions)) {
             selectedStatusId = null;
         }
@@ -353,21 +353,21 @@ public class DashboardServlet extends HttpServlet {
         }
 
         for (OrderStatus status : statuses) {
-            if (!isPendingConfirmationStatus(status)) {
+            if (!isHiddenShipmentStatus(status)) {
                 filteredStatuses.add(status);
             }
         }
         return filteredStatuses;
     }
 
-    private List<Integer> getPendingConfirmationStatusIds(List<OrderStatus> statuses) {
+    private List<Integer> getRemovedShipmentStatusIds(List<OrderStatus> statuses) {
         List<Integer> statusIds = new ArrayList<>();
         if (statuses == null) {
             return statusIds;
         }
 
         for (OrderStatus status : statuses) {
-            if (isPendingConfirmationStatus(status)) {
+            if (isHiddenShipmentStatus(status)) {
                 statusIds.add(status.getStatusId());
             }
         }
@@ -387,6 +387,10 @@ public class DashboardServlet extends HttpServlet {
         return true;
     }
 
+    private boolean isHiddenShipmentStatus(OrderStatus status) {
+        return isPendingConfirmationStatus(status) || isPreparingOrderStatus(status);
+    }
+
     private boolean isPendingConfirmationStatus(OrderStatus status) {
         if (status == null || status.getStatusName() == null) {
             return false;
@@ -395,6 +399,15 @@ public class DashboardServlet extends HttpServlet {
         String statusName = status.getStatusName().toLowerCase();
         return (statusName.contains("chờ") || statusName.contains("cho "))
                 && (statusName.contains("xác nhận") || statusName.contains("xac nhan"));
+    }
+
+    private boolean isPreparingOrderStatus(OrderStatus status) {
+        if (status == null || status.getStatusName() == null) {
+            return false;
+        }
+
+        String statusName = status.getStatusName().toLowerCase();
+        return statusName.contains("chuẩn bị") || statusName.contains("chuan bi");
     }
 
     private boolean hasRole(User user, String expectedRole) {
@@ -433,11 +446,11 @@ public class DashboardServlet extends HttpServlet {
         }
     }
 
-    private String normalizeText(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
-
-        return value.trim();
-    }
+//    private String normalizeText(String value) {
+//        if (value == null || value.trim().isEmpty()) {
+//            return null;
+//        }
+//
+//        return value.trim();
+//    }
 }

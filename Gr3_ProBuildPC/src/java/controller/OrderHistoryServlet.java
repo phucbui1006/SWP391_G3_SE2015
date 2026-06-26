@@ -150,6 +150,12 @@ public class OrderHistoryServlet extends HttpServlet {
             return;
         }
 
+        if (!deliveryPhone.matches("^(0[35789])[0-9]{8}$")) {
+            session.setAttribute(ERROR_FLASH, "Số điện thoại không hợp lệ (phải là mạng di động, bắt đầu bằng 03, 05, 07, 08, 09 và có 10 chữ số).");
+            response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
+            return;
+        }
+
         String shipmentNote = "Người giao hàng: " + deliveryName + " - SĐT: " + deliveryPhone;
 
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
@@ -249,7 +255,7 @@ public class OrderHistoryServlet extends HttpServlet {
     }
 
     private boolean canManageShipment(User account) {
-        return isShipment(account) || isAdmin(account) || isEmployee(account);
+        return isShipment(account) || isEmployee(account);
     }
 
     private boolean isAdmin(User account) {

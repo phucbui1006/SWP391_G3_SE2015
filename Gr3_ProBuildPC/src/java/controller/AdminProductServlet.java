@@ -207,45 +207,24 @@ public class AdminProductServlet extends HttpServlet {
             request.setAttribute("error", "Tên sản phẩm phải từ 3 đến 255 ký tự.");
             return false;
         }
-        if (categoryId == null || brandId == null) {
-            request.setAttribute("error", "Danh mục hoặc thương hiệu không hợp lệ.");
-            return false;
-        }
 
         BigDecimal price;
         try {
             price = new BigDecimal(priceRaw);
-            if (price.compareTo(BigDecimal.ZERO) < 0) {
-                request.setAttribute("error", "Giá bán không được nhỏ hơn 0.");
-                return false;
-            }
         } catch (Exception e) {
-            request.setAttribute("error", "Giá bán không hợp lệ.");
-            return false;
+            price = BigDecimal.ZERO;
         }
 
         int warrantyMonths = 0;
         try {
             if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
                 warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
-                if (warrantyMonths < 0) {
-                    request.setAttribute("error", "Thời gian bảo hành không được nhỏ hơn 0.");
-                    return false;
-                }
             }
-        } catch (Exception e) {
-            request.setAttribute("error", "Thời gian bảo hành không hợp lệ.");
-            return false;
-        }
+        } catch (Exception e) {}
 
         Part filePart = request.getPart("imgFile");
         String imageUrl = null;
         if (filePart != null && filePart.getSize() > 0) {
-            if (filePart.getSize() > 2 * 1024 * 1024) {
-                request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
-                return false;
-            }
-
             String submittedName = filePart.getSubmittedFileName();
             String extension = getAllowedImageExtension(submittedName);
             if (extension == null || !filePart.getContentType().startsWith("image/")) {
@@ -298,52 +277,25 @@ public class AdminProductServlet extends HttpServlet {
             request.setAttribute("error", "Sản phẩm không hợp lệ.");
             return false;
         }
-        if (productName == null || productName.length() < 3 || productName.length() > 255) {
-            request.setAttribute("error", "Tên sản phẩm phải từ 3 đến 255 ký tự.");
-            return false;
-        }
-        if (categoryId == null || brandId == null) {
-            request.setAttribute("error", "Danh mục hoặc thương hiệu không hợp lệ.");
-            return false;
-        }
 
         BigDecimal price;
         try {
             price = new BigDecimal(priceRaw);
-            if (price.compareTo(BigDecimal.ZERO) < 0) {
-                request.setAttribute("error", "Giá bán không được nhỏ hơn 0.");
-                return false;
-            }
         } catch (Exception e) {
-            request.setAttribute("error", "Giá bán không hợp lệ.");
-            return false;
+            price = BigDecimal.ZERO;
         }
 
         int warrantyMonths = 0;
         try {
             if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
                 warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
-                if (warrantyMonths < 0) {
-                    request.setAttribute("error", "Thời gian bảo hành không được nhỏ hơn 0.");
-                    return false;
-                }
             }
-        } catch (Exception e) {
-            request.setAttribute("error", "Thời gian bảo hành không hợp lệ.");
-            return false;
-        }
+        } catch (Exception e) {}
 
         Part filePart = request.getPart("imgFile");
         String imageUrl = currentImg;
 
         if (filePart != null && filePart.getSize() > 0) {
-            // 1. Size constraint validation
-            if (filePart.getSize() > 2 * 1024 * 1024) {
-                request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
-                return false;
-            }
-
-            // 2. MIME & Extension validation
             String submittedName = filePart.getSubmittedFileName();
             String extension = getAllowedImageExtension(submittedName);
             if (extension == null || !filePart.getContentType().startsWith("image/")) {

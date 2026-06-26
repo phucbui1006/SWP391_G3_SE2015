@@ -72,7 +72,6 @@ public class ShippingAddressServlet extends HttpServlet {
         request.setAttribute("activeAddressId", addressId);
         request.setAttribute("fixedAddressSuffix", FIXED_ADDRESS_SUFFIX);
 
-
         if (updateMode) {
             if (addressId == null) {
                 request.setAttribute("errorMsg", "Khong tim thay dia chi can cap nhat.");

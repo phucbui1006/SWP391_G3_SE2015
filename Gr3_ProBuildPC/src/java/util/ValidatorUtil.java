@@ -71,4 +71,59 @@ public class ValidatorUtil {
                 || lowerName.endsWith(".jpeg")
                 || lowerName.endsWith(".webp");
     }
+    public static boolean isValidAddress(String address) {
+        if (address == null || address.trim().isEmpty()) return false;
+        String trimmed = address.trim();
+        // Allow basic alphanumeric and common punctuation, length 5 to 255
+        return trimmed.length() >= 5 && trimmed.length() <= 255;
+    }
+
+    public static boolean isValidNote(String note) {
+        if (note == null) return true; // Optional
+        String trimmed = note.trim();
+        return trimmed.length() <= 1000; // Limit note length
+    }
+
+    public static boolean isValidSearchQuery(String query) {
+        if (query == null || query.trim().isEmpty()) return false;
+        String trimmed = query.trim();
+        // Disallow suspicious characters: <, >, =, %, script
+        if (trimmed.matches(".*[<>='\"%].*")) return false;
+        return trimmed.length() <= 100;
+    }
+
+    public static String safeTrimAndClean(String value) {
+        if (value == null) return "";
+        return value.trim().replaceAll("[<>='\"%]", "");
+    }
+
+    public static boolean isValidPrice(String priceStr) {
+        if (priceStr == null || priceStr.trim().isEmpty()) return false;
+        try {
+            double price = Double.parseDouble(priceStr);
+            return price > 0 && price <= 2000000000.0; // max 2 tỷ
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public static boolean isValidQuantity(String qtyStr) {
+        if (qtyStr == null || qtyStr.trim().isEmpty()) return false;
+        try {
+            int qty = Integer.parseInt(qtyStr);
+            return qty >= 0 && qty <= 100000;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public static boolean isValidRating(String ratingStr) {
+        if (ratingStr == null || ratingStr.trim().isEmpty()) return false;
+        try {
+            int rating = Integer.parseInt(ratingStr);
+            return rating >= 1 && rating <= 5;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 }

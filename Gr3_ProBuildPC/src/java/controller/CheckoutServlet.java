@@ -92,7 +92,7 @@ public class CheckoutServlet extends HttpServlet {
         String paymentMethod = normalizePaymentMethod(request.getParameter("paymentMethod"));
         int statusId = "VNPAY".equals(paymentMethod) ? 1 : 2; // 1: Chờ xác nhận, 2: Đã xác nhận (auto-confirmed)
         String paymentStatus = "VNPAY".equals(paymentMethod) ? "Chờ thanh toán" : "Chưa thanh toán";
-        String note = safeTrim(request.getParameter("note"));
+        String note = util.ValidatorUtil.safeTrimAndClean(request.getParameter("note"));
 
         OrderDAO orderDAO = new OrderDAO();
         int orderId = orderDAO.createOrder(

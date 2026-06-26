@@ -7,6 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ProBuild PC - Login</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
 
     <body>
@@ -18,13 +19,13 @@
         <div class="card-container">
             <h2 class="card-title">Chào mừng trở lại!</h2>
 
-            <form action="${pageContext.request.contextPath}/Login" method="POST">
+            <form action="${pageContext.request.contextPath}/Login" method="POST" onsubmit="return validateForm()">
                 <div class="form-group">
                     <label for="email">Email</label>
 
                     <div class="input-group">
                         <i class="fa-regular fa-envelope left-icon"></i>
-                        <input type="email" id="email" name="email" placeholder="Email Address" value="${not empty requestScope.enteredEmail ? requestScope.enteredEmail : sessionScope.registeredEmail}" required>
+                        <input type="email" id="email" name="email" placeholder="Email Address" value="${not empty requestScope.enteredEmail ? requestScope.enteredEmail : sessionScope.registeredEmail}">
                     </div>
                 </div>
 
@@ -33,7 +34,7 @@
 
                     <div class="input-group">
                         <i class="fa-solid fa-lock left-icon"></i>
-                        <input type="password" id="password" name="password" placeholder="••••••••" required class="pass-input" value="${requestScope.enteredPassword}">
+                        <input type="password" id="password" name="password" placeholder="••••••••" class="pass-input" value="${requestScope.enteredPassword}">
                         <i class="fa-regular fa-eye toggle-password" onclick="togglePass('password', this)"></i>
                     </div>
                 </div>
@@ -79,10 +80,32 @@
         </div>
 
         <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                Validator.setupRealTimeValidation([
+                    {
+                        selector: '#email',
+                        validateFn: (val) => Validator.validateEmail(val),
+                        getErrorMsg: () => 'Vui lòng nhập định dạng email hợp lệ.'
+                    },
+                    {
+                        selector: '#password',
+                        validateFn: (val) => val.trim().length > 0,
+                        getErrorMsg: () => 'Vui lòng nhập mật khẩu.'
+                    }
+                ]);
+            });
+
             function validateForm() {
-                var emailInput = document.getElementById("email");
-                emailInput.value = emailInput.value.trim();
-                return true;
+                const emailInput = document.getElementById("email");
+                const passwordInput = document.getElementById("password");
+
+                const isEmailValid = Validator.validateEmail(emailInput.value);
+                Validator.showFeedback(emailInput, isEmailValid, 'Vui lòng nhập định dạng email hợp lệ.');
+
+                const isPasswordValid = passwordInput.value.trim().length > 0;
+                Validator.showFeedback(passwordInput, isPasswordValid, 'Vui lòng nhập mật khẩu.');
+
+                return isEmailValid && isPasswordValid;
             }
 
             function togglePass(inputId, icon) {
@@ -99,12 +122,5 @@
                 }
             }
         </script>
-
     </body>
-</html>
-}
-}
-</script>
-
-</body>
 </html>

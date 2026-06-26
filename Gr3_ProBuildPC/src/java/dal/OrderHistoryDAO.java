@@ -468,14 +468,7 @@ public class OrderHistoryDAO extends DBContext {
                             od.product_id,
                             od.quantity,
                             od.unit_price,
-                            COALESCE((
-                                SELECT bi_w.warranty_months
-                                FROM batch_items bi_w
-                                JOIN batch b_w ON b_w.batch_id = bi_w.batch_id
-                                WHERE bi_w.product_id = p.product_id
-                                ORDER BY b_w.date ASC, bi_w.batch_item_id ASC
-                                LIMIT 1
-                            ), 0) AS warranty_months,
+                            COALESCE(p.warranty_months, 0) AS warranty_months,
                             od.subtotal,
                             p.product_name,
                             p.image_url,
@@ -669,7 +662,11 @@ public class OrderHistoryDAO extends DBContext {
     }
 
     private void updateOrderStatus(int orderId, int statusId) throws SQLException {
-        String sql = "UPDATE orders SET status_id = ? WHERE order_id = ?";
+        String sql = "UPDATE orders SET status_id = ?";
+        if (statusId == 5) {
+            sql += ", received_date = CURRENT_TIMESTAMP";
+        }
+        sql += " WHERE order_id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, statusId);

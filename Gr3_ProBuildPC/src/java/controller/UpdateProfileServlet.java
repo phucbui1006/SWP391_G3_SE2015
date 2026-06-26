@@ -33,7 +33,7 @@ public class UpdateProfileServlet extends HttpServlet {
         }
 
         // Đọc tham số đầu vào từ Form gửi lên
-        String fullName = request.getParameter("fullName").trim();
+        String fullName = request.getParameter("fullName") == null ? "" : request.getParameter("fullName").trim();
         String oldPassword = request.getParameter("currentPassword");
         String newPassword = request.getParameter("newPassword");
         String confirmPassword = request.getParameter("confirmPassword");

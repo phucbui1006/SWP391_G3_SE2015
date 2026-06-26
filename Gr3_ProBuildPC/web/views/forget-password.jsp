@@ -23,7 +23,7 @@
                     <label for="email">Email</label>
                     <div class="input-group">
                         <i class="fa-regular fa-envelope left-icon"></i>
-                        <input type="email" id="email" name="email" placeholder="Nhập email của bạn" required maxlength="100">
+                        <input type="email" id="email" name="email" placeholder="Nhập email của bạn">
                     </div>
                 </div>
 

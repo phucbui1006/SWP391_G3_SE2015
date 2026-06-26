@@ -171,6 +171,64 @@
             .btn-cancel-main:hover {
                 background: #f3f4f6;
             }
+            .toggle-switch-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 4px 8px;
+                border-radius: 20px;
+                transition: background 0.2s ease;
+            }
+            .toggle-switch-btn:hover {
+                background: #f1f3f9;
+            }
+            .toggle-track {
+                width: 38px;
+                height: 20px;
+                background-color: #cbd5e1;
+                border-radius: 10px;
+                position: relative;
+                transition: background-color 0.2s ease;
+                display: inline-block;
+            }
+            .toggle-thumb {
+                width: 16px;
+                height: 16px;
+                background-color: #ffffff;
+                border-radius: 50%;
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                transition: transform 0.2s ease;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+            }
+            .toggle-switch-btn.active .toggle-track {
+                background-color: #137333;
+            }
+            .toggle-switch-btn.active .toggle-thumb {
+                transform: translateX(18px);
+            }
+            .toggle-label {
+                font-size: 12.5px;
+                font-weight: 700;
+                color: #475569;
+            }
+            .toggle-switch-btn.active .toggle-label {
+                color: #137333;
+            }
+            .disabled-row {
+                background-color: #f8fafc !important;
+                color: #94a3b8 !important;
+            }
+            .disabled-row strong, .disabled-row span, .disabled-row td, .disabled-row .toggle-label {
+                color: #94a3b8 !important;
+            }
+            .disabled-row em {
+                color: #cbd5e1 !important;
+            }
         </style>
     </head>
     <body class="admin-category-body">
@@ -256,7 +314,7 @@
                                         CategorySpecTemplate t = editTemplates.get(i);
                                         boolean isRowEditing = (editingIndex != null && editingIndex == i);
                                     %>
-                                    <tr>
+                                    <tr class="<%= "INACTIVE".equalsIgnoreCase(t.getStatus()) ? "disabled-row" : "" %>">
                                         <!-- Spec Name -->
                                         <td>
                                             <% if (isRowEditing) { %>
@@ -270,7 +328,7 @@
                                         <!-- Spec Type -->
                                         <td style="text-align: center;">
                                             <% if (isRowEditing) { %>
-                                                <select name="specType_<%= i %>" class="select-spec-field">
+                                                <select name="specType_<%= i %>" class="select-spec-field" onchange="handleSpecTypeChange(this)">
                                                     <option value="TEXT" <%= "TEXT".equalsIgnoreCase(t.getSpecType()) ? "selected" : "" %>>TEXT</option>
                                                     <option value="SELECT" <%= "SELECT".equalsIgnoreCase(t.getSpecType()) ? "selected" : "" %>>SELECT</option>
                                                     <option value="NUMBER" <%= "NUMBER".equalsIgnoreCase(t.getSpecType()) ? "selected" : "" %>>NUMBER</option>
@@ -283,8 +341,13 @@
 
                                         <!-- Allowed Values -->
                                         <td>
-                                            <% if (isRowEditing) { %>
-                                                <input type="text" name="allowedValues_<%= i %>" value="<%= h(t.getAllowedValues()) %>" class="input-spec-field" placeholder="VD: 8GB,16GB,32GB">
+                                            <% if (isRowEditing) { 
+                                                boolean isSelect = "SELECT".equalsIgnoreCase(t.getSpecType());
+                                                String placeholder = isSelect ? "VD: 8GB,16GB,32GB" : "Không giới hạn (Bất kỳ)";
+                                                String disabledAttr = isSelect ? "" : "disabled";
+                                                String bgStyle = isSelect ? "" : "background-color: #f3f4f6; cursor: not-allowed;";
+                                            %>
+                                                <input type="text" name="allowedValues_<%= i %>" value="<%= isSelect ? h(t.getAllowedValues()) : "" %>" class="input-spec-field" placeholder="<%= placeholder %>" <%= disabledAttr %> style="<%= bgStyle %>">
                                             <% } else { %>
                                                 <input type="hidden" name="allowedValues_<%= i %>" value="<%= h(t.getAllowedValues()) %>">
                                                 <span style="color: #666; font-size: 13px;"><%= t.getAllowedValues() != null && !t.getAllowedValues().isEmpty() ? h(t.getAllowedValues()) : "<em>Không giới hạn (Bất kỳ)</em>" %></span>
@@ -297,9 +360,12 @@
                                                 <input type="checkbox" name="isRequired_<%= i %>" value="true" <%= t.isRequired() ? "checked" : "" %> class="checkbox-spec-field">
                                             <% } else { %>
                                                 <input type="hidden" name="isRequired_<%= i %>" value="<%= t.isRequired() ? "true" : "false" %>">
-                                                <span class="status-badge <%= t.isRequired() ? "status-active" : "status-inactive" %>" style="font-size: 11.5px; padding: 2px 6px;">
-                                                    <%= t.isRequired() ? "Bắt buộc" : "Tùy chọn" %>
-                                                </span>
+                                                <button type="submit" name="action" value="toggleRequired_<%= i %>" class="toggle-switch-btn <%= t.isRequired() ? "active" : "" %>" title="Nhấp để đổi trạng thái Bắt buộc">
+                                                    <span class="toggle-track">
+                                                        <span class="toggle-thumb"></span>
+                                                    </span>
+                                                    <span class="toggle-label"><%= t.isRequired() ? "Bắt buộc" : "Không bắt buộc" %></span>
+                                                </button>
                                             <% } %>
                                         </td>
 
@@ -325,9 +391,15 @@
                                                         <i class="fa-solid fa-pen-to-square"></i> Sửa
                                                     </button>
                                                 <% } %>
-                                                <button type="submit" name="action" value="deleteSpec_<%= i %>" class="btn-action-row btn-row-delete" onclick="return confirm('Bạn có chắc muốn xóa thuộc tính này?')" title="Xóa hàng này">
-                                                    <i class="fa-solid fa-trash"></i> Xóa
-                                                </button>
+                                                <% if ("INACTIVE".equalsIgnoreCase(t.getStatus())) { %>
+                                                    <button type="submit" name="action" value="activateSpec_<%= i %>" class="btn-action-row btn-row-save" title="Kích hoạt hàng này">
+                                                        <i class="fa-solid fa-circle-check"></i> Kích hoạt
+                                                    </button>
+                                                <% } else { %>
+                                                    <button type="submit" name="action" value="deleteSpec_<%= i %>" class="btn-action-row btn-row-delete" onclick="return confirm('Bạn có chắc muốn vô hiệu hóa thuộc tính này?')" title="Vô hiệu hóa hàng này">
+                                                        <i class="fa-solid fa-ban"></i> Vô hiệu hóa
+                                                    </button>
+                                                <% } %>
                                             </div>
                                         </td>
                                     </tr>
@@ -353,5 +425,27 @@
 
         <jsp:include page="/includes/footer.jsp" />
 
+        <script>
+            function handleSpecTypeChange(select) {
+                const tr = select.closest('tr');
+                if (tr) {
+                    const input = tr.querySelector('input[name^="allowedValues_"]');
+                    if (input) {
+                        if (select.value === 'TEXT' || select.value === 'NUMBER') {
+                            input.value = '';
+                            input.disabled = true;
+                            input.placeholder = 'Không giới hạn (Bất kỳ)';
+                            input.style.backgroundColor = '#f3f4f6';
+                            input.style.cursor = 'not-allowed';
+                        } else {
+                            input.disabled = false;
+                            input.placeholder = 'VD: 8GB,16GB,32GB';
+                            input.style.backgroundColor = '';
+                            input.style.cursor = '';
+                        }
+                    }
+                }
+            }
+        </script>
     </body>
 </html>

@@ -80,7 +80,9 @@ public class AdminCategoryAddServlet extends HttpServlet {
             if (specType != null) {
                 t.setSpecType(specType.trim().toUpperCase());
             }
-            if (allowedValues != null) {
+            if (t.getSpecType() != null && ("TEXT".equals(t.getSpecType()) || "NUMBER".equals(t.getSpecType()))) {
+                t.setAllowedValues(null);
+            } else if (allowedValues != null) {
                 t.setAllowedValues(allowedValues.trim());
             } else {
                 t.setAllowedValues("");
@@ -109,9 +111,29 @@ public class AdminCategoryAddServlet extends HttpServlet {
 
         if (action.startsWith("deleteSpec_")) {
             int index = Integer.parseInt(action.substring("deleteSpec_".length()));
-            addTemplates.remove(index);
+            CategorySpecTemplate t = addTemplates.get(index);
+            t.setStatus("INACTIVE");
             session.setAttribute("addTemplates", addTemplates);
             session.removeAttribute("editingIndex");
+            request.getRequestDispatcher("/views/add-category.jsp").forward(request, response);
+            return;
+        }
+
+        if (action.startsWith("activateSpec_")) {
+            int index = Integer.parseInt(action.substring("activateSpec_".length()));
+            CategorySpecTemplate t = addTemplates.get(index);
+            t.setStatus("ACTIVE");
+            session.setAttribute("addTemplates", addTemplates);
+            session.removeAttribute("editingIndex");
+            request.getRequestDispatcher("/views/add-category.jsp").forward(request, response);
+            return;
+        }
+
+        if (action.startsWith("toggleRequired_")) {
+            int index = Integer.parseInt(action.substring("toggleRequired_".length()));
+            CategorySpecTemplate t = addTemplates.get(index);
+            t.setRequired(!t.isRequired());
+            session.setAttribute("addTemplates", addTemplates);
             request.getRequestDispatcher("/views/add-category.jsp").forward(request, response);
             return;
         }
@@ -246,28 +268,15 @@ public class AdminCategoryAddServlet extends HttpServlet {
             return "Kiểu dữ liệu thuộc tính không hợp lệ.";
         }
 
+        // Force-clear allowed values for TEXT and NUMBER fields
+        if ("TEXT".equals(type) || "NUMBER".equals(type)) {
+            t.setAllowedValues(null);
+        }
+
         // Validate allowed values for SELECT
         if ("SELECT".equals(type)) {
             if (t.getAllowedValues() == null || t.getAllowedValues().trim().isEmpty()) {
                 return "Đối với kiểu SELECT, giá trị cho phép không được để trống.";
-            }
-        }
-
-        // Validate allowed values for NUMBER
-        if ("NUMBER".equals(type)) {
-            String allowed = t.getAllowedValues();
-            if (allowed != null && !allowed.trim().isEmpty()) {
-                String[] values = allowed.split(",");
-                for (String valStr : values) {
-                    try {
-                        double parsed = Double.parseDouble(valStr.trim());
-                        if (parsed <= 0) {
-                            return "Các giá trị cấu hình cho thông số dạng số phải lớn hơn 0.";
-                        }
-                    } catch (NumberFormatException e) {
-                        return "Các giá trị cấu hình cho thông số dạng số phải lớn hơn 0.";
-                    }
-                }
             }
         }
         

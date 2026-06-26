@@ -254,6 +254,9 @@ public class AdminProductServlet extends HttpServlet {
         // Attach spec templates for server-side re-rendering if category is selected
         if (categoryId != null) {
             List<CategorySpecTemplate> specTemplates = categoryDAO.getTemplatesByCategoryId(categoryId);
+            if (specTemplates != null) {
+                specTemplates.removeIf(t -> "INACTIVE".equalsIgnoreCase(t.getStatus()));
+            }
             request.setAttribute("specTemplates", specTemplates);
         }
 
@@ -350,6 +353,9 @@ public class AdminProductServlet extends HttpServlet {
         // Attach spec templates for server-side re-rendering if category is selected
         if (categoryId != null) {
             List<CategorySpecTemplate> specTemplates = categoryDAO.getTemplatesByCategoryId(categoryId);
+            if (specTemplates != null) {
+                specTemplates.removeIf(t -> "INACTIVE".equalsIgnoreCase(t.getStatus()));
+            }
             request.setAttribute("specTemplates", specTemplates);
         }
 
@@ -598,7 +604,10 @@ public class AdminProductServlet extends HttpServlet {
         if (categoryId == null) return null;
 
         List<CategorySpecTemplate> templates = categoryDAO.getTemplatesByCategoryId(categoryId);
-        if (templates.isEmpty()) {
+        if (templates != null) {
+            templates.removeIf(t -> "INACTIVE".equalsIgnoreCase(t.getStatus()));
+        }
+        if (templates == null || templates.isEmpty()) {
             return null; // Category has no spec templates
         }
 
@@ -622,34 +631,38 @@ public class AdminProductServlet extends HttpServlet {
                 }
             }
 
-            // Category specifications are mandatory, so they cannot be empty
-            if (!found || value == null || value.trim().isEmpty()) {
-                return "Thông số '" + template.getSpecName() + "' không được để trống.";
+            // Enforce non-empty validation only if the template is required
+            if (template.isRequired()) {
+                if (!found || value == null || value.trim().isEmpty()) {
+                    return "Thông số '" + template.getSpecName() + "' không được để trống.";
+                }
             }
 
-            // Check numeric type validation and enforce strictly positive numbers (> 0)
-            if ("NUMBER".equalsIgnoreCase(template.getSpecType())) {
-                try {
-                    double val = Double.parseDouble(value.trim());
-                    if (val <= 0) {
-                        return "Thông số kỹ thuật dạng số phải lớn hơn 0.";
+            // Check numeric type validation and enforce strictly positive numbers (> 0) only if value is provided
+            if (found && value != null && !value.trim().isEmpty()) {
+                if ("NUMBER".equalsIgnoreCase(template.getSpecType())) {
+                    try {
+                        double val = Double.parseDouble(value.trim());
+                        if (val <= 0) {
+                            return "Thông số kỹ thuật dạng số phải lớn hơn 0.";
+                        }
+                    } catch (NumberFormatException e) {
+                        return "Thông số '" + template.getSpecName() + "' phải là một số hợp lệ.";
                     }
-                } catch (NumberFormatException e) {
-                    return "Thông số '" + template.getSpecName() + "' phải là một số hợp lệ.";
-                }
 
-                // Validate allowed values of the template configuration
-                String allowed = template.getAllowedValues();
-                if (allowed != null && !allowed.trim().isEmpty()) {
-                    String[] values = allowed.split(",");
-                    for (String valStr : values) {
-                        try {
-                            double parsed = Double.parseDouble(valStr.trim());
-                            if (parsed <= 0) {
+                    // Validate allowed values of the template configuration
+                    String allowed = template.getAllowedValues();
+                    if (allowed != null && !allowed.trim().isEmpty()) {
+                        String[] values = allowed.split(",");
+                        for (String valStr : values) {
+                            try {
+                                double parsed = Double.parseDouble(valStr.trim());
+                                if (parsed <= 0) {
+                                    return "Các giá trị cấu hình cho thông số dạng số phải lớn hơn 0.";
+                                }
+                            } catch (NumberFormatException e) {
                                 return "Các giá trị cấu hình cho thông số dạng số phải lớn hơn 0.";
                             }
-                        } catch (NumberFormatException e) {
-                            return "Các giá trị cấu hình cho thông số dạng số phải lớn hơn 0.";
                         }
                     }
                 }

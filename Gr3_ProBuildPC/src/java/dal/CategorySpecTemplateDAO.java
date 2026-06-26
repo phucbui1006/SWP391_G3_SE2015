@@ -17,7 +17,8 @@ public class CategorySpecTemplateDAO extends DBContext {
                    spec_type,
                    allowed_values,
                    is_required,
-                   display_order
+                   display_order,
+                   status
             FROM CATEGORY_SPEC_TEMPLATES
             WHERE category_id = ?
             ORDER BY display_order ASC, template_id ASC
@@ -38,6 +39,7 @@ public class CategorySpecTemplateDAO extends DBContext {
                     t.setAllowedValues(rs.getString("allowed_values"));
                     t.setRequired(rs.getBoolean("is_required"));
                     t.setDisplayOrder(rs.getInt("display_order"));
+                    t.setStatus(rs.getString("status"));
 
                     list.add(t);
                 }

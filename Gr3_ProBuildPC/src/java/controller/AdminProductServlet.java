@@ -193,9 +193,9 @@ public class AdminProductServlet extends HttpServlet {
     }
 
     /**
-     * Populate page data with CLEAN defaults (no filters applied).
-     * Used when forwarding back from add/update validation failures to prevent
-     * the product form's categoryId/brandId from corrupting the dashboard filters.
+     * Populate page data with CLEAN defaults (no filters applied). Used when
+     * forwarding back from add/update validation failures to prevent the
+     * product form's categoryId/brandId from corrupting the dashboard filters.
      */
     private void populatePageDataWithDefaults(HttpServletRequest request) {
         String keyword = "";
@@ -279,7 +279,8 @@ public class AdminProductServlet extends HttpServlet {
             if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
                 warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         Part filePart = request.getPart("imgFile");
         String imageUrl = null;
@@ -296,24 +297,6 @@ public class AdminProductServlet extends HttpServlet {
                 request.setAttribute("error", "Không thể lưu hình ảnh sản phẩm.");
                 return false;
             }
-        }
-
-        if (filePart.getSize() > 2 * 1024 * 1024) {
-            request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
-            return false;
-        }
-
-        String submittedName = filePart.getSubmittedFileName();
-        String extension = getAllowedImageExtension(submittedName);
-        if (extension == null || !filePart.getContentType().startsWith("image/")) {
-            request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
-            return false;
-        }
-
-        String imageUrl = saveUploadedProductImage(filePart);
-        if (imageUrl == null) {
-            request.setAttribute("error", "Không thể lưu hình ảnh sản phẩm.");
-            return false;
         }
 
         String specError = validateProductSpecifications(categoryId, specNames, specValues);
@@ -397,7 +380,8 @@ public class AdminProductServlet extends HttpServlet {
             if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
                 warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         Part filePart = request.getPart("imgFile");
         String imageUrl = null;
@@ -605,7 +589,9 @@ public class AdminProductServlet extends HttpServlet {
     }
 
     private String validateProductSpecifications(Integer categoryId, String[] specNames, String[] specValues) {
-        if (categoryId == null) return null;
+        if (categoryId == null) {
+            return null;
+        }
 
         List<CategorySpecTemplate> templates = categoryDAO.getTemplatesByCategoryId(categoryId);
         if (templates != null) {

@@ -77,4 +77,14 @@ public class CategorySpecTemplate {
     public void setDisplayOrder(int displayOrder) {
         this.displayOrder = displayOrder;
     }
+
+    private String specValue;
+
+    public String getSpecValue() {
+        return specValue;
+    }
+
+    public void setSpecValue(String specValue) {
+        this.specValue = specValue;
+    }
 }

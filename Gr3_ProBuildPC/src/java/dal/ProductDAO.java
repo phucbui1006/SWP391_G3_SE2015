@@ -225,7 +225,6 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-
     public List<Product> getProductsByBrand(Integer brandId, String priceRange, String sort) {
         return getProductsByBrand(brandId, priceRange, sort, null);
     }
@@ -566,7 +565,7 @@ public class ProductDAO extends DBContext {
             sql.append(" AND p.status = ? ");
             params.add(status.toUpperCase());
         }
-        
+
         try {
             PreparedStatement ps = connection.prepareStatement(sql.toString());
             for (int i = 0; i < params.size(); i++) {
@@ -606,7 +605,7 @@ public class ProductDAO extends DBContext {
             sql.append(" AND p.status = ? ");
             params.add(status.toUpperCase());
         }
-        
+
         // Sorting
         if ("price_asc".equals(sort)) {
             sql.append(" ORDER BY p.price ASC ");
@@ -621,12 +620,12 @@ public class ProductDAO extends DBContext {
         } else {
             sql.append(" ORDER BY p.product_id DESC "); // newest default
         }
-        
+
         // Paging
         sql.append(" LIMIT ? OFFSET ? ");
         params.add(pageSize);
         params.add((page - 1) * pageSize);
-        
+
         try {
             PreparedStatement ps = connection.prepareStatement(sql.toString());
             for (int i = 0; i < params.size(); i++) {
@@ -651,7 +650,7 @@ public class ProductDAO extends DBContext {
         PreparedStatement psSpec = null;
         try {
             connection.setAutoCommit(false);
-            
+
             psProduct = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
             psProduct.setString(1, productName);
             psProduct.setInt(2, categoryId);
@@ -659,13 +658,13 @@ public class ProductDAO extends DBContext {
             psProduct.setBigDecimal(4, price);
             psProduct.setString(5, description);
             psProduct.setString(6, imageUrl);
-            
+
             int affected = psProduct.executeUpdate();
             if (affected == 0) {
                 connection.rollback();
                 return false;
             }
-            
+
             int productId = 0;
             try (ResultSet generatedKeys = psProduct.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
@@ -675,16 +674,16 @@ public class ProductDAO extends DBContext {
                     return false;
                 }
             }
-            
+
             if (specNames != null && specValues != null) {
                 String specSql = "INSERT INTO PRODUCT_SPECIFICATIONS (product_id, specification_name, specification_value) VALUES (?, ?, ?)";
                 psSpec = connection.prepareStatement(specSql);
-                
+
                 int specLength = Math.min(specNames.length, specValues.length);
                 for (int i = 0; i < specLength; i++) {
                     String name = specNames[i];
                     String value = specValues[i];
-                    
+
                     if (name != null && !name.trim().isEmpty() && value != null && !value.trim().isEmpty()) {
                         psSpec.setInt(1, productId);
                         psSpec.setString(2, name.trim());
@@ -694,7 +693,7 @@ public class ProductDAO extends DBContext {
                 }
                 psSpec.executeBatch();
             }
-            
+
             connection.commit();
             return true;
         } catch (Exception e) {
@@ -738,24 +737,87 @@ public class ProductDAO extends DBContext {
         return 1;
     }
 
-    public boolean updateProduct(int productId, String productName, int categoryId, int brandId, BigDecimal price, String description, String imageUrl) {
-        String sql = """
+    public boolean updateProduct(int productId, String productName, int categoryId, int brandId, BigDecimal price, String description, String imageUrl, String[] specNames, String[] specValues) {
+        String sqlProduct = """
             UPDATE products
             SET product_name = ?, category_id = ?, brand_id = ?, price = ?, description = ?, image_url = ?
             WHERE product_id = ?
         """;
+        String sqlDeleteSpecs = "DELETE FROM PRODUCT_SPECIFICATIONS WHERE product_id = ?";
+        String sqlInsertSpec = "INSERT INTO PRODUCT_SPECIFICATIONS (product_id, specification_name, specification_value) VALUES (?, ?, ?)";
+
+        PreparedStatement psProduct = null;
+        PreparedStatement psDelete = null;
+        PreparedStatement psInsert = null;
         try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, productName);
-            ps.setInt(2, categoryId);
-            ps.setInt(3, brandId);
-            ps.setBigDecimal(4, price);
-            ps.setString(5, description);
-            ps.setString(6, imageUrl);
-            ps.setInt(7, productId);
-            return ps.executeUpdate() > 0;
+            connection.setAutoCommit(false);
+
+            psProduct = connection.prepareStatement(sqlProduct);
+            psProduct.setString(1, productName);
+            psProduct.setInt(2, categoryId);
+            psProduct.setInt(3, brandId);
+            psProduct.setBigDecimal(4, price);
+            psProduct.setString(5, description);
+            psProduct.setString(6, imageUrl);
+            psProduct.setInt(7, productId);
+
+            int affected = psProduct.executeUpdate();
+            if (affected == 0) {
+                connection.rollback();
+                return false;
+            }
+
+            // Delete existing specs
+            psDelete = connection.prepareStatement(sqlDeleteSpecs);
+            psDelete.setInt(1, productId);
+            psDelete.executeUpdate();
+
+            // Insert new specs
+            if (specNames != null && specValues != null) {
+                psInsert = connection.prepareStatement(sqlInsertSpec);
+                int specLength = Math.min(specNames.length, specValues.length);
+                for (int i = 0; i < specLength; i++) {
+                    String name = specNames[i];
+                    String value = specValues[i];
+
+                    if (name != null && !name.trim().isEmpty() && value != null && !value.trim().isEmpty()) {
+                        psInsert.setInt(1, productId);
+                        psInsert.setString(2, name.trim());
+                        psInsert.setString(3, value.trim());
+                        psInsert.addBatch();
+                    }
+                }
+                psInsert.executeBatch();
+            }
+
+            connection.commit();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.setAutoCommit(true);
+                }
+                if (psProduct != null) {
+                    psProduct.close();
+                }
+                if (psDelete != null) {
+                    psDelete.close();
+                }
+                if (psInsert != null) {
+                    psInsert.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
@@ -769,10 +831,10 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 ProductSpecification spec = new ProductSpecification(
-                    rs.getInt("spec_id"),
-                    rs.getInt("product_id"),
-                    rs.getString("specification_name"),
-                    rs.getString("specification_value")
+                        rs.getInt("spec_id"),
+                        rs.getInt("product_id"),
+                        rs.getString("specification_name"),
+                        rs.getString("specification_value")
                 );
                 list.add(spec);
             }
@@ -782,17 +844,4 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-    public boolean updatePrice(int productId, BigDecimal price) {
-        String sql = "UPDATE products SET price = ? WHERE product_id = ?";
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setBigDecimal(1, price);
-            ps.setInt(2, productId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
 }
-

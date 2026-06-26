@@ -5,7 +5,6 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -14,7 +13,6 @@ import java.util.Map;
 import model.AccountSummary;
 import model.DashboardProduct;
 import model.DashboardSummary;
-import model.OrderHistoryItem;
 
 public class AdminDashboardDAO extends DBContext {
 
@@ -138,50 +136,6 @@ public class AdminDashboardDAO extends DBContext {
                 WHERE COALESCE(stock.quantity, 0) <= 5
                 """;
         return queryInt(sql);
-    }
-
-    public List<OrderHistoryItem> getLatestOrders(LocalDate selectedDate, int limit) {
-        List<OrderHistoryItem> orders = new ArrayList<>();
-        String sql = """
-                SELECT o.order_id,
-                       o.customer_id,
-                       o.status_id,
-                       o.order_date,
-                       o.total_amount,
-                       os.status_name,
-                       u.full_name AS customer_name
-                FROM orders o
-                INNER JOIN customers c ON c.customer_id = o.customer_id
-                INNER JOIN users u ON u.user_id = c.user_id
-                LEFT JOIN orders_status os ON os.status_id = o.status_id
-                WHERE DATE(o.order_date) = ?
-                ORDER BY o.order_date DESC, o.order_id DESC
-                LIMIT ?
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setDate(1, Date.valueOf(selectedDate));
-            ps.setInt(2, limit);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    OrderHistoryItem order = new OrderHistoryItem();
-                    order.setOrderId(rs.getInt("order_id"));
-                    order.setCustomerId(rs.getInt("customer_id"));
-                    order.setStatusId(rs.getInt("status_id"));
-                    Timestamp orderDate = rs.getTimestamp("order_date");
-                    order.setOrderDate(orderDate);
-                    order.setTotalAmount(nullToZero(rs.getBigDecimal("total_amount")));
-                    order.setStatusName(rs.getString("status_name"));
-                    order.setCustomerName(rs.getString("customer_name"));
-                    orders.add(order);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return orders;
     }
 
     public Map<String, Integer> getOrderStatusCounts(LocalDate selectedDate) {

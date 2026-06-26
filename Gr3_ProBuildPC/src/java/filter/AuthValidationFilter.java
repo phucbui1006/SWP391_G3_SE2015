@@ -18,7 +18,8 @@ import util.ValidatorUtil;
     "/VerifyOtp",
     "/VerifyRegisterOtp",
     "/ResetPassword",
-    "/ForceChangePassword"
+    "/ForceChangePassword",
+    "/Login"
 })
 public class AuthValidationFilter implements Filter {
 
@@ -54,6 +55,8 @@ public class AuthValidationFilter implements Filter {
             isValid = validateResetPassword(req, res);
         } else if ("/ForceChangePassword".equalsIgnoreCase(path)) {
             isValid = validateForceChangePassword(req, res);
+        } else if ("/Login".equalsIgnoreCase(path)) {
+            isValid = validateLogin(req, res);
         }
 
         if (isValid) {
@@ -63,6 +66,18 @@ public class AuthValidationFilter implements Filter {
 
     @Override
     public void destroy() {}
+
+    private boolean validateLogin(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
+        
+        if (!ValidatorUtil.isValidEmail(email) || password == null || password.trim().isEmpty()) {
+            req.setAttribute("error", "Email hoặc mật khẩu không hợp lệ!");
+            req.getRequestDispatcher("/views/login.jsp").forward(req, res);
+            return false;
+        }
+        return true;
+    }
 
     private boolean validateRegister(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         String fullName = req.getParameter("fullName");

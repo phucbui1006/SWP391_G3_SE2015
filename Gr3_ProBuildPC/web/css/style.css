@@ -63,6 +63,7 @@
     --local-fa-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 3a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8m5.6 9.6L22 22l-2 2-6.4-6.4z'/%3E%3C/svg%3E");
     --local-fa-shield: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2 21 6v6c0 5.4-3.6 8.8-9 10-5.4-1.2-9-4.6-9-10V6zm-1 14.5 6-6-2.1-2.1-3.9 3.9-1.9-1.9L7 12.5z'/%3E%3C/svg%3E");
     --local-fa-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m12 2 2.9 6 6.6 1-4.8 4.7 1.1 6.6L12 17.2l-5.8 3.1 1.1-6.6L2.5 9l6.6-1z'/%3E%3C/svg%3E");
+    --local-fa-star-regular: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M12 2l2.9 6 6.6 1-4.8 4.7 1.1 6.6L12 17.2l-5.8 3.1 1.1-6.6L2.5 9l6.6-1zm0 3.2l-1.9 4-4.4.6 3.2 3.1-.8 4.4 3.9-2.1 3.9 2.1-.8-4.4 3.2-3.1-4.4-.6z'/%3E%3C/svg%3E");
     --local-fa-tags: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 4h8l9 9-7 7-9-9zm5 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4m6-5h3l5 5-2 2z'/%3E%3C/svg%3E");
     --local-fa-truck: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 5h12v10h2V9h3l3 4v2h-2a3 3 0 0 1-6 0H9a3 3 0 0 1-6 0H2zm3 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2m12 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2'/%3E%3C/svg%3E");
     --local-fa-user: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10m-9 9a9 9 0 0 1 18 0z'/%3E%3C/svg%3E");
@@ -119,6 +120,7 @@
 .fa-shield-heart { --local-fa-icon: var(--local-fa-shield); }
 .fa-star,
 .fa-star-half-stroke { --local-fa-icon: var(--local-fa-star); }
+.fa-regular.fa-star { --local-fa-icon: var(--local-fa-star-regular); }
 .fa-tags { --local-fa-icon: var(--local-fa-tags); }
 .fa-truck-fast,
 .fa-truck-ramp-box { --local-fa-icon: var(--local-fa-truck); }
@@ -10097,4 +10099,21 @@ body.dashboard-body .dashboard-card.shipment-shell {
     .admin-dashboard-table {
         min-width: 0;
     }
+}
+
+/* ==================== PRODUCT RATING STARS ==================== */
+.product-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: #111827; 
+}
+
+.product-rating .fa-solid.fa-star {
+    color: #facc15; 
+}
+
+.product-rating .fa-regular.fa-star {
+    color: #111827; 
 }

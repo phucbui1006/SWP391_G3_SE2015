@@ -23,6 +23,12 @@ public class ForgotPasswordServlet extends HttpServlet {
 
         String email = request.getParameter("email").trim();
 
+        if (!util.ValidatorUtil.isValidEmail(email)) {
+            request.setAttribute("error", "Định dạng email không hợp lệ!");
+            request.getRequestDispatcher("/views/forget-password.jsp").forward(request, response);
+            return;
+        }
+
         UserDAO userDAO = new UserDAO();
         if (!userDAO.checkEmailExist(email)) {
             request.setAttribute("error", "Email không tồn tại trong hệ thống!");
@@ -30,8 +36,10 @@ public class ForgotPasswordServlet extends HttpServlet {
             return;
         }
 
-        String otp = String.format("%06d", new Random().nextInt(1000000));
+        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 
+        //com.mifmif.common.regex.Generex generex = new com.mifmif.common.regex.Generex("[0-9]{6}");
+        //String otp = generex.random();
         HttpSession session = request.getSession();
         session.setAttribute("resetEmail", email);
         session.setAttribute("resetOtp", otp);

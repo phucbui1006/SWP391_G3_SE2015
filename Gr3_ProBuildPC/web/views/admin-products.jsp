@@ -267,7 +267,7 @@
                                         <div class="product-actions">
                                             <!-- Edit Details -->
                                             <a href="#edit-product-modal" class="action-btn btn-edit" title="Sửa thông tin sản phẩm"
-                                               onclick="openEditModal(<%= p.getProductId() %>, '<%= h(p.getProductName()) %>', <%= p.getCategoryId() %>, <%= p.getBrandId() %>, <%= p.getPrice() %>, '<%= h(p.getDescription()) %>', '<%= p.getImageUrl() %>')">
+                                               onclick="openEditModal(<%= p.getProductId() %>, '<%= h(p.getProductName()) %>', <%= p.getCategoryId() %>, <%= p.getBrandId() %>, <%= p.getPrice() %>, <%= p.getWarrantyMonths() %>, '<%= h(p.getDescription()) %>', '<%= p.getImageUrl() %>')">
                                                 <i class="fa-solid fa-pen"></i> Sửa
                                             </a>
 
@@ -373,6 +373,12 @@
                             <label for="addPrice">Giá bán (VND) <span>*</span></label>
                             <input id="addPrice" name="price" type="number" min="0" step="1000" placeholder="VD: 5500000" value="<%= "add".equals(failedAction) ? h(enteredPrice) : "" %>" required>
                             <small class="form-error-text" id="addPriceError"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="addWarrantyMonths">Bảo hành (tháng) <span>*</span></label>
+                            <input id="addWarrantyMonths" name="warrantyMonths" type="number" min="0" placeholder="VD: 12" value="<%= "add".equals(failedAction) && request.getAttribute("enteredWarrantyMonths") != null ? h((String)request.getAttribute("enteredWarrantyMonths")) : "" %>" required>
+                            <small class="form-error-text" id="addWarrantyMonthsError"></small>
                         </div>
 
                         <div class="form-group">
@@ -493,6 +499,12 @@
                             <label for="editPrice">Giá bán (VND) <span>*</span></label>
                             <input id="editPrice" name="price" type="number" min="0" step="1000" value="<%= "update".equals(failedAction) ? h(enteredPrice) : "" %>" required>
                             <small class="form-error-text" id="editPriceError"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editWarrantyMonths">Bảo hành (tháng) <span>*</span></label>
+                            <input id="editWarrantyMonths" name="warrantyMonths" type="number" min="0" value="<%= "update".equals(failedAction) && request.getAttribute("enteredWarrantyMonths") != null ? h((String)request.getAttribute("enteredWarrantyMonths")) : "" %>" required>
+                            <small class="form-error-text" id="editWarrantyMonthsError"></small>
                         </div>
 
                         <div class="form-group">

@@ -25,8 +25,8 @@ public class RegisterServlet extends HttpServlet {
 
         String fullName = safeTrim(request.getParameter("fullName"));
         String email = safeTrim(request.getParameter("email"));
-        String password = safeTrim(request.getParameter("password"));
-        String confirmPassword = safeTrim(request.getParameter("confirmPassword"));
+        String password = request.getParameter("password");
+        String confirmPassword = request.getParameter("confirmPassword");
 
         UserDAO dao = new UserDAO();
         if (dao.checkEmailExist(email)) {
@@ -36,8 +36,12 @@ public class RegisterServlet extends HttpServlet {
         }
 
         // Generate OTP
-        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
-        
+        //String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+        //String otp = RandomStringUtils.randomAlphanumeric(6);
+        // Generate OTP using Generex
+        com.mifmif.common.regex.Generex generex = new com.mifmif.common.regex.Generex("[0-9]{6}");
+        String otp = generex.random();
+
         jakarta.servlet.http.HttpSession session = request.getSession();
         session.setAttribute("regFullName", fullName);
         session.setAttribute("regEmail", email);
@@ -45,7 +49,7 @@ public class RegisterServlet extends HttpServlet {
         session.setAttribute("regOtp", otp);
         session.setAttribute("regOtpExpiredTime", System.currentTimeMillis() + 5 * 60 * 1000);
 
-        System.out.println("Register OTP tao ra la: " + otp);
+        System.out.println("Register OTP tạo ra là: " + otp);
 
         boolean sent = util.EmailService.sendOtpEmail(email, otp);
 

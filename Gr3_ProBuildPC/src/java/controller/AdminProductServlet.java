@@ -236,6 +236,7 @@ public class AdminProductServlet extends HttpServlet {
         Integer categoryId = parseId(request.getParameter("categoryId"));
         Integer brandId = parseId(request.getParameter("brandId"));
         String priceRaw = request.getParameter("price");
+        String warrantyMonthsRaw = request.getParameter("warrantyMonths");
         String description = normalizeText(request.getParameter("description"));
 
         // Read spec data early so it can be preserved on validation failure
@@ -246,6 +247,7 @@ public class AdminProductServlet extends HttpServlet {
         request.setAttribute("enteredCategoryId", categoryId);
         request.setAttribute("enteredBrandId", brandId);
         request.setAttribute("enteredPrice", priceRaw);
+        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw);
         request.setAttribute("enteredDescription", description);
         request.setAttribute("failedAction", "add");
         request.setAttribute("enteredSpecNames", specNames);
@@ -264,31 +266,36 @@ public class AdminProductServlet extends HttpServlet {
             request.setAttribute("error", "Tên sản phẩm phải từ 3 đến 255 ký tự.");
             return false;
         }
-        if (categoryId == null || brandId == null) {
-            request.setAttribute("error", "Danh mục hoặc thương hiệu không hợp lệ.");
-            return false;
-        }
-        if (description == null || description.trim().isEmpty()) {
-            request.setAttribute("error", "Mô tả chi tiết không được để trống.");
-            return false;
-        }
 
         BigDecimal price;
         try {
             price = new BigDecimal(priceRaw);
-            if (price.compareTo(BigDecimal.ZERO) < 0) {
-                request.setAttribute("error", "Giá bán không được nhỏ hơn 0.");
-                return false;
-            }
         } catch (Exception e) {
-            request.setAttribute("error", "Giá bán không hợp lệ.");
-            return false;
+            price = BigDecimal.ZERO;
         }
 
+        int warrantyMonths = 0;
+        try {
+            if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
+                warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
+            }
+        } catch (Exception e) {}
+
         Part filePart = request.getPart("imgFile");
-        if (filePart == null || filePart.getSize() <= 0) {
-            request.setAttribute("error", "Dữ liệu về sản phẩm chưa được cập nhật đủ");
-            return false;
+        String imageUrl = null;
+        if (filePart != null && filePart.getSize() > 0) {
+            String submittedName = filePart.getSubmittedFileName();
+            String extension = getAllowedImageExtension(submittedName);
+            if (extension == null || !filePart.getContentType().startsWith("image/")) {
+                request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
+                return false;
+            }
+
+            imageUrl = saveUploadedProductImage(filePart);
+            if (imageUrl == null) {
+                request.setAttribute("error", "Không thể lưu hình ảnh sản phẩm.");
+                return false;
+            }
         }
 
         if (filePart.getSize() > 2 * 1024 * 1024) {
@@ -315,7 +322,7 @@ public class AdminProductServlet extends HttpServlet {
             return false;
         }
 
-        if (productDAO.addProduct(productName, categoryId, brandId, price, description, imageUrl, specNames, specValues)) {
+        if (productDAO.addProduct(productName, categoryId, brandId, price, description, imageUrl, warrantyMonths, specNames, specValues)) {
             session.setAttribute("productSuccess", "Thêm sản phẩm mới thành công.");
             return true;
         } else {
@@ -331,6 +338,7 @@ public class AdminProductServlet extends HttpServlet {
         Integer categoryId = parseId(request.getParameter("categoryId"));
         Integer brandId = parseId(request.getParameter("brandId"));
         String priceRaw = request.getParameter("price");
+        String warrantyMonthsRaw = request.getParameter("warrantyMonths");
         String description = normalizeText(request.getParameter("description"));
         String currentImg = normalizeText(request.getParameter("currentImg"));
 
@@ -344,6 +352,7 @@ public class AdminProductServlet extends HttpServlet {
         request.setAttribute("enteredCategoryId", categoryId);
         request.setAttribute("enteredBrandId", brandId);
         request.setAttribute("enteredPrice", priceRaw);
+        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw);
         request.setAttribute("enteredDescription", description);
         request.setAttribute("enteredCurrentImg", currentImg);
         request.setAttribute("failedAction", "update");
@@ -379,26 +388,21 @@ public class AdminProductServlet extends HttpServlet {
         BigDecimal price;
         try {
             price = new BigDecimal(priceRaw);
-            if (price.compareTo(BigDecimal.ZERO) < 0) {
-                request.setAttribute("error", "Giá bán không được nhỏ hơn 0.");
-                return false;
-            }
         } catch (Exception e) {
-            request.setAttribute("error", "Giá bán không hợp lệ.");
-            return false;
+            price = BigDecimal.ZERO;
         }
+
+        int warrantyMonths = 0;
+        try {
+            if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
+                warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
+            }
+        } catch (Exception e) {}
 
         Part filePart = request.getPart("imgFile");
         String imageUrl = null;
 
         if (filePart != null && filePart.getSize() > 0) {
-            // 1. Size constraint validation
-            if (filePart.getSize() > 2 * 1024 * 1024) {
-                request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
-                return false;
-            }
-
-            // 2. MIME & Extension validation
             String submittedName = filePart.getSubmittedFileName();
             String extension = getAllowedImageExtension(submittedName);
             if (extension == null || !filePart.getContentType().startsWith("image/")) {

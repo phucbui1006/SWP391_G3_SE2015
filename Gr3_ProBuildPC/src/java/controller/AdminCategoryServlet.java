@@ -144,12 +144,6 @@ public class AdminCategoryServlet extends HttpServlet {
     private void handleAdd(HttpServletRequest request, HttpSession session) {
         String categoryName = normalizeText(request.getParameter("categoryName"));
 
-        // BE Validation: check category name length
-        if (categoryName == null || categoryName.length() < 2 || categoryName.length() > 100) {
-            session.setAttribute("categoryError", "Tên danh mục phải từ 2 đến 100 ký tự.");
-            return;
-        }
-
         if (categoryDAO.addCategory(categoryName)) {
             session.setAttribute("categorySuccess", "Thêm danh mục thành công.");
         } else {
@@ -164,18 +158,6 @@ public class AdminCategoryServlet extends HttpServlet {
 
         if (categoryId == null) {
             session.setAttribute("categoryError", "Danh mục không hợp lệ.");
-            return;
-        }
-
-        // BE Validation: check category name length
-        if (categoryName == null || categoryName.length() < 2 || categoryName.length() > 100) {
-            session.setAttribute("categoryError", "Tên danh mục phải từ 2 đến 100 ký tự.");
-            return;
-        }
-
-        // BE Validation: check status
-        if (newStatus == null || (!"ACTIVE".equalsIgnoreCase(newStatus) && !"INACTIVE".equalsIgnoreCase(newStatus))) {
-            session.setAttribute("categoryError", "Trạng thái không hợp lệ.");
             return;
         }
 

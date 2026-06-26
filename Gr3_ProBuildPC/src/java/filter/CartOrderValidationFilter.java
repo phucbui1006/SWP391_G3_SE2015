@@ -16,7 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @WebFilter(filterName = "CartOrderValidationFilter", urlPatterns = {
-    "/submit-review"
+    "/submit-review",
+    "/checkout",
+    "/order-history",
+    "/OrderHistory"
 })
 public class CartOrderValidationFilter implements Filter {
 
@@ -30,19 +33,18 @@ public class CartOrderValidationFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
 
-        if (!"POST".equalsIgnoreCase(req.getMethod())) {
-            chain.doFilter(request, response);
-            return;
-        }
-
         String uri = req.getRequestURI();
         String contextPath = req.getContextPath();
         String path = uri.substring(contextPath.length());
 
         boolean isValid = true;
 
-        if ("/submit-review".equalsIgnoreCase(path)) {
+        if ("/submit-review".equalsIgnoreCase(path) && "POST".equalsIgnoreCase(req.getMethod())) {
             isValid = validateSubmitReview(req, res);
+        } else if ("/checkout".equalsIgnoreCase(path) && "POST".equalsIgnoreCase(req.getMethod())) {
+            isValid = validateCheckout(req, res);
+        } else if (("/order-history".equalsIgnoreCase(path) || "/OrderHistory".equalsIgnoreCase(path))) {
+            isValid = validateOrderHistory(req, res);
         }
 
         if (isValid) {
@@ -52,6 +54,35 @@ public class CartOrderValidationFilter implements Filter {
 
     @Override
     public void destroy() {}
+
+    private boolean validateCheckout(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
+        String action = req.getParameter("action");
+        if ("placeOrder".equalsIgnoreCase(action)) {
+            String note = util.ValidatorUtil.safeTrimAndClean(req.getParameter("note"));
+            if (!util.ValidatorUtil.isValidNote(note)) {
+                req.setAttribute("errorMsg", "Ghi chú không hợp lệ (tối đa 1000 ký tự) hoặc chứa ký tự đặc biệt.");
+                req.getRequestDispatcher("/checkout").forward(req, res);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean validateOrderHistory(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
+        // Validate Search in GET
+        if ("GET".equalsIgnoreCase(req.getMethod())) {
+            String keyword = req.getParameter("keyword");
+            if (keyword != null && !keyword.trim().isEmpty() && !util.ValidatorUtil.isValidSearchQuery(keyword)) {
+                HttpSession session = req.getSession(false);
+                if (session != null) {
+                    session.setAttribute("orderHistoryError", "Từ khóa tìm kiếm không hợp lệ (quá dài hoặc chứa ký tự đặc biệt).");
+                }
+                res.sendRedirect(req.getContextPath() + "/order-history");
+                return false;
+            }
+        }
+        return true;
+    }
 
     private boolean validateSubmitReview(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         String productIdRaw = req.getParameter("productId");

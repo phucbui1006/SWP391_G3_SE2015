@@ -11,7 +11,8 @@ const Validator = {
         password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,31}$/,
         otp: /^\d{6}$/,
         name: /^[\p{L}\s]+$/u,
-        orderId: /^[pP]?[bB]?[0-9]+$/
+        orderId: /^[pP]?[bB]?[0-9]+$/,
+        search: /^[^<>='\"%]+$/
     },
 
     // Validation Predicates
@@ -84,6 +85,41 @@ const Validator = {
         const fileName = file.name || '';
         const extension = fileName.split('.').pop().toLowerCase();
         return allowedExtensions.includes(extension);
+    },
+
+    validateAddress(address) {
+        if (!address) return false;
+        const trimmed = address.trim();
+        return trimmed.length >= 5 && trimmed.length <= 255;
+    },
+
+    validateNote(note) {
+        if (!note) return true;
+        return note.trim().length <= 1000;
+    },
+
+    validateSearchQuery(query) {
+        if (!query) return false;
+        const trimmed = query.trim();
+        return trimmed.length > 0 && trimmed.length <= 100 && this.patterns.search.test(trimmed);
+    },
+
+    validatePrice(priceStr) {
+        if (!priceStr) return false;
+        const price = parseFloat(priceStr);
+        return !isNaN(price) && price > 0 && price <= 2000000000;
+    },
+
+    validateQuantity(qtyStr) {
+        if (!qtyStr) return false;
+        const qty = parseInt(qtyStr, 10);
+        return !isNaN(qty) && qty >= 0 && qty <= 100000;
+    },
+
+    validateRating(ratingStr) {
+        if (!ratingStr) return false;
+        const rating = parseInt(ratingStr, 10);
+        return !isNaN(rating) && rating >= 1 && rating <= 5;
     },
 
     // UI Feedback Helpers

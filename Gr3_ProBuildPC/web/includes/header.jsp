@@ -158,8 +158,8 @@
         <a href="${pageContext.request.contextPath}/BatchServlet" class="menu-item <%= "/BatchServlet".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-warehouse"></i> Lô hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/ManageWarranty" class="menu-item <%= "/ManageWarranty".equals(currentPath) || "/manage-warranty".equals(currentPath) ? "active" : "" %>">🛡 Bảo hành</a>
-        <a href="#" class="menu-item"><i class="fa-solid fa-shield-halved"></i> Bảo hành</a>
+        
+        <a href="<%= ctx %>/ManageWarranty" class="menu-item"><i class="fa-solid fa-shield-halved"></i> Bảo hành</a>
         <span class="menu-divider"></span>
 
         <a href="#" class="menu-item"><i class="fa-solid fa-chart-line"></i> Thống kê doanh thu</a>

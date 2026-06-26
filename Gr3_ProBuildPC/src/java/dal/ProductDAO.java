@@ -19,14 +19,7 @@ public class ProductDAO extends DBContext {
                    COALESCE(stock.batch_id, 0) AS batch_id,
                    p.description,
                    p.image_url,
-                   COALESCE((
-                       SELECT bi_w.warranty_months
-                       FROM batch_items bi_w
-                       JOIN batch b_w ON b_w.batch_id = bi_w.batch_id
-                       WHERE bi_w.product_id = p.product_id AND bi_w.quantity > 0
-                       ORDER BY b_w.date ASC, bi_w.batch_item_id ASC
-                       LIMIT 1
-                   ), 0) AS warranty_months,
+                   p.warranty_months,
                    p.status,
                    p.brand_id,
                    p.category_id,
@@ -641,10 +634,10 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-    public boolean addProduct(String productName, int categoryId, int brandId, BigDecimal price, String description, String imageUrl, String[] specNames, String[] specValues) {
+    public boolean addProduct(String productName, int categoryId, int brandId, BigDecimal price, String description, String imageUrl, int warrantyMonths, String[] specNames, String[] specValues) {
         String sql = """
-            INSERT INTO products (product_name, category_id, brand_id, price, description, image_url, status)
-            VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE')
+            INSERT INTO products (product_name, category_id, brand_id, price, description, image_url, warranty_months, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE')
         """;
         PreparedStatement psProduct = null;
         PreparedStatement psSpec = null;
@@ -658,7 +651,8 @@ public class ProductDAO extends DBContext {
             psProduct.setBigDecimal(4, price);
             psProduct.setString(5, description);
             psProduct.setString(6, imageUrl);
-
+            psProduct.setInt(7, warrantyMonths);
+            
             int affected = psProduct.executeUpdate();
             if (affected == 0) {
                 connection.rollback();
@@ -740,7 +734,7 @@ public class ProductDAO extends DBContext {
     public boolean updateProduct(int productId, String productName, int categoryId, int brandId, BigDecimal price, String description, String imageUrl, String[] specNames, String[] specValues) {
         String sqlProduct = """
             UPDATE products
-            SET product_name = ?, category_id = ?, brand_id = ?, price = ?, description = ?, image_url = ?
+            SET product_name = ?, category_id = ?, brand_id = ?, price = ?, description = ?, image_url = ?, warranty_months = ?
             WHERE product_id = ?
         """;
         String sqlDeleteSpecs = "DELETE FROM PRODUCT_SPECIFICATIONS WHERE product_id = ?";

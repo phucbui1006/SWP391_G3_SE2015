@@ -3,8 +3,10 @@
 <%@ page import="model.AdminDashboardView" %>
 <%@ page import="model.OrderHistoryItem" %>
 <%@ page import="model.OrderStatus" %>
+<%@ page import="model.WarrantyRequest" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="util.DashboardViewHelper" %>
 
 <%
@@ -232,19 +234,27 @@
 
                 <% } else if ("EMPLOYEE".equals(roleName)) { %>
 
-                <div class="employee-dashboard">
-                    <div class="dashboard-page-heading">
-                        
-                    </div>
+                <%
+                    List<WarrantyRequest> employeeWarranties = (List<WarrantyRequest>) request.getAttribute("employeeWarranties");
+                    List<OrderHistoryItem> employeeOrders = (List<OrderHistoryItem>) request.getAttribute("employeeOrders");
+                    int warrantyTotal = (Integer) request.getAttribute("employeeWarrantyTotal");
+                    int waitingWarrantyCount = (Integer) request.getAttribute("employeeWaitingWarrantyCount");
+                    int receivedWarrantyCount = (Integer) request.getAttribute("employeeReceivedWarrantyCount");
+                    int orderTotal = (Integer) request.getAttribute("employeeOrderTotal");
+                    int failedOrderCount = (Integer) request.getAttribute("employeeFailedOrderCount");
+                    int cancelledOrderCount = (Integer) request.getAttribute("employeeCancelledOrderCount");
+                    SimpleDateFormat employeeDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                %>
 
-                    <div class="employee-summary-grid" aria-label="Thống kê yêu cầu bảo hành">
+                <div class="employee-dashboard">
+                    <div class="employee-summary-grid" aria-label="Tổng quan công việc cần xử lý">
                         <div class="employee-summary-card">
                             <span class="summary-icon today"><i class="fa-solid fa-list-check"></i></span>
                             <div class="summary-copy">
-                                <p class="summary-title">Tất cả yêu cầu</p>
+                                <p class="summary-title">Tổng công việc cần xử lý</p>
                                 <div class="summary-value-row">
-                                    <span class="summary-number">8</span>
-                                    <span class="summary-unit">yêu cầu</span>
+                                    <span class="summary-number"><%= warrantyTotal + orderTotal %></span>
+                                    <span class="summary-unit">mục</span>
                                 </div>
                             </div>
                         </div>
@@ -252,9 +262,9 @@
                         <div class="employee-summary-card">
                             <span class="summary-icon waiting"><i class="fa-regular fa-clock"></i></span>
                             <div class="summary-copy">
-                                <p class="summary-title">Chờ xác nhận</p>
+                                <p class="summary-title">Bảo hành chờ tiếp nhận</p>
                                 <div class="summary-value-row">
-                                    <span class="summary-number">5</span>
+                                    <span class="summary-number"><%= waitingWarrantyCount %></span>
                                     <span class="summary-unit">yêu cầu</span>
                                 </div>
                             </div>
@@ -263,34 +273,41 @@
                         <div class="employee-summary-card">
                             <span class="summary-icon received"><i class="fa-solid fa-inbox"></i></span>
                             <div class="summary-copy">
-                                <p class="summary-title">Đã tiếp nhận</p>
+                                <p class="summary-title">Bảo hành đã tiếp nhận</p>
                                 <div class="summary-value-row">
-                                    <span class="summary-number">2</span>
+                                    <span class="summary-number"><%= receivedWarrantyCount %></span>
                                     <span class="summary-unit">yêu cầu</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="employee-summary-card">
-                            <span class="summary-icon rejected"><i class="fa-solid fa-xmark"></i></span>
+                            <span class="summary-icon rejected"><i class="fa-solid fa-triangle-exclamation"></i></span>
                             <div class="summary-copy">
-                                <p class="summary-title">Từ chối</p>
+                                <p class="summary-title">Giao hàng thất bại</p>
                                 <div class="summary-value-row">
-                                    <span class="summary-number">1</span>
-                                    <span class="summary-unit">yêu cầu</span>
+                                    <span class="summary-number"><%= failedOrderCount %></span>
+                                    <span class="summary-unit">đơn</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="employee-summary-card">
+                            <span class="summary-icon cancelled"><i class="fa-solid fa-ban"></i></span>
+                            <div class="summary-copy">
+                                <p class="summary-title">Đơn hàng đã hủy</p>
+                                <div class="summary-value-row">
+                                    <span class="summary-number"><%= cancelledOrderCount %></span>
+                                    <span class="summary-unit">đơn</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <section class="employee-request-panel">
-                        <h2 class="employee-request-title">Danh sách yêu cầu bảo hành</h2>
-
-                        <div class="employee-request-tabs" role="tablist" aria-label="Lọc yêu cầu bảo hành">
-                            <a class="employee-request-tab active" href="#">Tất cả yêu cầu</a>
-                            <a class="employee-request-tab" href="#">Chờ xác nhận</a>
-                            <a class="employee-request-tab" href="#">Đã tiếp nhận</a>
-                            <a class="employee-request-tab" href="#">Từ chối</a>
+                        <div class="employee-panel-title-row">
+                            <h2 class="employee-request-title">5 yêu cầu bảo hành mới nhất cần xử lý</h2>
+                            <a href="<%= ctx %>/ManageWarranty">Xem dịch vụ bảo hành</a>
                         </div>
 
                         <table class="employee-request-table">
@@ -304,41 +321,63 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                <% if (employeeWarranties.isEmpty()) { %>
                                 <tr>
-                                    <td>1</td>
-                                    <td>Nguyễn Văn A</td>
-                                    <td>ASUS TUF B760M-PLUS WIFI DDR5</td>
-                                    <td>26/05/2024</td>
-                                    <td><span class="request-status waiting">Chờ xác nhận</span></td>
+                                    <td colspan="5" class="employee-empty-row">Không có yêu cầu bảo hành cần xử lý.</td>
                                 </tr>
+                                <% } %>
+                                <% for (WarrantyRequest warranty : employeeWarranties) { %>
                                 <tr>
-                                    <td>2</td>
-                                    <td>Trần Văn B</td>
-                                    <td>Intel Core i5-14600KF</td>
-                                    <td>26/05/2024</td>
-                                    <td><span class="request-status received">Đã tiếp nhận</span></td>
+                                    <td><a href="<%= ctx %>/ManageWarranty?warrantyId=<%= warranty.getWarrantyId() %>">#<%= warranty.getWarrantyId() %></a></td>
+                                    <td><%= DashboardViewHelper.h(warranty.getCustomerName()) %></td>
+                                    <td><%= DashboardViewHelper.h(warranty.getProductName()) %></td>
+                                    <td><%= warranty.getRequestDate() == null ? "-" : employeeDateFormat.format(warranty.getRequestDate()) %></td>
+                                    <td><span class="request-status <%= warranty.getStatusId() == 1 ? "waiting" : "received" %>"><%= DashboardViewHelper.h(warranty.getStatusName()) %></span></td>
                                 </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                        <% if (warrantyTotal > 5) { %>
+                        <a class="employee-more-link" href="<%= ctx %>/ManageWarranty">
+                            Còn <%= warrantyTotal - 5 %> đơn bảo hành bạn cần xử lý
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                        <% } %>
+                    </section>
+
+                    <section class="employee-request-panel">
+                        <div class="employee-panel-title-row">
+                            <h2 class="employee-request-title">Yêu cầu đơn hàng cần xử lý</h2>
+                            <a href="<%= ctx %>/order-history">Xem tất cả đơn hàng</a>
+                        </div>
+
+                        <table class="employee-request-table employee-order-request-table">
+                            <thead>
                                 <tr>
-                                    <td>10</td>
-                                    <td>Lê Minh C</td>
-                                    <td>G.Skill Ripjaws S5 16GB DDR5</td>
-                                    <td>25/05/2024</td>
-                                    <td><span class="request-status waiting">Chờ xác nhận</span></td>
+                                    <th>Mã đơn</th>
+                                    <th>Khách hàng</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th></th>
                                 </tr>
+                            </thead>
+                            <tbody>
+                                <% if (employeeOrders.isEmpty()) { %>
                                 <tr>
-                                    <td>8</td>
-                                    <td>Phạm Hữu D</td>
-                                    <td>ASUS Dual RTX 4060 8GB</td>
-                                    <td>25/05/2024</td>
-                                    <td><span class="request-status received">Đã tiếp nhận</span></td>
+                                    <td colspan="6" class="employee-empty-row">Không có đơn hàng cần xử lý.</td>
                                 </tr>
+                                <% } %>
+                                <% for (OrderHistoryItem order : employeeOrders) { %>
                                 <tr>
-                                    <td>7</td>
-                                    <td>Hoàng Gia E</td>
-                                    <td>Kingston NV2 1TB NVMe</td>
-                                    <td>24/05/2024</td>
-                                    <td><span class="request-status rejected">Từ chối</span></td>
+                                    <td>#<%= order.getOrderId() %></td>
+                                    <td><%= DashboardViewHelper.h(order.getCustomerName()) %></td>
+                                    <td><%= order.getOrderDate() == null ? "-" : employeeDateFormat.format(order.getOrderDate()) %></td>
+                                    <td><%= DashboardViewHelper.formatCurrency(order.getTotalAmount()) %></td>
+                                    <td><span class="request-status rejected"><%= DashboardViewHelper.h(order.getStatusName()) %></span></td>
+                                    <td><a class="employee-row-action" href="<%= ctx %>/order-history?statusId=<%= order.getStatusId() %>&selectedOrderId=<%= order.getOrderId() %>">Xem chi tiết</a></td>
                                 </tr>
+                                <% } %>
                             </tbody>
                         </table>
                     </section>

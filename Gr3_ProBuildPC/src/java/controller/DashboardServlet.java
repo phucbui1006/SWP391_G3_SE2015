@@ -2,6 +2,7 @@ package controller;
 
 import dal.AdminDashboardDAO;
 import dal.OrderHistoryDAO;
+import dal.WarrantyDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -20,6 +21,7 @@ import model.DashboardSummary;
 import model.OrderHistoryItem;
 import model.OrderStatus;
 import model.User;
+import model.WarrantyRequest;
 import util.DashboardViewHelper;
 
 @WebServlet(name = "DashboardServlet", urlPatterns = {"/Dashboard"})
@@ -52,6 +54,8 @@ public class DashboardServlet extends HttpServlet {
 
         if (hasRole(user, "ADMIN")) {
             prepareAdminDashboard(request);
+        } else if (hasRole(user, "EMPLOYEE")) {
+            prepareEmployeeDashboard(request);
         } else if (hasRole(user, "SHIPMENT")) {
             prepareShipmentDashboard(request);
         }
@@ -265,6 +269,62 @@ public class DashboardServlet extends HttpServlet {
         rows.add(new AdminDashboardView.CountRow("Bị khóa", summary.getLocked()));
         rows.add(new AdminDashboardView.CountRow("Đang hoạt động", summary.getActive()));
         return rows;
+    }
+
+    private void prepareEmployeeDashboard(HttpServletRequest request) {
+        WarrantyDAO warrantyDAO = new WarrantyDAO();
+        List<WarrantyRequest> pendingWarranties = new ArrayList<>();
+        int waitingWarrantyCount = 0;
+        int receivedWarrantyCount = 0;
+
+        for (WarrantyRequest warranty : warrantyDAO.getAllWarrantyRequestsForAdmin(null, null)) {
+            if (warranty.getStatusId() == 1 || warranty.getStatusId() == 2) {
+                pendingWarranties.add(warranty);
+                if (warranty.getStatusId() == 1) {
+                    waitingWarrantyCount++;
+                } else {
+                    receivedWarrantyCount++;
+                }
+            }
+        }
+
+        int warrantyTotal = pendingWarranties.size();
+        request.setAttribute("employeeWarranties",
+                new ArrayList<>(pendingWarranties.subList(0, Math.min(5, warrantyTotal))));
+        request.setAttribute("employeeWarrantyTotal", warrantyTotal);
+        request.setAttribute("employeeWaitingWarrantyCount", waitingWarrantyCount);
+        request.setAttribute("employeeReceivedWarrantyCount", receivedWarrantyCount);
+
+        OrderHistoryDAO orderDAO = new OrderHistoryDAO();
+        List<OrderStatus> statuses = orderDAO.getOrderStatuses();
+        int failedStatusId = 0;
+        int cancelledStatusId = 0;
+
+        for (OrderStatus status : statuses) {
+            if ("Giao hàng thất bại".equalsIgnoreCase(status.getStatusName())) {
+                failedStatusId = status.getStatusId();
+            } else if ("Đã hủy".equalsIgnoreCase(status.getStatusName())) {
+                cancelledStatusId = status.getStatusId();
+            }
+        }
+
+        int failedOrderCount = failedStatusId == 0 ? 0
+                : orderDAO.countOrders(null, null, failedStatusId, false, false);
+        int cancelledOrderCount = cancelledStatusId == 0 ? 0
+                : orderDAO.countOrders(null, null, cancelledStatusId, false, false);
+        List<OrderHistoryItem> orders = new ArrayList<>();
+        if (failedOrderCount > 0) {
+            orders.addAll(orderDAO.getOrders(null, null, failedStatusId, 1, failedOrderCount));
+        }
+        if (cancelledOrderCount > 0) {
+            orders.addAll(orderDAO.getOrders(null, null, cancelledStatusId, 1, cancelledOrderCount));
+        }
+        orders.sort((first, second) -> second.getOrderDate().compareTo(first.getOrderDate()));
+
+        request.setAttribute("employeeOrders", orders);
+        request.setAttribute("employeeOrderTotal", failedOrderCount + cancelledOrderCount);
+        request.setAttribute("employeeFailedOrderCount", failedOrderCount);
+        request.setAttribute("employeeCancelledOrderCount", cancelledOrderCount);
     }
 
     private void prepareShipmentDashboard(HttpServletRequest request) {

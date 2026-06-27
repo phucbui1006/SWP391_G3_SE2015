@@ -39,8 +39,6 @@ public class CategorySpecTemplateDAO extends DBContext {
                     t.setAllowedValues(rs.getString("allowed_values"));
                     t.setRequired(rs.getBoolean("is_required"));
                     t.setDisplayOrder(rs.getInt("display_order"));
-                    t.setStatus(rs.getString("status"));
-
                     list.add(t);
                 }
             }

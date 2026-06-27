@@ -8,7 +8,6 @@ public class CategorySpecTemplate {
     private String allowedValues;
     private boolean isRequired;
     private int displayOrder;
-    private String status = "ACTIVE";
 
     public CategorySpecTemplate() {
     }
@@ -21,19 +20,9 @@ public class CategorySpecTemplate {
         this.allowedValues = allowedValues;
         this.isRequired = isRequired;
         this.displayOrder = displayOrder;
-        this.status = "ACTIVE";
     }
 
-    public CategorySpecTemplate(int templateId, int categoryId, String specName, String specType, String allowedValues, boolean isRequired, int displayOrder, String status) {
-        this.templateId = templateId;
-        this.categoryId = categoryId;
-        this.specName = specName;
-        this.specType = specType;
-        this.allowedValues = allowedValues;
-        this.isRequired = isRequired;
-        this.displayOrder = displayOrder;
-        this.status = status;
-    }
+
 
     public int getTemplateId() {
         return templateId;
@@ -89,14 +78,6 @@ public class CategorySpecTemplate {
 
     public void setDisplayOrder(int displayOrder) {
         this.displayOrder = displayOrder;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     private String specValue;

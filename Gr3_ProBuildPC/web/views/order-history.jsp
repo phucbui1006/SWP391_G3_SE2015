@@ -270,7 +270,11 @@
                         <% for (OrderStatus status : statusOptions) { %>
                         <% if (canManageShipment && isDeliveredShipmentStatus(status.getStatusName())) {
                                 continue;
-                            } %>
+                            } 
+                           if (!isCustomerView && (status.getStatusId() == 1 || status.getStatusId() == 3)) {
+                                continue;
+                            }
+                        %>
                         <option value="<%= status.getStatusId() %>" <%= selectedStatusId != null && selectedStatusId == status.getStatusId() ? "selected" : "" %>>
                             <%= h(status.getStatusName()) %>
                         </option>

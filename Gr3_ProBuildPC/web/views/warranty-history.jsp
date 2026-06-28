@@ -43,7 +43,7 @@
                                     id="searchProduct" 
                                     name="searchProduct" 
                                     value="<c:out value="${searchProduct}"/>" 
-                                    placeholder="Nhập mã sản phẩm hoặc tên sản phẩm..."
+                                    placeholder="Nhập mã yêu cầu hoặc tên sản phẩm..."
                                     class="filter-input"
                                 >
                             </div>
@@ -128,7 +128,7 @@
                             </c:when>
                             <c:otherwise>
                                 <div class="tracking-empty-state">
-                                    <div class="empty-icon">🛡</div>
+                                   
                                     <c:choose>
                                         <c:when test="${not empty searchProduct or not empty filterStatusId}">
                                             <h2>Không tìm thấy kết quả phù hợp</h2>

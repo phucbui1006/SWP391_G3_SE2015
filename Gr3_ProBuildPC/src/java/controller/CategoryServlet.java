@@ -62,11 +62,11 @@ public class CategoryServlet extends HttpServlet {
 
         if (idRaw != null && !idRaw.trim().isEmpty()) {
             try {
-                int categoryId = Integer.parseInt(idRaw);
+                int categoryId = Integer.parseInt(idRaw.trim());
                 selectedCategory = categoryDAO.getCategoryById(categoryId);
 
                 if (!activeKeyword.isEmpty()) {
-                    products = productDAO.getProductsByCategoryAndKeyword(categoryId, activeKeyword, sort);
+                    products = productDAO.getProductsByCategory(categoryId, sort, activeKeyword);
                 } else {
                     products = productDAO.getProductsByCategoryId(categoryId, sort);
                 }

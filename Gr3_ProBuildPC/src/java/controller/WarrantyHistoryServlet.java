@@ -53,6 +53,17 @@ public class WarrantyHistoryServlet extends HttpServlet {
             search = request.getParameter("searchProduct");
         }
         
+        String parsedSearchKeyword = "";
+        if (search != null && !search.trim().isEmpty()) {
+            String clean = search.trim();
+            // Match pattern like #WR3, WR3, #3, or 3 (case-insensitive)
+            if (clean.matches("^(?i)#?(?:WR)?\\d+$")) {
+                parsedSearchKeyword = clean.replaceAll("^(?i)#?(?:WR)?", "");
+            } else {
+                parsedSearchKeyword = clean;
+            }
+        }
+
         String statusRaw = request.getParameter("status");
         if (statusRaw == null) {
             statusRaw = request.getParameter("filterStatusId");
@@ -67,10 +78,10 @@ public class WarrantyHistoryServlet extends HttpServlet {
             }
         }
 
-        // Call the active DAL method
+        // Call the active DAL method with the parsed search keyword
         List<WarrantyRequest> list = warrantyDAO.getWarrantyRequestsByCustomerId(
                 customerId, 
-                search, 
+                parsedSearchKeyword, 
                 statusId
         );
 

@@ -17,8 +17,7 @@ public class CategorySpecTemplateDAO extends DBContext {
                    spec_type,
                    allowed_values,
                    is_required,
-                   display_order,
-                   status
+                   display_order,                 
             FROM CATEGORY_SPEC_TEMPLATES
             WHERE category_id = ?
             ORDER BY display_order ASC, template_id ASC

@@ -20,7 +20,7 @@ public class WarrantyDAO extends DBContext {
      */
     public boolean isWarrantyRequestValid(int customerId, int productId) {
         String sql = """
-                    SELECT o.order_date,
+                    SELECT COALESCE(o.received_date, o.order_date) AS warranty_start,
                            p.warranty_months
                     FROM orders o
                     INNER JOIN order_details od ON o.order_id = od.order_id
@@ -147,13 +147,24 @@ public class WarrantyDAO extends DBContext {
 
         if (searchProduct != null && !searchProduct.trim().isEmpty()) {
             String clean = searchProduct.trim();
-            if (clean.matches("\\d+")) {
-                sql.append(" AND w.product_id = ? ");
-                params.add(Integer.parseInt(clean));
-            } else {
-                sql.append(" AND LOWER(p.product_name) LIKE LOWER(?) ");
-                params.add("%" + clean + "%");
+            sql.append("""
+                 AND (
+                     p.product_name LIKE ?
+                     OR CAST(w.warranty_id AS CHAR) LIKE ?
+                     OR w.warranty_id = ?
+                 )
+            """);
+            String likeParam = "%" + clean + "%";
+            params.add(likeParam);
+            params.add(likeParam);
+            
+            int numericId = -1;
+            try {
+                numericId = Integer.parseInt(clean);
+            } catch (NumberFormatException e) {
+                // ignore
             }
+            params.add(numericId);
         }
 
         if (filterStatusId != null) {
@@ -372,8 +383,8 @@ public class WarrantyDAO extends DBContext {
                            o.received_date,
                            u.full_name AS customer_name,
                            p.warranty_months AS warranty_months,
-                           DATE_ADD(o.order_date, INTERVAL p.warranty_months MONTH) AS warranty_end_date,
-                           DATEDIFF(DATE_ADD(o.order_date, INTERVAL p.warranty_months MONTH), CURDATE()) AS remaining_days
+                           DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH) AS warranty_end_date,
+                           DATEDIFF(DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH), CURDATE()) AS remaining_days
                     FROM order_details od
                     INNER JOIN orders o ON od.order_id = o.order_id
                     INNER JOIN customers cust ON o.customer_id = cust.customer_id
@@ -438,8 +449,8 @@ public class WarrantyDAO extends DBContext {
                            p.warranty_months AS warranty_months,
                            br.brand_name,
                            ca.category_name,
-                           DATE_ADD(o.order_date, INTERVAL p.warranty_months MONTH) AS warranty_end_date,
-                           DATEDIFF(DATE_ADD(o.order_date, INTERVAL p.warranty_months MONTH), CURDATE()) AS remaining_days
+                           DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH) AS warranty_end_date,
+                           DATEDIFF(DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH), CURDATE()) AS remaining_days
                     FROM orders o
                     INNER JOIN orders_status os ON o.status_id = os.status_id
                     INNER JOIN order_details od ON o.order_id = od.order_id
@@ -635,8 +646,18 @@ public class WarrantyDAO extends DBContext {
         params.add(customerId);
 
         if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-            sql.append(" AND p.product_name LIKE ? ");
-            params.add("%" + searchKeyword.trim() + "%");
+            String clean = searchKeyword.trim();
+            if (clean.matches("\\d+")) {
+                sql.append(" AND w.warranty_id = ? ");
+                params.add(Integer.parseInt(clean));
+            } else {
+                sql.append("""
+                     AND (
+                         p.product_name LIKE ?
+                     )
+                """);
+                params.add("%" + clean + "%");
+            }
         }
 
         if (statusId != null) {

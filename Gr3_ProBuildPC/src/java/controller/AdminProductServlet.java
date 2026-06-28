@@ -256,14 +256,21 @@ public class AdminProductServlet extends HttpServlet {
         // Attach spec templates for server-side re-rendering if category is selected
         if (categoryId != null) {
             List<CategorySpecTemplate> specTemplates = categoryDAO.getTemplatesByCategoryId(categoryId);
-            if (specTemplates != null) {
-                specTemplates.removeIf(t -> "INACTIVE".equalsIgnoreCase(t.getStatus()));
-            }
             request.setAttribute("specTemplates", specTemplates);
         }
 
         if (productName == null || productName.length() < 3 || productName.length() > 255) {
             request.setAttribute("error", "Tên sản phẩm phải từ 3 đến 255 ký tự.");
+            return false;
+        }
+
+        if (categoryId == null || brandId == null) {
+            request.setAttribute("error", "Danh mục hoặc thương hiệu không hợp lệ.");
+            return false;
+        }
+
+        if (description == null || description.trim().isEmpty()) {
+            request.setAttribute("error", "Mô tả chi tiết không được để trống.");
             return false;
         }
 
@@ -274,6 +281,11 @@ public class AdminProductServlet extends HttpServlet {
             price = BigDecimal.ZERO;
         }
 
+        if (price.compareTo(BigDecimal.ZERO) < 0) {
+            request.setAttribute("error", "Giá bán phải lớn hơn hoặc bằng 0.");
+            return false;
+        }
+
         int warrantyMonths = 0;
         try {
             if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
@@ -281,9 +293,18 @@ public class AdminProductServlet extends HttpServlet {
             }
         } catch (Exception e) {}
 
+        if (warrantyMonths < 0) {
+            request.setAttribute("error", "Bảo hành phải lớn hơn hoặc bằng 0.");
+            return false;
+        }
+
         Part filePart = request.getPart("imgFile");
         String imageUrl = null;
         if (filePart != null && filePart.getSize() > 0) {
+            if (filePart.getSize() > 2 * 1024 * 1024) {
+                request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
+                return false;
+            }
             String submittedName = filePart.getSubmittedFileName();
             String extension = getAllowedImageExtension(submittedName);
             if (extension == null || !filePart.getContentType().startsWith("image/")) {
@@ -296,24 +317,6 @@ public class AdminProductServlet extends HttpServlet {
                 request.setAttribute("error", "Không thể lưu hình ảnh sản phẩm.");
                 return false;
             }
-        }
-
-        if (filePart.getSize() > 2 * 1024 * 1024) {
-            request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
-            return false;
-        }
-
-        String submittedName = filePart.getSubmittedFileName();
-        String extension = getAllowedImageExtension(submittedName);
-        if (extension == null || !filePart.getContentType().startsWith("image/")) {
-            request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
-            return false;
-        }
-
-        String imageUrl = saveUploadedProductImage(filePart);
-        if (imageUrl == null) {
-            request.setAttribute("error", "Không thể lưu hình ảnh sản phẩm.");
-            return false;
         }
 
         String specError = validateProductSpecifications(categoryId, specNames, specValues);
@@ -346,6 +349,25 @@ public class AdminProductServlet extends HttpServlet {
         String[] specNames = request.getParameterValues("spec_names[]");
         String[] specValues = request.getParameterValues("spec_values[]");
 
+        // If no specifications are submitted, reuse the existing specifications if the category did not change
+        if (productId != null && (specNames == null || specNames.length == 0)) {
+            Product originalProduct = productDAO.getProductById(productId);
+            if (originalProduct == null) {
+                originalProduct = productDAO.getProductByIdForAdmin(productId);
+            }
+            if (originalProduct != null && originalProduct.getCategoryId() == categoryId) {
+                List<model.ProductSpecification> existingSpecs = productDAO.getSpecificationsByProductId(productId);
+                if (existingSpecs != null && !existingSpecs.isEmpty()) {
+                    specNames = new String[existingSpecs.size()];
+                    specValues = new String[existingSpecs.size()];
+                    for (int i = 0; i < existingSpecs.size(); i++) {
+                        specNames[i] = existingSpecs.get(i).getSpecificationName();
+                        specValues[i] = existingSpecs.get(i).getSpecificationValue();
+                    }
+                }
+            }
+        }
+
         // Store entered inputs to return on forward
         request.setAttribute("enteredProductId", productId);
         request.setAttribute("enteredProductName", productName);
@@ -362,9 +384,6 @@ public class AdminProductServlet extends HttpServlet {
         // Attach spec templates for server-side re-rendering if category is selected
         if (categoryId != null) {
             List<CategorySpecTemplate> specTemplates = categoryDAO.getTemplatesByCategoryId(categoryId);
-            if (specTemplates != null) {
-                specTemplates.removeIf(t -> "INACTIVE".equalsIgnoreCase(t.getStatus()));
-            }
             request.setAttribute("specTemplates", specTemplates);
         }
 
@@ -392,6 +411,11 @@ public class AdminProductServlet extends HttpServlet {
             price = BigDecimal.ZERO;
         }
 
+        if (price.compareTo(BigDecimal.ZERO) < 0) {
+            request.setAttribute("error", "Giá bán phải lớn hơn hoặc bằng 0.");
+            return false;
+        }
+
         int warrantyMonths = 0;
         try {
             if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
@@ -399,10 +423,19 @@ public class AdminProductServlet extends HttpServlet {
             }
         } catch (Exception e) {}
 
+        if (warrantyMonths < 0) {
+            request.setAttribute("error", "Bảo hành phải lớn hơn hoặc bằng 0.");
+            return false;
+        }
+
         Part filePart = request.getPart("imgFile");
         String imageUrl = null;
 
         if (filePart != null && filePart.getSize() > 0) {
+            if (filePart.getSize() > 2 * 1024 * 1024) {
+                request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
+                return false;
+            }
             String submittedName = filePart.getSubmittedFileName();
             String extension = getAllowedImageExtension(submittedName);
             if (extension == null || !filePart.getContentType().startsWith("image/")) {
@@ -428,7 +461,7 @@ public class AdminProductServlet extends HttpServlet {
             return false;
         }
 
-        if (productDAO.updateProduct(productId, productName, categoryId, brandId, price, description, imageUrl, specNames, specValues)) {
+        if (productDAO.updateProduct(productId, productName, categoryId, brandId, price, description, imageUrl, warrantyMonths, specNames, specValues)) {
             session.setAttribute("productSuccess", "Cập nhật sản phẩm thành công.");
             return true;
         } else {
@@ -608,9 +641,6 @@ public class AdminProductServlet extends HttpServlet {
         if (categoryId == null) return null;
 
         List<CategorySpecTemplate> templates = categoryDAO.getTemplatesByCategoryId(categoryId);
-        if (templates != null) {
-            templates.removeIf(t -> "INACTIVE".equalsIgnoreCase(t.getStatus()));
-        }
         if (templates == null || templates.isEmpty()) {
             return null; // Category has no spec templates
         }

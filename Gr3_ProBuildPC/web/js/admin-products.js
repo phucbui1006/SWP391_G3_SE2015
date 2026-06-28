@@ -51,6 +51,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /**
+     * Validates warranty period.
+     * Must not be empty, must be a valid integer, and must be > 0.
+     */
+    function validateWarranty(value) {
+        if (value === null || value === undefined || value === "") return false;
+        var trimmed = value.trim();
+        if (!/^\d+$/.test(trimmed)) return false;
+        var val = parseInt(trimmed, 10);
+        return val > 0;
+    }
+
+    /**
      * Full-form validation for Add/Edit product forms.
      * Uses Validator.showFeedback() consistent with admin-brands.js pattern.
      */
@@ -101,7 +113,18 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        // 5. Image file (required only for new products — optional)
+        // 5. Warranty Months
+        var warrantyInp = form.querySelector("input[name='warrantyMonths']");
+        if (warrantyInp) {
+            var warrantyOk = validateWarranty(warrantyInp.value);
+            Validator.showFeedback(warrantyInp, warrantyOk, "Thời gian bảo hành phải là số nguyên dương lớn hơn 0.");
+            if (!warrantyOk) {
+                if (isValid) warrantyInp.focus();
+                isValid = false;
+            }
+        }
+
+        // 6. Image file (required only for new products — optional)
         var fileInp = form.querySelector("input[name='imgFile']");
         if (fileInp) {
             var fileOk = validateImageFile(fileInp, false);
@@ -149,6 +172,18 @@ document.addEventListener("DOMContentLoaded", function () {
             priceInp.addEventListener("input", function () {
                 if (priceInp.classList.contains("is-invalid")) {
                     Validator.showFeedback(priceInp, Validator.validatePrice(priceInp.value), "Giá bán phải là số và không nhỏ hơn 0.");
+                }
+            });
+        }
+
+        var warrantyInp = form.querySelector("input[name='warrantyMonths']");
+        if (warrantyInp) {
+            warrantyInp.addEventListener("blur", function () {
+                Validator.showFeedback(warrantyInp, validateWarranty(warrantyInp.value), "Thời gian bảo hành phải là số nguyên dương lớn hơn 0.");
+            });
+            warrantyInp.addEventListener("input", function () {
+                if (warrantyInp.classList.contains("is-invalid")) {
+                    Validator.showFeedback(warrantyInp, validateWarranty(warrantyInp.value), "Thời gian bảo hành phải là số nguyên dương lớn hơn 0.");
                 }
             });
         }
@@ -414,7 +449,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (submitBtn) submitBtn.disabled = false;
     };
 
-    window.openEditModal = function (productId, productName, categoryId, brandId, price, description, currentImgUrl) {
+    window.openEditModal = function (productId, productName, categoryId, brandId, price, warrantyMonths, description, currentImgUrl) {
         var editForm = document.getElementById("editProductForm");
         if (editForm) {
             // Clear all validation feedback
@@ -432,6 +467,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("editCategory").value = categoryId;
         document.getElementById("editBrand").value = brandId;
         document.getElementById("editPrice").value = price;
+        document.getElementById("editWarrantyMonths").value = warrantyMonths;
         document.getElementById("editDescription").value = description;
         document.getElementById("editCurrentImg").value = currentImgUrl;
 

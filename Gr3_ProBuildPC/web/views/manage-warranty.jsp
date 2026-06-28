@@ -205,7 +205,7 @@
                             <span><c:out value="${condItem.brandName}"/> / <c:out value="${condItem.categoryName}"/></span>
                         </div>
                         <div class="info-item">
-                            <label>Ngày mua hàng</label>
+                            <label>Ngày nhận hàng</label>
                             <span><fmt:formatDate value="${condItem.orderDate}" pattern="dd/MM/yyyy" /></span>
                         </div>
                         <div class="info-item">

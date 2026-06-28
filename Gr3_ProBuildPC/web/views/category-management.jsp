@@ -81,7 +81,7 @@
 
     <head>
         <meta charset="UTF-8">
-        <title>Qu&#7843;n l&#253; danh m&#7909;c s&#7843;n ph&#7849;m</title>
+        <title>Quản lý danh mục sản phẩm</title>
 
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
         <link rel="stylesheet" type="text/css"
@@ -98,7 +98,7 @@
         <main class="admin-category-container">
 
             <div class="admin-page-title">
-                <h2>Danh s&#225;ch danh m&#7909;c</h2>
+                <h2>Danh sách danh mục</h2>
 
                 <div class="admin-breadcrumb">
                     <a href="<%= contextPath %>/Dashboard">Dashboard</a>
@@ -150,11 +150,11 @@
                     <table class="admin-category-table">
                         <thead>
                             <tr>
-                                <th>M&#227; danh m&#7909;c</th>
-                                <th>T&#234;n danh m&#7909;c</th>
-                                <th>Tr&#7841;ng th&#225;i</th>
+                                <th>Mã danh mục</th>
+                                <th>Tên danh mục</th>
+                                <th>Trạng thái</th>
                                 <th>Số lượng sản phẩm</th>
-                                <th>Thao t&#225;c</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
 
@@ -163,8 +163,7 @@
                             <tr>
                                 <td colspan="5"
                                     style="text-align:center; padding: 30px;">
-                                    Kh&#244;ng c&#243; danh
-                                    m&#7909;c n&#224;o
+                                    Không có danh mục nào.
                                 </td>
                             </tr>
                             <% } else { %>
@@ -231,11 +230,11 @@
                                             <button
                                                 type="submit"
                                                 class="btn-delete"
-                                                onclick="return confirm('B&#7841;n c&#243; ch&#7855;c mu&#7889;n &#273;&#7893;i tr&#7841;ng th&#225;i danh m&#7909;c n&#224;y kh&#244;ng?')">
+                                                onclick="return confirm('Bạn có chắc muốn đổi trạng thái danh mục này không?')">
                                                 <%= "ACTIVE"
                                                     .equalsIgnoreCase(c.getStatus())
-                                                    ? "V&#244; hi&#7879;u h&#243;a"
-                                                    : "K&#237;ch ho&#7841;t"
+                                                    ? "Vô hiệu hóa"
+                                                    : "Kích hoạt"
                                                 %>
                                             </button>
                                         </form>
@@ -252,9 +251,8 @@
 
                 <div class="admin-category-footer">
                     <p>
-                        Hi&#7875;n th&#7883; <%= startItem %>
-                        &#273;&#7871;n <%= endItem %> c&#7911;a <%=
-                                                                                    totalCategories %> danh m&#7909;c
+                        Hiển thị <%= startItem %>
+                        đến <%= endItem %> của <%=totalCategories %> danh mục.
                     </p>
 
                     <div class="admin-pagination">
@@ -262,11 +260,11 @@
                         <% if (currentPage> 1) { %>
                         <a class="page-btn"
                            href="<%= contextPath %>/admin/categories?page=<%= currentPage - 1 %><%= listQuery %>">
-                            &lsaquo;
+                            ‹
                         </a>
                         <% } else { %>
                         <span
-                            class="page-btn disabled">&lsaquo;</span>
+                            class="page-btn disabled">‹</span>
                         <% } %>
 
                         <% for (int i=1; i <=totalPages; i++) { %>
@@ -276,30 +274,19 @@
                         </a>
                         <% } %>
 
-                        <% if (currentPage <
-                                                                                                totalPages) { %>
+                        <% if (currentPage < totalPages) { %>
                         <a class="page-btn"
                            href="<%= contextPath %>/admin/categories?page=<%= currentPage + 1 %><%= listQuery %>">
-                            &rsaquo;
+                           ›
                         </a>
                         <% } else { %>
                         <span
-                            class="page-btn disabled">&rsaquo;</span>
+                            class="page-btn disabled">›</span>
                         <% } %>
-
                     </div>
                 </div>
-
             </section>
-
         </main>
-
-
-
         <jsp:include page="/includes/footer.jsp" />
-
-      
-
     </body>
-
 </html>

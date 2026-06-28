@@ -314,7 +314,7 @@
                                         CategorySpecTemplate t = editTemplates.get(i);
                                         boolean isRowEditing = (editingIndex != null && editingIndex == i);
                                     %>
-                                    <tr class="<%= "INACTIVE".equalsIgnoreCase(t.getStatus()) ? "disabled-row" : "" %>">
+                                    <tr>
                                         <!-- Spec Name -->
                                         <td>
                                             <% if (isRowEditing) { %>
@@ -391,15 +391,6 @@
                                                         <i class="fa-solid fa-pen-to-square"></i> Sửa
                                                     </button>
                                                 <% } %>
-                                                <% if ("INACTIVE".equalsIgnoreCase(t.getStatus())) { %>
-                                                    <button type="submit" name="action" value="activateSpec_<%= i %>" class="btn-action-row btn-row-save" title="Kích hoạt hàng này">
-                                                        <i class="fa-solid fa-circle-check"></i> Kích hoạt
-                                                    </button>
-                                                <% } else { %>
-                                                    <button type="submit" name="action" value="deleteSpec_<%= i %>" class="btn-action-row btn-row-delete" onclick="return confirm('Bạn có chắc muốn vô hiệu hóa thuộc tính này?')" title="Vô hiệu hóa hàng này">
-                                                        <i class="fa-solid fa-ban"></i> Vô hiệu hóa
-                                                    </button>
-                                                <% } %>
                                             </div>
                                         </td>
                                     </tr>
@@ -425,6 +416,8 @@
 
         <jsp:include page="/includes/footer.jsp" />
 
+        <script src="<%= contextPath %>/js/validator.js"></script>
+        <script src="<%= contextPath %>/js/admin-categories.js"></script>
         <script>
             function handleSpecTypeChange(select) {
                 const tr = select.closest('tr');

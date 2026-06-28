@@ -193,9 +193,9 @@ public class AdminProductServlet extends HttpServlet {
     }
 
     /**
-     * Populate page data with CLEAN defaults (no filters applied).
-     * Used when forwarding back from add/update validation failures to prevent
-     * the product form's categoryId/brandId from corrupting the dashboard filters.
+     * Populate page data with CLEAN defaults (no filters applied). Used when
+     * forwarding back from add/update validation failures to prevent the
+     * product form's categoryId/brandId from corrupting the dashboard filters.
      */
     private void populatePageDataWithDefaults(HttpServletRequest request) {
         String keyword = "";
@@ -291,7 +291,8 @@ public class AdminProductServlet extends HttpServlet {
             if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
                 warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         if (warrantyMonths < 0) {
             request.setAttribute("error", "Bảo hành phải lớn hơn hoặc bằng 0.");
@@ -421,7 +422,8 @@ public class AdminProductServlet extends HttpServlet {
             if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
                 warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         if (warrantyMonths < 0) {
             request.setAttribute("error", "Bảo hành phải lớn hơn hoặc bằng 0.");
@@ -638,7 +640,9 @@ public class AdminProductServlet extends HttpServlet {
     }
 
     private String validateProductSpecifications(Integer categoryId, String[] specNames, String[] specValues) {
-        if (categoryId == null) return null;
+        if (categoryId == null) {
+            return null;
+        }
 
         List<CategorySpecTemplate> templates = categoryDAO.getTemplatesByCategoryId(categoryId);
         if (templates == null || templates.isEmpty()) {

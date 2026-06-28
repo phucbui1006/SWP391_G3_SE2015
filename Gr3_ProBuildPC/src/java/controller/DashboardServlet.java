@@ -426,7 +426,18 @@ public class DashboardServlet extends HttpServlet {
     }
 
     private boolean isHiddenShipmentStatus(OrderStatus status) {
-        return isPendingConfirmationStatus(status) || isPreparingOrderStatus(status);
+        return isPendingConfirmationStatus(status)
+                || isPreparingOrderStatus(status)
+                || isCancelledStatus(status);
+    }
+
+    private boolean isCancelledStatus(OrderStatus status) {
+        if (status == null || status.getStatusName() == null) {
+            return false;
+        }
+
+        String statusName = status.getStatusName().toLowerCase();
+        return statusName.contains("đã hủy") || statusName.contains("da huy");
     }
 
     private boolean isPendingConfirmationStatus(OrderStatus status) {

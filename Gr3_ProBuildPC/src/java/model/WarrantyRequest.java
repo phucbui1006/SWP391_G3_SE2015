@@ -11,6 +11,7 @@ public class WarrantyRequest {
     private Date requestDate;
     private Date responseDate;
     private String request;
+    private String response;
     private String productName;
     private String imageUrl;
     private String brandName;
@@ -134,5 +135,13 @@ public class WarrantyRequest {
 
     public void setOrderId(int orderId) {
         this.orderId = orderId;
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
     }
 }

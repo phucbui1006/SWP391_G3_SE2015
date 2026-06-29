@@ -15,7 +15,6 @@ import util.ValidatorUtil;
 
 @WebFilter(filterName = "AdminValidationFilter", urlPatterns = {
     "/AdminBrands",
-    "/admin/products",
     "/admin/categories",
     "/BatchServlet"
 })
@@ -47,8 +46,6 @@ public class AdminValidationFilter implements Filter {
 
         if ("/AdminBrands".equalsIgnoreCase(path)) {
             isValid = validateBrand(req, res);
-        } else if ("/admin/products".equalsIgnoreCase(path)) {
-            isValid = validateProduct(req, res);
         } else if ("/admin/categories".equalsIgnoreCase(path)) {
             isValid = validateCategory(req, res);
         } else if ("/BatchServlet".equalsIgnoreCase(path)) {
@@ -97,79 +94,7 @@ public class AdminValidationFilter implements Filter {
         return imageRequired ? BRAND_IMAGE_ADD_ERROR : BRAND_IMAGE_UPDATE_ERROR;
     }
 
-    private boolean validateProduct(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        String action = req.getParameter("action");
-        if (!"add".equalsIgnoreCase(action) && !"update".equalsIgnoreCase(action)) {
-            return true;
-        }
 
-        String productName = req.getParameter("productName");
-        String categoryIdStr = req.getParameter("categoryId");
-        String brandIdStr = req.getParameter("brandId");
-        String priceRaw = req.getParameter("price");
-        String warrantyMonthsRaw = req.getParameter("warrantyMonths");
-
-        String error = null;
-
-        if (productName == null || productName.trim().length() < 3 || productName.trim().length() > 255) {
-            error = "Tên sản phẩm phải từ 3 đến 255 ký tự.";
-        } else if (categoryIdStr == null || brandIdStr == null || categoryIdStr.trim().isEmpty() || brandIdStr.trim().isEmpty()) {
-            error = "Danh mục hoặc thương hiệu không hợp lệ.";
-        } else {
-            try {
-                java.math.BigDecimal price = new java.math.BigDecimal(priceRaw);
-                if (price.compareTo(java.math.BigDecimal.ZERO) < 0) {
-                    error = "Giá bán không được nhỏ hơn 0.";
-                }
-            } catch (Exception e) {
-                error = "Giá bán không hợp lệ.";
-            }
-
-            if (error == null && warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
-                try {
-                    int warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
-                    if (warrantyMonths < 0) {
-                        error = "Thời gian bảo hành không được nhỏ hơn 0.";
-                    }
-                } catch (Exception e) {
-                    error = "Thời gian bảo hành không hợp lệ.";
-                }
-            }
-        }
-
-        if (error == null) {
-            try {
-                Part filePart = req.getPart("imgFile");
-                if (filePart != null && filePart.getSize() > 0) {
-                    if (filePart.getSize() > 2 * 1024 * 1024) {
-                        error = "File không hợp lệ hoặc vượt quá 2MB!";
-                    } else {
-                        String submittedName = filePart.getSubmittedFileName();
-                        if (submittedName == null || !filePart.getContentType().startsWith("image/") || 
-                            (!submittedName.toLowerCase().endsWith(".png") && 
-                             !submittedName.toLowerCase().endsWith(".jpg") && 
-                             !submittedName.toLowerCase().endsWith(".jpeg") && 
-                             !submittedName.toLowerCase().endsWith(".webp"))) {
-                            error = "File không hợp lệ hoặc vượt quá 2MB!";
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                // Ignore if not multipart or parsing fails
-            }
-        }
-
-        if (error != null) {
-            req.getSession().setAttribute("productError", error);
-            // Must preserve inputs manually in filter if we redirect back
-            // To simplify, we just redirect. The user will have to re-enter.
-            // But this is an Admin CRUD. We'll accept redirect for now.
-            res.sendRedirect(req.getContextPath() + "/admin/products");
-            return false;
-        }
-
-        return true;
-    }
 
     private boolean validateCategory(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         String action = req.getParameter("action");

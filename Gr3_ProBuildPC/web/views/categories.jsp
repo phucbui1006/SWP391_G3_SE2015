@@ -3,6 +3,9 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="model.Category" %>
 <%@ page import="model.Product" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+
 
 <%!
     private String h(String value) {
@@ -206,74 +209,87 @@
                     </div>
 
                     <div class="category-product-grid">
-                        <% if (products != null && !products.isEmpty()) { %>
-                            <% for (Product p : products) { %>
-                            <article class="category-product-card">
-                                <a class="category-product-image" href="<%= ctx %>/product-detail?id=<%= p.getProductId() %>">
-                                    <figure style="margin: 0; display: contents;">
-                                        <% if (p.getImageUrl() != null && !p.getImageUrl().trim().isEmpty()) { %>
-                                        <img src="<%= ctx %>/<%= h(p.getImageUrl()) %>" alt="<%= h(p.getProductName()) %>">
-                                        <% } else { %>
-                                        <span>PC</span>
-                                        <% } %>
-                                    </figure>
-                                </a>
-                                <h3>
-                                    <a href="<%= ctx %>/product-detail?id=<%= p.getProductId() %>">
-                                        <%= h(p.getProductName()) %>
-                                    </a>
-                                </h3>
-                                <strong><%= String.format("%,d", p.getPrice().longValue()) %>đ</strong>
-                                <p class="stock">Số lượng: <%= p.getQuantity() %></p>
+                        <c:set var="productsToDisplay" value="${not empty productList ? productList : products}" />
+                        <c:choose>
+                            <c:when test="${not empty productsToDisplay}">
+                                <c:forEach var="p" items="${productsToDisplay}">
+                                    <article class="category-product-card">
+                                        <a class="category-product-image" href="${pageContext.request.contextPath}/product-detail?id=${p.productId}">
+                                            <figure>
+                                                <c:choose>
+                                                    <c:when test="${not empty p.imageUrl}">
+                                                        <img src="${pageContext.request.contextPath}/${p.imageUrl}" alt="${p.productName}">
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span>PC</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </figure>
+                                        </a>
+                                        <h3>
+                                            <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}">
+                                                ${p.productName}
+                                            </a>
+                                        </h3>
+                                        
+                                        <strong>
+                                            <fmt:formatNumber value="${p.price}" pattern="#,###"/>đ
+                                        </strong>
 
-                            <div class="card-actions">
-                                <a
-                                    href="<%= ctx %>/product-detail?id=<%= p.getProductId() %>">
-                                    Xem chi tiết
-                                </a>
+                                        <div class="product-rating">
+                                            <i class="fa-regular fa-star"></i>
+                                            <i class="fa-regular fa-star"></i>
+                                            <i class="fa-regular fa-star"></i>
+                                            <i class="fa-regular fa-star"></i>
+                                            <i class="fa-regular fa-star"></i>
+                                            <span>0.0</span>
+                                        </div>
 
-                                <% if (p.getQuantity()> 0) { %>
-                                <form action="<%= ctx %>/cart"
-                                      method="post"
-                                      class="cart-form">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="addToCart">
-                                    <input type="hidden"
-                                           name="productId"
-                                           value="<%= p.getProductId() %>">
-                                    <input type="hidden"
-                                           name="quantity"
-                                           value="1">
+                                        <p class="stock ${p.quantity > 0 ? 'in-stock' : 'out-of-stock'}">
+                                            <c:choose>
+                                                <c:when test="${p.quantity > 0}">
+                                                    Còn hàng: ${p.quantity}
+                                                </c:when>
+                                                <c:otherwise>
+                                                    Hết hàng
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </p>
 
-                                    <button type="submit"
-                                            class="add-to-cart-btn"
-                                            data-add-to-cart-btn
-                                            title="Thêm vào giỏ hàng">
-                                        <i class="fa-solid fa-cart-shopping"></i>
-                                    </button>
-                                </form>
-                                <% } else { %>
-                                <button type="button"
-                                        class="add-to-cart-btn"
-                                        style="opacity: 0.6; cursor: not-allowed; background: #e5e7eb; border-color: #e5e7eb; color: #9ca3af;"
-                                        title="Sản phẩm tạm hết hàng"
-                                        disabled>
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                </button>
-                                <% } %>
-                            </div>
+                                        <div class="card-actions">
+                                            <a class="detail-link" href="${pageContext.request.contextPath}/product-detail?id=${p.productId}">
+                                                Xem chi tiết
+                                            </a>
 
-                        </article>
+                                            <form action="${pageContext.request.contextPath}/cart" method="post" class="cart-form">
+                                                <input type="hidden" name="action" value="addToCart">
+                                                <input type="hidden" name="productId" value="${p.productId}">
+                                                <input type="hidden" name="quantity" value="1">
 
-                        <% } %>
-
-                        <% } else { %>
-                            <div class="category-empty">
-                                <h3>Chưa có sản phẩm trong danh mục này</h3>
-                                <p>Vui lòng chọn danh mục khác.</p>
-                            </div>
-                        <% } %>
+                                                <c:choose>
+                                                    <c:when test="${p.quantity > 0}">
+                                                        <button type="submit" class="add-to-cart-btn" data-add-to-cart-btn data-product-name="${p.productName}" title="Thêm vào giỏ hàng">
+                                                            <i class="fa-solid fa-cart-shopping"></i>
+                                                        </button>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <button type="button" class="add-to-cart-btn" title="Sản phẩm tạm hết hàng" disabled>
+                                                            <i class="fa-solid fa-cart-shopping"></i>
+                                                        </button>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </form>
+                                        </div>
+                                    </article>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="category-empty">
+                                    <h3>Chưa có sản phẩm trong danh mục này</h3>
+                                    <p>Vui lòng chọn danh mục khác.</p>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
 
                     <div class="category-pagination">

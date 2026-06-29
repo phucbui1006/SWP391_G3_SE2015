@@ -260,8 +260,7 @@
                                                                 <c:otherwise>
                                                                     <form class="wl-claim-form"
                                                                           action="${ctx}/warranty-lookup"
-                                                                          method="post"
-                                                                          onsubmit="submitInlineWarrantyRequest(event, this)">
+                                                                          method="post">
 
                                                                         <input type="hidden" name="action" value="createRequest">
                                                                         <input type="hidden" name="orderId" value="${orderInfo.orderId}">
@@ -361,14 +360,7 @@
 
         <jsp:include page="/includes/footer.jsp" />
 
-        <script>
-            function submitInlineWarrantyRequest(event, form) {
-                var btn = form.querySelector('button[type="submit"]');
-                if (btn) {
-                    btn.disabled = true;
-                    btn.innerHTML = '<span class="wl-btn-spinner"></span> Đang gửi...';
-                }
-            }
-        </script>
+        <script src="${ctx}/js/validator.js"></script>
+        <script src="${ctx}/js/warranty.js"></script>
     </body>
 </html>

@@ -52,14 +52,13 @@
                                 <label for="status" class="filter-label">TRẠNG THÁI</label>
                                 <select 
                                     id="status" 
-                                    name="filterStatusId" 
+                                    name="statusId" 
                                     class="filter-select"
                                 >
-                                    <option value="" ${empty filterStatusId ? 'selected' : ''}>Tất cả trạng thái</option>
-                                    <option value="1" ${filterStatusId == 1 ? 'selected' : ''}>Chờ tiếp nhận</option>
-                                    <option value="2" ${filterStatusId == 2 ? 'selected' : ''}>Đang xử lý</option>
-                                    <option value="3" ${filterStatusId == 3 ? 'selected' : ''}>Từ chối</option>
-                                    <option value="4" ${filterStatusId == 4 ? 'selected' : ''}>Đã hoàn thành</option>
+                                    <option value="" ${empty param.statusId ? 'selected' : ''}>Tất cả trạng thái</option>
+                                    <option value="1" ${param.statusId == '1' ? 'selected' : ''}>Chờ tiếp nhận</option>
+                                    <option value="2" ${param.statusId == '2' ? 'selected' : ''}>Từ chối</option>
+                                    <option value="3" ${param.statusId == '3' ? 'selected' : ''}>Chấp nhận</option>
                                 </select>
                             </div>
 
@@ -112,6 +111,11 @@
                                                                 <div style="margin-top: 6px; font-size: 12px; color: #2b8a3e; font-weight: 500;">
                                                                     Phản hồi: <fmt:formatDate value="${item.responseDate}" pattern="dd/MM/yyyy HH:mm" />
                                                                 </div>
+                                                                <c:if test="${not empty item.response}">
+                                                                    <div style="margin-top: 4px; font-size: 12px; color: #495057; font-style: italic;">
+                                                                         phản hồi: "<c:out value="${item.response}"/>"
+                                                                    </div>
+                                                                </c:if>
                                                             </c:if>
                                                         </div>
                                                     </td>

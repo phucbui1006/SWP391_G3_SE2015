@@ -117,8 +117,7 @@
         <meta charset="UTF-8">
         <title>Quản lý sản phẩm - ProBuild PC</title>
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
-        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css?v=1.0.1"><!-- comment -->        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
         <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
     <body class="admin-product-body" data-ctx="<%= contextPath %>">
@@ -142,9 +141,11 @@
             <div class="product-alert success"><%= h(success) %></div>
             <% } %>
 
+            <%-- 
             <% if (error != null && !error.isEmpty() && failedAction == null) { %>
             <div class="product-alert error"><%= h(error) %></div>
             <% } %>
+            --%>
 
             <section class="admin-product-card">
                 <!-- Search & Filters Toolbar -->
@@ -197,6 +198,7 @@
                                 <option value="price_desc" <%= "price_desc".equals(sort) ? "selected" : "" %>>Giá giảm dần</option>
                                 <option value="qty_asc" <%= "qty_asc".equals(sort) ? "selected" : "" %>>Số lượng tăng dần</option>
                                 <option value="qty_desc" <%= "qty_desc".equals(sort) ? "selected" : "" %>>Số lượng giảm dần</option>
+                                <option value="bestSeller" <%= "bestSeller".equals(sort) ? "selected" : "" %>>Bán chạy nhất</option>
                             </select>
                         </div>
 
@@ -220,7 +222,7 @@
                                 <th>Danh mục</th>
                                 <th>Thương hiệu</th>
                                 <th>Giá bán</th>
-                                <th>Kho hàng</th>
+                                <th>Số lượng</th>
                                 <th>Trạng thái</th>
                                 <th>Thao tác</th>
                             </tr>
@@ -308,7 +310,7 @@
                         <% if (currentPage > 1) { %>
                         <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage - 1 %><%= listQuery %>">&lsaquo;</a>
                         <% } else { %>
-                        <span class="page-btn disabled">&lsaquo;</span>
+                        <span class="page-btn disabled"><</span>
                         <% } %>
 
                         <% for (int i = 1; i <= totalPages; i++) { %>
@@ -318,7 +320,7 @@
                         <% if (currentPage < totalPages) { %>
                         <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage + 1 %><%= listQuery %>">&rsaquo;</a>
                         <% } else { %>
-                        <span class="page-btn disabled">&rsaquo;</span>
+                        <span class="page-btn disabled">></span>
                         <% } %>
                     </div>
                 </div>
@@ -337,7 +339,7 @@
                     <input type="hidden" name="action" value="add">
                     
                     <% if ("add".equals(failedAction) && error != null && !error.isEmpty()) { %>
-                    <div class="product-alert error" style="margin: 0 0 12px 0;"><%= h(error) %></div>
+                    <div class="product-alert error" style="margin: 0 0 12px 0;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i><%= h(error) %></div>
                     <% } %>
 
                     <div class="form-grid">
@@ -384,9 +386,14 @@
                         <div class="form-group">
                             <label for="addImageFile">Hình ảnh sản phẩm</label>
                             <input id="addImageFile" name="imgFile" type="file" accept=".jpg,.jpeg,.png,.webp">
+                            <input type="hidden" name="currentImg" id="addCurrentImg" value="<%= "add".equals(failedAction) && request.getAttribute("enteredCurrentImg") != null ? h((String)request.getAttribute("enteredCurrentImg")) : "" %>">
                             <small class="image-hint">Tối đa 2MB | Hỗ trợ .png, .jpg, .jpeg, .webp</small>
                             <small class="form-error-text" id="addImageFileError"></small>
 
+                            <div class="current-image-preview" id="addImgPreviewContainer" style="margin-top:8px; <%= ("add".equals(failedAction) && request.getAttribute("enteredCurrentImg") != null) ? "display:block;" : "display:none;" %>">
+                                <small>Ảnh đã tải lên:</small><br>
+                                <img id="addImgPreview" src="<%= contextPath %>/<%= ("add".equals(failedAction) && request.getAttribute("enteredCurrentImg") != null) ? h((String)request.getAttribute("enteredCurrentImg")) : "" %>" alt="Thumbnail" style="height: 50px; border-radius: 4px; border: 1px solid #4b5563; margin-top:4px;">
+                            </div>
                         </div>
 
                         <!-- Button to load technical specifications -->
@@ -432,6 +439,7 @@
                                     <% } else { %>
                                     <input type="text" name="spec_values[]" placeholder="Nhập thông tin..." value="<%= h(enteredVal) %>" <%= t.isRequired() ? "required" : "" %>>
                                     <% } %>
+                                    <small class="form-error-text"></small>
                                 </div>
                                 <% } } %>
                             </div>
@@ -465,7 +473,7 @@
                     <input type="hidden" name="currentImg" id="editCurrentImg" value="<%= "update".equals(failedAction) && enteredCurrentImg != null ? h(enteredCurrentImg) : "" %>">
                     
                     <% if ("update".equals(failedAction) && error != null && !error.isEmpty()) { %>
-                    <div class="product-alert error" style="margin: 0 0 12px 0;"><%= h(error) %></div>
+                    <div class="product-alert error" style="margin: 0 0 12px 0;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i><%= h(error) %></div>
                     <% } %>
 
                     <div class="form-grid">
@@ -566,6 +574,7 @@
                                     <% } else { %>
                                     <input type="text" name="spec_values[]" placeholder="Nhập thông tin..." value="<%= h(enteredVal) %>" <%= t.isRequired() ? "required" : "" %>>
                                     <% } %>
+                                    <small class="form-error-text"></small>
                                 </div>
                                 <% } } %>
                             </div>
@@ -580,45 +589,7 @@
             </section>
         </div>
 
-        <!-- QUICK EDIT PRICE MODAL -->
-        <div class="product-modal-overlay" id="price-product-modal">
-            <section class="product-modal price-modal-size" role="dialog" aria-modal="true" aria-labelledby="priceTitle">
-                <div class="product-modal-header">
-                    <h2 id="priceTitle"><i class="fa-solid fa-coins"></i> Cập nhật giá bán</h2>
-                    <a href="#" class="close-btn" aria-label="Đóng">&times;</a>
-                </div>
-
-                <form action="<%= contextPath %>/admin/products" method="post" class="product-modal-form" id="priceProductForm" novalidate>
-                    <input type="hidden" name="action" value="updatePrice">
-                    <input type="hidden" name="productId" id="priceProductId">
-
-                    <!-- Preserving filters to return back to exact state -->
-                    <input type="hidden" name="keyword" value="<%= h(keyword) %>">
-                    <input type="hidden" name="categoryId" value="<%= selectedCategoryId != null ? selectedCategoryId : "" %>">
-                    <input type="hidden" name="brandId" value="<%= selectedBrandId != null ? selectedBrandId : "" %>">
-                    <input type="hidden" name="status" value="<%= h(status) %>">
-                    <input type="hidden" name="sort" value="<%= h(sort) %>">
-                    <input type="hidden" name="page" value="<%= currentPage %>">
-
-                    <div class="form-group">
-                        <label>Sản phẩm:</label>
-                        <strong id="priceProductName" style="display:block; margin: 6px 0 15px 0; color: #f3f4f6; font-size:1.1rem;"></strong>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="quickPriceVal">Giá bán mới (VND) <span>*</span></label>
-                        <input id="quickPriceVal" name="price" type="number" min="0" step="1000" placeholder="Nhập giá mới..." required>
-                        <small class="form-error-text" id="quickPriceError"></small>
-                    </div>
-
-                    <div class="product-modal-actions">
-                        <a class="btn-secondary" href="#">Hủy</a>
-                        <button class="btn-primary" type="submit"><i class="fa-solid fa-check"></i> Cập nhật giá</button>
-                    </div>
-                </form>
-            </section>
-        </div>
-
+      
         <jsp:include page="/includes/footer.jsp" />
 
         <script src="<%= contextPath %>/js/admin-products.js"></script>
@@ -634,6 +605,48 @@
                     window.location.hash = "edit-product-modal";
                 }
             })();
+
+            // Map and display backend validation errors to their inputs inline
+            document.addEventListener("DOMContentLoaded", function() {
+                var action = "<%= h(failedAction) %>";
+                var prefix = action === "add" ? "add" : "edit";
+                
+                var fieldMapping = {
+                    "productName": prefix + "ProductName",
+                    "categoryId": prefix + "Category",
+                    "brandId": prefix + "Brand",
+                    "price": prefix + "Price",
+                    "warrantyMonths": prefix + "WarrantyMonths",
+                    "imgFile": prefix + "ImageFile"
+                };
+
+                <% 
+                    java.util.Map<String, String> backendErrors = (java.util.Map<String, String>) request.getAttribute("errors");
+                    if (backendErrors != null && !backendErrors.isEmpty()) {
+                        for (java.util.Map.Entry<String, String> entry : backendErrors.entrySet()) {
+                %>
+                            var fieldKey = "<%= h(entry.getKey()) %>";
+                            var errMsg = "<%= h(entry.getValue()) %>";
+                            var inputId = fieldMapping[fieldKey];
+                            if (inputId) {
+                                var inp = document.getElementById(inputId);
+                                if (inp) {
+                                    inp.classList.add("is-invalid");
+                                    var parent = inp.closest(".form-group");
+                                    if (parent) {
+                                        var errText = parent.querySelector(".form-error-text");
+                                        if (errText) {
+                                            errText.textContent = errMsg;
+                                            errText.style.display = "block";
+                                        }
+                                    }
+                                }
+                            }
+                <% 
+                        }
+                    } 
+                %>
+            });
         </script>
         <% } %>
 

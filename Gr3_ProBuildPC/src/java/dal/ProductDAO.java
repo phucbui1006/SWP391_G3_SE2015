@@ -610,6 +610,17 @@ public class ProductDAO extends DBContext {
             sql.append(" ORDER BY quantity DESC ");
         } else if ("oldest".equals(sort)) {
             sql.append(" ORDER BY p.product_id ASC ");
+        } else if ("bestSeller".equals(sort)) {
+            sql.append("""
+                 ORDER BY (
+                     SELECT COALESCE(SUM(od.quantity), 0)
+                     FROM order_details od
+                     JOIN orders o ON od.order_id = o.order_id
+                     JOIN orders_status os ON o.status_id = os.status_id
+                     WHERE od.product_id = p.product_id
+                     AND os.status_name = 'Đã giao hàng'
+                 ) DESC, p.product_id DESC 
+                 """);
         } else {
             sql.append(" ORDER BY p.product_id DESC "); // newest default
         }

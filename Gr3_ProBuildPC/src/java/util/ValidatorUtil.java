@@ -126,4 +126,16 @@ public class ValidatorUtil {
             return false;
         }
     }
+
+    public static boolean isValidWarrantyRequestReason(String reason) {
+        if (reason == null) return false;
+        String trimmed = reason.trim();
+        return trimmed.length() >= 10 && trimmed.length() <= 1000;
+    }
+
+    public static boolean isValidWarrantyResponse(String response) {
+        if (response == null) return false;
+        String trimmed = response.trim();
+        return trimmed.length() >= 5 && trimmed.length() <= 1000;
+    }
 }

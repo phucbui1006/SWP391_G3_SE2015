@@ -29,7 +29,7 @@ import model.CategorySpecTemplate;
 @WebServlet(name = "AdminProductServlet", urlPatterns = {"/admin/products"})
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
-        maxFileSize = 2 * 1024 * 1024, // 2MB constraint
+        maxFileSize = 2 * 1024 * 1024, 
         maxRequestSize = 4 * 1024 * 1024
 )
 public class AdminProductServlet extends HttpServlet {
@@ -99,8 +99,6 @@ public class AdminProductServlet extends HttpServlet {
         }
 
         if (!isSuccess) {
-            // For add/update failures, use clean defaults to avoid product form
-            // parameters (categoryId, brandId) from corrupting dashboard filters
             if ("add".equalsIgnoreCase(action) || "update".equalsIgnoreCase(action)) {
                 populatePageDataWithDefaults(request);
             } else {
@@ -230,101 +228,121 @@ public class AdminProductServlet extends HttpServlet {
         request.setAttribute("endItem", endItem);
     }
 
-    //Thêm sản phẩm, kiểm tra điều kiện
+    //Thêm sản phẩm
     private boolean handleAdd(HttpServletRequest request, HttpSession session) throws IOException, ServletException {
         String productName = normalizeText(request.getParameter("productName"));
-        Integer categoryId = parseId(request.getParameter("categoryId"));
-        Integer brandId = parseId(request.getParameter("brandId"));
+        String categoryIdRaw = request.getParameter("categoryId");
+        String brandIdRaw = request.getParameter("brandId");
         String priceRaw = request.getParameter("price");
         String warrantyMonthsRaw = request.getParameter("warrantyMonths");
         String description = normalizeText(request.getParameter("description"));
+        String currentImg = normalizeText(request.getParameter("currentImg"));
 
-        // Read spec data early so it can be preserved on validation failure
+        Integer categoryId = parseId(categoryIdRaw);
+        Integer brandId = parseId(brandIdRaw);
+        BigDecimal price = null;
+        Integer warrantyMonths = null;
+        
+        // Process and save the image immediately
+        String imageUrl = (String) request.getAttribute("savedProductImg");
+        if (imageUrl == null) {
+            Part filePart = request.getPart("imgFile");
+            if (filePart != null && filePart.getSize() > 0) {
+                imageUrl = saveUploadedProductImage(filePart);
+            }
+        }
+        if (imageUrl == null) {
+            imageUrl = normalizeProductImagePath(currentImg);
+        }
+
+        // Save entered data for re-rendering on error
+        request.setAttribute("failedAction", "add");
+        request.setAttribute("enteredProductName", productName != null ? productName : "");
+        request.setAttribute("enteredCategoryId", categoryId);
+        request.setAttribute("enteredBrandId", brandId);
+        request.setAttribute("enteredPrice", priceRaw != null ? priceRaw.trim() : "");
+        request.setAttribute("enteredDescription", description != null ? description : "");
+        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw != null ? warrantyMonthsRaw.trim() : "");
+        request.setAttribute("enteredCurrentImg", imageUrl);
+
         String[] specNames = request.getParameterValues("spec_names[]");
         String[] specValues = request.getParameterValues("spec_values[]");
 
-        request.setAttribute("enteredProductName", productName);
-        request.setAttribute("enteredCategoryId", categoryId);
-        request.setAttribute("enteredBrandId", brandId);
-        request.setAttribute("enteredPrice", priceRaw);
-        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw);
-        request.setAttribute("enteredDescription", description);
-        request.setAttribute("failedAction", "add");
-        request.setAttribute("enteredSpecNames", specNames);
-        request.setAttribute("enteredSpecValues", specValues);
-
-        // Attach spec templates for server-side re-rendering if category is selected
         if (categoryId != null) {
             List<CategorySpecTemplate> specTemplates = categoryDAO.getTemplatesByCategoryId(categoryId);
-            request.setAttribute("specTemplates", specTemplates);
+            request.setAttribute("specTemplates", specTemplates != null ? specTemplates : new java.util.ArrayList<>());
+            request.setAttribute("enteredSpecNames", specNames);
+            request.setAttribute("enteredSpecValues", specValues);
         }
 
+        // Validate product name
         if (productName == null || productName.length() < 3 || productName.length() > 255) {
             request.setAttribute("error", "Tên sản phẩm phải từ 3 đến 255 ký tự.");
             return false;
         }
 
+        // Validate category and brand
         if (categoryId == null || brandId == null) {
             request.setAttribute("error", "Danh mục hoặc thương hiệu không hợp lệ.");
             return false;
         }
 
+        // Validate price
+        if (priceRaw == null || priceRaw.trim().isEmpty()) {
+            request.setAttribute("error", "Giá bán không được để trống.");
+            return false;
+        }
+        
+        try {
+            price = new BigDecimal(priceRaw.trim());
+            if (price.compareTo(BigDecimal.ZERO) <= 0) {
+                request.setAttribute("error", "Giá bán phải lớn hơn 0.");
+                return false;
+            }
+            if (price.compareTo(new BigDecimal("1000000000")) >= 0) {
+                request.setAttribute("error", "Giá bán phải nhỏ hơn 1 tỉ.");
+                return false;
+            }
+            if (price.remainder(new BigDecimal("1000")).compareTo(BigDecimal.ZERO) != 0) {
+                request.setAttribute("error", "Giá bán phải chia hết cho 1000.");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Giá bán phải là số hợp lệ.");
+            return false;
+        }
+
+        // Validate warranty months
+        if (warrantyMonthsRaw == null || warrantyMonthsRaw.trim().isEmpty()) {
+            request.setAttribute("error", "Bảo hành không được để trống.");
+            return false;
+        }
+        
+        try {
+            warrantyMonths = Integer.parseInt(warrantyMonthsRaw.trim());
+            if (warrantyMonths < 0) {
+                request.setAttribute("error", "Bảo hành phải lớn hơn hoặc bằng 0.");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Bảo hành phải là số hợp lệ.");
+            return false;
+        }
+
+        // Validate description
         if (description == null || description.trim().isEmpty()) {
             request.setAttribute("error", "Mô tả chi tiết không được để trống.");
             return false;
         }
 
-        BigDecimal price;
-        try {
-            price = new BigDecimal(priceRaw);
-        } catch (Exception e) {
-            price = BigDecimal.ZERO;
-        }
-
-        if (price.compareTo(BigDecimal.ZERO) < 0) {
-            request.setAttribute("error", "Giá bán phải lớn hơn hoặc bằng 0.");
-            return false;
-        }
-
-        int warrantyMonths = 0;
-        try {
-            if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
-                warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
-            }
-        } catch (Exception e) {
-        }
-
-        if (warrantyMonths < 0) {
-            request.setAttribute("error", "Bảo hành phải lớn hơn hoặc bằng 0.");
-            return false;
-        }
-
-        Part filePart = request.getPart("imgFile");
-        String imageUrl = null;
-        if (filePart != null && filePart.getSize() > 0) {
-            if (filePart.getSize() > 2 * 1024 * 1024) {
-                request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
-                return false;
-            }
-            String submittedName = filePart.getSubmittedFileName();
-            String extension = getAllowedImageExtension(submittedName);
-            if (extension == null || !filePart.getContentType().startsWith("image/")) {
-                request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
-                return false;
-            }
-
-            imageUrl = saveUploadedProductImage(filePart);
-            if (imageUrl == null) {
-                request.setAttribute("error", "Không thể lưu hình ảnh sản phẩm.");
-                return false;
-            }
-        }
-
-        String specError = validateProductSpecifications(categoryId, specNames, specValues);
+        // Validate specifications for required fields
+        String specError = validateSpecifications(categoryId, specNames, specValues);
         if (specError != null) {
             request.setAttribute("error", specError);
             return false;
         }
+
+
 
         if (productDAO.addProduct(productName, categoryId, brandId, price, description, imageUrl, warrantyMonths, specNames, specValues)) {
             session.setAttribute("productSuccess", "Thêm sản phẩm mới thành công.");
@@ -337,16 +355,44 @@ public class AdminProductServlet extends HttpServlet {
 
     //Cập nhật thông tin sản phẩm
     private boolean handleUpdate(HttpServletRequest request, HttpSession session) throws IOException, ServletException {
-        Integer productId = parseId(request.getParameter("productId"));
+        String productIdRaw = request.getParameter("productId");
         String productName = normalizeText(request.getParameter("productName"));
-        Integer categoryId = parseId(request.getParameter("categoryId"));
-        Integer brandId = parseId(request.getParameter("brandId"));
+        String categoryIdRaw = request.getParameter("categoryId");
+        String brandIdRaw = request.getParameter("brandId");
         String priceRaw = request.getParameter("price");
         String warrantyMonthsRaw = request.getParameter("warrantyMonths");
         String description = normalizeText(request.getParameter("description"));
         String currentImg = normalizeText(request.getParameter("currentImg"));
 
-        // Read spec data early so it can be preserved on validation failure
+        Integer productId = parseId(productIdRaw);
+        Integer categoryId = parseId(categoryIdRaw);
+        Integer brandId = parseId(brandIdRaw);
+        BigDecimal price = null;
+        Integer warrantyMonths = null;
+
+        // Process and save the image immediately
+        String imageUrl = (String) request.getAttribute("savedProductImg");
+        if (imageUrl == null) {
+            Part filePart = request.getPart("imgFile");
+            if (filePart != null && filePart.getSize() > 0) {
+                imageUrl = saveUploadedProductImage(filePart);
+            }
+        }
+        if (imageUrl == null) {
+            imageUrl = normalizeProductImagePath(currentImg);
+        }
+
+        // Save entered data for re-rendering on error
+        request.setAttribute("failedAction", "update");
+        request.setAttribute("enteredProductId", productId);
+        request.setAttribute("enteredProductName", productName != null ? productName : "");
+        request.setAttribute("enteredCategoryId", categoryId);
+        request.setAttribute("enteredBrandId", brandId);
+        request.setAttribute("enteredPrice", priceRaw != null ? priceRaw.trim() : "");
+        request.setAttribute("enteredDescription", description != null ? description : "");
+        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw != null ? warrantyMonthsRaw.trim() : "");
+        request.setAttribute("enteredCurrentImg", imageUrl);
+
         String[] specNames = request.getParameterValues("spec_names[]");
         String[] specValues = request.getParameterValues("spec_values[]");
 
@@ -369,99 +415,87 @@ public class AdminProductServlet extends HttpServlet {
             }
         }
 
-        // Store entered inputs to return on forward
-        request.setAttribute("enteredProductId", productId);
-        request.setAttribute("enteredProductName", productName);
-        request.setAttribute("enteredCategoryId", categoryId);
-        request.setAttribute("enteredBrandId", brandId);
-        request.setAttribute("enteredPrice", priceRaw);
-        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw);
-        request.setAttribute("enteredDescription", description);
-        request.setAttribute("enteredCurrentImg", currentImg);
-        request.setAttribute("failedAction", "update");
-        request.setAttribute("enteredSpecNames", specNames);
-        request.setAttribute("enteredSpecValues", specValues);
-
-        // Attach spec templates for server-side re-rendering if category is selected
         if (categoryId != null) {
             List<CategorySpecTemplate> specTemplates = categoryDAO.getTemplatesByCategoryId(categoryId);
-            request.setAttribute("specTemplates", specTemplates);
+            request.setAttribute("specTemplates", specTemplates != null ? specTemplates : new java.util.ArrayList<>());
+            request.setAttribute("enteredSpecNames", specNames);
+            request.setAttribute("enteredSpecValues", specValues);
         }
 
+        // Validate product ID
         if (productId == null) {
             request.setAttribute("error", "Sản phẩm không hợp lệ.");
             return false;
         }
+
+        // Validate product name
         if (productName == null || productName.length() < 3 || productName.length() > 255) {
             request.setAttribute("error", "Tên sản phẩm phải từ 3 đến 255 ký tự.");
             return false;
         }
+
+        // Validate category and brand
         if (categoryId == null || brandId == null) {
             request.setAttribute("error", "Danh mục hoặc thương hiệu không hợp lệ.");
             return false;
         }
+
+        // Validate price
+        if (priceRaw == null || priceRaw.trim().isEmpty()) {
+            request.setAttribute("error", "Giá bán không được để trống.");
+            return false;
+        }
+        
+        try {
+            price = new BigDecimal(priceRaw.trim());
+            if (price.compareTo(BigDecimal.ZERO) <= 0) {
+                request.setAttribute("error", "Giá bán phải lớn hơn 0.");
+                return false;
+            }
+            if (price.compareTo(new BigDecimal("1000000000")) >= 0) {
+                request.setAttribute("error", "Giá bán phải nhỏ hơn 1 tỉ.");
+                return false;
+            }
+            if (price.remainder(new BigDecimal("1000")).compareTo(BigDecimal.ZERO) != 0) {
+                request.setAttribute("error", "Giá bán phải chia hết cho 1000.");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Giá bán phải là số hợp lệ.");
+            return false;
+        }
+
+        // Validate warranty months
+        if (warrantyMonthsRaw == null || warrantyMonthsRaw.trim().isEmpty()) {
+            request.setAttribute("error", "Bảo hành không được để trống.");
+            return false;
+        }
+        
+        try {
+            warrantyMonths = Integer.parseInt(warrantyMonthsRaw.trim());
+            if (warrantyMonths < 0) {
+                request.setAttribute("error", "Bảo hành phải lớn hơn hoặc bằng 0.");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Bảo hành phải là số hợp lệ.");
+            return false;
+        }
+
+        // Validate description
         if (description == null || description.trim().isEmpty()) {
             request.setAttribute("error", "Mô tả chi tiết không được để trống.");
             return false;
         }
 
-        BigDecimal price;
-        try {
-            price = new BigDecimal(priceRaw);
-        } catch (Exception e) {
-            price = BigDecimal.ZERO;
-        }
-
-        if (price.compareTo(BigDecimal.ZERO) < 0) {
-            request.setAttribute("error", "Giá bán phải lớn hơn hoặc bằng 0.");
-            return false;
-        }
-
-        int warrantyMonths = 0;
-        try {
-            if (warrantyMonthsRaw != null && !warrantyMonthsRaw.trim().isEmpty()) {
-                warrantyMonths = Integer.parseInt(warrantyMonthsRaw);
-            }
-        } catch (Exception e) {
-        }
-
-        if (warrantyMonths < 0) {
-            request.setAttribute("error", "Bảo hành phải lớn hơn hoặc bằng 0.");
-            return false;
-        }
-
-        Part filePart = request.getPart("imgFile");
-        String imageUrl = null;
-
-        if (filePart != null && filePart.getSize() > 0) {
-            if (filePart.getSize() > 2 * 1024 * 1024) {
-                request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
-                return false;
-            }
-            String submittedName = filePart.getSubmittedFileName();
-            String extension = getAllowedImageExtension(submittedName);
-            if (extension == null || !filePart.getContentType().startsWith("image/")) {
-                request.setAttribute("error", "File không hợp lệ hoặc vượt quá 2MB!");
-                return false;
-            }
-
-            String newImg = saveUploadedProductImage(filePart);
-            if (newImg == null) {
-                request.setAttribute("error", "Không thể lưu hình ảnh sản phẩm.");
-                return false;
-            }
-            imageUrl = newImg;
-        }
-
-        if (imageUrl == null) {
-            imageUrl = normalizeProductImagePath(currentImg);
-        }
-
-        String specError = validateProductSpecifications(categoryId, specNames, specValues);
+        // Validate specifications for required fields
+        String specError = validateSpecifications(categoryId, specNames, specValues);
         if (specError != null) {
             request.setAttribute("error", specError);
             return false;
         }
+
+
 
         if (productDAO.updateProduct(productId, productName, categoryId, brandId, price, description, imageUrl, warrantyMonths, specNames, specValues)) {
             session.setAttribute("productSuccess", "Cập nhật sản phẩm thành công.");
@@ -530,27 +564,6 @@ public class AdminProductServlet extends HttpServlet {
         return "images/products/" + fileName;
     }
 
-    //Kiểm tra file ảnh
-    private String getAllowedImageExtension(String fileName) {
-        if (fileName == null) {
-            return null;
-        }
-        String lowerName = fileName.toLowerCase(Locale.ROOT);
-        if (lowerName.endsWith(".png")) {
-            return ".png";
-        }
-        if (lowerName.endsWith(".jpg")) {
-            return ".jpg";
-        }
-        if (lowerName.endsWith(".jpeg")) {
-            return ".jpeg";
-        }
-        if (lowerName.endsWith(".webp")) {
-            return ".webp";
-        }
-        return null;
-    }
-
     private String getFileExtension(String fileName) {
         int dotIndex = fileName.lastIndexOf(".");
         if (dotIndex < 0) {
@@ -608,6 +621,40 @@ public class AdminProductServlet extends HttpServlet {
         return value.trim();
     }
 
+    private String validateSpecifications(Integer categoryId, String[] specNames, String[] specValues) {
+        if (categoryId == null) {
+            return null;
+        }
+
+        List<CategorySpecTemplate> specTemplates = categoryDAO.getTemplatesByCategoryId(categoryId);
+        if (specTemplates == null || specTemplates.isEmpty()) {
+            return null;
+        }
+
+        // Check for required specifications
+        for (CategorySpecTemplate template : specTemplates) {
+            if (template.isRequired()) {
+                boolean found = false;
+                if (specNames != null && specValues != null) {
+                    for (int i = 0; i < specNames.length && i < specValues.length; i++) {
+                        if (template.getSpecName().equalsIgnoreCase(specNames[i])) {
+                            String value = specValues[i];
+                            if (value != null && !value.trim().isEmpty()) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!found) {
+                    return "Thông số kỹ thuật '" + template.getSpecName() + "' là bắt buộc.";
+                }
+            }
+        }
+
+        return null;
+    }
+
     private String normalizeStatusFilter(String value) {
         if (value == null || value.trim().isEmpty()) {
             return "ALL";
@@ -637,75 +684,5 @@ public class AdminProductServlet extends HttpServlet {
         query.append(URLEncoder.encode(name, StandardCharsets.UTF_8));
         query.append("=");
         query.append(URLEncoder.encode(value, StandardCharsets.UTF_8));
-    }
-
-    private String validateProductSpecifications(Integer categoryId, String[] specNames, String[] specValues) {
-        if (categoryId == null) {
-            return null;
-        }
-
-        List<CategorySpecTemplate> templates = categoryDAO.getTemplatesByCategoryId(categoryId);
-        if (templates == null || templates.isEmpty()) {
-            return null; // Category has no spec templates
-        }
-
-        if (specNames == null || specValues == null || specNames.length == 0 || specValues.length == 0) {
-            return "Vui lòng lựa chọn và nhập đầy đủ thông số kỹ thuật theo danh mục.";
-        }
-
-        int specLength = Math.min(specNames.length, specValues.length);
-
-        for (CategorySpecTemplate template : templates) {
-            boolean found = false;
-            String value = null;
-
-            // Find corresponding value in specNames & specValues
-            for (int i = 0; i < specLength; i++) {
-                String name = specNames[i];
-                if (name != null && name.trim().equalsIgnoreCase(template.getSpecName())) {
-                    found = true;
-                    value = specValues[i];
-                    break;
-                }
-            }
-
-            // Enforce non-empty validation only if the template is required
-            if (template.isRequired()) {
-                if (!found || value == null || value.trim().isEmpty()) {
-                    return "Thông số '" + template.getSpecName() + "' không được để trống.";
-                }
-            }
-
-            // Check numeric type validation and enforce strictly positive numbers (> 0) only if value is provided
-            if (found && value != null && !value.trim().isEmpty()) {
-                if ("NUMBER".equalsIgnoreCase(template.getSpecType())) {
-                    try {
-                        double val = Double.parseDouble(value.trim());
-                        if (val <= 0) {
-                            return "Thông số kỹ thuật dạng số phải lớn hơn 0.";
-                        }
-                    } catch (NumberFormatException e) {
-                        return "Thông số '" + template.getSpecName() + "' phải là một số hợp lệ.";
-                    }
-
-                    // Validate allowed values of the template configuration
-                    String allowed = template.getAllowedValues();
-                    if (allowed != null && !allowed.trim().isEmpty()) {
-                        String[] values = allowed.split(",");
-                        for (String valStr : values) {
-                            try {
-                                double parsed = Double.parseDouble(valStr.trim());
-                                if (parsed <= 0) {
-                                    return "Các giá trị cấu hình cho thông số dạng số phải lớn hơn 0.";
-                                }
-                            } catch (NumberFormatException e) {
-                                return "Các giá trị cấu hình cho thông số dạng số phải lớn hơn 0.";
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
     }
 }

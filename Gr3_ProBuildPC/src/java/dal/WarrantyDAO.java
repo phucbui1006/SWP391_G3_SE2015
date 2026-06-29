@@ -118,6 +118,7 @@ public class WarrantyDAO extends DBContext {
                            w.request_date,
                            w.response_date,
                            w.request,
+                           w.response,
                            p.product_name,
                            p.image_url,
                            b.brand_name,
@@ -189,6 +190,7 @@ public class WarrantyDAO extends DBContext {
                     w.setRequestDate(rs.getTimestamp("request_date"));
                     w.setResponseDate(rs.getTimestamp("response_date"));
                     w.setRequest(rs.getString("request"));
+                    w.setResponse(rs.getString("response"));
                     w.setProductName(rs.getString("product_name"));
                     w.setImageUrl(rs.getString("image_url"));
                     w.setBrandName(rs.getString("brand_name"));
@@ -201,26 +203,12 @@ public class WarrantyDAO extends DBContext {
                         if (w.getStatusId() == 1)
                             statusName = "Chờ tiếp nhận";
                         else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
                             statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
+                        else if (w.getStatusId() == 3)
+                            statusName = "Chấp nhận";
                     }
                     w.setStatusName(statusName);
-
-                    if (w.getStatusId() == 1) {
-                        w.setStoreResponse("Yêu cầu đang chờ cửa hàng duyệt và tiếp nhận.");
-                    } else if (w.getStatusId() == 2) {
-                        w.setStoreResponse("Cửa hàng đã tiếp nhận thiết bị bảo hành và đang xử lý kỹ thuật.");
-                    } else if (w.getStatusId() == 3) {
-                        w.setStoreResponse("Cửa hàng từ chối bảo hành (sản phẩm vi phạm chính sách hoặc rách tem).");
-                    } else if (w.getStatusId() == 4) {
-                        w.setStoreResponse(
-                                "Sản phẩm bảo hành xong. Vui lòng nhận lại tại quầy hoặc chờ shipper liên hệ.");
-                    } else {
-                        w.setStoreResponse("Yêu cầu của bạn đang được xem xét.");
-                    }
+                    w.setStoreResponse(w.getResponse() != null ? w.getResponse() : "");
 
                     list.add(w);
                 }
@@ -246,6 +234,7 @@ public class WarrantyDAO extends DBContext {
                            w.request_date,
                            w.response_date,
                            w.request,
+                           w.response,
                            p.product_name,
                            ws.status_name,
                            u.full_name AS customer_name,
@@ -306,6 +295,7 @@ public class WarrantyDAO extends DBContext {
                     w.setRequestDate(rs.getTimestamp("request_date"));
                     w.setResponseDate(rs.getTimestamp("response_date"));
                     w.setRequest(rs.getString("request"));
+                    w.setResponse(rs.getString("response"));
                     w.setProductName(rs.getString("product_name"));
                     w.setCustomerName(rs.getString("customer_name"));
                     w.setOrderId(rs.getInt("order_id"));
@@ -315,15 +305,12 @@ public class WarrantyDAO extends DBContext {
                         if (w.getStatusId() == 1)
                             statusName = "Chờ tiếp nhận";
                         else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
                             statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
+                        else if (w.getStatusId() == 3)
+                            statusName = "Chấp nhận";
                     }
                     w.setStatusName(statusName);
-
-                    w.setStoreResponse("");
+                    w.setStoreResponse(w.getResponse() != null ? w.getResponse() : "");
 
                     list.add(w);
                 }
@@ -335,29 +322,14 @@ public class WarrantyDAO extends DBContext {
     }
 
     /**
-     * Cập nhật trạng thái và ngày phản hồi bảo hành
+     * Cập nhật trạng thái bảo hành (auto response_date = NOW và cập nhật phản hồi)
      */
-    public boolean updateWarrantyStatusAndResponse(int warrantyId, int statusId, Date responseDate) {
-        String sql = "UPDATE warranties SET status_id = ?, response_date = ? WHERE warranty_id = ?";
+    public boolean updateWarrantyStatus(int warrantyId, int statusId, String response) {
+        String sql = "UPDATE warranties SET status_id = ?, response = ?, response_date = CURRENT_TIMESTAMP WHERE warranty_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, statusId);
-            ps.setTimestamp(2, responseDate != null ? new Timestamp(responseDate.getTime()) : null);
+            ps.setString(2, response);
             ps.setInt(3, warrantyId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    /**
-     * Cập nhật trạng thái bảo hành (auto response_date = NOW)
-     */
-    public boolean updateWarrantyStatus(int warrantyId, int statusId) {
-        String sql = "UPDATE warranties SET status_id = ?, response_date = CURRENT_TIMESTAMP WHERE warranty_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, statusId);
-            ps.setInt(2, warrantyId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -445,6 +417,7 @@ public class WarrantyDAO extends DBContext {
                            p.image_url,
                            w.warranty_id,
                            w.status_id,
+                           w.response,
                            ws.status_name,
                            p.warranty_months AS warranty_months,
                            br.brand_name,
@@ -495,19 +468,19 @@ public class WarrantyDAO extends DBContext {
                     // Warranty request fields
                     w.setWarrantyId(rs.getInt("warranty_id"));
                     w.setStatusId(rs.getInt("status_id"));
+                    w.setResponse(rs.getString("response"));
 
                     String statusName = rs.getString("status_name");
                     if (statusName == null || statusName.trim().isEmpty()) {
                         if (w.getStatusId() == 1)
                             statusName = "Chờ tiếp nhận";
                         else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
                             statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
+                        else if (w.getStatusId() == 3)
+                            statusName = "Chấp nhận";
                     }
                     w.setStatusName(statusName);
+                    w.setStoreResponse(w.getResponse() != null ? w.getResponse() : "");
 
                     list.add(w);
                 }
@@ -533,6 +506,7 @@ public class WarrantyDAO extends DBContext {
                            w.request_date,
                            w.response_date,
                            w.request,
+                           w.response,
                            ws.status_name
                     FROM warranties w
                     LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
@@ -553,21 +527,20 @@ public class WarrantyDAO extends DBContext {
                     w.setRequestDate(rs.getTimestamp("request_date"));
                     w.setResponseDate(rs.getTimestamp("response_date"));
                     w.setRequest(rs.getString("request"));
+                    w.setResponse(rs.getString("response"));
 
                     String statusName = rs.getString("status_name");
                     if (statusName == null || statusName.trim().isEmpty()) {
                         if (w.getStatusId() == 1)
                             statusName = "Chờ tiếp nhận";
                         else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
                             statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
+                        else if (w.getStatusId() == 3)
+                            statusName = "Chấp nhận";
                     }
                     w.setStatusName(statusName);
 
-                    w.setStoreResponse("");
+                    w.setStoreResponse(w.getResponse() != null ? w.getResponse() : "");
                     list.add(w);
                 }
             }
@@ -578,7 +551,7 @@ public class WarrantyDAO extends DBContext {
     }
 
     /**
-     * Kiểm tra đã có warranty request pending/active cho product này chưa
+     * Kiểm tra đã có warranty request pending cho product này chưa
      */
     public boolean isWarrantyPendingOrActive(int customerId, int productId) {
         String sql = """
@@ -586,7 +559,7 @@ public class WarrantyDAO extends DBContext {
                     FROM warranties
                     WHERE customer_id = ?
                       AND product_id = ?
-                      AND status_id IN (1, 2)
+                      AND status_id = 1
                 """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, customerId);
@@ -618,6 +591,7 @@ public class WarrantyDAO extends DBContext {
                            w.request_date,
                            w.response_date,
                            w.request,
+                           w.response,
                            p.product_name,
                            p.image_url,
                            b.brand_name,
@@ -682,6 +656,7 @@ public class WarrantyDAO extends DBContext {
                     w.setRequestDate(rs.getTimestamp("request_date"));
                     w.setResponseDate(rs.getTimestamp("response_date"));
                     w.setRequest(rs.getString("request"));
+                    w.setResponse(rs.getString("response"));
                     w.setProductName(rs.getString("product_name"));
                     w.setImageUrl(rs.getString("image_url"));
                     w.setBrandName(rs.getString("brand_name"));
@@ -692,11 +667,9 @@ public class WarrantyDAO extends DBContext {
                         if (w.getStatusId() == 1)
                             statusName = "Chờ tiếp nhận";
                         else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
                             statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
+                        else if (w.getStatusId() == 3)
+                            statusName = "Chấp nhận";
                     }
                     w.setStatusName(statusName);
                     w.setCustomerName(rs.getString("customer_name"));
@@ -726,6 +699,7 @@ public class WarrantyDAO extends DBContext {
                            w.request_date,
                            w.response_date,
                            w.request,
+                           w.response,
                            p.product_name,
                            p.image_url,
                            ws.status_name,
@@ -782,6 +756,7 @@ public class WarrantyDAO extends DBContext {
                     w.setRequestDate(rs.getTimestamp("request_date"));
                     w.setResponseDate(rs.getTimestamp("response_date"));
                     w.setRequest(rs.getString("request"));
+                    w.setResponse(rs.getString("response"));
                     w.setProductName(rs.getString("product_name"));
                     w.setImageUrl(rs.getString("image_url"));
 
@@ -790,11 +765,9 @@ public class WarrantyDAO extends DBContext {
                         if (w.getStatusId() == 1)
                             statusName = "Chờ tiếp nhận";
                         else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
                             statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
+                        else if (w.getStatusId() == 3)
+                            statusName = "Chấp nhận";
                     }
                     w.setStatusName(statusName);
                     w.setCustomerName(rs.getString("customer_name"));

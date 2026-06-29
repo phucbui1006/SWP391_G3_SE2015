@@ -51,15 +51,51 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /**
+     * Updates the local file upload thumbnail preview dynamically using FileReader.
+     */
+    function updateImagePreview(fileInput, previewContainerId, previewImgId) {
+        var file = fileInput.files[0];
+        var container = document.getElementById(previewContainerId);
+        var img = document.getElementById(previewImgId);
+        if (file && container && img) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                img.src = e.target.result;
+                container.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    /**
      * Validates warranty period.
      * Must not be empty, must be a valid integer, and must be > 0.
+     */
+    /**
+     * Helper to show warning alert message inside form
+     */
+    function showWarningAlert(form, message) {
+        // Disabled: do not display top level warning alert boxes
+    }
+
+    function clearWarningAlert(form) {
+        // Disabled: do not display top level warning alert boxes
+    }
+
+    /**
+     * Validates warranty period.
+     * Must not be empty, must be a valid integer, and must be > 0.
+     */
+    /**
+     * Validates warranty period.
+     * Must not be empty, must be a valid integer, must be > 0 and <= 120.
      */
     function validateWarranty(value) {
         if (value === null || value === undefined || value === "") return false;
         var trimmed = value.trim();
         if (!/^\d+$/.test(trimmed)) return false;
         var val = parseInt(trimmed, 10);
-        return val > 0;
+        return val > 0 && val <= 120;
     }
 
     /**
@@ -68,6 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
      */
     function validateProductForm(form, isNew) {
         var isValid = true;
+        clearWarningAlert(form);
 
         // 1. Product Name
         var nameInp = form.querySelector("input[name='productName']");
@@ -102,33 +139,52 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        // 4. Price
+        // 4. Price (Must be positive, multiple of 1000, and max 1,000,000,000)
         var priceInp = form.querySelector("input[name='price']");
         if (priceInp) {
-            var priceOk = Validator.validatePrice(priceInp.value);
-            Validator.showFeedback(priceInp, priceOk, "Giá bán phải là số và không nhỏ hơn 0.");
+            var priceVal = parseFloat(priceInp.value);
+            var priceOk = !isNaN(priceVal) && priceVal > 0 && (priceVal % 1000 === 0) && priceVal <= 1000000000;
+            Validator.showFeedback(priceInp, priceOk, "Giá bán phải là số lớn hơn 0, nhỏ hơn hoặc bằng 1 tỷ và chia hết cho 1000.");
             if (!priceOk) {
+                if (priceVal > 1000000000) {
+                    showWarningAlert(form, "Giá bán không được vượt quá 1.000.000.000 VND (1 Tỷ).");
+                } else {
+                    showWarningAlert(form, "Giá bán phải là số lớn hơn 0 và chia hết cho 1000.");
+                }
                 if (isValid) priceInp.focus();
                 isValid = false;
             }
         }
 
-        // 5. Warranty Months
+        // 5. Warranty Months (Must be strictly positive integer > 0, max 120)
         var warrantyInp = form.querySelector("input[name='warrantyMonths']");
         if (warrantyInp) {
+            var warrantyVal = parseInt(warrantyInp.value, 10);
             var warrantyOk = validateWarranty(warrantyInp.value);
-            Validator.showFeedback(warrantyInp, warrantyOk, "Thời gian bảo hành phải là số nguyên dương lớn hơn 0.");
+            Validator.showFeedback(warrantyInp, warrantyOk, "Thời gian bảo hành phải là số nguyên dương lớn hơn 0 và không vượt quá 120 tháng.");
             if (!warrantyOk) {
+                if (warrantyVal > 120) {
+                    showWarningAlert(form, "Thời gian bảo hành không được vượt quá 120 tháng (10 năm).");
+                } else {
+                    showWarningAlert(form, "Thời gian bảo hành phải là số nguyên dương lớn hơn 0.");
+                }
                 if (isValid) warrantyInp.focus();
                 isValid = false;
             }
         }
 
-        // 6. Image file (required only for new products — optional)
+        // 6. Image file (required only for new products, optional for updates)
         var fileInp = form.querySelector("input[name='imgFile']");
         if (fileInp) {
-            var fileOk = validateImageFile(fileInp, false);
-            if (!fileOk) isValid = false;
+            var currentImgVal = form.querySelector("input[name='currentImg']");
+            var isImgReq = isNew && (!currentImgVal || !currentImgVal.value || currentImgVal.value.trim() === "");
+            var fileOk = validateImageFile(fileInp, isImgReq);
+            if (!fileOk) {
+                if (isImgReq && fileInp.files.length === 0) {
+                    showWarningAlert(form, "Vui lòng chọn hình ảnh sản phẩm.");
+                }
+                isValid = false;
+            }
         }
 
         return isValid;
@@ -167,11 +223,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (priceInp) {
             priceInp.addEventListener("blur", function () {
-                Validator.showFeedback(priceInp, Validator.validatePrice(priceInp.value), "Giá bán phải là số và không nhỏ hơn 0.");
+                var priceVal = parseFloat(priceInp.value);
+                var priceOk = !isNaN(priceVal) && priceVal > 0 && (priceVal % 1000 === 0) && priceVal <= 1000000000;
+                Validator.showFeedback(priceInp, priceOk, "Giá bán phải là số lớn hơn 0, nhỏ hơn hoặc bằng 1 tỷ và chia hết cho 1000.");
             });
             priceInp.addEventListener("input", function () {
                 if (priceInp.classList.contains("is-invalid")) {
-                    Validator.showFeedback(priceInp, Validator.validatePrice(priceInp.value), "Giá bán phải là số và không nhỏ hơn 0.");
+                    var priceVal = parseFloat(priceInp.value);
+                    var priceOk = !isNaN(priceVal) && priceVal > 0 && (priceVal % 1000 === 0) && priceVal <= 1000000000;
+                    Validator.showFeedback(priceInp, priceOk, "Giá bán phải là số lớn hơn 0, nhỏ hơn hoặc bằng 1 tỷ và chia hết cho 1000.");
                 }
             });
         }
@@ -179,18 +239,36 @@ document.addEventListener("DOMContentLoaded", function () {
         var warrantyInp = form.querySelector("input[name='warrantyMonths']");
         if (warrantyInp) {
             warrantyInp.addEventListener("blur", function () {
-                Validator.showFeedback(warrantyInp, validateWarranty(warrantyInp.value), "Thời gian bảo hành phải là số nguyên dương lớn hơn 0.");
+                Validator.showFeedback(warrantyInp, validateWarranty(warrantyInp.value), "Thời gian bảo hành phải là số nguyên dương lớn hơn 0 và không vượt quá 120 tháng.");
             });
             warrantyInp.addEventListener("input", function () {
                 if (warrantyInp.classList.contains("is-invalid")) {
-                    Validator.showFeedback(warrantyInp, validateWarranty(warrantyInp.value), "Thời gian bảo hành phải là số nguyên dương lớn hơn 0.");
+                    Validator.showFeedback(warrantyInp, validateWarranty(warrantyInp.value), "Thời gian bảo hành phải là số nguyên dương lớn hơn 0 và không vượt quá 120 tháng.");
                 }
             });
         }
 
         if (fileInp) {
             fileInp.addEventListener("change", function () {
-                validateImageFile(fileInp, false);
+                var isNew = form.id === "addProductForm";
+                var currentImgVal = form.querySelector("input[name='currentImg']");
+                var isImgReq = isNew && (!currentImgVal || !currentImgVal.value || currentImgVal.value.trim() === "");
+                var fileOk = validateImageFile(fileInp, isImgReq);
+                if (fileOk) {
+                    fileInp.classList.remove("is-invalid");
+                    var parent = fileInp.closest(".form-group");
+                    if (parent) {
+                        var errText = parent.querySelector(".form-error-text");
+                        if (errText) {
+                            errText.textContent = "";
+                            errText.style.display = "none";
+                        }
+                    }
+                    clearWarningAlert(form);
+                    
+                    var prefix = isNew ? "add" : "edit";
+                    updateImagePreview(fileInp, prefix + "ImgPreviewContainer", prefix + "ImgPreview");
+                }
             });
         }
     }
@@ -426,10 +504,27 @@ document.addEventListener("DOMContentLoaded", function () {
     //  MODAL OPEN HELPERS (exposed globally)
     // ══════════════════════════════════════════════════════════
 
+    function clearFormFields(form) {
+        if (!form) return;
+        form.querySelectorAll("input").forEach(function (inp) {
+            if (inp.name !== "action") {
+                inp.value = "";
+            }
+        });
+        form.querySelectorAll("select").forEach(function (sel) {
+            sel.selectedIndex = 0;
+            sel.value = "";
+        });
+        form.querySelectorAll("textarea").forEach(function (txt) {
+            txt.value = "";
+        });
+    }
+
     window.openAddModal = function () {
         var addForm = document.getElementById("addProductForm");
         if (addForm) {
             addForm.reset();
+            clearFormFields(addForm);
             // Clear all validation feedback
             addForm.querySelectorAll(".is-invalid").forEach(function (el) {
                 Validator.clearFeedback(el);
@@ -560,4 +655,78 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+
+    // ══════════════════════════════════════════════════════════
+    //  MODAL RESET ON CLOSE HANDLERS
+    // ══════════════════════════════════════════════════════════
+
+    function resetFormAndErrors(form) {
+        if (!form) return;
+        form.reset();
+        clearFormFields(form);
+        clearWarningAlert(form);
+        form.querySelectorAll(".is-invalid").forEach(function (el) {
+            el.classList.remove("is-invalid");
+        });
+        form.querySelectorAll(".form-error-text").forEach(function (el) {
+            el.textContent = "";
+            el.style.display = "none";
+        });
+        
+        // Reset dynamic specs elements
+        var addSpecsContainer = document.getElementById("dynamicSpecsContainer");
+        var addSpecsFields = document.getElementById("dynamicSpecsFields");
+        var addSpecBtn = document.getElementById("addSpecBtn");
+        if (addSpecsContainer) addSpecsContainer.style.display = "none";
+        if (addSpecsFields) addSpecsFields.innerHTML = "";
+        if (addSpecBtn) {
+            addSpecBtn.style.display = "none";
+            addSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
+            addSpecBtn.disabled = false;
+        }
+
+        var editSpecsContainer = document.getElementById("editDynamicSpecsContainer");
+        var editSpecsFields = document.getElementById("editDynamicSpecsFields");
+        var editSpecBtn = document.getElementById("editSpecBtn");
+        if (editSpecsContainer) editSpecsContainer.style.display = "none";
+        if (editSpecsFields) editSpecsFields.innerHTML = "";
+        if (editSpecBtn) {
+            editSpecBtn.style.display = "inline-flex";
+            editSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
+            editSpecBtn.disabled = false;
+        }
+
+        // Reset image previews and currentImg fallbacks
+        var addImgPreviewContainer = document.getElementById("addImgPreviewContainer");
+        var addImgPreview = document.getElementById("addImgPreview");
+        var addCurrentImg = document.getElementById("addCurrentImg");
+        if (addImgPreviewContainer) addImgPreviewContainer.style.display = "none";
+        if (addImgPreview) addImgPreview.src = "";
+        if (addCurrentImg) addCurrentImg.value = "";
+
+        var editImgPreviewContainer = document.getElementById("editImgPreviewContainer");
+        var editImgPreview = document.getElementById("editImgPreview");
+        var editCurrentImg = document.getElementById("editCurrentImg");
+        if (editImgPreviewContainer) editImgPreviewContainer.style.display = "none";
+        if (editImgPreview) editImgPreview.src = "";
+        if (editCurrentImg) editCurrentImg.value = "";
+    }
+
+    // Bind click events on dismiss buttons (X icon and Cancel button)
+    var dismissButtons = document.querySelectorAll(".product-modal .close-btn, .product-modal .btn-secondary");
+    dismissButtons.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            resetFormAndErrors(document.getElementById("addProductForm"));
+            resetFormAndErrors(document.getElementById("editProductForm"));
+        });
+    });
+
+    // Handle hashchange back actions
+    window.addEventListener("hashchange", function () {
+        var hash = window.location.hash;
+        if (hash !== "#add-product-modal" && hash !== "#edit-product-modal") {
+            resetFormAndErrors(document.getElementById("addProductForm"));
+            resetFormAndErrors(document.getElementById("editProductForm"));
+        }
+    });
 });

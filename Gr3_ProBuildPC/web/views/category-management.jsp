@@ -85,7 +85,7 @@
 
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
         <link rel="stylesheet" type="text/css"
-              href="<%= contextPath %>/css/admin-categories.css">
+              href="<%= contextPath %>/css/admin-categories.css?v=1.0.1"">
 
         <link rel="stylesheet"
               href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">

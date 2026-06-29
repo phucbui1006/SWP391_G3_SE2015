@@ -64,7 +64,10 @@ public class WarrantyHistoryServlet extends HttpServlet {
             }
         }
 
-        String statusRaw = request.getParameter("status");
+        String statusRaw = request.getParameter("statusId");
+        if (statusRaw == null) {
+            statusRaw = request.getParameter("status");
+        }
         if (statusRaw == null) {
             statusRaw = request.getParameter("filterStatusId");
         }

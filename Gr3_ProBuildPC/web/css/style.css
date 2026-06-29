@@ -9421,41 +9421,64 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-weight: 650;
 }
 
-.admin-date-filter {
-    flex: 0 0 auto;
-    display: grid;
-    grid-template-columns: 176px 72px;
-    gap: 10px;
-    align-items: center;
+.admin-chart-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
     margin: 0;
+    padding: 16px 20px;
+    border: 1px solid #e4e9f2;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.05);
 }
 
-.admin-date-filter input,
-.admin-date-filter button {
+.admin-chart-filter label {
+    display: grid;
+    gap: 6px;
+}
+
+.admin-chart-filter label span {
+    color: #475569;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.admin-chart-filter input,
+.admin-chart-filter button {
     height: 40px;
     border-radius: 8px;
     font-size: 13px;
-    font-weight: 850;
+    font-weight: 800;
 }
 
-.admin-date-filter input {
-    width: 100%;
+.admin-chart-filter input {
+    width: 176px;
+    padding: 0 12px;
     border: 1px solid #d8dee9;
     background: #ffffff;
     color: #111827;
-    padding: 0 12px;
-    outline: none;
 }
 
-.admin-date-filter button {
+.admin-chart-filter button {
+    padding: 0 18px;
     border: 0;
     background: #e11d2e;
     color: #ffffff;
     cursor: pointer;
 }
 
-.admin-date-filter button:hover {
+.admin-chart-filter button:hover {
     background: #c91627;
+}
+
+.admin-chart-filter small {
+    align-self: center;
+    margin-left: auto;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .admin-stat-grid,
@@ -9604,6 +9627,33 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
 .admin-bottom-grid {
     grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.65fr) minmax(260px, 0.65fr);
+}
+
+.admin-chart-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
+}
+
+.admin-panel.admin-chart-panel {
+    overflow: hidden;
+}
+
+.admin-chart-period {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.admin-chart-body {
+    position: relative;
+    height: 320px;
+    padding: 20px;
+}
+
+.admin-pie-chart-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .admin-panel,
@@ -10100,6 +10150,7 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
 @media (max-width: 1100px) {
     .admin-products-grid,
+    .admin-chart-grid,
     .admin-bottom-grid {
         grid-template-columns: 1fr;
     }
@@ -10120,9 +10171,15 @@ body.dashboard-body .dashboard-card.shipment-shell {
         font-size: 24px;
     }
 
-    .admin-date-filter {
-        grid-template-columns: 1fr;
+    .admin-chart-filter label,
+    .admin-chart-filter input,
+    .admin-chart-filter button {
         width: 100%;
+    }
+
+    .admin-chart-filter small {
+        width: 100%;
+        margin-left: 0;
     }
 
     .admin-stat-grid,

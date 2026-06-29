@@ -48,13 +48,18 @@
                 %>
 
                 <div class="admin-dashboard">
-                    <div class="dashboard-page-heading admin-dashboard-heading">
-                     
-                        <form class="admin-date-filter" action="<%= adminDashboard.getFormAction() %>" method="get">
-                            <input type="date" name="date" value="<%= adminDashboard.getSelectedDate() %>">
-                            <button type="submit">Xem</button>
-                        </form>
-                    </div>
+                    <form id="adminChartFilter" class="admin-chart-filter" action="<%= adminDashboard.getFormAction() %>" method="get">
+                        <% if ("1".equals(request.getParameter("showWarrantyAll"))) { %>
+                        <input type="hidden" name="showWarrantyAll" value="1">
+                        <% } %>
+                        <label>
+                            <input type="date" name="chartFrom" value="<%= adminDashboard.getChartStartDate() %>" required> -
+                        </label>
+                        <label>
+                            <input type="date" name="chartTo" value="<%= adminDashboard.getChartEndDate() %>" required>
+                        </label>
+                        <button type="submit">Xem</button>
+                    </form>
 
                     <div class="admin-stat-grid" >
                         <% for (AdminDashboardView.StatCard stat : adminDashboard.getStatCards()) { %>
@@ -66,6 +71,36 @@
                             </span>
                         </a>
                         <% } %>
+                    </div>
+
+                    <div class="admin-dashboard-grid admin-chart-grid">
+                        <section class="admin-panel admin-chart-panel">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Biểu đồ doanh thu theo thời gian</h2>
+                                    <p class="admin-chart-period"><%= adminDashboard.getChartPeriodLabel() %></p>
+                                </div>
+                            </div>
+                            <div class="admin-chart-body">
+                                <canvas id="revenueTimelineChart" aria-label="Biểu đồ đường doanh thu theo thời gian"></canvas>
+                            </div>
+                        </section>
+
+                        <section class="admin-panel admin-chart-panel">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Cơ cấu doanh thu theo danh mục</h2>
+                                    <p class="admin-chart-period"><%= adminDashboard.getChartPeriodLabel() %></p>
+                                </div>
+                            </div>
+                            <div class="admin-chart-body admin-pie-chart-body">
+                                <% if (adminDashboard.getCategoryRevenue().isEmpty()) { %>
+                                <p class="admin-empty-message">Chưa có doanh thu theo danh mục trong khoảng thời gian này.</p>
+                                <% } else { %>
+                                <canvas id="categoryRevenueChart" aria-label="Biểu đồ tròn doanh thu theo danh mục"></canvas>
+                                <% } %>
+                            </div>
+                        </section>
                     </div>
 
                     <div class="admin-dashboard-grid admin-products-grid">
@@ -155,7 +190,7 @@
                     <div class="admin-dashboard-grid admin-bottom-grid">
                         <section class="admin-panel">
                             <div class="admin-panel-header">
-                                <h2>Tổng quan đơn hàng trong ngày</h2>
+                                <h2>Tổng quan đơn hàng theo khoảng thời gian</h2>
                             </div>
 
                             <table class="admin-dashboard-table admin-order-summary-table">
@@ -169,7 +204,7 @@
                                     <% if (adminDashboard.getOrderSummaries().isEmpty()) { %>
                                     <tr>
                                         <td colspan="2">
-                                            <p class="admin-empty-message">Không có đơn hàng trong ngày đã chọn.</p>
+                                            <p class="admin-empty-message">Không có đơn hàng trong khoảng thời gian đã chọn.</p>
                                         </td>
                                     </tr>
                                     <% } else {
@@ -200,7 +235,7 @@
 
                             <div class="admin-count-list">
                                 <% if (adminDashboard.getWarrantyStatusCounts().isEmpty()) { %>
-                                <p class="admin-empty-message">Không có yêu cầu bảo hành trong ngày này.</p>
+                                <p class="admin-empty-message">Không có yêu cầu bảo hành trong khoảng thời gian này.</p>
                                 <% } else {
                                     for (AdminDashboardView.CountRow entry : adminDashboard.getWarrantyStatusCounts()) { %>
                                 <p>
@@ -229,6 +264,113 @@
                             </div>
                         </section>
                     </div>
+
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+                    <script>
+                        (() => {
+                            const timelineLabels = [
+                                <% for (int i = 0; i < adminDashboard.getRevenueTimeline().size(); i++) {
+                                    AdminDashboardView.ChartPoint point = adminDashboard.getRevenueTimeline().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
+                                <% } %>
+                            ];
+                            const timelineValues = [
+                                <% for (int i = 0; i < adminDashboard.getRevenueTimeline().size(); i++) {
+                                    AdminDashboardView.ChartPoint point = adminDashboard.getRevenueTimeline().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
+                                <% } %>
+                            ];
+                            const categoryLabels = [
+                                <% for (int i = 0; i < adminDashboard.getCategoryRevenue().size(); i++) {
+                                    AdminDashboardView.ChartPoint point = adminDashboard.getCategoryRevenue().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
+                                <% } %>
+                            ];
+                            const categoryValues = [
+                                <% for (int i = 0; i < adminDashboard.getCategoryRevenue().size(); i++) {
+                                    AdminDashboardView.ChartPoint point = adminDashboard.getCategoryRevenue().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
+                                <% } %>
+                            ];
+
+                            const formatCurrency = value =>
+                                new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
+                            const commonTooltip = {
+                                callbacks: {
+                                    label: context => context.dataset.label
+                                        ? context.dataset.label + ': ' + formatCurrency(context.parsed.y)
+                                        : context.label + ': ' + formatCurrency(context.parsed)
+                                }
+                            };
+
+                            new Chart(document.getElementById('revenueTimelineChart'), {
+                                type: 'line',
+                                data: {
+                                    labels: timelineLabels,
+                                    datasets: [{
+                                        label: 'Doanh thu',
+                                        data: timelineValues,
+                                        borderColor: '#dc2626',
+                                        backgroundColor: 'rgba(220, 38, 38, 0.12)',
+                                        pointBackgroundColor: '#dc2626',
+                                        pointRadius: 4,
+                                        pointHoverRadius: 6,
+                                        borderWidth: 3,
+                                        tension: 0.35,
+                                        fill: true
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: {display: false},
+                                        tooltip: commonTooltip
+                                    },
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            ticks: {callback: value => formatCurrency(value)},
+                                            grid: {color: '#eef2f7'}
+                                        },
+                                        x: {grid: {display: false}}
+                                    }
+                                }
+                            });
+
+                            const categoryCanvas = document.getElementById('categoryRevenueChart');
+                            if (categoryCanvas) {
+                                const colors = [
+                                    '#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#7c3aed',
+                                    '#0891b2', '#db2777', '#65a30d', '#ea580c', '#475569'
+                                ];
+                                new Chart(categoryCanvas, {
+                                    type: 'pie',
+                                    data: {
+                                        labels: categoryLabels,
+                                        datasets: [{
+                                            data: categoryValues,
+                                            backgroundColor: categoryLabels.map((_, index) =>
+                                                colors[index % colors.length]),
+                                            borderColor: '#ffffff',
+                                            borderWidth: 2
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                position: 'bottom',
+                                                labels: {usePointStyle: true, padding: 16}
+                                            },
+                                            tooltip: commonTooltip
+                                        }
+                                    }
+                                });
+                            }
+                        })();
+                    </script>
                 </div>
 
 

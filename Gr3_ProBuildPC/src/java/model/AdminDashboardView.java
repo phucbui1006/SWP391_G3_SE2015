@@ -1,11 +1,11 @@
 package model;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AdminDashboardView {
-    private LocalDate selectedDate;
     private String formAction;
     private String warrantyAllUrl;
     private List<StatCard> statCards = new ArrayList<>();
@@ -14,18 +14,15 @@ public class AdminDashboardView {
     private List<OrderSummaryRow> orderSummaries = new ArrayList<>();
     private List<CountRow> warrantyStatusCounts = new ArrayList<>();
     private List<CountRow> accountSummaries = new ArrayList<>();
+    private List<ChartPoint> revenueTimeline = new ArrayList<>();
+    private List<ChartPoint> categoryRevenue = new ArrayList<>();
+    private LocalDate chartStartDate;
+    private LocalDate chartEndDate;
+    private String chartPeriodLabel;
     private String bestSellingFooterMessage;
     private String lowStockFooterMessage;
     private String warrantyFooterMessage;
     private boolean showWarrantyFooter;
-
-    public LocalDate getSelectedDate() {
-        return selectedDate;
-    }
-
-    public void setSelectedDate(LocalDate selectedDate) {
-        this.selectedDate = selectedDate;
-    }
 
     public String getFormAction() {
         return formAction;
@@ -89,6 +86,46 @@ public class AdminDashboardView {
 
     public void setAccountSummaries(List<CountRow> accountSummaries) {
         this.accountSummaries = accountSummaries == null ? new ArrayList<>() : accountSummaries;
+    }
+
+    public List<ChartPoint> getRevenueTimeline() {
+        return revenueTimeline;
+    }
+
+    public void setRevenueTimeline(List<ChartPoint> revenueTimeline) {
+        this.revenueTimeline = revenueTimeline == null ? new ArrayList<>() : revenueTimeline;
+    }
+
+    public List<ChartPoint> getCategoryRevenue() {
+        return categoryRevenue;
+    }
+
+    public void setCategoryRevenue(List<ChartPoint> categoryRevenue) {
+        this.categoryRevenue = categoryRevenue == null ? new ArrayList<>() : categoryRevenue;
+    }
+
+    public LocalDate getChartStartDate() {
+        return chartStartDate;
+    }
+
+    public void setChartStartDate(LocalDate chartStartDate) {
+        this.chartStartDate = chartStartDate;
+    }
+
+    public LocalDate getChartEndDate() {
+        return chartEndDate;
+    }
+
+    public void setChartEndDate(LocalDate chartEndDate) {
+        this.chartEndDate = chartEndDate;
+    }
+
+    public String getChartPeriodLabel() {
+        return chartPeriodLabel;
+    }
+
+    public void setChartPeriodLabel(String chartPeriodLabel) {
+        this.chartPeriodLabel = chartPeriodLabel;
     }
 
     public String getBestSellingFooterMessage() {
@@ -240,6 +277,24 @@ public class AdminDashboardView {
         }
 
         public int getValue() {
+            return value;
+        }
+    }
+
+    public static class ChartPoint {
+        private final String label;
+        private final BigDecimal value;
+
+        public ChartPoint(String label, BigDecimal value) {
+            this.label = label;
+            this.value = value == null ? BigDecimal.ZERO : value;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public BigDecimal getValue() {
             return value;
         }
     }

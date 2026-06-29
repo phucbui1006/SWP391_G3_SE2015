@@ -8,8 +8,11 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.math.BigDecimal;
 import java.io.IOException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,6 +31,7 @@ import util.DashboardViewHelper;
 public class DashboardServlet extends HttpServlet {
 
     private static final int SHIPMENT_PAGE_SIZE = 10;
+    private static final int MAX_CHART_DAYS = 366;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -64,21 +68,40 @@ public class DashboardServlet extends HttpServlet {
     }
 
     private void prepareAdminDashboard(HttpServletRequest request) {
-        LocalDate selectedDate = parseDate(request.getParameter("date"), LocalDate.now());
+        LocalDate referenceDate = LocalDate.now();
+        LocalDate weekStart = referenceDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekEnd = weekStart.plusDays(6);
+        LocalDate chartStartDate = parseDate(request.getParameter("chartFrom"), weekStart);
+        LocalDate chartEndDate = parseDate(request.getParameter("chartTo"), weekEnd);
+        if (chartStartDate.isAfter(chartEndDate)) {
+            LocalDate temporaryDate = chartStartDate;
+            chartStartDate = chartEndDate;
+            chartEndDate = temporaryDate;
+        }
+        if (chartEndDate.isAfter(chartStartDate.plusDays(MAX_CHART_DAYS - 1L))) {
+            chartEndDate = chartStartDate.plusDays(MAX_CHART_DAYS - 1L);
+        }
+
         AdminDashboardDAO dashboardDAO = new AdminDashboardDAO();
-        DashboardSummary summary = dashboardDAO.getSummary(selectedDate);
-        List<DashboardProduct> bestSellingProducts = dashboardDAO.getBestSellingProducts(selectedDate, 5);
+        DashboardSummary summary = dashboardDAO.getSummary(chartStartDate, chartEndDate);
+        List<DashboardProduct> bestSellingProducts = dashboardDAO.getBestSellingProducts(
+                chartStartDate, chartEndDate, 5);
         List<DashboardProduct> lowStockProducts = dashboardDAO.getLowStockProducts(5);
-        Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(selectedDate);
-        Map<String, Integer> warrantyStatusCounts = dashboardDAO.getWarrantyStatusCounts(selectedDate);
+        Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(
+                chartStartDate, chartEndDate);
+        Map<String, Integer> warrantyStatusCounts = dashboardDAO.getWarrantyStatusCounts(
+                chartStartDate, chartEndDate);
         AccountSummary accountSummary = dashboardDAO.getAccountSummary();
-        int bestSellingTotal = dashboardDAO.countBestSellingProducts(selectedDate);
+        int bestSellingTotal = dashboardDAO.countBestSellingProducts(chartStartDate, chartEndDate);
         int lowStockTotal = dashboardDAO.countLowStockProducts();
         boolean showWarrantyAll = "1".equals(request.getParameter("showWarrantyAll"));
+        Map<LocalDate, BigDecimal> revenueTimeline = dashboardDAO.getRevenueByDay(chartStartDate, chartEndDate);
+        Map<String, BigDecimal> categoryRevenue = dashboardDAO.getCategoryRevenue(chartStartDate, chartEndDate);
 
-        request.setAttribute("adminDashboard", buildAdminDashboardView(
+        AdminDashboardView adminDashboard = buildAdminDashboardView(
                 request,
-                selectedDate,
+                chartStartDate,
+                chartEndDate,
                 summary,
                 bestSellingProducts,
                 bestSellingTotal,
@@ -88,10 +111,20 @@ public class DashboardServlet extends HttpServlet {
                 warrantyStatusCounts,
                 accountSummary,
                 showWarrantyAll
-        ));
+        );
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd/MM");
+        DateTimeFormatter periodFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        adminDashboard.setRevenueTimeline(buildRevenueTimelinePoints(revenueTimeline, dayFormatter));
+        adminDashboard.setCategoryRevenue(buildCategoryRevenuePoints(categoryRevenue));
+        adminDashboard.setChartStartDate(chartStartDate);
+        adminDashboard.setChartEndDate(chartEndDate);
+        adminDashboard.setChartPeriodLabel(chartStartDate.format(periodFormatter)
+                + " - " + chartEndDate.format(periodFormatter));
+        request.setAttribute("adminDashboard", adminDashboard);
     }
 
-    private AdminDashboardView buildAdminDashboardView(HttpServletRequest request, LocalDate selectedDate,
+    private AdminDashboardView buildAdminDashboardView(HttpServletRequest request,
+            LocalDate chartStartDate, LocalDate chartEndDate,
             DashboardSummary summary, List<DashboardProduct> bestSellingProducts, int bestSellingTotal,
             List<DashboardProduct> lowStockProducts, int lowStockTotal, Map<String, Integer> orderStatusCounts,
             Map<String, Integer> warrantyStatusCounts, AccountSummary accountSummary, boolean showWarrantyAll) {
@@ -100,9 +133,9 @@ public class DashboardServlet extends HttpServlet {
         DashboardSummary safeSummary = summary == null ? new DashboardSummary() : summary;
         AccountSummary safeAccountSummary = accountSummary == null ? new AccountSummary() : accountSummary;
 
-        view.setSelectedDate(selectedDate);
         view.setFormAction(ctx + "/Dashboard");
-        view.setWarrantyAllUrl(ctx + "/Dashboard?date=" + selectedDate + "&showWarrantyAll=1");
+        view.setWarrantyAllUrl(ctx + "/Dashboard?chartFrom=" + chartStartDate
+                + "&chartTo=" + chartEndDate + "&showWarrantyAll=1");
         view.setStatCards(buildAdminStatCards(safeSummary));
         view.setBestSellingProducts(buildProductRows(bestSellingProducts));
         view.setLowStockProducts(buildProductRows(lowStockProducts));
@@ -113,7 +146,7 @@ public class DashboardServlet extends HttpServlet {
         int bestSellingVisible = view.getBestSellingProducts().size();
         if (bestSellingTotal > bestSellingVisible) {
             view.setBestSellingFooterMessage("Còn " + (bestSellingTotal - bestSellingVisible)
-                    + " sản phẩm bán chạy khác trong ngày.");
+                    + " sản phẩm bán chạy khác trong khoảng đã chọn.");
         }
 
         int lowStockVisible = view.getLowStockProducts().size();
@@ -129,6 +162,29 @@ public class DashboardServlet extends HttpServlet {
         }
 
         return view;
+    }
+
+    private List<AdminDashboardView.ChartPoint> buildRevenueTimelinePoints(
+            Map<LocalDate, BigDecimal> revenueByDay, DateTimeFormatter formatter) {
+        List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
+        if (revenueByDay != null) {
+            for (Map.Entry<LocalDate, BigDecimal> entry : revenueByDay.entrySet()) {
+                points.add(new AdminDashboardView.ChartPoint(
+                        entry.getKey().format(formatter), entry.getValue()));
+            }
+        }
+        return points;
+    }
+
+    private List<AdminDashboardView.ChartPoint> buildCategoryRevenuePoints(
+            Map<String, BigDecimal> revenueByCategory) {
+        List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
+        if (revenueByCategory != null) {
+            for (Map.Entry<String, BigDecimal> entry : revenueByCategory.entrySet()) {
+                points.add(new AdminDashboardView.ChartPoint(entry.getKey(), entry.getValue()));
+            }
+        }
+        return points;
     }
 
     private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary) {
@@ -177,7 +233,7 @@ public class DashboardServlet extends HttpServlet {
         rows.add(new AdminDashboardView.OrderSummaryRow(
                 "Tổng đơn hàng",
                 String.valueOf(totalOrders),
-                "Tất cả đơn phát sinh trong ngày đã chọn",
+                "Tất cả đơn phát sinh trong khoảng đã chọn",
                 ""
         ));
         rows.add(new AdminDashboardView.OrderSummaryRow(

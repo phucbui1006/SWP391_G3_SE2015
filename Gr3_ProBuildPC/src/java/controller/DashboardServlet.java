@@ -89,12 +89,9 @@ public class DashboardServlet extends HttpServlet {
         List<DashboardProduct> lowStockProducts = dashboardDAO.getLowStockProducts(5);
         Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(
                 chartStartDate, chartEndDate);
-        Map<String, Integer> warrantyStatusCounts = dashboardDAO.getWarrantyStatusCounts(
-                chartStartDate, chartEndDate);
         AccountSummary accountSummary = dashboardDAO.getAccountSummary();
         int bestSellingTotal = dashboardDAO.countBestSellingProducts(chartStartDate, chartEndDate);
         int lowStockTotal = dashboardDAO.countLowStockProducts();
-        boolean showWarrantyAll = "1".equals(request.getParameter("showWarrantyAll"));
         Map<LocalDate, BigDecimal> revenueTimeline = dashboardDAO.getRevenueByDay(chartStartDate, chartEndDate);
         Map<String, BigDecimal> categoryRevenue = dashboardDAO.getCategoryRevenue(chartStartDate, chartEndDate);
 
@@ -108,9 +105,7 @@ public class DashboardServlet extends HttpServlet {
                 lowStockProducts,
                 lowStockTotal,
                 orderStatusCounts,
-                warrantyStatusCounts,
-                accountSummary,
-                showWarrantyAll
+                accountSummary
         );
         DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd/MM");
         DateTimeFormatter periodFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -127,20 +122,17 @@ public class DashboardServlet extends HttpServlet {
             LocalDate chartStartDate, LocalDate chartEndDate,
             DashboardSummary summary, List<DashboardProduct> bestSellingProducts, int bestSellingTotal,
             List<DashboardProduct> lowStockProducts, int lowStockTotal, Map<String, Integer> orderStatusCounts,
-            Map<String, Integer> warrantyStatusCounts, AccountSummary accountSummary, boolean showWarrantyAll) {
+            AccountSummary accountSummary) {
         AdminDashboardView view = new AdminDashboardView();
         String ctx = request.getContextPath();
         DashboardSummary safeSummary = summary == null ? new DashboardSummary() : summary;
         AccountSummary safeAccountSummary = accountSummary == null ? new AccountSummary() : accountSummary;
 
         view.setFormAction(ctx + "/Dashboard");
-        view.setWarrantyAllUrl(ctx + "/Dashboard?chartFrom=" + chartStartDate
-                + "&chartTo=" + chartEndDate + "&showWarrantyAll=1");
-        view.setStatCards(buildAdminStatCards(safeSummary));
+        view.setStatCards(buildAdminStatCards(safeSummary, ctx));
         view.setBestSellingProducts(buildProductRows(bestSellingProducts));
         view.setLowStockProducts(buildProductRows(lowStockProducts));
         view.setOrderSummaries(buildOrderSummaryRows(safeSummary, orderStatusCounts));
-        view.setWarrantyStatusCounts(buildWarrantyRows(warrantyStatusCounts, showWarrantyAll));
         view.setAccountSummaries(buildAccountRows(safeAccountSummary));
 
         int bestSellingVisible = view.getBestSellingProducts().size();
@@ -153,12 +145,6 @@ public class DashboardServlet extends HttpServlet {
         if (lowStockTotal > lowStockVisible) {
             view.setLowStockFooterMessage("Còn " + (lowStockTotal - lowStockVisible)
                     + " sản phẩm sắp hết hàng khác.");
-        }
-
-        int warrantyStatusTotal = warrantyStatusCounts == null ? 0 : warrantyStatusCounts.size();
-        if (!showWarrantyAll && warrantyStatusTotal > 5) {
-            view.setShowWarrantyFooter(true);
-            view.setWarrantyFooterMessage("Còn " + (warrantyStatusTotal - 5) + " trạng thái bảo hành khác.");
         }
 
         return view;
@@ -187,20 +173,22 @@ public class DashboardServlet extends HttpServlet {
         return points;
     }
 
-    private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary) {
+    private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary, String ctx) {
         List<AdminDashboardView.StatCard> cards = new ArrayList<>();
         cards.add(new AdminDashboardView.StatCard("red", "fa-solid fa-coins", "Tổng doanh thu",
-                DashboardViewHelper.formatCurrency(summary.getTotalRevenue())));
+                DashboardViewHelper.formatCurrency(summary.getTotalRevenue()), ctx + "/Dashboard#revenueCharts"));
         cards.add(new AdminDashboardView.StatCard("dark", "fa-solid fa-receipt", "Tổng đơn hàng",
-                String.valueOf(summary.getTotalOrders())));
+                String.valueOf(summary.getTotalOrders()), ctx + "/order-history"));
         cards.add(new AdminDashboardView.StatCard("blue", "fa-solid fa-desktop", "Tất cả sản phẩm",
-                String.valueOf(summary.getActiveProducts())));
+                String.valueOf(summary.getActiveProducts()), ctx + "/admin/products"));
         cards.add(new AdminDashboardView.StatCard("green", "fa-solid fa-tags", "Tất cả thương hiệu",
-                String.valueOf(summary.getTotalBrands())));
-        cards.add(new AdminDashboardView.StatCard("orange", "fa-solid fa-screwdriver-wrench", "Yêu cầu bảo hành",
-                String.valueOf(summary.getWarrantyRequests())));
+                String.valueOf(summary.getTotalBrands()), ctx + "/AdminBrands"));
+        cards.add(new AdminDashboardView.StatCard("orange", "fa-solid fa-screwdriver-wrench",
+                "Tổng yêu cầu bảo hành đã tiếp nhận",
+                String.valueOf(summary.getAcceptedWarrantyRequests()),
+                ctx + "/ManageWarranty?statusFilter=2"));
         cards.add(new AdminDashboardView.StatCard("purple", "fa-solid fa-truck-ramp-box", "Lô hàng đã nhập",
-                String.valueOf(summary.getImportedBatches())));
+                String.valueOf(summary.getImportedBatches()), ctx + "/BatchServlet"));
         return cards;
     }
 
@@ -296,25 +284,6 @@ public class DashboardServlet extends HttpServlet {
         return (value.contains("xác nhận") || value.contains("xac nhan"))
                 && !value.contains("chờ")
                 && !value.contains("cho ");
-    }
-
-    private List<AdminDashboardView.CountRow> buildWarrantyRows(Map<String, Integer> counts, boolean showAll) {
-        List<AdminDashboardView.CountRow> rows = new ArrayList<>();
-        if (counts == null) {
-            return rows;
-        }
-
-        int index = 0;
-        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
-            if (showAll || index < 5) {
-                rows.add(new AdminDashboardView.CountRow(
-                        DashboardViewHelper.h(entry.getKey()),
-                        entry.getValue() == null ? 0 : entry.getValue()
-                ));
-            }
-            index++;
-        }
-        return rows;
     }
 
     private List<AdminDashboardView.CountRow> buildAccountRows(AccountSummary summary) {

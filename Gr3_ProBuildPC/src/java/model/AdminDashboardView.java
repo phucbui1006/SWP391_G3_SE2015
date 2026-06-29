@@ -7,12 +7,10 @@ import java.util.List;
 
 public class AdminDashboardView {
     private String formAction;
-    private String warrantyAllUrl;
     private List<StatCard> statCards = new ArrayList<>();
     private List<ProductRow> bestSellingProducts = new ArrayList<>();
     private List<ProductRow> lowStockProducts = new ArrayList<>();
     private List<OrderSummaryRow> orderSummaries = new ArrayList<>();
-    private List<CountRow> warrantyStatusCounts = new ArrayList<>();
     private List<CountRow> accountSummaries = new ArrayList<>();
     private List<ChartPoint> revenueTimeline = new ArrayList<>();
     private List<ChartPoint> categoryRevenue = new ArrayList<>();
@@ -21,8 +19,6 @@ public class AdminDashboardView {
     private String chartPeriodLabel;
     private String bestSellingFooterMessage;
     private String lowStockFooterMessage;
-    private String warrantyFooterMessage;
-    private boolean showWarrantyFooter;
 
     public String getFormAction() {
         return formAction;
@@ -30,14 +26,6 @@ public class AdminDashboardView {
 
     public void setFormAction(String formAction) {
         this.formAction = formAction;
-    }
-
-    public String getWarrantyAllUrl() {
-        return warrantyAllUrl;
-    }
-
-    public void setWarrantyAllUrl(String warrantyAllUrl) {
-        this.warrantyAllUrl = warrantyAllUrl;
     }
 
     public List<StatCard> getStatCards() {
@@ -70,14 +58,6 @@ public class AdminDashboardView {
 
     public void setOrderSummaries(List<OrderSummaryRow> orderSummaries) {
         this.orderSummaries = orderSummaries == null ? new ArrayList<>() : orderSummaries;
-    }
-
-    public List<CountRow> getWarrantyStatusCounts() {
-        return warrantyStatusCounts;
-    }
-
-    public void setWarrantyStatusCounts(List<CountRow> warrantyStatusCounts) {
-        this.warrantyStatusCounts = warrantyStatusCounts == null ? new ArrayList<>() : warrantyStatusCounts;
     }
 
     public List<CountRow> getAccountSummaries() {
@@ -144,33 +124,19 @@ public class AdminDashboardView {
         this.lowStockFooterMessage = lowStockFooterMessage;
     }
 
-    public String getWarrantyFooterMessage() {
-        return warrantyFooterMessage;
-    }
-
-    public void setWarrantyFooterMessage(String warrantyFooterMessage) {
-        this.warrantyFooterMessage = warrantyFooterMessage;
-    }
-
-    public boolean isShowWarrantyFooter() {
-        return showWarrantyFooter;
-    }
-
-    public void setShowWarrantyFooter(boolean showWarrantyFooter) {
-        this.showWarrantyFooter = showWarrantyFooter;
-    }
-
     public static class StatCard {
         private final String iconClass;
         private final String icon;
         private final String label;
         private final String value;
+        private final String url;
 
-        public StatCard(String iconClass, String icon, String label, String value) {
+        public StatCard(String iconClass, String icon, String label, String value, String url) {
             this.iconClass = iconClass;
             this.icon = icon;
             this.label = label;
             this.value = value;
+            this.url = url;
         }
 
         public String getIconClass() {
@@ -187,6 +153,10 @@ public class AdminDashboardView {
 
         public String getValue() {
             return value;
+        }
+
+        public String getUrl() {
+            return url;
         }
     }
 

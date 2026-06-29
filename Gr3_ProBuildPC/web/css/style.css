@@ -9426,20 +9426,17 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
 .admin-chart-filter {
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
+    flex-wrap: nowrap;
+    align-items: center;
     gap: 12px;
     margin: 0;
     padding: 16px 20px;
-    border: 1px solid #e4e9f2;
-    border-radius: 8px;
-    background: #ffffff;
-    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.05);
 }
 
 .admin-chart-filter label {
-    display: grid;
-    gap: 6px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .admin-chart-filter label span {
@@ -9625,11 +9622,22 @@ body.dashboard-body .dashboard-card.shipment-shell {
 }
 
 .admin-products-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .admin-bottom-grid {
-    grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.65fr) minmax(260px, 0.65fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+}
+
+.admin-bottom-grid > .admin-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-bottom-grid .admin-panel-footer {
+    margin-top: auto;
 }
 
 .admin-chart-grid {
@@ -10153,7 +10161,12 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
 @media (max-width: 1100px) {
     .admin-products-grid,
-    .admin-chart-grid,
+    .admin-chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
     .admin-bottom-grid {
         grid-template-columns: 1fr;
     }
@@ -10174,10 +10187,25 @@ body.dashboard-body .dashboard-card.shipment-shell {
         font-size: 24px;
     }
 
-    .admin-chart-filter label,
-    .admin-chart-filter input,
+    .admin-chart-filter {
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .admin-chart-filter label {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .admin-chart-filter input {
+        flex: 1;
+        min-width: 0;
+        width: auto;
+    }
+
     .admin-chart-filter button {
-        width: 100%;
+        flex: 0 0 auto;
+        width: auto;
     }
 
     .admin-chart-filter small {

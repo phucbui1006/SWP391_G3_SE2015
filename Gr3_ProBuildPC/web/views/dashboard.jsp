@@ -49,13 +49,8 @@
 
                 <div class="admin-dashboard">
                     <form id="adminChartFilter" class="admin-chart-filter" action="<%= adminDashboard.getFormAction() %>" method="get">
-                        <% if ("1".equals(request.getParameter("showWarrantyAll"))) { %>
-                        <input type="hidden" name="showWarrantyAll" value="1">
-                        <% } %>
                         <label>
                             <input type="date" name="chartFrom" value="<%= adminDashboard.getChartStartDate() %>" required> -
-                        </label>
-                        <label>
                             <input type="date" name="chartTo" value="<%= adminDashboard.getChartEndDate() %>" required>
                         </label>
                         <button type="submit">Xem</button>
@@ -63,7 +58,7 @@
 
                     <div class="admin-stat-grid" >
                         <% for (AdminDashboardView.StatCard stat : adminDashboard.getStatCards()) { %>
-                        <a class="admin-stat-card" >
+                        <a class="admin-stat-card" href="<%= stat.getUrl() %>">
                             <span class="admin-stat-icon <%= stat.getIconClass() %>"><i class="<%= stat.getIcon() %>"></i></span>
                             <span>
                                 <small><%= stat.getLabel() %></small>
@@ -73,7 +68,7 @@
                         <% } %>
                     </div>
 
-                    <div class="admin-dashboard-grid admin-chart-grid">
+                    <div id="revenueCharts" class="admin-dashboard-grid admin-chart-grid">
                         <section class="admin-panel admin-chart-panel">
                             <div class="admin-panel-header">
                                 <div>
@@ -106,7 +101,7 @@
                     <div class="admin-dashboard-grid admin-products-grid">
                         <section class="admin-panel admin-module-panel">
                             <div class="admin-panel-header">
-                                <h2>Sản phẩm bán chạy nhất</h2>
+                                <h2>Top 5 sản phẩm bán chạy nhất</h2>
                             </div>
 
                             <table class="admin-dashboard-table admin-best-selling-table">
@@ -137,17 +132,17 @@
                                     } %>
                                 </tbody>
                             </table>
-                            <% if (adminDashboard.getBestSellingFooterMessage() != null) { %>
                             <div class="admin-panel-footer">
-                                <span><%= adminDashboard.getBestSellingFooterMessage() %></span>
-                                <a href="#">Xem tất cả</a>
+                                <span><%= adminDashboard.getBestSellingFooterMessage() != null
+                                        ? adminDashboard.getBestSellingFooterMessage()
+                                        : "Mở trang quản lý toàn bộ sản phẩm." %></span>
+                                <a href="<%= ctx %>/admin/products">Xem tất cả</a>
                             </div>
-                            <% } %>
                         </section>
 
                         <aside class="admin-panel admin-quick-panel">
                             <div class="admin-panel-header">
-                                <h2>Sản phẩm sắp hết hàng</h2>
+                                <h2>Sản phẩm mức tồn kho thấp (< 5)</h2>
                             </div>
 
                             <table class="admin-dashboard-table admin-low-stock-table compact">
@@ -178,19 +173,19 @@
                                     } %>
                                 </tbody>
                             </table>
-                            <% if (adminDashboard.getLowStockFooterMessage() != null) { %>
                             <div class="admin-panel-footer">
-                                <span><%= adminDashboard.getLowStockFooterMessage() %></span>
-                                <a href="#">Xem tất cả</a>
+                                <span><%= adminDashboard.getLowStockFooterMessage() != null
+                                        ? adminDashboard.getLowStockFooterMessage()
+                                        : "Danh sách sản phẩm theo tồn kho tăng dần." %></span>
+                                <a href="<%= ctx %>/admin/products?sort=qty_asc">Xem tất cả</a>
                             </div>
-                            <% } %>
                         </aside>
                     </div>
 
                     <div class="admin-dashboard-grid admin-bottom-grid">
                         <section class="admin-panel">
                             <div class="admin-panel-header">
-                                <h2>Tổng quan đơn hàng theo khoảng thời gian</h2>
+                                <h2>Thống kê về đơn hàng</h2>
                             </div>
 
                             <table class="admin-dashboard-table admin-order-summary-table">
@@ -226,32 +221,12 @@
                                     } %>
                                 </tbody>
                             </table>
+                            <div class="admin-panel-footer">
+                                <span>Quản lý và theo dõi toàn bộ đơn hàng.</span>
+                                <a href="<%= ctx %>/order-history">Xem tất cả</a>
+                            </div>
                         </section>
 
-                        <aside class="admin-panel">
-                            <div class="admin-panel-header">
-                                <h2>Yêu cầu bảo hành</h2>
-                            </div>
-
-                            <div class="admin-count-list">
-                                <% if (adminDashboard.getWarrantyStatusCounts().isEmpty()) { %>
-                                <p class="admin-empty-message">Không có yêu cầu bảo hành trong khoảng thời gian này.</p>
-                                <% } else {
-                                    for (AdminDashboardView.CountRow entry : adminDashboard.getWarrantyStatusCounts()) { %>
-                                <p>
-                                    <span><%= entry.getLabel() %></span>
-                                    <strong><%= entry.getValue() %></strong>
-                                </p>
-                                <% }
-                                } %>
-                            </div>
-                            <% if (adminDashboard.isShowWarrantyFooter()) { %>
-                            <div class="admin-panel-footer">
-                                <span><%= adminDashboard.getWarrantyFooterMessage() %></span>
-                                <a href="<%= adminDashboard.getWarrantyAllUrl() %>">Xem tất cả</a>
-                            </div>
-                            <% } %>
-                        </aside>
                         <section class="admin-panel">
                             <div class="admin-panel-header">
                                 <h2>Tổng quan tài khoản</h2>
@@ -261,6 +236,10 @@
                                 <% for (AdminDashboardView.CountRow accountRow : adminDashboard.getAccountSummaries()) { %>
                                 <div><span><%= accountRow.getLabel() %></span><strong><%= accountRow.getValue() %></strong></div>
                                 <% } %>
+                            </div>
+                            <div class="admin-panel-footer">
+                                <span><a href="<%= ctx %>/AccountManagement?type=user">Quản lý khách hàng</a></span>
+                                <a href="<%= ctx %>/AccountManagement?type=staff">Quản lý nhân viên</a>
                             </div>
                         </section>
                     </div>

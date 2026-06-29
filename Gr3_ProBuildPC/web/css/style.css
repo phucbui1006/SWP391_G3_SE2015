@@ -1,5 +1,3 @@
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css');
-
 /* ==================== RESET CHUNG ==================== */
 * {
     box-sizing: border-box;
@@ -8,7 +6,7 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Legacy local icon fallback (disabled: icons now come from Font Awesome CDN).
+/* Local icon fallback: keeps icons available without a CDN/webfont connection. */
 .fa-solid,
 .fa-regular {
     display: inline-block;
@@ -109,14 +107,17 @@
 .fa-id-card { --local-fa-icon: var(--local-fa-list); }
 .fa-location-dot { --local-fa-icon: var(--local-fa-location); }
 .fa-lock { --local-fa-icon: var(--local-fa-lock); }
-.fa-pen { --local-fa-icon: var(--local-fa-pen); }
+.fa-pen,
+.fa-pen-to-square { --local-fa-icon: var(--local-fa-pen); }
 .fa-phone { --local-fa-icon: var(--local-fa-phone); }
-.fa-plus { --local-fa-icon: var(--local-fa-plus); }
+.fa-plus,
+.fa-plus-circle { --local-fa-icon: var(--local-fa-plus); }
 .fa-power-off,
 .fa-right-from-bracket { --local-fa-icon: var(--local-fa-power); }
 .fa-circle-question { --local-fa-icon: var(--local-fa-question); }
 .fa-receipt { --local-fa-icon: var(--local-fa-receipt); }
-.fa-floppy-disk { --local-fa-icon: var(--local-fa-save); }
+.fa-floppy-disk,
+.fa-save { --local-fa-icon: var(--local-fa-save); }
 .fa-magnifying-glass { --local-fa-icon: var(--local-fa-search); }
 .fa-shield-halved,
 .fa-shield-heart { --local-fa-icon: var(--local-fa-shield); }
@@ -129,11 +130,13 @@
 .fa-user { --local-fa-icon: var(--local-fa-user); }
 .fa-users-gear { --local-fa-icon: var(--local-fa-users); }
 .fa-warehouse { --local-fa-icon: var(--local-fa-warehouse); }
-.fa-screwdriver-wrench { --local-fa-icon: var(--local-fa-wrench); }
-.fa-xmark { --local-fa-icon: var(--local-fa-xmark); }
+.fa-screwdriver-wrench,
+.fa-gear { --local-fa-icon: var(--local-fa-wrench); }
+.fa-xmark,
+.fa-ban { --local-fa-icon: var(--local-fa-xmark); }
+.fa-arrow-right { --local-fa-icon: var(--local-fa-arrow-left); transform: rotate(180deg); }
 .fa-chevron-right { --local-fa-icon: var(--local-fa-arrow-rotate-right); transform: rotate(0deg); }
 .fa-rotate { --local-fa-icon: var(--local-fa-arrow-rotate-right); }
-*/
 
 /* ==================== ORDER HISTORY PAGE ==================== */
 

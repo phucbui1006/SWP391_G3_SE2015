@@ -1,3 +1,5 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css');
+
 /* ==================== RESET CHUNG ==================== */
 * {
     box-sizing: border-box;
@@ -6,7 +8,7 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Local Font Awesome fallback: keeps icons visible when the CDN webfont is blocked. */
+/* Legacy local icon fallback (disabled: icons now come from Font Awesome CDN).
 .fa-solid,
 .fa-regular {
     display: inline-block;
@@ -131,6 +133,7 @@
 .fa-xmark { --local-fa-icon: var(--local-fa-xmark); }
 .fa-chevron-right { --local-fa-icon: var(--local-fa-arrow-rotate-right); transform: rotate(0deg); }
 .fa-rotate { --local-fa-icon: var(--local-fa-arrow-rotate-right); }
+*/
 
 /* ==================== ORDER HISTORY PAGE ==================== */
 

@@ -118,7 +118,6 @@
         <title>Quản lý sản phẩm - ProBuild PC</title>
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
         <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
     <body class="admin-product-body" data-ctx="<%= contextPath %>">

@@ -729,4 +729,5 @@ document.addEventListener("DOMContentLoaded", function () {
             resetFormAndErrors(document.getElementById("editProductForm"));
         }
     });
+
 });

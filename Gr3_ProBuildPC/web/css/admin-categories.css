@@ -374,15 +374,7 @@ body.admin-category-body {
     font-weight: 600;
 }
 
-.status-badge.status-active {
-    background: #e6f4ea !important;
-    color: #137333 !important;
-}
 
-.status-badge.status-inactive {
-    background: #fce8e6 !important;
-    color: #c5221f !important;
-}
 
 /* ==================== CATEGORY MODALS ==================== */
 .category-alert {

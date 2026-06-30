@@ -129,7 +129,7 @@
                 <h2>Quản lý sản phẩm</h2>
                 <div class="admin-breadcrumb">
                     <a href="<%= contextPath %>/Dashboard">Dashboard</a>
-                    
+
                     <span>›</span>
                     <span>Sản phẩm</span>
                     <span>›</span>
@@ -150,7 +150,7 @@
             <section class="admin-product-card">
                 <!-- Search & Filters Toolbar -->
                 <form action="<%= contextPath %>/admin/products" method="get" class="admin-product-toolbar" id="adminProductSearchForm">
-                    
+
                     <div class="product-toolbar-left">
                         <div class="filter-group keyword-search">
                             <input type="text"
@@ -236,68 +236,66 @@
                                 </td>
                             </tr>
                             <% } else { %>
-                                <% for (Product p : products) { 
-                                    String imgUrl = p.getImageUrl();
-                                    if (imgUrl == null || imgUrl.trim().isEmpty()) {
-                                        imgUrl = "images/no-image.png";
-                                    }
-                                %>
-                                <tr>
-                                    <td><%= p.getProductId() %></td>
-                                    <td>
-                                        <img src="<%= contextPath %>/<%= imgUrl %>" alt="<%= h(p.getProductName()) %>" class="table-product-img">
-                                    </td>
-                                    <td class="product-name-cell">
-                                        <strong><%= h(p.getProductName()) %></strong>
-                                    </td>
-                                    <td><%= h(p.getCategoryName()) %></td>
-                                    <td><%= h(p.getBrandName()) %></td>
-                                    <td class="price-cell">
-                                        <%= String.format("%,d", p.getPrice().longValue()) %>đ
-                                    </td>
-                                    <td>
-                                        <% if (p.getQuantity() > 0) { %>
-                                        <span class="stock-badge in-stock"><%= p.getQuantity() %> sản phẩm</span>
-                                        <% } else { %>
-                                        <span class="stock-badge out-stock">Hết hàng</span>
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "active" : "inactive" %>">
-                                            <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "Đang hoạt động" : "Vô hiệu hóa" %>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="product-actions">
-                                            <!-- Edit Details -->
-                                            <a href="#edit-product-modal" class="action-btn btn-edit" title="Sửa thông tin sản phẩm"
-                                               onclick="openEditModal(<%= p.getProductId() %>, '<%= h(p.getProductName()) %>', <%= p.getCategoryId() %>, <%= p.getBrandId() %>, <%= p.getPrice() %>, <%= p.getWarrantyMonths() %>, '<%= h(p.getDescription()) %>', '<%= p.getImageUrl() %>')">
-                                                <i class="fa-solid fa-pen"></i> Sửa
-                                            </a>
+                            <% for (Product p : products) { 
+                                String imgUrl = p.getImageUrl();
+                                if (imgUrl == null || imgUrl.trim().isEmpty()) {
+                                    imgUrl = "images/no-image.png";
+                                }
+                            %>
+                            <tr>
+                                <td><%= p.getProductId() %></td>
+                                <td>
+                                    <img src="<%= contextPath %>/<%= imgUrl %>" alt="<%= h(p.getProductName()) %>" class="table-product-img">
+                                </td>
+                                <td class="product-name-cell">
+                                    <strong><%= h(p.getProductName()) %></strong>
+                                </td>
+                                <td><%= h(p.getCategoryName()) %></td>
+                                <td><%= h(p.getBrandName()) %></td>
+                                <td>
+                                    <%= String.format("%,d", p.getPrice().longValue()) %>đ
+                                </td>
+                                <td>
+                                    <% if (p.getQuantity() > 0) { %>
+                                    <span><%= p.getQuantity() %> sản phẩm</span>
+                                    <% } else { %>
+                                    <span>Hết hàng</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <span class="<%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "active" : "inactive" %>">
+                                        <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "ACTIVE" : "INACTIVE" %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="product-actions">
+                                        <!-- Edit Details -->
+                                        <a href="#edit-product-modal" class="action-btn btn-edit" title="Sửa thông tin sản phẩm"
+                                           onclick="openEditModal(<%= p.getProductId() %>, '<%= h(p.getProductName()) %>', <%= p.getCategoryId() %>, <%= p.getBrandId() %>, <%= p.getPrice() %>, <%= p.getWarrantyMonths() %>, '<%= h(p.getDescription()) %>', '<%= p.getImageUrl() %>')">
+                                           Sửa
+                                        </a>
 
-                                            <!-- Toggle Status -->
-                                            <form action="<%= contextPath %>/admin/products" method="post" style="display:inline;">
-                                                <input type="hidden" name="productId" value="<%= p.getProductId() %>">
-                                                <input type="hidden" name="action" value="<%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "delete" : "activate" %>">
-                                                
-                                                <input type="hidden" name="keyword" value="<%= h(keyword) %>">
-                                                <input type="hidden" name="categoryId" value="<%= selectedCategoryId != null ? selectedCategoryId : "" %>">
-                                                <input type="hidden" name="brandId" value="<%= selectedBrandId != null ? selectedBrandId : "" %>">
-                                                <input type="hidden" name="status" value="<%= h(status) %>">
-                                                <input type="hidden" name="sort" value="<%= h(sort) %>">
-                                                <input type="hidden" name="page" value="<%= currentPage %>">
-                                                
-                                                <button type="submit"
-                                                        class="action-btn <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "btn-status-deactivate" : "btn-status-activate" %>"
-                                                        onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái hoạt động của sản phẩm này?')">
-                                                    <i class="fa-solid fa-power-off"></i>
-                                                    <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "Vô hiệu hóa" : "Kích hoạt" %>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <% } %>
+                                        <!-- Toggle Status -->
+                                        <form action="<%= contextPath %>/admin/products" method="post" style="display:inline;">
+                                            <input type="hidden" name="productId" value="<%= p.getProductId() %>">
+                                            <input type="hidden" name="action" value="<%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "delete" : "activate" %>">
+
+                                            <input type="hidden" name="keyword" value="<%= h(keyword) %>">
+                                            <input type="hidden" name="categoryId" value="<%= selectedCategoryId != null ? selectedCategoryId : "" %>">
+                                            <input type="hidden" name="brandId" value="<%= selectedBrandId != null ? selectedBrandId : "" %>">
+                                            <input type="hidden" name="status" value="<%= h(status) %>">
+                                            <input type="hidden" name="sort" value="<%= h(sort) %>">
+                                            <input type="hidden" name="page" value="<%= currentPage %>">
+
+                                            <button type="submit"
+                                                    class="action-btn <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "btn-status-deactivate" : "btn-status-activate" %>">
+                                                <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "Vô hiệu hóa" : "Kích hoạt" %>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% } %>
                             <% } %>
                         </tbody>
                     </table>
@@ -339,10 +337,10 @@
 
                 <form action="<%= contextPath %>/admin/products" method="post" enctype="multipart/form-data" class="product-modal-form" id="addProductForm" novalidate>
                     <input type="hidden" name="action" value="add">
-                    
+
                     <% if ("add".equals(failedAction) && error != null && !error.isEmpty()) { %>
                     <div class="product-alert error" style="margin: 0 0 12px 0;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i><%= h(error) %></div>
-                    <% } %>
+                        <% } %>
 
                     <div class="form-grid">
                         <div class="form-group full-width">
@@ -473,10 +471,10 @@
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="productId" id="editProductId" value="<%= "update".equals(failedAction) && enteredProductId != null ? enteredProductId : "" %>">
                     <input type="hidden" name="currentImg" id="editCurrentImg" value="<%= "update".equals(failedAction) && enteredCurrentImg != null ? h(enteredCurrentImg) : "" %>">
-                    
+
                     <% if ("update".equals(failedAction) && error != null && !error.isEmpty()) { %>
                     <div class="product-alert error" style="margin: 0 0 12px 0;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i><%= h(error) %></div>
-                    <% } %>
+                        <% } %>
 
                     <div class="form-grid">
                         <div class="form-group full-width">
@@ -591,64 +589,64 @@
             </section>
         </div>
 
-      
+
         <jsp:include page="/includes/footer.jsp" />
 
         <script src="<%= contextPath %>/js/admin-products.js"></script>
 
         <% if (failedAction != null && !failedAction.isEmpty()) { %>
         <script>
-            // Auto-open the correct modal when the servlet forwards back on validation failure
-            (function() {
-                var action = "<%= h(failedAction) %>";
-                if (action === "add") {
-                    window.location.hash = "add-product-modal";
-                } else if (action === "update") {
-                    window.location.hash = "edit-product-modal";
-                }
-            })();
+                                                        // Auto-open the correct modal when the servlet forwards back on validation failure
+                                                        (function () {
+                                                            var action = "<%= h(failedAction) %>";
+                                                            if (action === "add") {
+                                                                window.location.hash = "add-product-modal";
+                                                            } else if (action === "update") {
+                                                                window.location.hash = "edit-product-modal";
+                                                            }
+                                                        })();
 
-            // Map and display backend validation errors to their inputs inline
-            document.addEventListener("DOMContentLoaded", function() {
-                var action = "<%= h(failedAction) %>";
-                var prefix = action === "add" ? "add" : "edit";
-                
-                var fieldMapping = {
-                    "productName": prefix + "ProductName",
-                    "categoryId": prefix + "Category",
-                    "brandId": prefix + "Brand",
-                    "price": prefix + "Price",
-                    "warrantyMonths": prefix + "WarrantyMonths",
-                    "imgFile": prefix + "ImageFile"
-                };
+                                                        // Map and display backend validation errors to their inputs inline
+                                                        document.addEventListener("DOMContentLoaded", function () {
+                                                            var action = "<%= h(failedAction) %>";
+                                                            var prefix = action === "add" ? "add" : "edit";
 
-                <% 
+                                                            var fieldMapping = {
+                                                                "productName": prefix + "ProductName",
+                                                                "categoryId": prefix + "Category",
+                                                                "brandId": prefix + "Brand",
+                                                                "price": prefix + "Price",
+                                                                "warrantyMonths": prefix + "WarrantyMonths",
+                                                                "imgFile": prefix + "ImageFile"
+                                                            };
+
+            <% 
                     java.util.Map<String, String> backendErrors = (java.util.Map<String, String>) request.getAttribute("errors");
                     if (backendErrors != null && !backendErrors.isEmpty()) {
                         for (java.util.Map.Entry<String, String> entry : backendErrors.entrySet()) {
-                %>
-                            var fieldKey = "<%= h(entry.getKey()) %>";
-                            var errMsg = "<%= h(entry.getValue()) %>";
-                            var inputId = fieldMapping[fieldKey];
-                            if (inputId) {
-                                var inp = document.getElementById(inputId);
-                                if (inp) {
-                                    inp.classList.add("is-invalid");
-                                    var parent = inp.closest(".form-group");
-                                    if (parent) {
-                                        var errText = parent.querySelector(".form-error-text");
-                                        if (errText) {
-                                            errText.textContent = errMsg;
-                                            errText.style.display = "block";
-                                        }
-                                    }
-                                }
-                            }
-                <% 
+            %>
+                                                            var fieldKey = "<%= h(entry.getKey()) %>";
+                                                            var errMsg = "<%= h(entry.getValue()) %>";
+                                                            var inputId = fieldMapping[fieldKey];
+                                                            if (inputId) {
+                                                                var inp = document.getElementById(inputId);
+                                                                if (inp) {
+                                                                    inp.classList.add("is-invalid");
+                                                                    var parent = inp.closest(".form-group");
+                                                                    if (parent) {
+                                                                        var errText = parent.querySelector(".form-error-text");
+                                                                        if (errText) {
+                                                                            errText.textContent = errMsg;
+                                                                            errText.style.display = "block";
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+            <% 
                         }
                     } 
-                %>
-            });
+            %>
+                                                        });
         </script>
         <% } %>
 

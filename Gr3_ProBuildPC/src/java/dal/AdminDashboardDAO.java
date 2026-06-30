@@ -16,26 +16,104 @@ import model.DashboardSummary;
 
 public class AdminDashboardDAO extends DBContext {
 
-    public DashboardSummary getSummary(LocalDate selectedDate) {
+    public DashboardSummary getSummary(LocalDate startDate, LocalDate endDate) {
         DashboardSummary summary = new DashboardSummary();
         summary.setTotalRevenue(queryBigDecimal("""
                 SELECT COALESCE(SUM(o.total_amount), 0) AS value
                 FROM orders o
                 LEFT JOIN orders_status os ON os.status_id = o.status_id
-                WHERE DATE(o.order_date) = ?
+                WHERE o.order_date >= ?
+                  AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
                   AND (os.status_name IS NULL
                        OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
                            AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
-                """, selectedDate));
-        summary.setTotalOrders(queryInt("SELECT COUNT(*) AS value FROM orders WHERE DATE(order_date) = ?", selectedDate));
+                """, startDate, endDate));
+        summary.setTotalOrders(queryInt("""
+                SELECT COUNT(*) AS value
+                FROM orders
+                WHERE order_date >= ? AND order_date < DATE_ADD(?, INTERVAL 1 DAY)
+                """, startDate, endDate));
         summary.setActiveProducts(queryInt("SELECT COUNT(*) AS value FROM products WHERE UPPER(status) = 'ACTIVE'"));
         summary.setTotalBrands(queryInt("SELECT COUNT(*) AS value FROM brands"));
-        summary.setWarrantyRequests(queryInt("SELECT COUNT(*) AS value FROM warranties WHERE DATE(request_date) = ?", selectedDate));
-        summary.setImportedBatches(queryInt("SELECT COUNT(*) AS value FROM batch WHERE date = ?", selectedDate));
+        summary.setAcceptedWarrantyRequests(queryInt(
+                "SELECT COUNT(*) AS value FROM warranties WHERE status_id = 2"));
+        summary.setImportedBatches(queryInt("""
+                SELECT COUNT(*) AS value FROM batch WHERE date BETWEEN ? AND ?
+                """, startDate, endDate));
         return summary;
     }
 
-    public List<DashboardProduct> getBestSellingProducts(LocalDate selectedDate, int limit) {
+    public Map<LocalDate, BigDecimal> getRevenueByDay(LocalDate startDate, LocalDate endDate) {
+        Map<LocalDate, BigDecimal> revenueByDay = new LinkedHashMap<>();
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            revenueByDay.put(date, BigDecimal.ZERO);
+        }
+
+        String sql = """
+                SELECT DATE(o.order_date) AS revenue_date,
+                       COALESCE(SUM(o.total_amount), 0) AS revenue
+                FROM orders o
+                LEFT JOIN orders_status os ON os.status_id = o.status_id
+                WHERE o.order_date >= ?
+                  AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
+                  AND (os.status_name IS NULL
+                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
+                           AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
+                GROUP BY DATE(o.order_date)
+                ORDER BY revenue_date
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setDate(1, Date.valueOf(startDate));
+            ps.setDate(2, Date.valueOf(endDate));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    revenueByDay.put(rs.getDate("revenue_date").toLocalDate(),
+                            nullToZero(rs.getBigDecimal("revenue")));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return revenueByDay;
+    }
+
+    public Map<String, BigDecimal> getCategoryRevenue(LocalDate startDate, LocalDate endDate) {
+        Map<String, BigDecimal> revenueByCategory = new LinkedHashMap<>();
+        String sql = """
+                SELECT c.category_name,
+                       COALESCE(SUM(od.subtotal), 0) AS revenue
+                FROM order_details od
+                INNER JOIN orders o ON o.order_id = od.order_id
+                INNER JOIN products p ON p.product_id = od.product_id
+                INNER JOIN categories c ON c.category_id = p.category_id
+                LEFT JOIN orders_status os ON os.status_id = o.status_id
+                WHERE o.order_date >= ?
+                  AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
+                  AND (os.status_name IS NULL
+                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
+                           AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
+                GROUP BY c.category_id, c.category_name
+                HAVING revenue > 0
+                ORDER BY revenue DESC, c.category_name
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setDate(1, Date.valueOf(startDate));
+            ps.setDate(2, Date.valueOf(endDate));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    revenueByCategory.put(rs.getString("category_name"),
+                            nullToZero(rs.getBigDecimal("revenue")));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return revenueByCategory;
+    }
+
+    public List<DashboardProduct> getBestSellingProducts(LocalDate startDate, LocalDate endDate, int limit) {
         List<DashboardProduct> products = new ArrayList<>();
         String sql = """
                 SELECT p.product_id,
@@ -46,10 +124,12 @@ public class AdminDashboardDAO extends DBContext {
                INNER JOIN orders o ON o.order_id = od.order_id
                INNER JOIN products p ON p.product_id = od.product_id
                LEFT JOIN orders_status os ON os.status_id = o.status_id
-               WHERE DATE(o.order_date) = ?
+               WHERE o.order_date >= ?
+                 AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
                  AND (
                        os.status_name IS NULL
-                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%'))
+                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
+                           AND LOWER(os.status_name) NOT LIKE LOWER('%huy%'))
                      )
                GROUP BY p.product_id, p.product_name, p.status
                ORDER BY sold_quantity DESC
@@ -57,8 +137,9 @@ public class AdminDashboardDAO extends DBContext {
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setDate(1, Date.valueOf(selectedDate));
-            ps.setInt(2, limit);
+            ps.setDate(1, Date.valueOf(startDate));
+            ps.setDate(2, Date.valueOf(endDate));
+            ps.setInt(3, limit);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -72,7 +153,7 @@ public class AdminDashboardDAO extends DBContext {
         return products;
     }
 
-    public int countBestSellingProducts(LocalDate selectedDate) {
+    public int countBestSellingProducts(LocalDate startDate, LocalDate endDate) {
         String sql = """
                 SELECT COUNT(*) AS value
                 FROM (
@@ -81,13 +162,15 @@ public class AdminDashboardDAO extends DBContext {
                     INNER JOIN orders o ON o.order_id = od.order_id
                     INNER JOIN products p ON p.product_id = od.product_id
                     LEFT JOIN orders_status os ON os.status_id = o.status_id
-                    WHERE DATE(o.order_date) = ?
+                    WHERE o.order_date >= ?
+                      AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
                       AND (os.status_name IS NULL
-                           OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')))
+                           OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
+                               AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
                     GROUP BY p.product_id
                 ) sold_products
                 """;
-        return queryInt(sql, selectedDate);
+        return queryInt(sql, startDate, endDate);
     }
 
     public List<DashboardProduct> getLowStockProducts(int limit) {
@@ -138,20 +221,22 @@ public class AdminDashboardDAO extends DBContext {
         return queryInt(sql);
     }
 
-    public Map<String, Integer> getOrderStatusCounts(LocalDate selectedDate) {
+    public Map<String, Integer> getOrderStatusCounts(LocalDate startDate, LocalDate endDate) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         String sql = """
                 SELECT COALESCE(os.status_name, 'Chưa cập nhật') AS status_name,
                        COUNT(o.order_id) AS total
                 FROM orders o
                 LEFT JOIN orders_status os ON os.status_id = o.status_id
-                WHERE DATE(o.order_date) = ?
+                WHERE o.order_date >= ?
+                  AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
                 GROUP BY COALESCE(os.status_name, 'Chưa cập nhật')
                 ORDER BY total DESC, status_name ASC
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setDate(1, Date.valueOf(selectedDate));
+            ps.setDate(1, Date.valueOf(startDate));
+            ps.setDate(2, Date.valueOf(endDate));
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -165,20 +250,22 @@ public class AdminDashboardDAO extends DBContext {
         return counts;
     }
 
-    public Map<String, Integer> getWarrantyStatusCounts(LocalDate selectedDate) {
+    public Map<String, Integer> getWarrantyStatusCounts(LocalDate startDate, LocalDate endDate) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         String sql = """
                 SELECT COALESCE(ws.status_name, 'Chưa cập nhật') AS status_name,
                        COUNT(w.warranty_id) AS total
                 FROM warranties w
                 LEFT JOIN warranty_status ws ON ws.status_id = w.status_id
-                WHERE DATE(w.request_date) = ?
+                WHERE w.request_date >= ?
+                  AND w.request_date < DATE_ADD(?, INTERVAL 1 DAY)
                 GROUP BY COALESCE(ws.status_name, 'Chưa cập nhật')
                 ORDER BY total DESC, status_name ASC
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setDate(1, Date.valueOf(selectedDate));
+            ps.setDate(1, Date.valueOf(startDate));
+            ps.setDate(2, Date.valueOf(endDate));
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -244,9 +331,10 @@ public class AdminDashboardDAO extends DBContext {
         return 0;
     }
 
-    private int queryInt(String sql, LocalDate selectedDate) {
+    private int queryInt(String sql, LocalDate startDate, LocalDate endDate) {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setDate(1, Date.valueOf(selectedDate));
+            ps.setDate(1, Date.valueOf(startDate));
+            ps.setDate(2, Date.valueOf(endDate));
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("value");
@@ -258,9 +346,10 @@ public class AdminDashboardDAO extends DBContext {
         return 0;
     }
 
-    private BigDecimal queryBigDecimal(String sql, LocalDate selectedDate) {
+    private BigDecimal queryBigDecimal(String sql, LocalDate startDate, LocalDate endDate) {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setDate(1, Date.valueOf(selectedDate));
+            ps.setDate(1, Date.valueOf(startDate));
+            ps.setDate(2, Date.valueOf(endDate));
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return nullToZero(rs.getBigDecimal("value"));

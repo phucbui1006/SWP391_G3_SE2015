@@ -52,6 +52,12 @@ public class CheckoutServlet extends HttpServlet {
             return;
         }
 
+        // Check if there is an error from the filter
+        if (request.getAttribute("errorMsg") != null) {
+            renderCheckoutPage(request, response, account);
+            return;
+        }
+
         String action = safeTrim(request.getParameter("action"));
         if ("placeOrder".equalsIgnoreCase(action)) {
             handlePlaceOrder(request, response, account);
@@ -66,13 +72,7 @@ public class CheckoutServlet extends HttpServlet {
         CheckoutPayload payload = buildCheckoutPayload(request, account);
 
         if (payload == null || payload.getItems().isEmpty()) {
-            setFlashMessage(request.getSession(), CART_ERROR_FLASH, "Khong tim thay san pham de thanh toan.");
-            response.sendRedirect(request.getContextPath() + "/cart");
-            return;
-        }
-
-        if (hasUnavailableItems(payload.getItems())) {
-            setFlashMessage(request.getSession(), CART_ERROR_FLASH, "San pham hien khong con kinh doanh.");
+            setFlashMessage(request.getSession(), CART_ERROR_FLASH, "Không tìm thấy sản phẩm để thanh toán.");
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
         }
@@ -82,12 +82,6 @@ public class CheckoutServlet extends HttpServlet {
         List<Address> savedAddresses = addressDAO.getAddressesByCustomerId(customerId);
         Integer selectedAddressId = parsePositiveInteger(request.getParameter("selectedAddressId"));
         Address selectedAddress = findAddressById(savedAddresses, selectedAddressId);
-
-        if (selectedAddress == null) {
-            request.setAttribute("errorMsg", "Vui long chon dia chi giao hang hop le.");
-            renderCheckoutPage(request, response, account);
-            return;
-        }
 
         String paymentMethod = normalizePaymentMethod(request.getParameter("paymentMethod"));
         int statusId = "VNPAY".equals(paymentMethod) ? 1 : 2; // 1: Chờ xác nhận, 2: Đã xác nhận (auto-confirmed)
@@ -107,7 +101,7 @@ public class CheckoutServlet extends HttpServlet {
         );
 
         if (orderId == -1) {
-            request.setAttribute("errorMsg", "Khong the tao don hang luc nay. Vui long thu lai.");
+            request.setAttribute("errorMsg", "Không thể tạo đơn hàng lúc này. Vui lòng thử lại.");
             renderCheckoutPage(request, response, account);
             return;
         }
@@ -118,7 +112,7 @@ public class CheckoutServlet extends HttpServlet {
             String paymentUrl = VNPayUtil.buildPaymentUrl(request, orderId, totalAmount.doubleValue());
             response.sendRedirect(paymentUrl);
         } else {
-            setFlashMessage(request.getSession(), CART_SUCCESS_FLASH, "Da tao don hang thanh cong.");
+            setFlashMessage(request.getSession(), CART_SUCCESS_FLASH, "Đã tạo đơn hàng thành công.");
             response.sendRedirect(request.getContextPath() + "/cart");
         }
     }

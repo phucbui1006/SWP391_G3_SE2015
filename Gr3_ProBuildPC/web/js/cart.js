@@ -2,12 +2,14 @@
     const addToCartForms = document.querySelectorAll('.cart-form');
     const headerCartCountElement = document.querySelector('.cart-box .cart-icon span');
     const cartIconElement = document.querySelector('.cart-box .cart-icon');
-    const toastElement = document.querySelector('[data-home-toast]');
-    const toastMessageElement = document.querySelector('[data-home-toast-message]');
-    const toastIconElement = document.querySelector('[data-home-toast-icon]');
+    let toastElement = document.querySelector('[data-home-toast]');
+    let toastMessageElement = document.querySelector('[data-home-toast-message]');
+    let toastIconElement = document.querySelector('[data-home-toast-icon]');
     let toastTimerId = null;
 
-    if (!addToCartForms.length) {
+    const addToCartButtons = document.querySelectorAll('[data-add-to-cart-btn]');
+
+    if (!addToCartButtons.length && !addToCartForms.length) {
         return;
     }
 
@@ -17,6 +19,10 @@
     };
 
     const showToast = function (message, isSuccess) {
+        if (!toastElement) toastElement = document.querySelector('[data-home-toast]');
+        if (!toastMessageElement) toastMessageElement = document.querySelector('[data-home-toast-message]');
+        if (!toastIconElement) toastIconElement = document.querySelector('[data-home-toast-icon]');
+
         if (!toastElement || !toastMessageElement || !toastIconElement) {
             return;
         }
@@ -50,8 +56,8 @@
             return;
         }
 
-        const productCard = form.closest('.product-card, .category-product-card');
-        const productImage = productCard ? productCard.querySelector('figure img') : null;
+        const productCard = form.closest('.product-card, .category-product-card, .detail-card');
+        let productImage = productCard ? productCard.querySelector('figure img, .main-image img') : null;
 
         if (!productImage) {
             cartIconElement.classList.add('is-bumping');
@@ -152,10 +158,24 @@
             });
     };
 
-    addToCartForms.forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
-            handleAddToCart(form);
+    window.ProBuildCart = {
+        showToast: showToast,
+        animateProductFlyToCart: animateProductFlyToCart,
+        handleAddToCart: handleAddToCart
+    };
+
+    addToCartButtons.forEach(function (btn) {
+        btn.addEventListener('click', function (event) {
+            if (btn.type === 'submit') {
+                event.preventDefault();
+            }
+            const form = btn.closest('form');
+            if (form) {
+                if (typeof validateQuantity === 'function' && !validateQuantity(form, true)) {
+                    return;
+                }
+                handleAddToCart(form);
+            }
         });
     });
 })();

@@ -1,8 +1,8 @@
 package controller;
 
 import dal.AdminDashboardDAO;
-import dal.OrderHistoryDAO;
-import dal.WarrantyDAO;
+import dal.EmployeeDashboardDAO;
+import dal.ShipmentDashboardDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -14,18 +14,15 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import model.AccountSummary;
 import model.AdminDashboardView;
 import model.DashboardProduct;
 import model.DashboardSummary;
-import model.OrderHistoryItem;
-import model.OrderStatus;
+import model.EmployeeDashboardView;
+import model.ShipmentDashboardView;
 import model.User;
-import model.WarrantyRequest;
 import util.DashboardViewHelper;
 
 @WebServlet(name = "DashboardServlet", urlPatterns = {"/Dashboard"})
@@ -312,213 +309,19 @@ public class DashboardServlet extends HttpServlet {
             endDate = startDate.plusDays(MAX_CHART_DAYS - 1L);
         }
 
-        WarrantyDAO warrantyDAO = new WarrantyDAO();
-        List<WarrantyRequest> pendingWarranties = new ArrayList<>();
-        int waitingWarrantyCount = 0;
-        int receivedWarrantyCount = 0;
-
-        for (WarrantyRequest warranty : warrantyDAO.getAllWarrantyRequestsForAdmin(null, null)) {
-            if (!isDateInRange(warranty.getRequestDate(), startDate, endDate)) {
-                continue;
-            }
-            if (warranty.getStatusId() == 1) {
-                pendingWarranties.add(warranty);
-                waitingWarrantyCount++;
-            } else if (warranty.getStatusId() == 2) {
-                receivedWarrantyCount++;
-            }
-        }
-
-        int warrantyTotal = pendingWarranties.size();
-        request.setAttribute("employeeWarranties", pendingWarranties);
-        request.setAttribute("employeeWarrantyTotal", warrantyTotal);
-        request.setAttribute("employeeWaitingWarrantyCount", waitingWarrantyCount);
-        request.setAttribute("employeeReceivedWarrantyCount", receivedWarrantyCount);
-
-        OrderHistoryDAO orderDAO = new OrderHistoryDAO();
-        List<OrderStatus> statuses = orderDAO.getOrderStatuses();
-        int failedStatusId = 0;
-        int cancelledStatusId = 0;
-
-        for (OrderStatus status : statuses) {
-            if ("Giao hàng thất bại".equalsIgnoreCase(status.getStatusName())) {
-                failedStatusId = status.getStatusId();
-            } else if ("Đã hủy".equalsIgnoreCase(status.getStatusName())) {
-                cancelledStatusId = status.getStatusId();
-            }
-        }
-
-        List<OrderHistoryItem> orders = getOrdersInPeriod(orderDAO, failedStatusId, startDate, endDate);
-        int failedOrderCount = orders.size();
-        int cancelledOrderCount = getOrdersInPeriod(orderDAO, cancelledStatusId, startDate, endDate).size();
-
-        request.setAttribute("employeeOrders", orders);
-        request.setAttribute("employeeOrderTotal", failedOrderCount);
-        request.setAttribute("employeeFailedOrderCount", failedOrderCount);
-        request.setAttribute("employeeCancelledOrderCount", cancelledOrderCount);
-        request.setAttribute("employeeStartDate", startDate);
-        request.setAttribute("employeeEndDate", endDate);
-    }
-
-    private List<OrderHistoryItem> getOrdersInPeriod(OrderHistoryDAO orderDAO, int statusId,
-            LocalDate startDate, LocalDate endDate) {
-        if (statusId <= 0) {
-            return new ArrayList<>();
-        }
-
-        int total = orderDAO.countOrders(null, null, statusId, false, false);
-        if (total <= 0) {
-            return new ArrayList<>();
-        }
-
-        List<OrderHistoryItem> filteredOrders = new ArrayList<>();
-        for (OrderHistoryItem order : orderDAO.getOrders(null, null, statusId, 1, total)) {
-            if (isDateInRange(order.getOrderDate(), startDate, endDate)) {
-                filteredOrders.add(order);
-            }
-        }
-        return filteredOrders;
-    }
-
-    private boolean isDateInRange(Date date, LocalDate startDate, LocalDate endDate) {
-        if (date == null) {
-            return false;
-        }
-        LocalDate value = java.time.Instant.ofEpochMilli(date.getTime())
-                .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
-        return !value.isBefore(startDate) && !value.isAfter(endDate);
+        EmployeeDashboardView employeeDashboard = new EmployeeDashboardDAO()
+                .getDashboard(startDate, endDate);
+        employeeDashboard.setFormAction(request.getContextPath() + "/Dashboard");
+        request.setAttribute("employeeDashboard", employeeDashboard);
     }
 
     private void prepareShipmentDashboard(HttpServletRequest request) {
         Integer selectedStatusId = parsePositiveInteger(request.getParameter("statusId"));
         boolean todayOnly = "1".equals(request.getParameter("today"));
         int page = parsePositiveInt(request.getParameter("page"), 1);
-
-        OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
-        List<OrderStatus> allStatusOptions = orderHistoryDAO.getOrderStatuses();
-        List<OrderStatus> statusOptions = filterShipmentStatuses(allStatusOptions);
-        List<Integer> removedShipmentStatusIds = getRemovedShipmentStatusIds(allStatusOptions);
-        if (isRemovedShipmentStatus(selectedStatusId, statusOptions)) {
-            selectedStatusId = null;
-        }
-
-        int totalOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
-                null, null, selectedStatusId, false, false, todayOnly, removedShipmentStatusIds);
-        int totalPages = Math.max(1, (int) Math.ceil(totalOrders / (double) SHIPMENT_PAGE_SIZE));
-        if (page > totalPages) {
-            page = totalPages;
-        }
-
-        List<OrderHistoryItem> shipmentOrders = orderHistoryDAO.getOrdersExcludingStatusIds(
-                null,
-                null,
-                selectedStatusId,
-                page,
-                SHIPMENT_PAGE_SIZE,
-                false,
-                false,
-                todayOnly,
-                removedShipmentStatusIds
-        );
-
-        Map<Integer, Integer> shipmentStatusCounts = new LinkedHashMap<>();
-        int allActiveOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
-                null, null, null, false, false, false, removedShipmentStatusIds);
-        int todayOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
-                null, null, null, false, false, true, removedShipmentStatusIds);
-        for (OrderStatus status : statusOptions) {
-            shipmentStatusCounts.put(
-                    status.getStatusId(),
-                    orderHistoryDAO.countOrdersExcludingStatusIds(
-                            null, null, status.getStatusId(), false, false, false, removedShipmentStatusIds)
-            );
-        }
-
-        request.setAttribute("shipmentOrders", shipmentOrders);
-        request.setAttribute("shipmentStatusOptions", statusOptions);
-        request.setAttribute("shipmentStatusCounts", shipmentStatusCounts);
-        request.setAttribute("shipmentAllActiveCount", allActiveOrders);
-        request.setAttribute("shipmentTodayCount", todayOrders);
-        request.setAttribute("shipmentSelectedStatusId", selectedStatusId);
-        request.setAttribute("shipmentTodayOnly", todayOnly);
-        request.setAttribute("shipmentPage", page);
-        request.setAttribute("shipmentTotalPages", totalPages);
-        request.setAttribute("shipmentTotalOrders", totalOrders);
-    }
-
-    private List<OrderStatus> filterShipmentStatuses(List<OrderStatus> statuses) {
-        List<OrderStatus> filteredStatuses = new ArrayList<>();
-        if (statuses == null) {
-            return filteredStatuses;
-        }
-
-        for (OrderStatus status : statuses) {
-            if (!isHiddenShipmentStatus(status)) {
-                filteredStatuses.add(status);
-            }
-        }
-        return filteredStatuses;
-    }
-
-    private List<Integer> getRemovedShipmentStatusIds(List<OrderStatus> statuses) {
-        List<Integer> statusIds = new ArrayList<>();
-        if (statuses == null) {
-            return statusIds;
-        }
-
-        for (OrderStatus status : statuses) {
-            if (isHiddenShipmentStatus(status)) {
-                statusIds.add(status.getStatusId());
-            }
-        }
-        return statusIds;
-    }
-
-    private boolean isRemovedShipmentStatus(Integer selectedStatusId, List<OrderStatus> statusOptions) {
-        if (selectedStatusId == null) {
-            return false;
-        }
-
-        for (OrderStatus status : statusOptions) {
-            if (status.getStatusId() == selectedStatusId) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean isHiddenShipmentStatus(OrderStatus status) {
-        return isPendingConfirmationStatus(status)
-                || isPreparingOrderStatus(status)
-                || isCancelledStatus(status);
-    }
-
-    private boolean isCancelledStatus(OrderStatus status) {
-        if (status == null || status.getStatusName() == null) {
-            return false;
-        }
-
-        String statusName = status.getStatusName().toLowerCase();
-        return statusName.contains("đã hủy") || statusName.contains("da huy");
-    }
-
-    private boolean isPendingConfirmationStatus(OrderStatus status) {
-        if (status == null || status.getStatusName() == null) {
-            return false;
-        }
-
-        String statusName = status.getStatusName().toLowerCase();
-        return (statusName.contains("chờ") || statusName.contains("cho "))
-                && (statusName.contains("xác nhận") || statusName.contains("xac nhan"));
-    }
-
-    private boolean isPreparingOrderStatus(OrderStatus status) {
-        if (status == null || status.getStatusName() == null) {
-            return false;
-        }
-
-        String statusName = status.getStatusName().toLowerCase();
-        return statusName.contains("chuẩn bị") || statusName.contains("chuan bi");
+        ShipmentDashboardView shipmentDashboard = new ShipmentDashboardDAO()
+                .getDashboard(selectedStatusId, todayOnly, page, SHIPMENT_PAGE_SIZE);
+        request.setAttribute("shipmentDashboard", shipmentDashboard);
     }
 
     private boolean hasRole(User user, String expectedRole) {

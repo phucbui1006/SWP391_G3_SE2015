@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.User" %>
 <%@ page import="model.AdminDashboardView" %>
+<%@ page import="model.EmployeeDashboardView" %>
+<%@ page import="model.ShipmentDashboardView" %>
 <%@ page import="model.OrderHistoryItem" %>
 <%@ page import="model.OrderStatus" %>
 <%@ page import="model.WarrantyRequest" %>
@@ -356,24 +358,23 @@
                 <% } else if ("EMPLOYEE".equals(roleName)) { %>
 
                 <%
-                    List<WarrantyRequest> employeeWarranties = (List<WarrantyRequest>) request.getAttribute("employeeWarranties");
-                    List<OrderHistoryItem> employeeOrders = (List<OrderHistoryItem>) request.getAttribute("employeeOrders");
-                    int warrantyTotal = (Integer) request.getAttribute("employeeWarrantyTotal");
-                    int waitingWarrantyCount = (Integer) request.getAttribute("employeeWaitingWarrantyCount");
-                    int receivedWarrantyCount = (Integer) request.getAttribute("employeeReceivedWarrantyCount");
-                    int orderTotal = (Integer) request.getAttribute("employeeOrderTotal");
-                    int failedOrderCount = (Integer) request.getAttribute("employeeFailedOrderCount");
-                    int cancelledOrderCount = (Integer) request.getAttribute("employeeCancelledOrderCount");
-                    Object employeeStartDate = request.getAttribute("employeeStartDate");
-                    Object employeeEndDate = request.getAttribute("employeeEndDate");
+                    EmployeeDashboardView employeeDashboard = (EmployeeDashboardView) request.getAttribute("employeeDashboard");
+                    List<WarrantyRequest> employeeWarranties = employeeDashboard.getWarranties();
+                    List<OrderHistoryItem> employeeOrders = employeeDashboard.getOrders();
+                    int warrantyTotal = employeeDashboard.getWarrantyTotal();
+                    int waitingWarrantyCount = employeeDashboard.getWaitingWarrantyCount();
+                    int receivedWarrantyCount = employeeDashboard.getReceivedWarrantyCount();
+                    int orderTotal = employeeDashboard.getOrderTotal();
+                    int failedOrderCount = employeeDashboard.getFailedOrderCount();
+                    int cancelledOrderCount = employeeDashboard.getCancelledOrderCount();
                     SimpleDateFormat employeeDateFormat = new SimpleDateFormat("dd/MM/yyyy");
                 %>
 
                 <div class="employee-dashboard">
-                    <form class="admin-chart-filter" action="<%= ctx %>/Dashboard" method="get">
+                    <form class="admin-chart-filter" action="<%= employeeDashboard.getFormAction() %>" method="get">
                         <label>
-                            <input type="date" name="chartFrom" value="<%= employeeStartDate %>" required> -
-                            <input type="date" name="chartTo" value="<%= employeeEndDate %>" required>
+                            <input type="date" name="chartFrom" value="<%= employeeDashboard.getStartDate() %>" required> -
+                            <input type="date" name="chartTo" value="<%= employeeDashboard.getEndDate() %>" required>
                         </label>
                         <button type="submit">Xem</button>
                     </form>
@@ -513,22 +514,17 @@
                 <% } else if ("SHIPMENT".equals(roleName)) { %>
 
                 <%
-                    List<OrderHistoryItem> shipmentOrders = (List<OrderHistoryItem>) request.getAttribute("shipmentOrders");
-                    List<OrderStatus> shipmentStatusOptions = (List<OrderStatus>) request.getAttribute("shipmentStatusOptions");
-                    Map<Integer, Integer> shipmentStatusCounts = (Map<Integer, Integer>) request.getAttribute("shipmentStatusCounts");
-                    Integer shipmentSelectedStatusId = (Integer) request.getAttribute("shipmentSelectedStatusId");
-                    Integer shipmentPageObject = (Integer) request.getAttribute("shipmentPage");
-                    Integer shipmentTotalPagesObject = (Integer) request.getAttribute("shipmentTotalPages");
-                    Integer shipmentTotalOrdersObject = (Integer) request.getAttribute("shipmentTotalOrders");
-                    Integer shipmentAllActiveCountObject = (Integer) request.getAttribute("shipmentAllActiveCount");
-                    Integer shipmentTodayCountObject = (Integer) request.getAttribute("shipmentTodayCount");
-                    Boolean shipmentTodayOnlyObject = (Boolean) request.getAttribute("shipmentTodayOnly");
-                    int shipmentPage = shipmentPageObject == null ? 1 : shipmentPageObject;
-                    int shipmentTotalPages = shipmentTotalPagesObject == null ? 1 : shipmentTotalPagesObject;
-                    int shipmentTotalOrders = shipmentTotalOrdersObject == null ? 0 : shipmentTotalOrdersObject;
-                    int shipmentAllActiveCount = shipmentAllActiveCountObject == null ? 0 : shipmentAllActiveCountObject;
-                    int shipmentTodayCount = shipmentTodayCountObject == null ? 0 : shipmentTodayCountObject;
-                    boolean shipmentTodayOnly = shipmentTodayOnlyObject != null && shipmentTodayOnlyObject;
+                    ShipmentDashboardView shipmentDashboard = (ShipmentDashboardView) request.getAttribute("shipmentDashboard");
+                    List<OrderHistoryItem> shipmentOrders = shipmentDashboard.getOrders();
+                    List<OrderStatus> shipmentStatusOptions = shipmentDashboard.getStatusOptions();
+                    Map<Integer, Integer> shipmentStatusCounts = shipmentDashboard.getStatusCounts();
+                    Integer shipmentSelectedStatusId = shipmentDashboard.getSelectedStatusId();
+                    int shipmentPage = shipmentDashboard.getPage();
+                    int shipmentTotalPages = shipmentDashboard.getTotalPages();
+                    int shipmentTotalOrders = shipmentDashboard.getTotalOrders();
+                    int shipmentAllActiveCount = shipmentDashboard.getAllActiveCount();
+                    int shipmentTodayCount = shipmentDashboard.getTodayCount();
+                    boolean shipmentTodayOnly = shipmentDashboard.isTodayOnly();
                 %>
 
                 <div class="shipment-dashboard">

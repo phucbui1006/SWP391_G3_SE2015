@@ -243,6 +243,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý d hàng") %></title>
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
+        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
+        <script src="${pageContext.request.contextPath}/js/order-history.js"></script>
     </head>
     <body class="order-history-body">
         <jsp:include page="/includes/header.jsp" />
@@ -429,7 +431,7 @@
                             }
                         }
                     %>
-                    <form class="shipment-update-form status-only" action="<%= ctx %>/order-history" method="post">
+                    <form class="shipment-update-form status-only" action="<%= ctx %>/order-history" method="post" onsubmit="return validateShipmentUpdateForm(this)">
                         <input type="hidden" name="action" value="updateShipmentStatus">
                         <input type="hidden" name="orderId" value="<%= selectedOrder.getOrderId() %>">
                         <input type="hidden" name="keyword" value="<%= h(keyword) %>">

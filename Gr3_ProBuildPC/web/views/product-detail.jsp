@@ -99,7 +99,7 @@
                                                     href="<%= contextPath %>/css/product-detail.css?v=200">
                                             </head>
 
-                                            <body class="product-detail-body">
+                                            <body class="product-detail-body" data-context-path="<%= contextPath %>">
 
                                                 <jsp:include page="/includes/header.jsp" />
 
@@ -206,7 +206,7 @@
                                                                     <div class="purchase-panel">
 
                                                                         <form class="purchase-form" method="post">
-                                                                            <input type="hidden" name="productId"
+                                                                            <input type="hidden" name="action" value="addToCart"><input type="hidden" name="productId"
                                                                                 value="<%= product.getProductId() %>">
                                                                             <input type="hidden" name="redirect"
                                                                                 value="<%= currentUrl %>">
@@ -229,9 +229,9 @@
                                                                                 <button type="button"
                                                                                     onclick="handleAddToCartAjax(this, <%= product.getQuantity() > 0 %>)"
                                                                                     class="add-cart-btn"
+                                                                                    data-add-to-cart-btn
                                                                                     <%= product.getQuantity() > 0 ? "" : "style=\"opacity: 0.6; cursor: not-allowed; background: #e5e7eb; border-color: #e5e7eb; color: #9ca3af;\"" %>>
-                                                                                    <i
-                                                                                        class="fa-solid fa-cart-shopping"></i>
+                                                                                    <i class="fa-solid fa-cart-shopping"></i>
                                                                                     Thêm vào giỏ
                                                                                 </button>
 
@@ -545,6 +545,7 @@
 
                                                             <script
                                                                 src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                                                            <script src="<%= contextPath %>/js/cart.js"></script>
                                                             <script>
                                                                 function showQuantityError(message) {
                                                                     Swal.fire({
@@ -636,71 +637,11 @@
                                                                         return;
                                                                     }
 
-                                                                    var productId = form.querySelector('input[name="productId"]').value;
-                                                                    var quantity = form.querySelector('input[name="quantity"]').value;
-
-                                                                    var params = new URLSearchParams();
-                                                                    params.append('action', 'addToCart');
-                                                                    params.append('productId', productId);
-                                                                    params.append('quantity', quantity);
-
-                                                                    fetch('<%= contextPath %>/cart', {
-                                                                        method: 'POST',
-                                                                        headers: {
-                                                                            'Content-Type': 'application/x-www-form-urlencoded',
-                                                                            'X-Requested-With': 'XMLHttpRequest'
-                                                                        },
-                                                                        body: params.toString()
-                                                                    })
-                                                                        .then(response => {
-                                                                            if (response.status === 401) {
-                                                                                window.location.href = '<%= contextPath %>/Login';
-                                                                                throw new Error('Unauthorized');
-                                                                            }
-                                                                            return response.json();
-                                                                        })
-                                                                        .then(data => {
-                                                                            if (data.success) {
-                                                                                Swal.fire({
-                                                                                    title: 'Thành công!',
-                                                                                    text: 'Đã thêm sản phẩm vào giỏ hàng.',
-                                                                                    icon: 'success',
-                                                                                    timer: 2000,
-                                                                                    showConfirmButton: false,
-                                                                                    toast: true,
-                                                                                    position: 'bottom-end'
-                                                                                });
-                                                                                if (data.cartItemCount !== undefined) {
-                                                                                    var cartBadge = document.querySelector('.cart-icon span');
-                                                                                    if (cartBadge) {
-                                                                                        cartBadge.innerText = data.cartItemCount;
-                                                                                    }
-                                                                                }
-                                                                            } else {
-                                                                                Swal.fire({
-                                                                                    title: 'Thất bại!',
-                                                                                    text: data.message || 'Không thể thêm vào giỏ hàng.',
-                                                                                    icon: 'error',
-                                                                                    timer: 3000,
-                                                                                    showConfirmButton: false,
-                                                                                    toast: true,
-                                                                                    position: 'bottom-end'
-                                                                                });
-                                                                            }
-                                                                        })
-                                                                        .catch(error => {
-                                                                            if (error.message !== 'Unauthorized') {
-                                                                                Swal.fire({
-                                                                                    title: 'Lỗi!',
-                                                                                    text: 'Có lỗi xảy ra khi kết nối đến máy chủ.',
-                                                                                    icon: 'error',
-                                                                                    timer: 3000,
-                                                                                    showConfirmButton: false,
-                                                                                    toast: true,
-                                                                                    position: 'bottom-end'
-                                                                                });
-                                                                            }
-                                                                        });
+                                                                    if (window.ProBuildCart && window.ProBuildCart.handleAddToCart) {
+                                                                        window.ProBuildCart.handleAddToCart(form);
+                                                                    } else {
+                                                                        form.submit();
+                                                                    }
                                                                 }
 
                                                                 document.addEventListener('DOMContentLoaded', function () {
@@ -744,6 +685,11 @@
                                                             </script>
 
                                                 </main>
+
+                                                <div class="home-toast" data-home-toast hidden>
+                                                    <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
+                                                    <div class="home-toast-message" data-home-toast-message></div>
+                                                </div>
 
                                                 <jsp:include page="/includes/footer.jsp" />
 

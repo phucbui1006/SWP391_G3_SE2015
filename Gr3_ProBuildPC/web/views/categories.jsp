@@ -3,9 +3,7 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="model.Category" %>
 <%@ page import="model.Product" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-
+<%@ page import="dal.ProductDAO" %>
 
 <%!
     private String h(String value) {
@@ -26,6 +24,7 @@
     List<Category> categories = (List<Category>) request.getAttribute("categories");
     List<Product> products = (List<Product>) request.getAttribute("products");
     Category selectedCategory = (Category) request.getAttribute("selectedCategory");
+    ProductDAO productDAO = new ProductDAO();
 
     String selectedSort = (String) request.getAttribute("selectedSort");
     if (selectedSort == null || selectedSort.trim().isEmpty()) {
@@ -92,8 +91,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Danh mục sản phẩm - ProBuild PC</title>
         <meta name="description" content="Khám phá và so sánh các danh mục linh kiện máy tính chất lượng cao tại ProBuild PC. Tự tạo cấu hình PC chuyên nghiệp dễ dàng.">
-        <link rel="stylesheet" href="<%= ctx %>/css/style.css">
-        <link rel="stylesheet" href="<%= ctx %>/css/categories.css?v=51">
+        <link rel="stylesheet" href="<%= ctx %>/css/style.css?v=2">
+        <link rel="stylesheet" href="<%= ctx %>/css/categories.css?v=52">
     </head>
     <body class="categories-page" data-context-path="<%= ctx %>">
         <jsp:include page="/includes/header.jsp" />
@@ -209,62 +208,56 @@
                     </div>
 
                     <div class="category-product-grid">
-                        <c:set var="productsToDisplay" value="${not empty productList ? productList : products}" />
-                        <c:choose>
-                            <c:when test="${not empty productsToDisplay}">
-                                <c:forEach var="p" items="${productsToDisplay}">
-                                    <article class="category-product-card">
-                                        <a class="category-product-image" href="${pageContext.request.contextPath}/product-detail?id=${p.productId}">
-                                            <figure>
-                                                <c:choose>
-                                                    <c:when test="${not empty p.imageUrl}">
-                                                        <img src="${pageContext.request.contextPath}/${p.imageUrl}" alt="${p.productName}">
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <span>PC</span>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </figure>
-                                        </a>
-                                        <h3>
-                                            <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}">
-                                                ${p.productName}
-                                            </a>
-                                        </h3>
-                                        
-                                        <strong>
-                                            <fmt:formatNumber value="${p.price}" pattern="#,###"/>đ
-                                        </strong>
+                        <% if (products != null && !products.isEmpty()) { %>
+                            <% for (Product p : products) {
+                                double rating = productDAO.getAverageRating(p.getProductId());
+                                int fullStars = (int) rating;
+                            %>
+                            <article class="product-card">
+                                <figure>
+                                    <% if (p.getImageUrl() != null && !p.getImageUrl().trim().isEmpty()) { %>
+                                    <img src="<%= ctx %>/<%= h(p.getImageUrl()) %>" alt="<%= h(p.getProductName()) %>">
+                                    <% } else { %>
+                                    <span>PC</span>
+                                    <% } %>
+                                </figure>
 
-                                        <div class="product-rating">
-                                            <i class="fa-regular fa-star"></i>
-                                            <i class="fa-regular fa-star"></i>
-                                            <i class="fa-regular fa-star"></i>
-                                            <i class="fa-regular fa-star"></i>
-                                            <i class="fa-regular fa-star"></i>
-                                            <span>0.0</span>
-                                        </div>
+                                <h3><%= h(p.getProductName()) %></h3>
 
-                                        <p class="stock ${p.quantity > 0 ? 'in-stock' : 'out-of-stock'}">
-                                            <c:choose>
-                                                <c:when test="${p.quantity > 0}">
-                                                    Còn hàng: ${p.quantity}
-                                                </c:when>
-                                                <c:otherwise>
-                                                    Hết hàng
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </p>
+                                <strong>
+                                    <%= String.format("%,d", p.getPrice().longValue()) %>đ
+                                </strong>
 
-                                        <div class="card-actions">
-                                            <a class="detail-link" href="${pageContext.request.contextPath}/product-detail?id=${p.productId}">
-                                                Xem chi tiết
-                                            </a>
+                                <div class="product-rating">
+                                    <% for (int i = 1; i <= 5; i++) { %>
+                                    <i class="<%= i <= fullStars ? "fa-solid" : "fa-regular" %> fa-star"></i>
+                                    <% } %>
+                                    <span><%= String.format("%.1f", rating) %></span>
+                                </div>
 
-                                            <form action="${pageContext.request.contextPath}/cart" method="post" class="cart-form">
-                                                <input type="hidden" name="action" value="addToCart">
-                                                <input type="hidden" name="productId" value="${p.productId}">
-                                                <input type="hidden" name="quantity" value="1">
+                                <p class="product-stock <%= p.getQuantity() > 0 ? "in-stock" : "out-of-stock" %>">
+                                    <% if (p.getQuantity() > 0) { %>
+                                    Còn hàng: <%= p.getQuantity() %>
+                                    <% } else { %>
+                                    Hết hàng
+                                    <% } %>
+                                </p>
+
+                                <div class="product-actions">
+                                    <a class="detail-btn" href="<%= ctx %>/product-detail?id=<%= p.getProductId() %>">
+                                        Xem chi tiết
+                                    </a>
+
+                                    <form class="cart-form" action="<%= ctx %>/cart" method="post">
+                                        <input type="hidden" name="action" value="addToCart">
+                                        <input type="hidden" name="productId" value="<%= p.getProductId() %>">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button class="cart-btn" type="submit" data-add-to-cart-btn data-product-name="<%= h(p.getProductName()) %>" <%= p.getQuantity() > 0 ? "" : "disabled" %>>
+                                            <i class="fa-solid fa-cart-shopping"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </article>
 
                                                 <c:choose>
                                                     <c:when test="${p.quantity > 0}">

@@ -16,7 +16,6 @@ public class WarrantyDAO extends DBContext {
     /**
      * Kiểm tra yêu cầu bảo hành có hiệu lực không.
      * Traversal: PRODUCTS → ORDER_DETAILS → ORDERS
-     * Không dùng order_detail_id — tìm đơn hàng qua product_id + customer_id.
      */
     public boolean isWarrantyRequestValid(int customerId, int productId) {
         String sql = """
@@ -339,7 +338,6 @@ public class WarrantyDAO extends DBContext {
 
     /**
      * Lấy chi tiết tình trạng bảo hành sản phẩm (cho Admin modal).
-     * Decoupled: dùng product_id + customer_id thay vì order_detail_id.
      * Traversal: PRODUCTS → ORDER_DETAILS → ORDERS
      */
     public Warranty getProductWarrantyCondition(int productId, int customerId) {

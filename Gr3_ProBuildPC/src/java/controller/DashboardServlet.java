@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -297,25 +298,39 @@ public class DashboardServlet extends HttpServlet {
     }
 
     private void prepareEmployeeDashboard(HttpServletRequest request) {
+        LocalDate referenceDate = LocalDate.now();
+        LocalDate weekStart = referenceDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekEnd = weekStart.plusDays(6);
+        LocalDate startDate = parseDate(request.getParameter("chartFrom"), weekStart);
+        LocalDate endDate = parseDate(request.getParameter("chartTo"), weekEnd);
+        if (startDate.isAfter(endDate)) {
+            LocalDate temporaryDate = startDate;
+            startDate = endDate;
+            endDate = temporaryDate;
+        }
+        if (endDate.isAfter(startDate.plusDays(MAX_CHART_DAYS - 1L))) {
+            endDate = startDate.plusDays(MAX_CHART_DAYS - 1L);
+        }
+
         WarrantyDAO warrantyDAO = new WarrantyDAO();
         List<WarrantyRequest> pendingWarranties = new ArrayList<>();
         int waitingWarrantyCount = 0;
         int receivedWarrantyCount = 0;
 
         for (WarrantyRequest warranty : warrantyDAO.getAllWarrantyRequestsForAdmin(null, null)) {
-            if (warranty.getStatusId() == 1 || warranty.getStatusId() == 2) {
+            if (!isDateInRange(warranty.getRequestDate(), startDate, endDate)) {
+                continue;
+            }
+            if (warranty.getStatusId() == 1) {
                 pendingWarranties.add(warranty);
-                if (warranty.getStatusId() == 1) {
-                    waitingWarrantyCount++;
-                } else {
-                    receivedWarrantyCount++;
-                }
+                waitingWarrantyCount++;
+            } else if (warranty.getStatusId() == 2) {
+                receivedWarrantyCount++;
             }
         }
 
         int warrantyTotal = pendingWarranties.size();
-        request.setAttribute("employeeWarranties",
-                new ArrayList<>(pendingWarranties.subList(0, Math.min(5, warrantyTotal))));
+        request.setAttribute("employeeWarranties", pendingWarranties);
         request.setAttribute("employeeWarrantyTotal", warrantyTotal);
         request.setAttribute("employeeWaitingWarrantyCount", waitingWarrantyCount);
         request.setAttribute("employeeReceivedWarrantyCount", receivedWarrantyCount);
@@ -333,23 +348,45 @@ public class DashboardServlet extends HttpServlet {
             }
         }
 
-        int failedOrderCount = failedStatusId == 0 ? 0
-                : orderDAO.countOrders(null, null, failedStatusId, false, false);
-        int cancelledOrderCount = cancelledStatusId == 0 ? 0
-                : orderDAO.countOrders(null, null, cancelledStatusId, false, false);
-        List<OrderHistoryItem> orders = new ArrayList<>();
-        if (failedOrderCount > 0) {
-            orders.addAll(orderDAO.getOrders(null, null, failedStatusId, 1, failedOrderCount));
-        }
-        if (cancelledOrderCount > 0) {
-            orders.addAll(orderDAO.getOrders(null, null, cancelledStatusId, 1, cancelledOrderCount));
-        }
-        orders.sort((first, second) -> second.getOrderDate().compareTo(first.getOrderDate()));
+        List<OrderHistoryItem> orders = getOrdersInPeriod(orderDAO, failedStatusId, startDate, endDate);
+        int failedOrderCount = orders.size();
+        int cancelledOrderCount = getOrdersInPeriod(orderDAO, cancelledStatusId, startDate, endDate).size();
 
         request.setAttribute("employeeOrders", orders);
-        request.setAttribute("employeeOrderTotal", failedOrderCount + cancelledOrderCount);
+        request.setAttribute("employeeOrderTotal", failedOrderCount);
         request.setAttribute("employeeFailedOrderCount", failedOrderCount);
         request.setAttribute("employeeCancelledOrderCount", cancelledOrderCount);
+        request.setAttribute("employeeStartDate", startDate);
+        request.setAttribute("employeeEndDate", endDate);
+    }
+
+    private List<OrderHistoryItem> getOrdersInPeriod(OrderHistoryDAO orderDAO, int statusId,
+            LocalDate startDate, LocalDate endDate) {
+        if (statusId <= 0) {
+            return new ArrayList<>();
+        }
+
+        int total = orderDAO.countOrders(null, null, statusId, false, false);
+        if (total <= 0) {
+            return new ArrayList<>();
+        }
+
+        List<OrderHistoryItem> filteredOrders = new ArrayList<>();
+        for (OrderHistoryItem order : orderDAO.getOrders(null, null, statusId, 1, total)) {
+            if (isDateInRange(order.getOrderDate(), startDate, endDate)) {
+                filteredOrders.add(order);
+            }
+        }
+        return filteredOrders;
+    }
+
+    private boolean isDateInRange(Date date, LocalDate startDate, LocalDate endDate) {
+        if (date == null) {
+            return false;
+        }
+        LocalDate value = java.time.Instant.ofEpochMilli(date.getTime())
+                .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        return !value.isBefore(startDate) && !value.isAfter(endDate);
     }
 
     private void prepareShipmentDashboard(HttpServletRequest request) {

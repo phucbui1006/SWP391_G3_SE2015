@@ -364,15 +364,25 @@
                     int orderTotal = (Integer) request.getAttribute("employeeOrderTotal");
                     int failedOrderCount = (Integer) request.getAttribute("employeeFailedOrderCount");
                     int cancelledOrderCount = (Integer) request.getAttribute("employeeCancelledOrderCount");
+                    Object employeeStartDate = request.getAttribute("employeeStartDate");
+                    Object employeeEndDate = request.getAttribute("employeeEndDate");
                     SimpleDateFormat employeeDateFormat = new SimpleDateFormat("dd/MM/yyyy");
                 %>
 
                 <div class="employee-dashboard">
+                    <form class="admin-chart-filter" action="<%= ctx %>/Dashboard" method="get">
+                        <label>
+                            <input type="date" name="chartFrom" value="<%= employeeStartDate %>" required> -
+                            <input type="date" name="chartTo" value="<%= employeeEndDate %>" required>
+                        </label>
+                        <button type="submit">Xem</button>
+                    </form>
+
                     <div class="employee-summary-grid" aria-label="Tổng quan công việc cần xử lý">
                         <div class="employee-summary-card">
                             <span class="summary-icon today"><i class="fa-solid fa-list-check"></i></span>
                             <div class="summary-copy">
-                                <p class="summary-title">Tổng công việc cần xử lý</p>
+                                <p class="summary-title">Công việc cần xử lý</p>
                                 <div class="summary-value-row">
                                     <span class="summary-number"><%= warrantyTotal + orderTotal %></span>
                                     <span class="summary-unit">mục</span>
@@ -427,7 +437,7 @@
 
                     <section class="employee-request-panel">
                         <div class="employee-panel-title-row">
-                            <h2 class="employee-request-title">5 yêu cầu bảo hành mới nhất cần xử lý</h2>
+                            <h2 class="employee-request-title">Đơn bảo hành cần xử lý (<%= warrantyTotal %>)</h2>
                             <a href="<%= ctx %>/ManageWarranty">Xem dịch vụ bảo hành</a>
                         </div>
 
@@ -439,36 +449,32 @@
                                     <th>Sản phẩm</th>
                                     <th>Ngày tạo</th>
                                     <th>Trạng thái</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <% if (employeeWarranties.isEmpty()) { %>
                                 <tr>
-                                    <td colspan="5" class="employee-empty-row">Không có yêu cầu bảo hành cần xử lý.</td>
+                                    <td colspan="6" class="employee-empty-row">Không có yêu cầu bảo hành chờ tiếp nhận trong khoảng thời gian này.</td>
                                 </tr>
                                 <% } %>
                                 <% for (WarrantyRequest warranty : employeeWarranties) { %>
                                 <tr>
-                                    <td><a href="<%= ctx %>/ManageWarranty?warrantyId=<%= warranty.getWarrantyId() %>">#<%= warranty.getWarrantyId() %></a></td>
+                                    <td><a href="<%= ctx %>/ManageWarranty?action=edit&amp;warrantyId=<%= warranty.getWarrantyId() %>&amp;statusFilter=1">#<%= warranty.getWarrantyId() %></a></td>
                                     <td><%= DashboardViewHelper.h(warranty.getCustomerName()) %></td>
                                     <td><%= DashboardViewHelper.h(warranty.getProductName()) %></td>
                                     <td><%= warranty.getRequestDate() == null ? "-" : employeeDateFormat.format(warranty.getRequestDate()) %></td>
                                     <td><span class="request-status <%= warranty.getStatusId() == 1 ? "waiting" : "received" %>"><%= DashboardViewHelper.h(warranty.getStatusName()) %></span></td>
+                                    <td><a class="employee-row-action" href="<%= ctx %>/ManageWarranty?action=edit&amp;warrantyId=<%= warranty.getWarrantyId() %>&amp;statusFilter=1">Xem chi tiết</a></td>
                                 </tr>
                                 <% } %>
                             </tbody>
                         </table>
-                        <% if (warrantyTotal > 5) { %>
-                        <a class="employee-more-link" href="<%= ctx %>/ManageWarranty">
-                            Còn <%= warrantyTotal - 5 %> đơn bảo hành bạn cần xử lý
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </a>
-                        <% } %>
                     </section>
 
                     <section class="employee-request-panel">
                         <div class="employee-panel-title-row">
-                            <h2 class="employee-request-title">Yêu cầu đơn hàng cần xử lý</h2>
+                            <h2 class="employee-request-title">Đơn hàng cần xử lý (<%= orderTotal %>)</h2>
                             <a href="<%= ctx %>/order-history">Xem tất cả đơn hàng</a>
                         </div>
 
@@ -486,7 +492,7 @@
                             <tbody>
                                 <% if (employeeOrders.isEmpty()) { %>
                                 <tr>
-                                    <td colspan="6" class="employee-empty-row">Không có đơn hàng cần xử lý.</td>
+                                    <td colspan="6" class="employee-empty-row">Không có đơn giao hàng thất bại trong khoảng thời gian này.</td>
                                 </tr>
                                 <% } %>
                                 <% for (OrderHistoryItem order : employeeOrders) { %>

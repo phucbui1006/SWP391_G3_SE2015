@@ -135,6 +135,7 @@ public class DashboardServlet extends HttpServlet {
         view.setBestSellingProducts(buildProductRows(bestSellingProducts));
         view.setLowStockProducts(buildProductRows(lowStockProducts));
         view.setOrderSummaries(buildOrderSummaryRows(safeSummary, orderStatusCounts));
+        view.setOrderStatusCounts(buildOrderStatusChartPoints(orderStatusCounts));
         view.setAccountSummaries(buildAccountRows(safeAccountSummary));
 
  //       int bestSellingVisible = view.getBestSellingProducts().size();
@@ -173,6 +174,30 @@ public class DashboardServlet extends HttpServlet {
             }
         }
         return points;
+    }
+
+    private List<AdminDashboardView.ChartPoint> buildOrderStatusChartPoints(
+            Map<String, Integer> orderStatusCounts) {
+        List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
+        if (orderStatusCounts != null) {
+            for (Map.Entry<String, Integer> entry : orderStatusCounts.entrySet()) {
+                String status = DashboardViewHelper.defaultText(entry.getKey(), "Chưa cập nhật");
+                if (isHiddenOrderStatusInChart(status)) {
+                    continue;
+                }
+                int total = entry.getValue() == null ? 0 : entry.getValue();
+                points.add(new AdminDashboardView.ChartPoint(status, BigDecimal.valueOf(total)));
+            }
+        }
+        return points;
+    }
+
+    private boolean isHiddenOrderStatusInChart(String status) {
+        String value = status == null ? "" : status.toLowerCase();
+        return value.contains("chờ xác nhận")
+                || value.contains("cho xac nhan")
+                || value.contains("đang chuẩn bị hàng")
+                || value.contains("dang chuan bi hang");
     }
 
     private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary, String ctx) {

@@ -224,14 +224,14 @@ public class AdminDashboardDAO extends DBContext {
     public Map<String, Integer> getOrderStatusCounts(LocalDate startDate, LocalDate endDate) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         String sql = """
-                SELECT COALESCE(os.status_name, 'Chưa cập nhật') AS status_name,
+                SELECT os.status_name,
                        COUNT(o.order_id) AS total
-                FROM orders o
-                LEFT JOIN orders_status os ON os.status_id = o.status_id
-                WHERE o.order_date >= ?
-                  AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-                GROUP BY COALESCE(os.status_name, 'Chưa cập nhật')
-                ORDER BY total DESC, status_name ASC
+                FROM orders_status os
+                LEFT JOIN orders o ON o.status_id = os.status_id
+                    AND o.order_date >= ?
+                    AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
+                GROUP BY os.status_id, os.status_name
+                ORDER BY os.status_id ASC
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

@@ -731,7 +731,7 @@ public class ProductDAO extends DBContext {
         return 1;
     }
 
-    public boolean updateProduct(int productId, String productName, int categoryId, int brandId, BigDecimal price, String description, String imageUrl, String[] specNames, String[] specValues) {
+    public boolean updateProduct(int productId, String productName, int categoryId, int brandId, BigDecimal price, String description, String imageUrl, int warrantyMonths, String[] specNames, String[] specValues) {
         String sqlProduct = """
             UPDATE products
             SET product_name = ?, category_id = ?, brand_id = ?, price = ?, description = ?, image_url = ?, warranty_months = ?
@@ -753,7 +753,8 @@ public class ProductDAO extends DBContext {
             psProduct.setBigDecimal(4, price);
             psProduct.setString(5, description);
             psProduct.setString(6, imageUrl);
-            psProduct.setInt(7, productId);
+            psProduct.setInt(7, warrantyMonths);
+            psProduct.setInt(8, productId);
 
             int affected = psProduct.executeUpdate();
             if (affected == 0) {

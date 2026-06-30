@@ -140,19 +140,11 @@
                                                                     </h1>
 
                                                                     <div class="product-meta-details">
-                                                                        <div class="meta-item">
-                                                                            <span class="meta-label">Thương hiệu:</span>
-                                                                            <span class="meta-value">
-                                                                                <%= product.getBrandName() %>
-                                                                            </span>
-                                                                        </div>
+                                                                        <span class="meta-label">Thương hiệu:</span>
+                                                                        <span class="meta-value"><%= product.getBrandName() %></span>
                                                                         <span class="meta-divider">|</span>
-                                                                        <div class="meta-item">
-                                                                            <span class="meta-label">Danh mục:</span>
-                                                                            <span class="meta-value">
-                                                                                <%= product.getCategoryName() %>
-                                                                            </span>
-                                                                        </div>
+                                                                        <span class="meta-label">Danh mục:</span>
+                                                                        <span class="meta-value"><%= product.getCategoryName() %></span>
                                                                     </div>
 
                                                                     <div class="rating-row">
@@ -160,143 +152,95 @@
                                                                             <%= String.format("%.1f", avgRating) %>
                                                                                 <i class="fa-solid fa-star"></i>
                                                                         </span>
-
                                                                         <span class="stars">
                                                                             <% for (int i=1; i <=5; i++) { %>
                                                                                 <% if (i <=fullStars) { %>
                                                                                     <i class="fa-solid fa-star"></i>
-                                                                                    <% } else if (i - 1 < avgRating &&
-                                                                                        avgRating < i) { %>
-                                                                                        <i
-                                                                                            class="fa-solid fa-star-half-stroke"></i>
+                                                                                    <% } else if (i - 1 < avgRating && avgRating < i) { %>
+                                                                                        <i class="fa-solid fa-star-half-stroke"></i>
                                                                                         <% } else { %>
-                                                                                            <i
-                                                                                                class="fa-regular fa-star"></i>
+                                                                                            <i class="fa-regular fa-star"></i>
                                                                                             <% } %>
                                                                                                 <% } %>
                                                                         </span>
+                                                                        <span class="review-count">| <%= totalAllReviews %> đánh giá</span>
+                                                                    </div>
 
-                                                                        <span class="review-count">| <%= totalAllReviews
-                                                                                %> đánh giá</span>
+                                                                    <div class="warranty-text">
+                                                                        Bảo hành: <%= product.getWarrantyMonths() %> tháng chính hãng
                                                                     </div>
 
                                                                     <div class="price">
-                                                                        <%= String.format("%,d",
-                                                                            product.getPrice().longValue()) %>đ
+                                                                        <%= String.format("%,d", product.getPrice().longValue()) %>đ
                                                                     </div>
 
-                                                                    <div class="stock-status">
+                                                                    <div class="stock-status-inline">
                                                                         <% if (product.getQuantity()> 0) { %>
-                                                                            <span class="badge-stock in-stock">Còn
-                                                                                hàng</span>
-                                                                            <span class="quantity-text">Số lượng trong
-                                                                                kho: <%= product.getQuantity() %></span>
-                                                                            <% } else { %>
-                                                                                <span class="badge-stock out-stock">Hết
-                                                                                    hàng</span>
-                                                                                <% } %>
-                                                                                    <span class="meta-divider"
-                                                                                        style="color: #cbd5e1; font-weight: 300; margin: 0 4px;">|</span>
-                                                                                    <span class="quantity-text">Bảo
-                                                                                        hành: <%=
-                                                                                            product.getWarrantyMonths()
-                                                                                            %> tháng</span>
+                                                                            <span class="stock-text in-stock">Còn hàng</span>
+                                                                            <span class="quantity-text">(Số lượng: <%= product.getQuantity() %>)</span>
+                                                                        <% } else { %>
+                                                                            <span class="stock-text out-stock">Hết hàng</span>
+                                                                        <% } %>
                                                                     </div>
 
-                                                                    <div class="purchase-panel">
-
+                                                                    <div class="purchase-panel-new">
                                                                         <form class="purchase-form" method="post">
-                                                                            <input type="hidden" name="action" value="addToCart"><input type="hidden" name="productId"
-                                                                                value="<%= product.getProductId() %>">
-                                                                            <input type="hidden" name="redirect"
-                                                                                value="<%= currentUrl %>">
+                                                                            <input type="hidden" name="action" value="addToCart">
+                                                                            <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                                                                            <input type="hidden" name="redirect" value="<%= currentUrl %>">
 
+                                                                            <div class="info-label">SỐ LƯỢNG</div>
                                                                             <div class="quantity-box">
-                                                                                <span>Số lượng:</span>
-
-                                                                                <input class="quantity-input"
-                                                                                    type="number" name="quantity"
-                                                                                    value="1" inputmode="numeric"
-                                                                                    min="1" step="1"
-                                                                                    max="<%= maxQuantity %>"
-                                                                                    data-max-quantity="<%= maxQuantity %>"
-                                                                                    <%=product.getQuantity()> 0 ? "" :
-                                                                                "disabled" %>>
+                                                                                <button type="button" class="qty-btn" onclick="decreaseQty()">-</button>
+                                                                                <input class="quantity-input" id="quantityInput" type="number" name="quantity" value="1" inputmode="numeric" min="1" step="1" max="<%= maxQuantity %>" data-max-quantity="<%= maxQuantity %>" <%=product.getQuantity()> 0 ? "" : "disabled" %>>
+                                                                                <button type="button" class="qty-btn" onclick="increaseQty()">+</button>
                                                                             </div>
 
                                                                             <div class="action-buttons">
-
-                                                                                <button type="button"
-                                                                                    onclick="handleAddToCartAjax(this, <%= product.getQuantity() > 0 %>)"
-                                                                                    class="add-cart-btn"
-                                                                                    data-add-to-cart-btn
-                                                                                    <%= product.getQuantity() > 0 ? "" : "style=\"opacity: 0.6; cursor: not-allowed; background: #e5e7eb; border-color: #e5e7eb; color: #9ca3af;\"" %>>
-                                                                                    <i class="fa-solid fa-cart-shopping"></i>
-                                                                                    Thêm vào giỏ
-                                                                                </button>
-
-                                                                                <button type="submit"
-                                                                                    formaction="<%= contextPath %>/checkout"
-                                                                                    class="buy-btn"
-                                                                                    <%=product.getQuantity()> 0 ? "" :
-                                                                                    "disabled" %>>
+                                                                                <button type="submit" formaction="<%= contextPath %>/checkout" class="buy-btn" <%=product.getQuantity()> 0 ? "" : "disabled" %>>
                                                                                     Mua ngay
                                                                                 </button>
-
+                                                                                <button type="button" onclick="handleAddToCartAjax(this, <%= product.getQuantity() > 0 %>)" class="add-cart-btn" data-add-to-cart-btn <%= product.getQuantity() > 0 ? "" : "disabled" %>>
+                                                                                    <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng
+                                                                                </button>
                                                                             </div>
                                                                         </form>
-
                                                                     </div>
 
                                                                 </div>
 
                                                             </section>
 
-                                                            <section class="description-card">
-                                                                <div class="description-box">
-                                                                    <div class="description-title-row">
-                                                                        <div>
-                                                                            <h2>Mô tả sản phẩm</h2>
-                                                                            <span>Thông tin chi tiết về sản phẩm</span>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div class="description-content">
-                                                                        <% if (product.getDescription() !=null &&
-                                                                            !product.getDescription().trim().isEmpty())
-                                                                            { %>
-                                                                            <p>
-                                                                                <%= product.getDescription() %>
-                                                                            </p>
-                                                                            <% } else { %>
-                                                                                <p>Chưa có mô tả cho sản phẩm này.</p>
-                                                                                <% } %>
-                                                                    </div>
+                                                            <section class="info-specs-card">
+                                                                <div class="info-specs-header">
+                                                                    <h2>Thông Tin Chi Tiết & Kỹ Thuật <%= product.getProductName() %></h2>
+                                                                    <p>Thông tin chi tiết về sản phẩm</p>
                                                                 </div>
-                                                            </section>
 
-                                                            <c:if test="${not empty specifications}">
-                                                                <section class="probuild-specs-container">
-                                                                    <div class="probuild-specs-box">
-                                                                        <div class="probuild-specs-header">
-                                                                            <h2>Thông số kỹ thuật</h2>
-                                                                            <p>Thông số kỹ thuật chi tiết của sản phẩm</p>
-                                                                        </div>
-                                                                        <div class="probuild-specs-table-wrap">
-                                                                            <table class="probuild-specs-table">
-                                                                                <tbody>
-                                                                                    <c:forEach var="spec" items="${specifications}">
-                                                                                        <tr>
-                                                                                            <td class="probuild-item-name">${spec.specificationName}</td>
-                                                                                            <td class="probuild-item-value">${spec.specificationValue}</td>
-                                                                                        </tr>
-                                                                                    </c:forEach>
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </div>
+                                                                <div class="description-content-new">
+                                                                    <% if (product.getDescription() !=null && !product.getDescription().trim().isEmpty()) { %>
+                                                                        <p><%= product.getDescription() %></p>
+                                                                    <% } else { %>
+                                                                        <p>Chưa có mô tả cho sản phẩm này.</p>
+                                                                    <% } %>
+                                                                </div>
+
+                                                                <c:if test="${not empty specifications}">
+                                                                    <div class="specs-grid">
+                                                                        <c:forEach var="spec" items="${specifications}">
+                                                                            <div class="spec-card">
+                                                                                <div class="spec-icon">
+                                                                                    <i class="fa-solid fa-microchip"></i>
+                                                                                </div>
+                                                                                <div class="spec-info">
+                                                                                    <div class="spec-name">${spec.specificationName}</div>
+                                                                                    <div class="spec-value">${spec.specificationValue}</div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </c:forEach>
                                                                     </div>
-                                                                </section>
-                                                            </c:if>
+                                                                </c:if>
+                                                            </section>
 
                                                             <section class="similar-card">
                                                                 <div class="similar-header">
@@ -682,6 +626,22 @@
                                                                         });
                                                                     }
                                                                 });
+                                                                function increaseQty() {
+                                                                    var input = document.getElementById('quantityInput');
+                                                                    if(input && !input.disabled) {
+                                                                        var max = parseInt(input.dataset.maxQuantity || input.max || '1', 10);
+                                                                        var val = parseInt(input.value || 0, 10);
+                                                                        if (val < max) input.value = val + 1;
+                                                                    }
+                                                                }
+
+                                                                function decreaseQty() {
+                                                                    var input = document.getElementById('quantityInput');
+                                                                    if(input && !input.disabled) {
+                                                                        var val = parseInt(input.value || 0, 10);
+                                                                        if (val > 1) input.value = val - 1;
+                                                                    }
+                                                                }
                                                             </script>
 
                                                 </main>

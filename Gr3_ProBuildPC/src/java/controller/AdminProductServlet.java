@@ -412,7 +412,7 @@ public class AdminProductServlet extends HttpServlet {
             return false;
         }
 
-        if (productDAO.updateProduct(productId, productName, categoryId, brandId, price, description, imageUrl, specNames, specValues)) {
+        if (productDAO.updateProduct(productId, productName, categoryId, brandId, price, description, imageUrl, warrantyMonths, specNames, specValues)) {
             session.setAttribute("productSuccess", "Cập nhật sản phẩm thành công.");
             return true;
         } else {

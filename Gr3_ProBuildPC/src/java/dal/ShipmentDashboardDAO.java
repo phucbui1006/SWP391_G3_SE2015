@@ -14,6 +14,7 @@ import model.ShipmentDashboardView;
 
 public class ShipmentDashboardDAO extends DBContext {
 
+    // Lấy toàn bộ dữ liệu cần hiển thị cho Shipment Dashboard
     public ShipmentDashboardView getDashboard(Integer selectedStatusId, boolean todayOnly,
             int page, int pageSize) {
         List<OrderStatus> allStatuses = getOrderStatuses();
@@ -42,6 +43,7 @@ public class ShipmentDashboardDAO extends DBContext {
         return view;
     }
 
+    // Lấy danh sách tất cả trạng thái đơn hàng
     private List<OrderStatus> getOrderStatuses() {
         List<OrderStatus> statuses = new ArrayList<>();
         String sql = "SELECT status_id, status_name FROM orders_status ORDER BY status_id";
@@ -57,6 +59,7 @@ public class ShipmentDashboardDAO extends DBContext {
         return statuses;
     }
 
+    // Lấy danh sách đơn hàng theo điều kiện và phân trang
     private List<OrderHistoryItem> getOrders(Integer statusId, boolean todayOnly,
             int page, int pageSize, List<Integer> excludedStatusIds) {
         List<OrderHistoryItem> orders = new ArrayList<>();
@@ -106,6 +109,7 @@ public class ShipmentDashboardDAO extends DBContext {
         return orders;
     }
 
+    // Đếm số lượng đơn hàng theo điều kiện lọc
     private int countOrders(Integer statusId, boolean todayOnly, List<Integer> excludedStatusIds) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) AS total FROM orders o WHERE 1 = 1");
         List<Integer> params = new ArrayList<>();
@@ -122,6 +126,7 @@ public class ShipmentDashboardDAO extends DBContext {
         }
     }
 
+    // Thống kê số lượng đơn theo từng trạng thái
     private Map<Integer, Integer> getStatusCounts(List<OrderStatus> statuses,
             List<Integer> excludedStatusIds) {
         Map<Integer, Integer> counts = new LinkedHashMap<>();
@@ -157,6 +162,7 @@ public class ShipmentDashboardDAO extends DBContext {
         return counts;
     }
 
+    // Thêm các điều kiện lọc vào câu lệnh SQL
     private void appendDashboardFilters(StringBuilder sql, List<Integer> params,
             Integer statusId, boolean todayOnly, List<Integer> excludedStatusIds) {
         if (statusId != null) {
@@ -169,6 +175,7 @@ public class ShipmentDashboardDAO extends DBContext {
         }
     }
 
+    // Thêm điều kiện loại bỏ các trạng thái không hiển thị
     private void appendExcludedStatusFilter(StringBuilder sql, List<Integer> params,
             List<Integer> excludedStatusIds) {
         if (excludedStatusIds == null || excludedStatusIds.isEmpty()) {
@@ -185,6 +192,7 @@ public class ShipmentDashboardDAO extends DBContext {
         sql.append("))");
     }
 
+    // Gán danh sách tham số vào PreparedStatement
     private int setIntegerParameters(PreparedStatement ps, List<Integer> params) throws SQLException {
         int index = 1;
         for (Integer value : params) {
@@ -193,6 +201,7 @@ public class ShipmentDashboardDAO extends DBContext {
         return index;
     }
 
+    // Ánh xạ một dòng dữ liệu thành đối tượng OrderHistoryItem
     private OrderHistoryItem mapOrder(ResultSet rs) throws SQLException {
         OrderHistoryItem order = new OrderHistoryItem();
         order.setOrderId(rs.getInt("order_id"));
@@ -212,6 +221,7 @@ public class ShipmentDashboardDAO extends DBContext {
         return order;
     }
 
+    // Lọc các trạng thái được phép hiển thị trên Dashboard
     private List<OrderStatus> filterStatuses(List<OrderStatus> statuses) {
         List<OrderStatus> filtered = new ArrayList<>();
         for (OrderStatus status : statuses) {
@@ -222,6 +232,7 @@ public class ShipmentDashboardDAO extends DBContext {
         return filtered;
     }
 
+    // Lấy danh sách ID của các trạng thái cần loại bỏ
     private List<Integer> getExcludedStatusIds(List<OrderStatus> statuses) {
         List<Integer> ids = new ArrayList<>();
         for (OrderStatus status : statuses) {
@@ -232,6 +243,7 @@ public class ShipmentDashboardDAO extends DBContext {
         return ids;
     }
 
+    // Kiểm tra trạng thái được chọn có hợp lệ hay không
     private boolean containsStatus(Integer statusId, List<OrderStatus> statuses) {
         if (statusId == null) {
             return true;
@@ -244,6 +256,7 @@ public class ShipmentDashboardDAO extends DBContext {
         return false;
     }
 
+    // Kiểm tra trạng thái có thuộc nhóm cần loại bỏ hay không
     private boolean isExcludedStatus(OrderStatus status) {
         if (status == null || status.getStatusName() == null) {
             return false;

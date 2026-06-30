@@ -51,7 +51,7 @@ public class ForgotPasswordServlet extends HttpServlet {
         //String otp = generex.random();
         session.setAttribute("resetEmail", email);
         session.setAttribute("resetOtp", otp);
-        session.setAttribute("otpExpiredTime", System.currentTimeMillis() + 5 * 60 * 1000);
+        session.setAttribute("otpExpiredTime", System.currentTimeMillis() + 2 * 60 * 1000);
 
         System.out.println("OTP tao ra la: " + otp);
 

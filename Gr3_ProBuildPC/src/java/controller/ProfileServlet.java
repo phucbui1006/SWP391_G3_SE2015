@@ -13,7 +13,7 @@ import model.User;
 import java.io.IOException;
 
 @WebServlet("/updateProfile")
-public class UpdateProfileServlet extends HttpServlet {
+public class ProfileServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

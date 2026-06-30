@@ -61,7 +61,7 @@ public class RegisterServlet extends HttpServlet {
         session.setAttribute("regEmail", email);
         session.setAttribute("regPassword", password);
         session.setAttribute("regOtp", otp);
-        session.setAttribute("regOtpExpiredTime", System.currentTimeMillis() + 5 * 60 * 1000);
+        session.setAttribute("regOtpExpiredTime", System.currentTimeMillis() + 2 * 60 * 1000);
 
         System.out.println("Register OTP tạo ra là: " + otp);
 

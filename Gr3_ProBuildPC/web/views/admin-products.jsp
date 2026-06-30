@@ -217,6 +217,7 @@
                     <table class="admin-product-table">
                         <thead>
                             <tr>
+                                <th>#</th>
                                 <th>Ảnh</th>
                                 <th>Tên sản phẩm</th>
                                 <th>Danh mục</th>
@@ -230,7 +231,7 @@
                         <tbody>
                             <% if (products.isEmpty()) { %>
                             <tr>
-                                <td colspan="8" style="text-align:center; padding: 40px; color: #9ca3af;">
+                                <td colspan="9" style="text-align:center; padding: 40px; color: #9ca3af;">
                                     Không tìm thấy sản phẩm nào khớp với bộ lọc
                                 </td>
                             </tr>
@@ -242,6 +243,7 @@
                                     }
                                 %>
                                 <tr>
+                                    <td><%= p.getProductId() %></td>
                                     <td>
                                         <img src="<%= contextPath %>/<%= imgUrl %>" alt="<%= h(p.getProductName()) %>" class="table-product-img">
                                     </td>

@@ -148,7 +148,7 @@
                     <table class="admin-category-table">
                         <thead>
                             <tr>
-                                <th>Mã danh mục</th>
+                                <th>#</th>
                                 <th>Tên danh mục</th>
                                 <th>Trạng thái</th>
                                 <th>Số lượng sản phẩm</th>

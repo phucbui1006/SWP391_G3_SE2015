@@ -141,14 +141,14 @@
                         <button type="submit">Tìm kiếm</button>
                     </div>
 
-                    <a href="<%= contextPath %>/admin/category/add" class="btn-add-category">+ Thêm danh mục</a>
+                    <a href="#addCategoryModal" class="btn-add-category">+ Thêm danh mục</a>
                 </form>
 
                 <div class="table-wrapper">
                     <table class="admin-category-table">
                         <thead>
                             <tr>
-                                <th>Mã danh mục</th>
+                                <th>#</th>
                                 <th>Tên danh mục</th>
                                 <th>Trạng thái</th>
                                 <th>Số lượng sản phẩm</th>
@@ -181,8 +181,8 @@
                                         class="status-badge status-<%= c.getStatus().toLowerCase() %>">
                                         <%= "ACTIVE"
                                             .equalsIgnoreCase(c.getStatus())
-                                            ? "Đang hoạt động"
-                                            : "Vô hiệu hóa"
+                                            ? "ACTIVE"
+                                            : "INACTIVE"
                                         %>
                                     </span>
                                 </td>
@@ -194,8 +194,10 @@
                                     <div
                                         class="category-actions">
 
-                                        <a href="<%= contextPath %>/admin/category/edit?id=<%= c.getCategoryId() %>"
-                                           class="btn-edit">Sửa</a>
+                                        <a href="#editCategoryModal"
+                                           class="btn-edit"
+                                           data-id="<%= c.getCategoryId() %>"
+                                           data-name="<%= h(c.getCategoryName()) %>">Sửa</a>
 
                                         <form
                                             action="<%= contextPath %>/admin/categories"
@@ -227,8 +229,7 @@
                                                 value="<%= currentPage %>">
                                             <button
                                                 type="submit"
-                                                class="btn-delete"
-                                                onclick="return confirm('Bạn có chắc muốn đổi trạng thái danh mục này không?')">
+                                                class="btn-delete">
                                                 <%= "ACTIVE"
                                                     .equalsIgnoreCase(c.getStatus())
                                                     ? "Vô hiệu hóa"
@@ -285,7 +286,54 @@
                 </div>
             </section>
         </main>
-        <jsp:include page="/includes/footer.jsp" />
-    </body>
 
+        <!-- Add Category Modal Overlay -->
+        <div class="brand-modal-overlay" id="addCategoryModal">
+            <section class="brand-modal" role="dialog" aria-modal="true" aria-labelledby="addCategoryTitle">
+                <div class="brand-form-header">
+                    <h2 id="addCategoryTitle">Thêm danh mục mới</h2>
+                    <a href="#" aria-label="Đóng" class="btn-close-modal">×</a>
+                </div>
+
+                <form action="<%= contextPath %>/admin/categories" method="post" class="brand-modal-form" id="addCategoryForm" novalidate>
+                    <input type="hidden" name="action" value="add">
+
+                    <label for="addCategoryName">Tên danh mục <span>*</span></label>
+                    <input id="addCategoryName" name="categoryName" type="text" placeholder="VD: Card đồ họa, Bo mạch chủ, Nguồn máy tính..." minlength="2" maxlength="100" required>
+
+                    <div class="brand-form-actions">
+                        <a class="brand-secondary-button btn-close-modal" href="#">Hủy</a>
+                        <button class="brand-primary-button" type="submit">Lưu</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <!-- Edit Category Modal Overlay -->
+        <div class="brand-modal-overlay" id="editCategoryModal">
+            <section class="brand-modal" role="dialog" aria-modal="true" aria-labelledby="editCategoryTitle">
+                <div class="brand-form-header">
+                    <h2 id="editCategoryTitle">Sửa danh mục</h2>
+                    <a href="#" aria-label="Đóng" class="btn-close-modal">×</a>
+                </div>
+
+                <form action="<%= contextPath %>/admin/categories" method="post" class="brand-modal-form" id="editCategoryForm" novalidate>
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="categoryId" id="editCategoryId">
+
+                    <label for="editCategoryName">Tên danh mục <span>*</span></label>
+                    <input id="editCategoryName" name="categoryName" type="text" placeholder="VD: Card đồ họa" minlength="2" maxlength="100" required>
+
+                    <div class="brand-form-actions">
+                        <a class="brand-secondary-button btn-close-modal" href="#">Hủy</a>
+                        <button class="brand-primary-button" type="submit">Cập nhật</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <jsp:include page="/includes/footer.jsp" />
+        <script src="<%= contextPath %>/js/validator.js"></script>
+        <script src="<%= contextPath %>/js/admin-categories.js"></script>
+    </body>
 </html>

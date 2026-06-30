@@ -128,7 +128,13 @@ public class AdminCategoryServlet extends HttpServlet {
         } else if ("update".equalsIgnoreCase(action)) {
             handleUpdate(request, session);
         } else {
-            handleStatusChange(request, session);
+            boolean isSuccess = handleStatusChange(request, session);
+            if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("{\"success\": " + isSuccess + "}");
+                return;
+            }
             // Redirect back preserving filters
             String keyword = request.getParameter("keyword");
             String status = normalizeStatusFilter(request.getParameter("status"));
@@ -161,44 +167,63 @@ public class AdminCategoryServlet extends HttpServlet {
             return;
         }
 
-        newStatus = newStatus.toUpperCase();
-
         // Update category name
-        if (!categoryDAO.updateCategoryName(categoryId, categoryName)) {
-            session.setAttribute("categoryError", "Không thể cập nhật danh mục. Tên có thể đã tồn tại.");
-            return;
+        if (categoryName != null) {
+            if (!categoryDAO.updateCategoryName(categoryId, categoryName)) {
+                session.setAttribute("categoryError", "Không thể cập nhật danh mục. Tên có thể đã tồn tại.");
+                return;
+            }
         }
 
-        // Update category status
-        categoryDAO.updateCategoryStatus(categoryId, newStatus);
+        // Update category status if provided
+        if (newStatus != null) {
+            categoryDAO.updateCategoryStatus(categoryId, newStatus.toUpperCase());
+        }
 
         session.setAttribute("categorySuccess", "Cập nhật danh mục thành công.");
     }
 
-    private void handleStatusChange(HttpServletRequest request, HttpSession session) {
+    private boolean handleStatusChange(HttpServletRequest request, HttpSession session) {
         String categoryIdRaw = request.getParameter("categoryId");
         String action = request.getParameter("action");
+        boolean isAjax = "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
 
         try {
             int categoryId = Integer.parseInt(categoryIdRaw);
 
             if ("delete".equalsIgnoreCase(action)) {
                 if (categoryDAO.updateCategoryStatus(categoryId, "INACTIVE")) {
-                    session.setAttribute("categorySuccess", "Vô hiệu hóa danh mục thành công.");
+                    if (!isAjax) {
+                        session.setAttribute("categorySuccess", "Vô hiệu hóa danh mục thành công.");
+                    }
+                    return true;
                 } else {
-                    session.setAttribute("categoryError", "Không thể vô hiệu hóa danh mục.");
+                    if (!isAjax) {
+                        session.setAttribute("categoryError", "Không thể vô hiệu hóa danh mục.");
+                    }
+                    return false;
                 }
             } else if ("activate".equalsIgnoreCase(action)) {
                 if (categoryDAO.updateCategoryStatus(categoryId, "ACTIVE")) {
-                    session.setAttribute("categorySuccess", "Kích hoạt danh mục thành công.");
+                    if (!isAjax) {
+                        session.setAttribute("categorySuccess", "Kích hoạt danh mục thành công.");
+                    }
+                    return true;
                 } else {
-                    session.setAttribute("categoryError", "Không thể kích hoạt danh mục.");
+                    if (!isAjax) {
+                        session.setAttribute("categoryError", "Không thể kích hoạt danh mục.");
+                    }
+                    return false;
                 }
             }
 
         } catch (Exception e) {
-            session.setAttribute("categoryError", "Lỗi thao tác trên danh mục.");
+            if (!isAjax) {
+                session.setAttribute("categoryError", "Lỗi thao tác trên danh mục.");
+            }
+            return false;
         }
+        return false;
     }
 
     private Integer parseId(String value) {

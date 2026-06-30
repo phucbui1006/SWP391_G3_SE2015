@@ -98,6 +98,13 @@ public class AdminProductServlet extends HttpServlet {
             isSuccess = false;
         }
 
+        if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"success\": " + isSuccess + "}");
+            return;
+        }
+
         if (!isSuccess) {
             if ("add".equalsIgnoreCase(action) || "update".equalsIgnoreCase(action)) {
                 populatePageDataWithDefaults(request);
@@ -507,18 +514,25 @@ public class AdminProductServlet extends HttpServlet {
     //Thay đổi trạng thái sản phẩm
     private boolean handleStatusChange(HttpServletRequest request, HttpSession session, String newStatus) {
         Integer productId = parseId(request.getParameter("productId"));
+        boolean isAjax = "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
 
         if (productId == null) {
-            request.setAttribute("error", "Sản phẩm không hợp lệ.");
+            if (!isAjax) {
+                request.setAttribute("error", "Sản phẩm không hợp lệ.");
+            }
             return false;
         }
 
         if (productDAO.updateProductStatus(productId, newStatus)) {
-            String statusMsg = "ACTIVE".equals(newStatus) ? "Kích hoạt" : "Vô hiệu hóa";
-            session.setAttribute("productSuccess", statusMsg + " sản phẩm thành công.");
+            if (!isAjax) {
+                String statusMsg = "ACTIVE".equals(newStatus) ? "Kích hoạt" : "Vô hiệu hóa";
+                session.setAttribute("productSuccess", statusMsg + " sản phẩm thành công.");
+            }
             return true;
         } else {
-            request.setAttribute("error", "Không thể thay đổi trạng thái sản phẩm.");
+            if (!isAjax) {
+                request.setAttribute("error", "Không thể thay đổi trạng thái sản phẩm.");
+            }
             return false;
         }
     }

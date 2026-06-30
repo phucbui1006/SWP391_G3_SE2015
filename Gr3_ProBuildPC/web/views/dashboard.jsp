@@ -3,12 +3,6 @@
 <%@ page import="model.AdminDashboardView" %>
 <%@ page import="model.EmployeeDashboardView" %>
 <%@ page import="model.ShipmentDashboardView" %>
-<%@ page import="model.OrderHistoryItem" %>
-<%@ page import="model.OrderStatus" %>
-<%@ page import="model.WarrantyRequest" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="util.DashboardViewHelper" %>
 
 <%
@@ -359,15 +353,6 @@
 
                 <%
                     EmployeeDashboardView employeeDashboard = (EmployeeDashboardView) request.getAttribute("employeeDashboard");
-                    List<WarrantyRequest> employeeWarranties = employeeDashboard.getWarranties();
-                    List<OrderHistoryItem> employeeOrders = employeeDashboard.getOrders();
-                    int warrantyTotal = employeeDashboard.getWarrantyTotal();
-                    int waitingWarrantyCount = employeeDashboard.getWaitingWarrantyCount();
-                    int receivedWarrantyCount = employeeDashboard.getReceivedWarrantyCount();
-                    int orderTotal = employeeDashboard.getOrderTotal();
-                    int failedOrderCount = employeeDashboard.getFailedOrderCount();
-                    int cancelledOrderCount = employeeDashboard.getCancelledOrderCount();
-                    SimpleDateFormat employeeDateFormat = new SimpleDateFormat("dd/MM/yyyy");
                 %>
 
                 <div class="employee-dashboard">
@@ -380,65 +365,23 @@
                     </form>
 
                     <div class="employee-summary-grid" aria-label="Tổng quan công việc cần xử lý">
+                        <% for (EmployeeDashboardView.SummaryCard card : employeeDashboard.getSummaryCards()) { %>
                         <div class="employee-summary-card">
-                            <span class="summary-icon today"><i class="fa-solid fa-list-check"></i></span>
+                            <span class="summary-icon <%= card.getIconClass() %>"><i class="<%= card.getIcon() %>"></i></span>
                             <div class="summary-copy">
-                                <p class="summary-title">Công việc cần xử lý</p>
+                                <p class="summary-title"><%= card.getLabel() %></p>
                                 <div class="summary-value-row">
-                                    <span class="summary-number"><%= warrantyTotal + orderTotal %></span>
-                                    <span class="summary-unit">mục</span>
+                                    <span class="summary-number"><%= card.getValue() %></span>
+                                    <span class="summary-unit"><%= card.getUnit() %></span>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="employee-summary-card">
-                            <span class="summary-icon waiting"><i class="fa-regular fa-clock"></i></span>
-                            <div class="summary-copy">
-                                <p class="summary-title">Bảo hành chờ tiếp nhận</p>
-                                <div class="summary-value-row">
-                                    <span class="summary-number"><%= waitingWarrantyCount %></span>
-                                    <span class="summary-unit">yêu cầu</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="employee-summary-card">
-                            <span class="summary-icon received"><i class="fa-solid fa-inbox"></i></span>
-                            <div class="summary-copy">
-                                <p class="summary-title">Bảo hành đã tiếp nhận</p>
-                                <div class="summary-value-row">
-                                    <span class="summary-number"><%= receivedWarrantyCount %></span>
-                                    <span class="summary-unit">yêu cầu</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="employee-summary-card">
-                            <span class="summary-icon rejected"><i class="fa-solid fa-triangle-exclamation"></i></span>
-                            <div class="summary-copy">
-                                <p class="summary-title">Giao hàng thất bại</p>
-                                <div class="summary-value-row">
-                                    <span class="summary-number"><%= failedOrderCount %></span>
-                                    <span class="summary-unit">đơn</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="employee-summary-card">
-                            <span class="summary-icon cancelled"><i class="fa-solid fa-ban"></i></span>
-                            <div class="summary-copy">
-                                <p class="summary-title">Đơn hàng đã hủy</p>
-                                <div class="summary-value-row">
-                                    <span class="summary-number"><%= cancelledOrderCount %></span>
-                                    <span class="summary-unit">đơn</span>
-                                </div>
-                            </div>
-                        </div>
+                        <% } %>
                     </div>
 
                     <section class="employee-request-panel">
                         <div class="employee-panel-title-row">
-                            <h2 class="employee-request-title">Đơn bảo hành cần xử lý (<%= warrantyTotal %>)</h2>
+                            <h2 class="employee-request-title">Đơn bảo hành cần xử lý (<%= employeeDashboard.getWarrantyRows().size() %>)</h2>
                             <a href="<%= ctx %>/ManageWarranty">Xem dịch vụ bảo hành</a>
                         </div>
 
@@ -454,19 +397,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <% if (employeeWarranties.isEmpty()) { %>
+                                <% if (employeeDashboard.getWarrantyRows().isEmpty()) { %>
                                 <tr>
                                     <td colspan="6" class="employee-empty-row">Không có yêu cầu bảo hành chờ tiếp nhận trong khoảng thời gian này.</td>
                                 </tr>
                                 <% } %>
-                                <% for (WarrantyRequest warranty : employeeWarranties) { %>
+                                <% for (EmployeeDashboardView.WarrantyRow warranty : employeeDashboard.getWarrantyRows()) { %>
                                 <tr>
-                                    <td><a href="<%= ctx %>/ManageWarranty?action=edit&amp;warrantyId=<%= warranty.getWarrantyId() %>&amp;statusFilter=1">#<%= warranty.getWarrantyId() %></a></td>
-                                    <td><%= DashboardViewHelper.h(warranty.getCustomerName()) %></td>
-                                    <td><%= DashboardViewHelper.h(warranty.getProductName()) %></td>
-                                    <td><%= warranty.getRequestDate() == null ? "-" : employeeDateFormat.format(warranty.getRequestDate()) %></td>
-                                    <td><span class="request-status <%= warranty.getStatusId() == 1 ? "waiting" : "received" %>"><%= DashboardViewHelper.h(warranty.getStatusName()) %></span></td>
-                                    <td><a class="employee-row-action" href="<%= ctx %>/ManageWarranty?action=edit&amp;warrantyId=<%= warranty.getWarrantyId() %>&amp;statusFilter=1">Xem chi tiết</a></td>
+                                    <td><a href="<%= warranty.getDetailUrl() %>">#<%= warranty.getWarrantyId() %></a></td>
+                                    <td><%= warranty.getCustomerName() %></td>
+                                    <td><%= warranty.getProductName() %></td>
+                                    <td><%= warranty.getRequestDate() %></td>
+                                    <td><span class="request-status <%= warranty.getStatusClass() %>"><%= warranty.getStatus() %></span></td>
+                                    <td><a class="employee-row-action" href="<%= warranty.getDetailUrl() %>">Xem chi tiết</a></td>
                                 </tr>
                                 <% } %>
                             </tbody>
@@ -475,7 +418,7 @@
 
                     <section class="employee-request-panel">
                         <div class="employee-panel-title-row">
-                            <h2 class="employee-request-title">Đơn hàng cần xử lý (<%= orderTotal %>)</h2>
+                            <h2 class="employee-request-title">Đơn hàng cần xử lý (<%= employeeDashboard.getOrderRows().size() %>)</h2>
                             <a href="<%= ctx %>/order-history">Xem tất cả đơn hàng</a>
                         </div>
 
@@ -491,19 +434,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <% if (employeeOrders.isEmpty()) { %>
+                                <% if (employeeDashboard.getOrderRows().isEmpty()) { %>
                                 <tr>
                                     <td colspan="6" class="employee-empty-row">Không có đơn giao hàng thất bại trong khoảng thời gian này.</td>
                                 </tr>
                                 <% } %>
-                                <% for (OrderHistoryItem order : employeeOrders) { %>
+                                <% for (EmployeeDashboardView.OrderRow order : employeeDashboard.getOrderRows()) { %>
                                 <tr>
                                     <td>#<%= order.getOrderId() %></td>
-                                    <td><%= DashboardViewHelper.h(order.getCustomerName()) %></td>
-                                    <td><%= order.getOrderDate() == null ? "-" : employeeDateFormat.format(order.getOrderDate()) %></td>
-                                    <td><%= DashboardViewHelper.formatCurrency(order.getTotalAmount()) %></td>
-                                    <td><span class="request-status rejected"><%= DashboardViewHelper.h(order.getStatusName()) %></span></td>
-                                    <td><a class="employee-row-action" href="<%= ctx %>/order-history?statusId=<%= order.getStatusId() %>&selectedOrderId=<%= order.getOrderId() %>">Xem chi tiết</a></td>
+                                    <td><%= order.getCustomerName() %></td>
+                                    <td><%= order.getOrderDate() %></td>
+                                    <td><%= order.getTotalAmount() %></td>
+                                    <td><span class="request-status <%= order.getStatusClass() %>"><%= order.getStatus() %></span></td>
+                                    <td><a class="employee-row-action" href="<%= order.getDetailUrl() %>">Xem chi tiết</a></td>
                                 </tr>
                                 <% } %>
                             </tbody>
@@ -515,16 +458,6 @@
 
                 <%
                     ShipmentDashboardView shipmentDashboard = (ShipmentDashboardView) request.getAttribute("shipmentDashboard");
-                    List<OrderHistoryItem> shipmentOrders = shipmentDashboard.getOrders();
-                    List<OrderStatus> shipmentStatusOptions = shipmentDashboard.getStatusOptions();
-                    Map<Integer, Integer> shipmentStatusCounts = shipmentDashboard.getStatusCounts();
-                    Integer shipmentSelectedStatusId = shipmentDashboard.getSelectedStatusId();
-                    int shipmentPage = shipmentDashboard.getPage();
-                    int shipmentTotalPages = shipmentDashboard.getTotalPages();
-                    int shipmentTotalOrders = shipmentDashboard.getTotalOrders();
-                    int shipmentAllActiveCount = shipmentDashboard.getAllActiveCount();
-                    int shipmentTodayCount = shipmentDashboard.getTodayCount();
-                    boolean shipmentTodayOnly = shipmentDashboard.isTodayOnly();
                 %>
 
                 <div class="shipment-dashboard">
@@ -533,64 +466,32 @@
                     </div>
 
                     <div class="shipment-summary-grid" aria-label="Thống kê đơn hàng vận chuyển">
+                        <% for (ShipmentDashboardView.SummaryCard card : shipmentDashboard.getSummaryCards()) { %>
                         <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon all"><i class="fa-solid fa-boxes-stacked"></i></span>
+                            <span class="shipment-summary-icon <%= card.getIconClass() %>"><i class="<%= card.getIcon() %>"></i></span>
                             <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title">Tất cả đơn hàng</p>
+                                <p class="shipment-summary-title"><%= card.getLabel() %></p>
                                 <div class="shipment-summary-value-row">
-                                    <span class="shipment-summary-number"><%= shipmentAllActiveCount %></span>
+                                    <span class="shipment-summary-number"><%= card.getValue() %></span>
                                     <span class="shipment-summary-unit">đơn</span>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon today"><i class="fa-solid fa-calendar-check"></i></span>
-                            <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title">Đơn hàng hôm nay</p>
-                                <div class="shipment-summary-value-row">
-                                    <span class="shipment-summary-number"><%= shipmentTodayCount %></span>
-                                    <span class="shipment-summary-unit">đơn</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <% if (shipmentStatusOptions != null) {
-                            for (OrderStatus status : shipmentStatusOptions) {
-                                Integer countValue = shipmentStatusCounts == null ? null : shipmentStatusCounts.get(status.getStatusId());
-                        %>
-                        <div class="shipment-summary-card">
-                            <span class="shipment-summary-icon <%= DashboardViewHelper.statusClass(status.getStatusName()) %>"><i class="<%= DashboardViewHelper.statusIcon(status.getStatusName()) %>"></i></span>
-                            <div class="shipment-summary-copy">
-                                <p class="shipment-summary-title"><%= DashboardViewHelper.h(status.getStatusName()) %></p>
-                                <div class="shipment-summary-value-row">
-                                    <span class="shipment-summary-number"><%= countValue == null ? 0 : countValue %></span>
-                                    <span class="shipment-summary-unit">đơn</span>
-                                </div>
-                            </div>
-                        </div>
-                        <% }
-                        } %>
+                        <% } %>
                     </div>
 
                     <section class="shipment-order-panel">
                         <div class="shipment-order-header">
                             <div class="shipment-order-title-row">
                                 <h2 class="shipment-order-title">Danh sách đơn hàng vận chuyển</h2>
-                                <span style="background: none";><%= shipmentTotalOrders %> đơn phù hợp</span>
+                                <span style="background: none;"><%= shipmentDashboard.getTotalOrders() %> đơn phù hợp</span>
                             </div>
 
                             <div class="shipment-filter-tabs" aria-label="Lọc đơn hàng theo trạng thái">
-                                <a class="shipment-filter-tab <%= shipmentSelectedStatusId == null && !shipmentTodayOnly ? "active" : "" %>"
-                                   href="<%= DashboardViewHelper.buildShipmentLink(ctx, null, false, 1) %>">Tất cả</a>
-                                <a class="shipment-filter-tab <%= shipmentTodayOnly ? "active" : "" %>"
-                                   href="<%= DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, true, 1) %>">Hôm nay</a>
-                                <% if (shipmentStatusOptions != null) {
-                                    for (OrderStatus status : shipmentStatusOptions) { %>
-                                <a class="shipment-filter-tab <%= !shipmentTodayOnly && shipmentSelectedStatusId != null && shipmentSelectedStatusId == status.getStatusId() ? "active" : "" %>"
-                                   href="<%= DashboardViewHelper.buildShipmentLink(ctx, status.getStatusId(), false, 1) %>"><%= DashboardViewHelper.h(status.getStatusName()) %></a>
-                                <% }
-                                } %>
+                                <% for (ShipmentDashboardView.FilterTab tab : shipmentDashboard.getFilterTabs()) { %>
+                                <a class="shipment-filter-tab <%= tab.isActive() ? "active" : "" %>"
+                                   href="<%= tab.getUrl() %>"><%= tab.getLabel() %></a>
+                                <% } %>
                             </div>
                         </div>
 
@@ -604,43 +505,36 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <% if (shipmentOrders == null || shipmentOrders.isEmpty()) { %>
+                                <% if (shipmentDashboard.getOrderRows().isEmpty()) { %>
                                 <tr>
                                     <td colspan="4">
                                         <p class="shipment-empty-message">Không có đơn hàng nào ở bộ lọc hiện tại.</p>
                                     </td>
                                 </tr>
-                                <% } else {
-                                    for (OrderHistoryItem order : shipmentOrders) {
-                                        String displayStatus = DashboardViewHelper.defaultText(order.getDisplayStatus(), "Chưa cập nhật");
-                                %>
+                                <% } %>
+                                <% for (ShipmentDashboardView.OrderRow order : shipmentDashboard.getOrderRows()) { %>
                                 <tr>
+                                    <td><%= order.getOrderCode() %></td>
+                                    <td><%= order.getCustomerName() %></td>
+                                    <td><%= order.getShippingAddress() %></td>
                                     <td>
-                                        PB<%= order.getOrderId() %>
-                                    </td>
-                                    <td>
-                                        <%= DashboardViewHelper.h(DashboardViewHelper.defaultText(order.getRecipientName(), order.getCustomerName())) %>
-                                    </td>
-                                    <td><%= DashboardViewHelper.h(DashboardViewHelper.defaultText(order.getShippingAddress(), "Chưa cập nhật địa chỉ")) %></td>
-                                    <td>
-                                        <span class="shipment-status <%= DashboardViewHelper.statusClass(displayStatus) %>"><%= DashboardViewHelper.h(displayStatus) %></span>
+                                        <span class="shipment-status <%= order.getStatusClass() %>"><%= order.getStatus() %></span>
                                     </td>
                                 </tr>
-                                <% }
-                                } %>
+                                <% } %>
                             </tbody>
                         </table>
 
-                        <% if (shipmentTotalPages > 1) { %>
+                        <% if (shipmentDashboard.getTotalPages() > 1) { %>
                         <div class="shipment-pagination">
-                            <a class="<%= shipmentPage <= 1 ? "disabled" : "" %>"
-                               href="<%= shipmentPage <= 1 ? "#" : DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage - 1) %>">‹</a>
-                            <% for (int pageNumber = 1; pageNumber <= shipmentTotalPages; pageNumber++) { %>
-                            <a class="<%= pageNumber == shipmentPage ? "active" : "" %>"
-                               href="<%= DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, pageNumber) %>"><%= pageNumber %></a>
+                            <a class="<%= shipmentDashboard.getPage() <= 1 ? "disabled" : "" %>"
+                               href="<%= shipmentDashboard.getPreviousPageUrl() %>">‹</a>
+                            <% for (ShipmentDashboardView.PageLink pageLink : shipmentDashboard.getPageLinks()) { %>
+                            <a class="<%= pageLink.isActive() ? "active" : "" %>"
+                               href="<%= pageLink.getUrl() %>"><%= pageLink.getPageNumber() %></a>
                             <% } %>
-                            <a class="<%= shipmentPage >= shipmentTotalPages ? "disabled" : "" %>"
-                               href="<%= shipmentPage >= shipmentTotalPages ? "#" : DashboardViewHelper.buildShipmentLink(ctx, shipmentSelectedStatusId, shipmentTodayOnly, shipmentPage + 1) %>">›</a>
+                            <a class="<%= shipmentDashboard.getPage() >= shipmentDashboard.getTotalPages() ? "disabled" : "" %>"
+                               href="<%= shipmentDashboard.getNextPageUrl() %>">›</a>
                         </div>
                         <% } %>
                     </section>

@@ -24,6 +24,7 @@
     String ctx = request.getContextPath();
     String placeholder = "Tìm kiếm linh kiện...";
     String searchAction = ctx + "/categories";
+    String searchParamName = "keyword";
     String searchKeyword = request.getParameter("keyword");
 
     if (searchKeyword == null) {
@@ -66,12 +67,20 @@
             if ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) {
                 placeholder = "Tìm kiếm mã đơn hàng...";
                 searchAction = ctx + "/order-history";
+                searchParamName = "keyword";
             } else {
                 placeholder = "Tìm kiếm yêu cầu bảo hành...";
+                searchAction = ctx + "/ManageWarranty";
+                searchParamName = "search";
+                searchKeyword = request.getParameter("search");
+                if (searchKeyword == null) {
+                    searchKeyword = "";
+                }
             }
         } else if ("SHIPMENT".equals(roleName)) {
             placeholder = "Tìm kiếm mã đơn hàng...";
             searchAction = ctx + "/order-history";
+            searchParamName = "keyword";
         }
     } else {
         roleName = "CUSTOMER";
@@ -204,7 +213,7 @@
             <% if ("SHIPMENT".equals(roleName) && deliveryHistoryMode) { %>
             <input type="hidden" name="deliveryHistory" value="1">
             <% } %>
-            <input class="search-input" type="text" name="keyword" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
+            <input class="search-input" type="text" name="<%= searchParamName %>" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
             <button class="search-submit" type="submit">Tìm kiếm</button>
         </form>
         <% } %>

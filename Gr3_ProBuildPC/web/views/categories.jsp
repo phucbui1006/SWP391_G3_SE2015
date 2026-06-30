@@ -258,31 +258,13 @@
                                     </form>
                                 </div>
                             </article>
-
-                                                <c:choose>
-                                                    <c:when test="${p.quantity > 0}">
-                                                        <button type="submit" class="add-to-cart-btn" data-add-to-cart-btn data-product-name="${p.productName}" title="Thêm vào giỏ hàng">
-                                                            <i class="fa-solid fa-cart-shopping"></i>
-                                                        </button>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <button type="button" class="add-to-cart-btn" title="Sản phẩm tạm hết hàng" disabled>
-                                                            <i class="fa-solid fa-cart-shopping"></i>
-                                                        </button>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </form>
-                                        </div>
-                                    </article>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <div class="category-empty">
-                                    <h3>Chưa có sản phẩm trong danh mục này</h3>
-                                    <p>Vui lòng chọn danh mục khác.</p>
-                                </div>
-                            </c:otherwise>
-                        </c:choose>
+                            <% } %>
+                        <% } else { %>
+                            <div class="category-empty">
+                                <h3>Chưa có sản phẩm trong danh mục này</h3>
+                                <p>Vui lòng chọn danh mục khác.</p>
+                            </div>
+                        <% } %>
                     </div>
 
                     <div class="category-pagination">

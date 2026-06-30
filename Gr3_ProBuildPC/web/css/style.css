@@ -1105,7 +1105,7 @@ select {
 
 /* ==================== LOGIN / REGISTER / FORGOT PASSWORD ==================== */
 
-body:not(.home-page):not(.dashboard-body):not(.profile-body):not(.cart-page):not(.categories-page):not(.brands-page):not(.product-detail-body):not(.admin-brand-body):not(.shipping-address-page):not(.checkout-page):not(.account-management-body):not(.warranty-lookup-page):not(.order-history-body):not(.batch-page-body):not(.profile-page-body):not(.warranty-history-page) {
+body:not(.home-page):not(.dashboard-body):not(.profile-body):not(.cart-page):not(.categories-page):not(.brands-page):not(.product-detail-body):not(.admin-brand-body):not(.shipping-address-page):not(.checkout-page):not(.account-management-body):not(.warranty-lookup-page):not(.order-history-body):not(.batch-page-body):not(.profile-page-body):not(.warranty-history-page):not(.revenue-body) {
     background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
         url('../images/background.jpg') no-repeat center center fixed;
     background-size: cover;
@@ -10117,4 +10117,4 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
 .product-rating .fa-regular.fa-star {
     color: #111827; 
-}
+}

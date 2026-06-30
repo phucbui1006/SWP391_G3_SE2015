@@ -2216,6 +2216,7 @@ body.home-page .sidebar,
 body.home-page .service-row,
 body.home-page .filter-row,
 body.home-page .product-card,
+body.categories-page .product-card,
 body.brands-page .product-card {
     border: 1px solid #e4e8f0;
     border-radius: 7px;
@@ -2517,6 +2518,7 @@ body.home-page .home-empty-message {
 }
 
 body.home-page .product-card,
+body.categories-page .product-card,
 body.brands-page .product-card {
     min-height: 252px;
     position: relative;
@@ -2527,6 +2529,7 @@ body.brands-page .product-card {
 }
 
 body.home-page .product-card figure,
+body.categories-page .product-card figure,
 body.brands-page .product-card figure {
     height: 112px;
     margin: 0 0 14px;
@@ -2535,6 +2538,7 @@ body.brands-page .product-card figure {
 }
 
 body.home-page .product-card img,
+body.categories-page .product-card img,
 body.brands-page .product-card img {
     max-width: 100%;
     max-height: 108px;
@@ -2566,6 +2570,7 @@ body.home-page .wish-btn {
 }
 
 body.home-page .product-card h3,
+body.categories-page .product-card h3,
 body.brands-page .product-card h3 {
     min-height: 42px;
     margin: 0 0 10px;
@@ -2576,6 +2581,7 @@ body.brands-page .product-card h3 {
 }
 
 body.home-page .product-card strong,
+body.categories-page .product-card strong,
 body.brands-page .product-card strong {
     margin-top: auto;
     color: #e60000;
@@ -2584,6 +2590,7 @@ body.brands-page .product-card strong {
 }
 
 body.home-page .product-stock,
+body.categories-page .product-stock,
 body.brands-page .product-stock {
     margin: 8px 0 0;
     font-size: 12px;
@@ -2592,16 +2599,19 @@ body.brands-page .product-stock {
 }
 
 body.home-page .product-stock.in-stock,
+body.categories-page .product-stock.in-stock,
 body.brands-page .product-stock.in-stock {
     color: #15803d;
 }
 
 body.home-page .product-stock.out-of-stock,
+body.categories-page .product-stock.out-of-stock,
 body.brands-page .product-stock.out-of-stock {
     color: #dc2626;
 }
 
 body.home-page .product-actions,
+body.categories-page .product-actions,
 body.brands-page .product-actions {
     margin-top: 13px;
     display: grid;
@@ -2611,6 +2621,8 @@ body.brands-page .product-actions {
 
 body.home-page .product-actions a,
 body.home-page .product-actions button,
+body.categories-page .product-actions a,
+body.categories-page .product-actions button,
 body.brands-page .product-actions a,
 body.brands-page .product-actions button {
     height: 34px;
@@ -2625,32 +2637,38 @@ body.brands-page .product-actions button {
 }
 
 body.home-page .product-actions .cart-form,
+body.categories-page .product-actions .cart-form,
 body.brands-page .product-actions .cart-form {
     margin: 0;
 }
 
 body.home-page .product-actions .cart-form button,
+body.categories-page .product-actions .cart-form button,
 body.brands-page .product-actions .cart-form button {
     width: 34px;
 }
 
 body.home-page .product-actions button,
+body.categories-page .product-actions button,
 body.brands-page .product-actions button {
     cursor: pointer;
 }
 
 body.home-page .product-actions button:disabled,
+body.categories-page .product-actions button:disabled,
 body.brands-page .product-actions button:disabled {
     opacity: 0.45;
     cursor: not-allowed;
 }
 
 body.home-page .product-actions .cart-btn,
+body.categories-page .product-actions .cart-btn,
 body.brands-page .product-actions .cart-btn {
     transition: transform 0.18s ease, opacity 0.18s ease, color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
 }
 
 body.home-page .product-actions .cart-btn.is-adding,
+body.categories-page .product-actions .cart-btn.is-adding,
 body.brands-page .product-actions .cart-btn.is-adding {
     opacity: 0.72;
     pointer-events: none;
@@ -2658,6 +2676,7 @@ body.brands-page .product-actions .cart-btn.is-adding {
 }
 
 body.home-page .product-actions .cart-btn.is-added,
+body.categories-page .product-actions .cart-btn.is-added,
 body.brands-page .product-actions .cart-btn.is-added {
     color: #15803d;
     border-color: #86efac;

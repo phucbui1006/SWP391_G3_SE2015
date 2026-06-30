@@ -6,6 +6,7 @@
 <%@ page import="model.Product" %>
 <%@ page import="model.Category" %>
 <%@ page import="model.Brand" %>
+<%@ page import="model.CategorySpecTemplate" %>
 
 <%!
     private String h(String value) {
@@ -57,6 +58,12 @@
     String failedAction = (String) request.getAttribute("failedAction");
     Integer enteredProductId = (Integer) request.getAttribute("enteredProductId");
     String enteredCurrentImg = (String) request.getAttribute("enteredCurrentImg");
+
+    // Spec templates and entered spec values for server-side re-rendering
+    List<CategorySpecTemplate> specTemplates = (List<CategorySpecTemplate>) request.getAttribute("specTemplates");
+    String[] enteredSpecNames = (String[]) request.getAttribute("enteredSpecNames");
+    String[] enteredSpecValues = (String[]) request.getAttribute("enteredSpecValues");
+    if (specTemplates == null) specTemplates = Collections.emptyList();
 
     if (products == null) {
         products = Collections.emptyList();
@@ -110,10 +117,10 @@
         <meta charset="UTF-8">
         <title>Quản lý sản phẩm - ProBuild PC</title>
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
-        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css?v=1.0.1"><!-- comment -->        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
-    <body class="admin-product-body">
+    <body class="admin-product-body" data-ctx="<%= contextPath %>">
 
         <jsp:include page="/includes/header.jsp" />
 
@@ -134,9 +141,11 @@
             <div class="product-alert success"><%= h(success) %></div>
             <% } %>
 
+            <%-- 
             <% if (error != null && !error.isEmpty() && failedAction == null) { %>
             <div class="product-alert error"><%= h(error) %></div>
             <% } %>
+            --%>
 
             <section class="admin-product-card">
                 <!-- Search & Filters Toolbar -->
@@ -189,6 +198,7 @@
                                 <option value="price_desc" <%= "price_desc".equals(sort) ? "selected" : "" %>>Giá giảm dần</option>
                                 <option value="qty_asc" <%= "qty_asc".equals(sort) ? "selected" : "" %>>Số lượng tăng dần</option>
                                 <option value="qty_desc" <%= "qty_desc".equals(sort) ? "selected" : "" %>>Số lượng giảm dần</option>
+                                <option value="bestSeller" <%= "bestSeller".equals(sort) ? "selected" : "" %>>Bán chạy nhất</option>
                             </select>
                         </div>
 
@@ -212,7 +222,7 @@
                                 <th>Danh mục</th>
                                 <th>Thương hiệu</th>
                                 <th>Giá bán</th>
-                                <th>Kho hàng</th>
+                                <th>Số lượng</th>
                                 <th>Trạng thái</th>
                                 <th>Thao tác</th>
                             </tr>
@@ -300,7 +310,7 @@
                         <% if (currentPage > 1) { %>
                         <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage - 1 %><%= listQuery %>">&lsaquo;</a>
                         <% } else { %>
-                        <span class="page-btn disabled">&lsaquo;</span>
+                        <span class="page-btn disabled"><</span>
                         <% } %>
 
                         <% for (int i = 1; i <= totalPages; i++) { %>
@@ -310,7 +320,7 @@
                         <% if (currentPage < totalPages) { %>
                         <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage + 1 %><%= listQuery %>">&rsaquo;</a>
                         <% } else { %>
-                        <span class="page-btn disabled">&rsaquo;</span>
+                        <span class="page-btn disabled">></span>
                         <% } %>
                     </div>
                 </div>
@@ -328,6 +338,10 @@
                 <form action="<%= contextPath %>/admin/products" method="post" enctype="multipart/form-data" class="product-modal-form" id="addProductForm" novalidate>
                     <input type="hidden" name="action" value="add">
                     
+                    <% if ("add".equals(failedAction) && error != null && !error.isEmpty()) { %>
+                    <div class="product-alert error" style="margin: 0 0 12px 0;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i><%= h(error) %></div>
+                    <% } %>
+
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="addProductName">Tên sản phẩm <span>*</span></label>
@@ -372,17 +386,63 @@
                         <div class="form-group">
                             <label for="addImageFile">Hình ảnh sản phẩm</label>
                             <input id="addImageFile" name="imgFile" type="file" accept=".jpg,.jpeg,.png,.webp">
+                            <input type="hidden" name="currentImg" id="addCurrentImg" value="<%= "add".equals(failedAction) && request.getAttribute("enteredCurrentImg") != null ? h((String)request.getAttribute("enteredCurrentImg")) : "" %>">
                             <small class="image-hint">Tối đa 2MB | Hỗ trợ .png, .jpg, .jpeg, .webp</small>
                             <small class="form-error-text" id="addImageFileError"></small>
-                            <% if ("add".equals(failedAction) && error != null && !error.isEmpty()) { %>
-                            <small class="form-error-text" style="display:block; color:#ef4444;"><%= h(error) %></small>
-                            <% } %>
+
+                            <div class="current-image-preview" id="addImgPreviewContainer" style="margin-top:8px; <%= ("add".equals(failedAction) && request.getAttribute("enteredCurrentImg") != null) ? "display:block;" : "display:none;" %>">
+                                <small>Ảnh đã tải lên:</small><br>
+                                <img id="addImgPreview" src="<%= contextPath %>/<%= ("add".equals(failedAction) && request.getAttribute("enteredCurrentImg") != null) ? h((String)request.getAttribute("enteredCurrentImg")) : "" %>" alt="Thumbnail" style="height: 50px; border-radius: 4px; border: 1px solid #4b5563; margin-top:4px;">
+                            </div>
+                        </div>
+
+                        <!-- Button to load technical specifications -->
+                        <div class="form-group full-width">
+                            <button type="button" id="addSpecBtn" class="btn-load-specs" style="display: <%= ("add".equals(failedAction) && enteredCategoryId != null) ? "inline-flex" : "none" %>;">
+                                <i class="fa-solid fa-gear"></i> Lựa chọn thông số kĩ thuật
+                            </button>
                         </div>
 
                         <!-- Dynamic Category Specific specifications container -->
-                        <div class="form-group full-width" id="dynamicSpecsContainer" style="display: none; border: 1px solid #e5e7eb; padding: 16px; border-radius: 6px; background-color: #fafbfe;">
+                        <div class="form-group full-width" id="dynamicSpecsContainer" style="display: <%= ("add".equals(failedAction) && !specTemplates.isEmpty()) ? "block" : "none" %>; border: 1px solid #e5e7eb; padding: 16px; border-radius: 6px; background-color: #fafbfe;">
                             <h3 style="font-size: 14px; font-weight: 700; margin: 0 0 12px 0; color: #111827;">Thông số kỹ thuật theo danh mục</h3>
-                            <div id="dynamicSpecsFields" class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 15px; display: grid;"></div>
+                            <div id="dynamicSpecsFields" class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 15px; display: grid;">
+                                <% if ("add".equals(failedAction) && !specTemplates.isEmpty()) {
+                                    for (CategorySpecTemplate t : specTemplates) {
+                                        // Find the corresponding entered value
+                                        String enteredVal = "";
+                                        if (enteredSpecNames != null && enteredSpecValues != null) {
+                                            for (int si = 0; si < enteredSpecNames.length && si < enteredSpecValues.length; si++) {
+                                                if (t.getSpecName().equalsIgnoreCase(enteredSpecNames[si])) {
+                                                    enteredVal = enteredSpecValues[si] != null ? enteredSpecValues[si] : "";
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                %>
+                                <div class="form-group">
+                                    <label><%= h(t.getSpecName()) %> <% if (t.isRequired()) { %><span>*</span><% } %></label>
+                                    <input type="hidden" name="spec_names[]" value="<%= h(t.getSpecName()) %>">
+                                    <% if ("SELECT".equalsIgnoreCase(t.getSpecType()) && t.getAllowedValues() != null) {
+                                        String[] specOptions = t.getAllowedValues().split(",");
+                                    %>
+                                    <select name="spec_values[]" <%= t.isRequired() ? "required" : "" %>>
+                                        <option value="">-- Chọn <%= h(t.getSpecName()) %> --</option>
+                                        <% for (String optItem : specOptions) {
+                                            String optTrimmed = optItem.trim();
+                                        %>
+                                        <option value="<%= h(optTrimmed) %>" <%= optTrimmed.equals(enteredVal) ? "selected" : "" %>><%= h(optTrimmed) %></option>
+                                        <% } %>
+                                    </select>
+                                    <% } else if ("NUMBER".equalsIgnoreCase(t.getSpecType())) { %>
+                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="0" <%= t.isRequired() ? "required" : "" %>>
+                                    <% } else { %>
+                                    <input type="text" name="spec_values[]" placeholder="Nhập thông tin..." value="<%= h(enteredVal) %>" <%= t.isRequired() ? "required" : "" %>>
+                                    <% } %>
+                                    <small class="form-error-text"></small>
+                                </div>
+                                <% } } %>
+                            </div>
                         </div>
 
                         <div class="form-group full-width">
@@ -412,6 +472,10 @@
                     <input type="hidden" name="productId" id="editProductId" value="<%= "update".equals(failedAction) && enteredProductId != null ? enteredProductId : "" %>">
                     <input type="hidden" name="currentImg" id="editCurrentImg" value="<%= "update".equals(failedAction) && enteredCurrentImg != null ? h(enteredCurrentImg) : "" %>">
                     
+                    <% if ("update".equals(failedAction) && error != null && !error.isEmpty()) { %>
+                    <div class="product-alert error" style="margin: 0 0 12px 0;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i><%= h(error) %></div>
+                    <% } %>
+
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="editProductName">Tên sản phẩm <span>*</span></label>
@@ -456,9 +520,7 @@
                             <input id="editImageFile" name="imgFile" type="file" accept=".jpg,.jpeg,.png,.webp">
                             <small class="image-hint">Tối đa 2MB | Bỏ trống nếu giữ ảnh cũ</small>
                             <small class="form-error-text" id="editImageFileError"></small>
-                            <% if ("update".equals(failedAction) && error != null && !error.isEmpty()) { %>
-                            <small class="form-error-text" style="display:block; color:#ef4444;"><%= h(error) %></small>
-                            <% } %>
+
                             <div class="current-image-preview" id="editImgPreviewContainer" style="margin-top:8px; display:none;">
                                 <small>Ảnh hiện tại:</small><br>
                                 <img id="editImgPreview" src="" alt="Thumbnail" style="height: 50px; border-radius: 4px; border: 1px solid #4b5563; margin-top:4px;">
@@ -468,6 +530,54 @@
                         <div class="form-group full-width">
                             <label for="editDescription">Mô tả chi tiết</label>
                             <textarea id="editDescription" name="description" rows="4"><%= "update".equals(failedAction) ? h(enteredDescription) : "" %></textarea>
+                        </div>
+
+                        <!-- Button to load technical specifications for edit -->
+                        <div class="form-group full-width">
+                            <button type="button" id="editSpecBtn" class="btn-load-specs" style="display: inline-flex;">
+                                <i class="fa-solid fa-gear"></i> Lựa chọn thông số kĩ thuật
+                            </button>
+                        </div>
+
+                        <!-- Dynamic specifications container for edit -->
+                        <div class="form-group full-width" id="editDynamicSpecsContainer" style="display: <%= ("update".equals(failedAction) && !specTemplates.isEmpty()) ? "block" : "none" %>; border: 1px solid #e5e7eb; padding: 16px; border-radius: 6px; background-color: #fafbfe;">
+                            <h3 style="font-size: 14px; font-weight: 700; margin: 0 0 12px 0; color: #111827;">Thông số kỹ thuật theo danh mục</h3>
+                            <div id="editDynamicSpecsFields" class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 15px; display: grid;">
+                                <% if ("update".equals(failedAction) && !specTemplates.isEmpty()) {
+                                    for (CategorySpecTemplate t : specTemplates) {
+                                        String enteredVal = "";
+                                        if (enteredSpecNames != null && enteredSpecValues != null) {
+                                            for (int si = 0; si < enteredSpecNames.length && si < enteredSpecValues.length; si++) {
+                                                if (t.getSpecName().equalsIgnoreCase(enteredSpecNames[si])) {
+                                                    enteredVal = enteredSpecValues[si] != null ? enteredSpecValues[si] : "";
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                %>
+                                <div class="form-group">
+                                    <label><%= h(t.getSpecName()) %> <% if (t.isRequired()) { %><span>*</span><% } %></label>
+                                    <input type="hidden" name="spec_names[]" value="<%= h(t.getSpecName()) %>">
+                                    <% if ("SELECT".equalsIgnoreCase(t.getSpecType()) && t.getAllowedValues() != null) {
+                                        String[] specOptions = t.getAllowedValues().split(",");
+                                    %>
+                                    <select name="spec_values[]" <%= t.isRequired() ? "required" : "" %>>
+                                        <option value="">-- Chọn <%= h(t.getSpecName()) %> --</option>
+                                        <% for (String optItem : specOptions) {
+                                            String optTrimmed = optItem.trim();
+                                        %>
+                                        <option value="<%= h(optTrimmed) %>" <%= optTrimmed.equals(enteredVal) ? "selected" : "" %>><%= h(optTrimmed) %></option>
+                                        <% } %>
+                                    </select>
+                                    <% } else if ("NUMBER".equalsIgnoreCase(t.getSpecType())) { %>
+                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="0" <%= t.isRequired() ? "required" : "" %>>
+                                    <% } else { %>
+                                    <input type="text" name="spec_values[]" placeholder="Nhập thông tin..." value="<%= h(enteredVal) %>" <%= t.isRequired() ? "required" : "" %>>
+                                    <% } %>
+                                    <small class="form-error-text"></small>
+                                </div>
+                                <% } } %>
+                            </div>
                         </div>
                     </div>
 
@@ -479,378 +589,63 @@
             </section>
         </div>
 
-        <!-- QUICK EDIT PRICE MODAL -->
-        <div class="product-modal-overlay" id="price-product-modal">
-            <section class="product-modal price-modal-size" role="dialog" aria-modal="true" aria-labelledby="priceTitle">
-                <div class="product-modal-header">
-                    <h2 id="priceTitle"><i class="fa-solid fa-coins"></i> Cập nhật giá bán</h2>
-                    <a href="#" class="close-btn" aria-label="Đóng">&times;</a>
-                </div>
-
-                <form action="<%= contextPath %>/admin/products" method="post" class="product-modal-form" id="priceProductForm" novalidate>
-                    <input type="hidden" name="action" value="updatePrice">
-                    <input type="hidden" name="productId" id="priceProductId">
-
-                    <!-- Preserving filters to return back to exact state -->
-                    <input type="hidden" name="keyword" value="<%= h(keyword) %>">
-                    <input type="hidden" name="categoryId" value="<%= selectedCategoryId != null ? selectedCategoryId : "" %>">
-                    <input type="hidden" name="brandId" value="<%= selectedBrandId != null ? selectedBrandId : "" %>">
-                    <input type="hidden" name="status" value="<%= h(status) %>">
-                    <input type="hidden" name="sort" value="<%= h(sort) %>">
-                    <input type="hidden" name="page" value="<%= currentPage %>">
-
-                    <div class="form-group">
-                        <label>Sản phẩm:</label>
-                        <strong id="priceProductName" style="display:block; margin: 6px 0 15px 0; color: #f3f4f6; font-size:1.1rem;"></strong>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="quickPriceVal">Giá bán mới (VND) <span>*</span></label>
-                        <input id="quickPriceVal" name="price" type="number" min="0" step="1000" placeholder="Nhập giá mới..." required>
-                        <small class="form-error-text" id="quickPriceError"></small>
-                    </div>
-
-                    <div class="product-modal-actions">
-                        <a class="btn-secondary" href="#">Hủy</a>
-                        <button class="btn-primary" type="submit"><i class="fa-solid fa-check"></i> Cập nhật giá</button>
-                    </div>
-                </form>
-            </section>
-        </div>
-
+      
         <jsp:include page="/includes/footer.jsp" />
 
+        <script src="<%= contextPath %>/js/admin-products.js"></script>
+
+        <% if (failedAction != null && !failedAction.isEmpty()) { %>
         <script>
-            // Modal Open Helpers to populate inputs dynamically
-            function openAddModal() {
-                document.getElementById("addProductForm").reset();
-                clearFormErrors("addProductForm");
-                // Re-enable submit button in case it was disabled from prior invalid attempt
-                var addSubmit = document.querySelector("#addProductForm button[type='submit']");
-                if (addSubmit) addSubmit.disabled = false;
-            }
-
-            function openPriceModal(productId, productName, currentPrice) {
-                clearFormErrors("priceProductForm");
-                document.getElementById("priceProductId").value = productId;
-                document.getElementById("priceProductName").textContent = productName;
-                document.getElementById("quickPriceVal").value = currentPrice;
-            }
-
-            function openEditModal(productId, productName, categoryId, brandId, price, warrantyMonths, description, currentImgUrl) {
-                clearFormErrors("editProductForm");
-                document.getElementById("editProductId").value = productId;
-                document.getElementById("editProductName").value = productName;
-                document.getElementById("editCategory").value = categoryId;
-                document.getElementById("editBrand").value = brandId;
-                document.getElementById("editPrice").value = price;
-                document.getElementById("editWarrantyMonths").value = warrantyMonths;
-                document.getElementById("editDescription").value = description;
-                document.getElementById("editCurrentImg").value = currentImgUrl;
-
-                var previewContainer = document.getElementById("editImgPreviewContainer");
-                var previewImg = document.getElementById("editImgPreview");
-                if (currentImgUrl && currentImgUrl.trim() !== "") {
-                    previewImg.src = "<%= contextPath %>/" + currentImgUrl;
-                    previewContainer.style.display = "block";
-                } else {
-                    previewContainer.style.display = "none";
-                }
-
-                // Re-enable submit button in case it was disabled from prior invalid attempt
-                var editSubmit = document.querySelector("#editProductForm button[type='submit']");
-                if (editSubmit) editSubmit.disabled = false;
-            }
-
-            function clearFormErrors(formId) {
-                var form = document.getElementById(formId);
-                if (form) {
-                    form.querySelectorAll(".form-error-text").forEach(function(el) {
-                        el.textContent = "";
-                        el.style.display = "none";
-                    });
-                }
-            }
-
-            // JavaScript Media & Input Validations
-            document.addEventListener("DOMContentLoaded", function () {
-                // Dynamic specs generation based on Category
-                var addCategorySelect = document.getElementById("addCategory");
-                if (addCategorySelect) {
-                    addCategorySelect.addEventListener("change", function () {
-                        var categoryId = this.value;
-                        var container = document.getElementById("dynamicSpecsContainer");
-                        var fieldsDiv = document.getElementById("dynamicSpecsFields");
-                        
-                        if (!categoryId) {
-                            container.style.display = "none";
-                            fieldsDiv.innerHTML = "";
-                            return;
-                        }
-                        
-                        // Call Servlet using AJAX
-                        fetch("<%= contextPath %>/GetCategoryTemplates?categoryId=" + categoryId)
-                            .then(function(response) {
-                                return response.json();
-                            })
-                            .then(function(data) {
-                                fieldsDiv.innerHTML = "";
-                                if (data.length === 0) {
-                                    container.style.display = "none";
-                                    return;
-                                }
-                                
-                                container.style.display = "block";
-                                data.forEach(function(template) {
-                                    var formGroup = document.createElement("div");
-                                    formGroup.className = "form-group";
-                                    
-                                    var label = document.createElement("label");
-                                    label.innerHTML = template.specName + (template.isRequired ? " <span>*</span>" : "");
-                                    formGroup.appendChild(label);
-                                    
-                                    // Hidden field for spec name
-                                    var hiddenName = document.createElement("input");
-                                    hiddenName.type = "hidden";
-                                    hiddenName.name = "spec_names[]";
-                                    hiddenName.value = template.specName;
-                                    formGroup.appendChild(hiddenName);
-                                    
-                                    // Spec value input based on type
-                                    var inputElement;
-                                    if (template.specType === "SELECT") {
-                                        inputElement = document.createElement("select");
-                                        inputElement.name = "spec_values[]";
-                                        
-                                        var defaultOpt = document.createElement("option");
-                                        defaultOpt.value = "";
-                                        defaultOpt.textContent = "-- Chọn " + template.specName + " --";
-                                        inputElement.appendChild(defaultOpt);
-                                        
-                                        if (template.allowedValues) {
-                                            var options = template.allowedValues.split(",");
-                                            options.forEach(function(optVal) {
-                                                var opt = document.createElement("option");
-                                                opt.value = optVal.trim();
-                                                opt.textContent = optVal.trim();
-                                                inputElement.appendChild(opt);
-                                            });
-                                        }
-                                    } else if (template.specType === "NUMBER") {
-                                        inputElement = document.createElement("input");
-                                        inputElement.type = "number";
-                                        inputElement.name = "spec_values[]";
-                                        inputElement.placeholder = "Nhập số lượng/thông số...";
-                                    } else {
-                                        inputElement = document.createElement("input");
-                                        inputElement.type = "text";
-                                        inputElement.name = "spec_values[]";
-                                        inputElement.placeholder = "Nhập thông tin...";
-                                    }
-                                    
-                                    if (template.isRequired) {
-                                        inputElement.required = true;
-                                    }
-                                    
-                                    formGroup.appendChild(inputElement);
-                                    fieldsDiv.appendChild(formGroup);
-                                });
-                            })
-                            .catch(function(err) {
-                                console.error("Error fetching specifications:", err);
-                            });
-                    });
-                }
-
-                // Function to validate file input immediately on selection
-                function setupImageValidation(inputId, formId, errorId) {
-                    var fileInput = document.getElementById(inputId);
-                    var form = document.getElementById(formId);
-                    var errorEl = document.getElementById(errorId);
-                    if (!fileInput || !form || !errorEl) return;
-
-                    var submitBtn = form.querySelector("button[type='submit']");
-
-                    fileInput.addEventListener("change", function () {
-                        var file = this.files[0];
-                        if (!file) {
-                            errorEl.textContent = "";
-                            errorEl.style.display = "none";
-                            if (submitBtn) submitBtn.disabled = false;
-                            return;
-                        }
-
-                        // 1. Extension validation (case-insensitive)
-                        var allowedExtensions = [".png", ".jpg", ".jpeg", ".webp"];
-                        var fileName = file.name;
-                        var fileExtension = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
-                        var isExtensionValid = allowedExtensions.indexOf(fileExtension) !== -1;
-
-                        // 2. Size validation (max 2MB = 2097152 bytes)
-                        var maxSize = 2097152;
-                        var isSizeValid = file.size <= maxSize;
-
-                        if (!isExtensionValid || !isSizeValid) {
-                            var errorMsg = "";
-                            if (!isExtensionValid) {
-                                errorMsg = "Định dạng file không hợp lệ. Chỉ chấp nhận các đuôi .png, .jpg, .jpeg, .webp (không phân biệt chữ hoa/thường).";
-                            } else {
-                                errorMsg = "Dung lượng file vượt quá 2MB. Vui lòng chọn ảnh nhỏ hơn.";
-                            }
-
-                            // Immediate Error Feedback
-                            errorEl.textContent = errorMsg;
-                            errorEl.style.display = "block";
-                            
-                            // State Reset
-                            this.value = ""; // Clear/reset the file input value
-                            
-                            if (submitBtn) submitBtn.disabled = true; // Disable submit button
-                        } else {
-                            // Clear error and enable submit button
-                            errorEl.textContent = "";
-                            errorEl.style.display = "none";
-                            if (submitBtn) submitBtn.disabled = false;
-                        }
-                    });
-                }
-
-                setupImageValidation("addImageFile", "addProductForm", "addImageFileError");
-                setupImageValidation("editImageFile", "editProductForm", "editImageFileError");
-
-                // Trim search field on submission
-                var searchForm = document.getElementById("adminProductSearchForm");
-                if (searchForm) {
-                    searchForm.addEventListener("submit", function () {
-                        var inp = document.getElementById("productSearchInput");
-                        if (inp) {
-                            inp.value = inp.value.trim();
-                        }
-                    });
-                }
-
-                // Setup Validation for Add Form
-                var addForm = document.getElementById("addProductForm");
-                if (addForm) {
-                    addForm.addEventListener("submit", function (e) {
-                        if (!validateProductForm("addProductForm", true)) {
-                            e.preventDefault();
-                        }
-                    });
-                }
-
-                // Setup Validation for Edit Form
-                var editForm = document.getElementById("editProductForm");
-                if (editForm) {
-                    editForm.addEventListener("submit", function (e) {
-                        if (!validateProductForm("editProductForm", false)) {
-                            e.preventDefault();
-                        }
-                    });
-                }
-
-                // Setup Validation for Quick Price Form
-                var priceForm = document.getElementById("priceProductForm");
-                if (priceForm) {
-                    priceForm.addEventListener("submit", function (e) {
-                        var priceInp = document.getElementById("quickPriceVal");
-                        var errorEl = document.getElementById("quickPriceError");
-                        var val = parseFloat(priceInp.value);
-
-                        if (isNaN(val) || val < 0) {
-                            e.preventDefault();
-                            errorEl.textContent = "Giá bán phải là số và không nhỏ hơn 0.";
-                            errorEl.style.display = "block";
-                            priceInp.focus();
-                        } else {
-                            errorEl.style.display = "none";
-                        }
-                    });
-                }
-
-                function validateProductForm(formId, isNew) {
-                    var form = document.getElementById(formId);
-                    var isValid = true;
-
-                    // 1. Validate Product Name
-                    var nameInp = form.querySelector("input[name='productName']");
-                    var nameErr = form.querySelector("#" + nameInp.id + "Error");
-                    var nameVal = nameInp.value.trim();
-                    nameInp.value = nameVal;
-
-                    if (nameVal.length < 3 || nameVal.length > 255) {
-                        nameErr.textContent = "Tên sản phẩm phải từ 3 đến 255 ký tự.";
-                        nameErr.style.display = "block";
-                        if (isValid) nameInp.focus();
-                        isValid = false;
-                    } else {
-                        nameErr.style.display = "none";
-                    }
-
-                    // 2. Validate Category
-                    var catInp = form.querySelector("select[name='categoryId']");
-                    var catErr = form.querySelector("#" + catInp.id + "Error");
-                    if (catInp.value === "") {
-                        catErr.textContent = "Vui lòng chọn danh mục.";
-                        catErr.style.display = "block";
-                        if (isValid) catInp.focus();
-                        isValid = false;
-                    } else {
-                        catErr.style.display = "none";
-                    }
-
-                    // 3. Validate Brand
-                    var brandInp = form.querySelector("select[name='brandId']");
-                    var brandErr = form.querySelector("#" + brandInp.id + "Error");
-                    if (brandInp.value === "") {
-                        brandErr.textContent = "Vui lòng chọn thương hiệu.";
-                        brandErr.style.display = "block";
-                        if (isValid) brandInp.focus();
-                        isValid = false;
-                    } else {
-                        brandErr.style.display = "none";
-                    }
-
-                    // 4. Validate Price
-                    var priceInp = form.querySelector("input[name='price']");
-                    var priceErr = form.querySelector("#" + priceInp.id + "Error");
-                    var priceVal = parseFloat(priceInp.value);
-                    if (isNaN(priceVal) || priceVal < 0) {
-                        priceErr.textContent = "Giá bán phải là số và không nhỏ hơn 0.";
-                        priceErr.style.display = "block";
-                        if (isValid) priceInp.focus();
-                        isValid = false;
-                    } else {
-                        priceErr.style.display = "none";
-                    }
-
-                    return isValid;
-                }
-            });
-        </script>
-
-        <!-- Restore modal state on backend validation failures -->
-        <% if (error != null && !error.isEmpty() && failedAction != null) { %>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                var action = "<%= failedAction %>";
+            // Auto-open the correct modal when the servlet forwards back on validation failure
+            (function() {
+                var action = "<%= h(failedAction) %>";
                 if (action === "add") {
-                    window.location.hash = "#add-product-modal";
+                    window.location.hash = "add-product-modal";
                 } else if (action === "update") {
-                    var failedProductId = "<%= enteredProductId != null ? enteredProductId : "" %>";
-                    if (failedProductId) {
-                        openEditModal(
-                            failedProductId,
-                            "<%= h(enteredProductName) %>",
-                            "<%= enteredCategoryId %>",
-                            "<%= enteredBrandId %>",
-                            "<%= h(enteredPrice) %>",
-                            "<%= h(enteredDescription) %>",
-                            "<%= enteredCurrentImg != null ? h(enteredCurrentImg) : "" %>"
-                        );
-                        window.location.hash = "#edit-product-modal";
-                    }
+                    window.location.hash = "edit-product-modal";
                 }
+            })();
+
+            // Map and display backend validation errors to their inputs inline
+            document.addEventListener("DOMContentLoaded", function() {
+                var action = "<%= h(failedAction) %>";
+                var prefix = action === "add" ? "add" : "edit";
+                
+                var fieldMapping = {
+                    "productName": prefix + "ProductName",
+                    "categoryId": prefix + "Category",
+                    "brandId": prefix + "Brand",
+                    "price": prefix + "Price",
+                    "warrantyMonths": prefix + "WarrantyMonths",
+                    "imgFile": prefix + "ImageFile"
+                };
+
+                <% 
+                    java.util.Map<String, String> backendErrors = (java.util.Map<String, String>) request.getAttribute("errors");
+                    if (backendErrors != null && !backendErrors.isEmpty()) {
+                        for (java.util.Map.Entry<String, String> entry : backendErrors.entrySet()) {
+                %>
+                            var fieldKey = "<%= h(entry.getKey()) %>";
+                            var errMsg = "<%= h(entry.getValue()) %>";
+                            var inputId = fieldMapping[fieldKey];
+                            if (inputId) {
+                                var inp = document.getElementById(inputId);
+                                if (inp) {
+                                    inp.classList.add("is-invalid");
+                                    var parent = inp.closest(".form-group");
+                                    if (parent) {
+                                        var errText = parent.querySelector(".form-error-text");
+                                        if (errText) {
+                                            errText.textContent = errMsg;
+                                            errText.style.display = "block";
+                                        }
+                                    }
+                                }
+                            }
+                <% 
+                        }
+                    } 
+                %>
             });
         </script>
         <% } %>

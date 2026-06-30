@@ -18,7 +18,7 @@
                     <label for="password">Mật khẩu mới</label>
 
                     <div class="input-group">
-                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu mới (8-31 ký tự, có hoa, thường và số)" required minlength="8" maxlength="31">
+                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu mới (8-31 ký tự, có hoa, thường và số)">
                     </div>
                 </div>
 
@@ -26,7 +26,7 @@
                     <label for="confirmPassword">Xác nhận mật khẩu</label>
 
                     <div class="input-group">
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Xác nhận mật khẩu" required minlength="8" maxlength="31">
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Xác nhận mật khẩu">
                     </div>
                 </div>
 

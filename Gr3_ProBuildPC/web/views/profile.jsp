@@ -87,7 +87,7 @@
                         <label for="fullName">Họ tên</label>
                         <div class="profile-input-box">
                             <input type="text" id="fullName" name="fullName"
-                                   value="<%= fullNameDynamic %>" required>
+                                   value="<%= fullNameDynamic %>">
                             <i class="fa-solid fa-user"></i>
                         </div>
                     </div>

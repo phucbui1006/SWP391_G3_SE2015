@@ -49,17 +49,15 @@
             <!-- Dynamic Statistics Counters via JSTL -->
             <c:set var="totalCount" value="0"/>
             <c:set var="pendingCount" value="0"/>
-            <c:set var="processingCount" value="0"/>
-            <c:set var="completedCount" value="0"/>
             <c:set var="rejectedCount" value="0"/>
+            <c:set var="acceptedCount" value="0"/>
 
             <c:forEach var="w" items="${adminWarrantyList}">
                 <c:set var="totalCount" value="${totalCount + 1}"/>
                 <c:choose>
                     <c:when test="${w.statusId == 1}"><c:set var="pendingCount" value="${pendingCount + 1}"/></c:when>
-                    <c:when test="${w.statusId == 2}"><c:set var="processingCount" value="${processingCount + 1}"/></c:when>
-                    <c:when test="${w.statusId == 3}"><c:set var="rejectedCount" value="${rejectedCount + 1}"/></c:when>
-                    <c:when test="${w.statusId == 4}"><c:set var="completedCount" value="${completedCount + 1}"/></c:when>
+                    <c:when test="${w.statusId == 2}"><c:set var="rejectedCount" value="${rejectedCount + 1}"/></c:when>
+                    <c:when test="${w.statusId == 3}"><c:set var="acceptedCount" value="${acceptedCount + 1}"/></c:when>
                 </c:choose>
             </c:forEach>
 
@@ -75,12 +73,11 @@
                             value="<c:out value="${searchQuery}"/>"
                         >
 
-                        <select name="statusFilter" onchange="this.form.submit()">
-                            <option value="" ${empty statusFilterId ? 'selected' : ''}>Tất cả trạng thái</option>
-                            <option value="1" ${statusFilterId == 1 ? 'selected' : ''}>Chờ tiếp nhận (Pending)</option>
-                            <option value="2" ${statusFilterId == 2 ? 'selected' : ''}>Đã tiếp nhận (Processing)</option>
-                            <option value="3" ${statusFilterId == 3 ? 'selected' : ''}>Từ chối (Rejected)</option>
-                            <option value="4" ${statusFilterId == 4 ? 'selected' : ''}>Hoàn tất (Completed)</option>
+                        <select name="statusId" onchange="this.form.submit()">
+                            <option value="" ${empty param.statusId ? 'selected' : ''}>Tất cả trạng thái</option>
+                            <option value="1" ${param.statusId == '1' ? 'selected' : ''}>Chờ tiếp nhận</option>
+                            <option value="2" ${param.statusId == '2' ? 'selected' : ''}>Từ chối</option>
+                            <option value="3" ${param.statusId == '3' ? 'selected' : ''}>Chấp nhận</option>
                         </select>
 
                         <button type="submit">Tìm kiếm</button>
@@ -129,6 +126,11 @@
                                                         <div style="margin-top: 6px; font-size: 12px; color: #2b8a3e; font-weight: 500;">
                                                             Phản hồi: <fmt:formatDate value="${item.responseDate}" pattern="dd/MM/yyyy HH:mm" />
                                                         </div>
+                                                        <c:if test="${not empty item.response}">
+                                                            <div style="margin-top: 4px; font-size: 12px; color: #495057; font-style: italic;">
+                                                                Nội dung: "<c:out value="${item.response}"/>"
+                                                            </div>
+                                                        </c:if>
                                                     </c:if>
                                                 </div>
                                             </td>
@@ -205,7 +207,7 @@
                             <span><c:out value="${condItem.brandName}"/> / <c:out value="${condItem.categoryName}"/></span>
                         </div>
                         <div class="info-item">
-                            <label>Ngày mua hàng</label>
+                            <label>Ngày nhận hàng</label>
                             <span><fmt:formatDate value="${condItem.orderDate}" pattern="dd/MM/yyyy" /></span>
                         </div>
                         <div class="info-item">
@@ -243,6 +245,11 @@
                                             <c:if test="${not empty hist.responseDate}">
                                                 <div class="timeline-response">
                                                     <strong>Phản hồi ngày:</strong> <fmt:formatDate value="${hist.responseDate}" pattern="dd/MM/yyyy HH:mm" />
+                                                    <c:if test="${not empty hist.response}">
+                                                        <div style="margin-top: 4px; font-weight: 500;">
+                                                            Nội dung: "<c:out value="${hist.response}"/>"
+                                                        </div>
+                                                    </c:if>
                                                 </div>
                                             </c:if>
                                         </li>
@@ -265,7 +272,7 @@
         <c:if test="${sessionScope.account.roleName == 'EMPLOYEE'}">
             <div id="editModal" class="modal-overlay ${not empty editWarranty ? 'active' : ''}">
                 <div class="modal-card">
-                    <form action="${ctx}/ManageWarranty" method="post">
+                    <form id="edit-warranty-form" action="${ctx}/ManageWarranty" method="post">
                         <input type="hidden" name="search" value="<c:out value="${searchQuery}"/>">
                         <input type="hidden" name="statusFilter" value="<c:out value="${statusFilterId}"/>">
                         
@@ -291,11 +298,16 @@
                             <div class="form-group">
                                 <label for="editStatusId">Thay đổi trạng thái</label>
                                 <select id="editStatusId" name="statusId" class="filter-select" required>
-                                    <option value="1" ${editWarranty.statusId == 1 ? 'selected' : ''}>Chờ tiếp nhận (Pending)</option>
-                                    <option value="2" ${editWarranty.statusId == 2 ? 'selected' : ''}>Đã tiếp nhận (Processing)</option>
-                                    <option value="3" ${editWarranty.statusId == 3 ? 'selected' : ''}>Từ chối (Rejected)</option>
-                                    <option value="4" ${editWarranty.statusId == 4 ? 'selected' : ''}>Hoàn tất (Completed)</option>
+                                    <option value="1" ${editWarranty.statusId == 1 ? 'selected' : ''}>Chờ tiếp nhận</option>
+                                    <option value="2" ${editWarranty.statusId == 2 ? 'selected' : ''}>Từ chối</option>
+                                    <option value="3" ${editWarranty.statusId == 3 ? 'selected' : ''}>Chấp nhận</option>
                                 </select>
+                            </div>
+
+                            <!-- Response Textarea -->
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label for="editResponse">Phản hồi của cửa hàng</label>
+                                <textarea id="editResponse" name="response" class="filter-select" style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; resize: vertical;" required><c:out value="${editWarranty.response}"/></textarea>
                             </div>
 
                         </div>
@@ -309,5 +321,8 @@
         </c:if>
 
         <jsp:include page="/includes/footer.jsp" />
+        
+        <script src="${ctx}/js/validator.js"></script>
+        <script src="${ctx}/js/warranty.js"></script>
     </body>
 </html>

@@ -25,8 +25,8 @@ public class RegisterServlet extends HttpServlet {
 
         String fullName = safeTrim(request.getParameter("fullName"));
         String email = safeTrim(request.getParameter("email"));
-        String password = safeTrim(request.getParameter("password"));
-        String confirmPassword = safeTrim(request.getParameter("confirmPassword"));
+        String password = request.getParameter("password");
+        String confirmPassword = request.getParameter("confirmPassword");
 
         UserDAO dao = new UserDAO();
         if (dao.checkEmailExist(email)) {

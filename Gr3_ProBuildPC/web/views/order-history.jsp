@@ -223,7 +223,7 @@
         } else if (isEmployee) {
             selectedCanUpdateShipment = (selectedOrder.getStatusId() == 7);
         } else {
-            selectedCanUpdateShipment = true;
+            selectedCanUpdateShipment = false;
         }
     }
     String selectedStatusIdValue = selectedStatusId == null ? null : String.valueOf(selectedStatusId);
@@ -243,6 +243,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý d hàng") %></title>
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
+        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
+        <script src="${pageContext.request.contextPath}/js/order-history.js"></script>
     </head>
     <body class="order-history-body">
         <jsp:include page="/includes/header.jsp" />
@@ -259,18 +261,22 @@
                     <h1><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý giao hàng") %></h1>
                     <p><%= isCustomerView ? "Theo dõi và quản lý các đơn hàng của bạn" : (deliveryHistoryMode ? "Các đơn hàng đã hoàn thành giao hàng" : "Theo dõi đơn hàng và trạng thái vận chuyển") %></p>
                 </div>
-                <form class="order-history-filter" action="<%= ctx %>/order-history" method="get">
+                <form class="order-history-filter" action="<%= ctx %>/order-history" method="get" onsubmit="return validateOrderSearch()">
                     <% if (deliveryHistoryMode) { %>
                     <input type="hidden" name="deliveryHistory" value="1">
                     <% } %>
-                    <input type="search" name="keyword" value="<%= h(keyword) %>" placeholder="Tìm mã đơn hàng">
+                    <input type="search" id="searchKeyword" name="keyword" value="<%= h(keyword) %>" placeholder="Tìm mã đơn hàng" maxlength="100">
                     <% if (!deliveryHistoryMode) { %>
                     <select name="statusId">
                         <option value="">Tất cả trạng thái</option>
                         <% for (OrderStatus status : statusOptions) { %>
                         <% if (canManageShipment && isDeliveredShipmentStatus(status.getStatusName())) {
                                 continue;
-                            } %>
+                            } 
+                           if (!isCustomerView && (status.getStatusId() == 1 || status.getStatusId() == 3)) {
+                                continue;
+                            }
+                        %>
                         <option value="<%= status.getStatusId() %>" <%= selectedStatusId != null && selectedStatusId == status.getStatusId() ? "selected" : "" %>>
                             <%= h(status.getStatusName()) %>
                         </option>
@@ -425,7 +431,7 @@
                             }
                         }
                     %>
-                    <form class="shipment-update-form status-only" action="<%= ctx %>/order-history" method="post">
+                    <form class="shipment-update-form status-only" action="<%= ctx %>/order-history" method="post" onsubmit="return validateShipmentUpdateForm(this)">
                         <input type="hidden" name="action" value="updateShipmentStatus">
                         <input type="hidden" name="orderId" value="<%= selectedOrder.getOrderId() %>">
                         <input type="hidden" name="keyword" value="<%= h(keyword) %>">
@@ -455,7 +461,7 @@
                         </label>
                         <label>
                             <span>Số điện thoại người giao hàng</span>
-                            <input type="tel" name="deliveryPhone" value="<%= h(currentDeliveryPhone) %>" required>
+                            <input type="tel" name="deliveryPhone" value="<%= h(currentDeliveryPhone) %>" pattern="0[35789][0-9]{8}" title="Số điện thoại phải là mạng di động hợp lệ (bắt đầu bằng 03, 05, 07, 08, 09) và có 10 chữ số" required>
                         </label>
                         <button type="submit">Cập nhật</button>
                     </form>
@@ -703,6 +709,18 @@
                         document.querySelectorAll(".order-modal-backdrop:not([hidden])").forEach(closeModal);
                     }
                 });
+
+                window.validateOrderSearch = function() {
+                    const searchInput = document.getElementById('searchKeyword');
+                    if (searchInput && searchInput.value.trim() !== '') {
+                        if (!Validator.validateSearchQuery(searchInput.value)) {
+                            alert('Từ khóa tìm kiếm không hợp lệ hoặc chứa ký tự đặc biệt.');
+                            searchInput.focus();
+                            return false;
+                        }
+                    }
+                    return true;
+                };
 
                 // --- LOGIC ĐÁNH GIÁ SẢN PHẨM ---
                 const starRatingPicker = document.querySelector(".star-rating-picker");

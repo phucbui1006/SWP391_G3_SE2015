@@ -20,7 +20,9 @@ import model.User;
 
 @WebServlet(name = "AdminBrandServlet", urlPatterns = {"/AdminBrands"})
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024
+        fileSizeThreshold = 1024 * 1024, // 1MB
+        maxFileSize = 2 * 1024 * 1024, // File tối đa 5MB
+        maxRequestSize = 20 * 1024 * 1024 // Tổng request tối đa 20MB
 )
 public class AdminBrandServlet extends HttpServlet {
 

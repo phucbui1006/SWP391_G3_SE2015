@@ -114,60 +114,12 @@ public class OrderHistoryServlet extends HttpServlet {
             return;
         }
 
-        if (!canManageShipment(account)) {
-            session.setAttribute(ERROR_FLASH, "Tai khoan khong co quyen cap nhat trang thai giao hang.");
-            response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, null));
-            return;
-        }
-
-        if (!"updateShipmentStatus".equals(action) || orderId == null) {
-            session.setAttribute(ERROR_FLASH, "Thao tac cap nhat khong hop le.");
-            response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
-            return;
-        }
-
         Integer shipmentStatusId = parsePositiveInteger(request.getParameter("shipmentStatusId"));
-        if (shipmentStatusId == null) {
-            session.setAttribute(ERROR_FLASH, "Trang thai giao hang khong hop le.");
-            response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
-            return;
-        }
-
-        if (isShipment(account)) {
-            // Shipper can only set to 4 (Đang giao hàng), 5 (Đã giao hàng), 7 (Giao hàng thất bại)
-            if (shipmentStatusId != 4 && shipmentStatusId != 5 && shipmentStatusId != 7) {
-                session.setAttribute(ERROR_FLASH, "Shipper chỉ được phép cập nhật thành: Đang giao hàng, Đã giao hàng, hoặc Giao hàng thất bại.");
-                response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
-                return;
-            }
-        }
-
         String deliveryName = normalizeText(request.getParameter("deliveryName"));
         String deliveryPhone = normalizeText(request.getParameter("deliveryPhone"));
-        if (deliveryName == null || deliveryPhone == null) {
-            session.setAttribute(ERROR_FLASH, "Vui long nhap ten va so dien thoai nguoi giao hang.");
-            response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
-            return;
-        }
-
         String shipmentNote = "Người giao hàng: " + deliveryName + " - SĐT: " + deliveryPhone;
 
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
-        
-        if (isEmployee(account) && !isAdmin(account) && !isShipment(account)) {
-            String currentStatusName = orderHistoryDAO.findCurrentOrderStatusName(orderId);
-            if (currentStatusName == null || !currentStatusName.trim().equalsIgnoreCase("Giao hàng thất bại")) {
-                session.setAttribute(ERROR_FLASH, "Nhân viên chỉ được phép cập nhật đơn hàng khi trạng thái hiện tại là Giao hàng thất bại.");
-                response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
-                return;
-            }
-            if (shipmentStatusId != 2 && shipmentStatusId != 6) {
-                session.setAttribute(ERROR_FLASH, "Nhân viên chỉ được phép cập nhật sang Đã xác nhận hoặc Đã hủy.");
-                response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
-                return;
-            }
-        }
-
         if (orderHistoryDAO.updateShipmentStatus(orderId, shipmentStatusId, shipmentNote, isShipment(account))) {
             session.setAttribute(SUCCESS_FLASH, "Cap nhat trang thai giao hang thanh cong.");
             session.setAttribute("lastDeliveryPhone", deliveryPhone);
@@ -249,7 +201,7 @@ public class OrderHistoryServlet extends HttpServlet {
     }
 
     private boolean canManageShipment(User account) {
-        return isShipment(account) || isAdmin(account) || isEmployee(account);
+        return isShipment(account) || isEmployee(account);
     }
 
     private boolean isAdmin(User account) {

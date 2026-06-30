@@ -7,7 +7,7 @@ public class DashboardSummary {
     private int totalOrders;
     private int activeProducts;
     private int totalBrands;
-    private int warrantyRequests;
+    private int acceptedWarrantyRequests;
     private int importedBatches;
 
     public DashboardSummary() {
@@ -45,12 +45,12 @@ public class DashboardSummary {
         this.totalBrands = totalBrands;
     }
 
-    public int getWarrantyRequests() {
-        return warrantyRequests;
+    public int getAcceptedWarrantyRequests() {
+        return acceptedWarrantyRequests;
     }
 
-    public void setWarrantyRequests(int warrantyRequests) {
-        this.warrantyRequests = warrantyRequests;
+    public void setAcceptedWarrantyRequests(int acceptedWarrantyRequests) {
+        this.acceptedWarrantyRequests = acceptedWarrantyRequests;
     }
 
     public int getImportedBatches() {

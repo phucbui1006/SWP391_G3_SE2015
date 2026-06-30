@@ -14,7 +14,9 @@ import java.io.IOException;
 import util.ValidatorUtil;
 
 @WebFilter(filterName = "AdminValidationFilter", urlPatterns = {
-    "/AdminBrands"
+    "/AdminBrands",
+    "/admin/categories",
+    "/BatchServlet"
 })
 public class AdminValidationFilter implements Filter {
 
@@ -44,6 +46,10 @@ public class AdminValidationFilter implements Filter {
 
         if ("/AdminBrands".equalsIgnoreCase(path)) {
             isValid = validateBrand(req, res);
+        } else if ("/admin/categories".equalsIgnoreCase(path)) {
+            isValid = validateCategory(req, res);
+        } else if ("/BatchServlet".equalsIgnoreCase(path)) {
+            isValid = validateBatch(req, res);
         }
 
         if (isValid) {
@@ -86,5 +92,75 @@ public class AdminValidationFilter implements Filter {
 
     private String getBrandImageError(boolean imageRequired) {
         return imageRequired ? BRAND_IMAGE_ADD_ERROR : BRAND_IMAGE_UPDATE_ERROR;
+    }
+
+
+
+    private boolean validateCategory(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        String action = req.getParameter("action");
+        if (!"add".equalsIgnoreCase(action) && !"update".equalsIgnoreCase(action)) {
+            return true;
+        }
+
+        String categoryName = req.getParameter("categoryName");
+        String error = null;
+
+        if (categoryName == null || categoryName.trim().length() < 2 || categoryName.trim().length() > 100) {
+            error = "Tên danh mục phải từ 2 đến 100 ký tự.";
+        }
+
+        if ("update".equalsIgnoreCase(action) && error == null) {
+            String newStatus = req.getParameter("status");
+            if (newStatus == null || (!"ACTIVE".equalsIgnoreCase(newStatus.trim()) && !"INACTIVE".equalsIgnoreCase(newStatus.trim()))) {
+                error = "Trạng thái không hợp lệ.";
+            }
+        }
+
+        if (error != null) {
+            req.getSession().setAttribute("categoryError", error);
+            res.sendRedirect(req.getContextPath() + "/admin/categories");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validateBatch(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        String action = req.getParameter("action");
+        if (!"addBatch".equalsIgnoreCase(action) && !"updateBatch".equalsIgnoreCase(action)) {
+            return true;
+        }
+
+        String batchName = req.getParameter("batchName");
+        String dateRaw = req.getParameter("date");
+        String error = null;
+
+        if (batchName == null || batchName.trim().isEmpty() || dateRaw == null || dateRaw.trim().isEmpty()) {
+            error = "Vui lòng nhập đầy đủ tên lô hàng và ngày nhập.";
+        } else if (!batchName.trim().matches("^[\\p{L}\\p{N}\\s]+$")) {
+            error = "Tên lô hàng không được chứa kí tự đặc biệt";
+        } else {
+            try {
+                java.sql.Date inputDate = java.sql.Date.valueOf(dateRaw);
+                java.sql.Date currentDate = java.sql.Date.valueOf(java.time.LocalDate.now());
+                if (inputDate.after(currentDate)) {
+                    error = "Ngày nhập lô hàng không được lớn hơn ngày hiện tại.";
+                }
+            } catch (IllegalArgumentException e) {
+                error = "Ngày nhập không hợp lệ.";
+            }
+        }
+
+        if (error != null) {
+            req.setAttribute("error", error);
+            // Must forward to keep other data loaded in servlet, but this is a filter.
+            // Normally batch validation might forward back, but BatchServlet loads data before forwarding.
+            // We'll redirect with error in session or simply use session flash message.
+            req.getSession().setAttribute("batchError", error);
+            res.sendRedirect(req.getContextPath() + "/BatchServlet");
+            return false;
+        }
+
+        return true;
     }
 }

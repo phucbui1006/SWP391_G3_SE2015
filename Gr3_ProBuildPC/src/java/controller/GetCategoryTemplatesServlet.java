@@ -22,6 +22,7 @@ public class GetCategoryTemplatesServlet extends HttpServlet {
         response.setContentType("application/json;charset=UTF-8");
         
         String categoryIdRaw = request.getParameter("categoryId");
+        String productIdRaw = request.getParameter("productId");
         PrintWriter out = response.getWriter();
         
         if (categoryIdRaw == null || categoryIdRaw.trim().isEmpty()) {
@@ -31,7 +32,15 @@ public class GetCategoryTemplatesServlet extends HttpServlet {
         
         try {
             int categoryId = Integer.parseInt(categoryIdRaw);
-            List<CategorySpecTemplate> templates = categoryDAO.getTemplatesByCategoryId(categoryId);
+            Integer productId = null;
+            if (productIdRaw != null && !productIdRaw.trim().isEmpty()) {
+                try {
+                    productId = Integer.parseInt(productIdRaw.trim());
+                } catch (NumberFormatException e) {
+                    productId = null;
+                }
+            }
+            List<CategorySpecTemplate> templates = categoryDAO.getTemplatesWithValues(categoryId, productId);
             
             StringBuilder sb = new StringBuilder();
             sb.append("[");
@@ -44,7 +53,8 @@ public class GetCategoryTemplatesServlet extends HttpServlet {
                 sb.append("\"specType\":\"").append(escapeJson(t.getSpecType())).append("\",");
                 sb.append("\"allowedValues\":\"").append(escapeJson(t.getAllowedValues())).append("\",");
                 sb.append("\"isRequired\":").append(t.isRequired()).append(",");
-                sb.append("\"displayOrder\":").append(t.getDisplayOrder());
+                sb.append("\"displayOrder\":").append(t.getDisplayOrder()).append(",");
+                sb.append("\"specValue\":\"").append(escapeJson(t.getSpecValue())).append("\"");
                 sb.append("}");
                 if (i < templates.size() - 1) {
                     sb.append(",");

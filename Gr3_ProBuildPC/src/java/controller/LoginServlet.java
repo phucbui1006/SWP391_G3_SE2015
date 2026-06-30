@@ -35,13 +35,7 @@ public class LoginServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         String email = safeTrim(request.getParameter("email"));
-        String password = safeTrim(request.getParameter("password"));
-
-        if (email.isEmpty() || password.isEmpty()) {
-            request.setAttribute("error", "Email va mat khau khong duoc de trong!");
-            request.getRequestDispatcher("/views/login.jsp").forward(request, response);
-            return;
-        }
+        String password = request.getParameter("password");
 
         UserDAO dao = new UserDAO();
         User user = dao.login(email, password);

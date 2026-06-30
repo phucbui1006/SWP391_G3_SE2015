@@ -11,7 +11,8 @@ const Validator = {
         password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,31}$/,
         otp: /^\d{6}$/,
         name: /^[\p{L}\s]+$/u,
-        orderId: /^[pP]?[bB]?[0-9]+$/
+        orderId: /^[pP]?[bB]?[0-9]+$/,
+        search: /^[^<>='\"%]+$/
     },
 
     // Validation Predicates
@@ -61,6 +62,18 @@ const Validator = {
         return trimmed.length >= 2 && trimmed.length < 20;
     },
 
+    validateProductName(name) {
+        if (!name) return false;
+        const trimmed = name.trim();
+        return trimmed.length >= 3 && trimmed.length <= 255;
+    },
+
+    validatePrice(price) {
+        if (price === null || price === undefined || price === '') return false;
+        const val = parseFloat(price);
+        return !isNaN(val) && val >= 0;
+    },
+
     validateFileSize(file, maxBytes = 2 * 1024 * 1024) {
         if (!file) return true; // Optional file is considered valid
         return file.size <= maxBytes;
@@ -72,6 +85,41 @@ const Validator = {
         const fileName = file.name || '';
         const extension = fileName.split('.').pop().toLowerCase();
         return allowedExtensions.includes(extension);
+    },
+
+    validateAddress(address) {
+        if (!address) return false;
+        const trimmed = address.trim();
+        return trimmed.length >= 5 && trimmed.length <= 255;
+    },
+
+    validateNote(note) {
+        if (!note) return true;
+        return note.trim().length <= 1000;
+    },
+
+    validateSearchQuery(query) {
+        if (!query) return false;
+        const trimmed = query.trim();
+        return trimmed.length > 0 && trimmed.length <= 100 && this.patterns.search.test(trimmed);
+    },
+
+    validatePrice(priceStr) {
+        if (!priceStr) return false;
+        const price = parseFloat(priceStr);
+        return !isNaN(price) && price > 0 && price <= 2000000000;
+    },
+
+    validateQuantity(qtyStr) {
+        if (!qtyStr) return false;
+        const qty = parseInt(qtyStr, 10);
+        return !isNaN(qty) && qty >= 0 && qty <= 100000;
+    },
+
+    validateRating(ratingStr) {
+        if (!ratingStr) return false;
+        const rating = parseInt(ratingStr, 10);
+        return !isNaN(rating) && rating >= 1 && rating <= 5;
     },
 
     // UI Feedback Helpers

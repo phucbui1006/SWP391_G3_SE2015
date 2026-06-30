@@ -338,6 +338,7 @@
                                 min="1"
                                 placeholder="Số lượng nhập ban đầu"
                                 required
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                 value="">
                         </div>
 
@@ -350,10 +351,9 @@
                                 step="1000"
                                 placeholder="Giá nhập sản phẩm"
                                 required
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                 value="">
                         </div>
-                    </div>
-
                     </div>
 
                     <div class="brand-form-actions" style="margin-top: 20px;">
@@ -409,6 +409,7 @@
                                 name="importQuantity"
                                 min="1"
                                 required
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                 value="<%= editItem.getImportQuantity() %>">
                         </div>
 
@@ -419,6 +420,7 @@
                                 name="quantity"
                                 min="0"
                                 required
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                 value="<%= editItem.getQuantity() %>">
                         </div>
                     </div>
@@ -432,6 +434,7 @@
                                 min="0"
                                 step="1000"
                                 required
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                 value="<%= editItem.getPrice() != null ? editItem.getPrice().toBigInteger() : "" %>">
                         </div>
 

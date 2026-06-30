@@ -354,6 +354,13 @@ body.admin-product-body {
     margin: 0;
     color: #8b8f99;
     font-size: 13.5px;
+    flex: 1;
+    text-align: left;
+}
+
+.admin-product-footer::after {
+    content: "";
+    flex: 1;
 }
 
 .admin-product-footer strong {
@@ -421,6 +428,12 @@ body.admin-product-body {
     color: #b4232c;
 }
 
+.product-alert.warning {
+    border: 1px solid #ffeeba;
+    background: #fff3cd;
+    color: #856404;
+}
+
 /* Modals styling (:target mechanism) */
 .product-modal-overlay {
     position: fixed;
@@ -443,6 +456,9 @@ body.admin-product-body {
     background: #ffffff;
     box-shadow: 0 24px 70px rgba(15, 23, 42, 0.26);
     position: relative;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .product-modal.price-modal-size {
@@ -454,6 +470,7 @@ body.admin-product-body {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 18px;
+    flex-shrink: 0;
 }
 
 .product-modal-header h2 {
@@ -481,8 +498,17 @@ body.admin-product-body {
 
 /* Modal Form Layout */
 .product-modal-form {
-    display: grid;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     gap: 12px;
+}
+
+.product-modal .form-grid {
+    overflow-y: auto;
+    max-height: 55vh;
+    padding-right: 8px;
+    margin-bottom: 8px;
 }
 
 .form-grid {
@@ -648,3 +674,64 @@ body.admin-product-body {
 .product-modal-actions .btn-primary:hover {
     background: #d90008;
 }
+
+/* Spec Button */
+.btn-load-specs {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 42px;
+    border: 2px dashed #d1d5db;
+    border-radius: 6px;
+    background: #fafbfe;
+    color: #374151;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+.btn-load-specs:hover {
+    border-color: #ed1c24;
+    color: #ed1c24;
+    background: #fff5f5;
+}
+
+.btn-load-specs:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.btn-load-specs i {
+    font-size: 14px;
+}
+
+@media (max-width: 900px) {
+    .admin-product-footer {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    .admin-product-footer p {
+        flex: none;
+        text-align: center;
+    }
+    .admin-product-footer::after {
+        content: none;
+    }
+    .admin-pagination {
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    .page-btn {
+        min-width: 42px;
+        height: 42px;
+        font-size: 15px;
+    }
+}
+

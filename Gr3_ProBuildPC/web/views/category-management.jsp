@@ -81,14 +81,12 @@
 
     <head>
         <meta charset="UTF-8">
-        <title>Qu&#7843;n l&#253; danh m&#7909;c s&#7843;n ph&#7849;m</title>
+        <title>Quản lý danh mục sản phẩm</title>
 
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
         <link rel="stylesheet" type="text/css"
-              href="<%= contextPath %>/css/admin-categories.css">
+              href="<%= contextPath %>/css/admin-categories.css?v=1.0.1"">
 
-        <link rel="stylesheet"
-              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     </head>
 
     <body class="admin-category-body">
@@ -98,7 +96,7 @@
         <main class="admin-category-container">
 
             <div class="admin-page-title">
-                <h2>Danh s&#225;ch danh m&#7909;c</h2>
+                <h2>Danh sách danh mục</h2>
 
                 <div class="admin-breadcrumb">
                     <a href="<%= contextPath %>/Dashboard">Dashboard</a>
@@ -143,18 +141,18 @@
                         <button type="submit">Tìm kiếm</button>
                     </div>
 
-                    <a href="#add-category-modal" class="btn-add-category">+ Thêm danh mục</a>
+                    <a href="<%= contextPath %>/admin/category/add" class="btn-add-category">+ Thêm danh mục</a>
                 </form>
 
                 <div class="table-wrapper">
                     <table class="admin-category-table">
                         <thead>
                             <tr>
-                                <th>M&#227; danh m&#7909;c</th>
-                                <th>T&#234;n danh m&#7909;c</th>
-                                <th>Tr&#7841;ng th&#225;i</th>
+                                <th>Mã danh mục</th>
+                                <th>Tên danh mục</th>
+                                <th>Trạng thái</th>
                                 <th>Số lượng sản phẩm</th>
-                                <th>Thao t&#225;c</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
 
@@ -163,8 +161,7 @@
                             <tr>
                                 <td colspan="5"
                                     style="text-align:center; padding: 30px;">
-                                    Kh&#244;ng c&#243; danh
-                                    m&#7909;c n&#224;o
+                                    Không có danh mục nào.
                                 </td>
                             </tr>
                             <% } else { %>
@@ -197,7 +194,7 @@
                                     <div
                                         class="category-actions">
 
-                                        <a href="#edit-category-<%= c.getCategoryId() %>"
+                                        <a href="<%= contextPath %>/admin/category/edit?id=<%= c.getCategoryId() %>"
                                            class="btn-edit">Sửa</a>
 
                                         <form
@@ -231,11 +228,11 @@
                                             <button
                                                 type="submit"
                                                 class="btn-delete"
-                                                onclick="return confirm('B&#7841;n c&#243; ch&#7855;c mu&#7889;n &#273;&#7893;i tr&#7841;ng th&#225;i danh m&#7909;c n&#224;y kh&#244;ng?')">
+                                                onclick="return confirm('Bạn có chắc muốn đổi trạng thái danh mục này không?')">
                                                 <%= "ACTIVE"
                                                     .equalsIgnoreCase(c.getStatus())
-                                                    ? "V&#244; hi&#7879;u h&#243;a"
-                                                    : "K&#237;ch ho&#7841;t"
+                                                    ? "Vô hiệu hóa"
+                                                    : "Kích hoạt"
                                                 %>
                                             </button>
                                         </form>
@@ -252,9 +249,8 @@
 
                 <div class="admin-category-footer">
                     <p>
-                        Hi&#7875;n th&#7883; <%= startItem %>
-                        &#273;&#7871;n <%= endItem %> c&#7911;a <%=
-                                                                                    totalCategories %> danh m&#7909;c
+                        Hiển thị <%= startItem %>
+                        đến <%= endItem %> của <%=totalCategories %> danh mục.
                     </p>
 
                     <div class="admin-pagination">
@@ -262,11 +258,11 @@
                         <% if (currentPage> 1) { %>
                         <a class="page-btn"
                            href="<%= contextPath %>/admin/categories?page=<%= currentPage - 1 %><%= listQuery %>">
-                            &lsaquo;
+                            ‹
                         </a>
                         <% } else { %>
                         <span
-                            class="page-btn disabled">&lsaquo;</span>
+                            class="page-btn disabled">‹</span>
                         <% } %>
 
                         <% for (int i=1; i <=totalPages; i++) { %>
@@ -276,175 +272,20 @@
                         </a>
                         <% } %>
 
-                        <% if (currentPage <
-                                                                                                totalPages) { %>
+                        <% if (currentPage < totalPages) { %>
                         <a class="page-btn"
                            href="<%= contextPath %>/admin/categories?page=<%= currentPage + 1 %><%= listQuery %>">
-                            &rsaquo;
+                           ›
                         </a>
                         <% } else { %>
                         <span
-                            class="page-btn disabled">&rsaquo;</span>
+                            class="page-btn disabled">›</span>
                         <% } %>
-
                     </div>
                 </div>
-
             </section>
-
         </main>
-
-        <div class="cat-modal-overlay" id="add-category-modal">
-            <section class="cat-modal" role="dialog" aria-modal="true"
-                     aria-labelledby="addCategoryTitle">
-                <div class="cat-modal-header">
-                    <h2 id="addCategoryTitle">Thêm danh mục mới</h2>
-                    <a href="#" aria-label="Đóng">&times;</a>
-                </div>
-
-                <form action="<%= contextPath %>/admin/categories" method="post"
-                      class="cat-modal-form" id="addCategoryForm" novalidate>
-                    <input type="hidden" name="action" value="add">
-
-                    <div class="cat-form-group">
-                        <label for="addCategoryName">Tên danh mục <span>*</span></label>
-                        <input id="addCategoryName" name="categoryName" type="text"
-                               placeholder="VD: CPU, RAM, SSD..." required minlength="2"
-                               maxlength="100">
-                        <small class="cat-form-error" id="addCategoryNameError"></small>
-                    </div>
-
-                    <div class="cat-modal-actions">
-                        <a class="cat-btn-cancel" href="#">Hủy</a>
-                        <button class="cat-btn-submit" type="submit">Thêm danh
-                            mục</button>
-                    </div>
-                </form>
-            </section>
-        </div>
-
-        <% if (!categories.isEmpty()) { %>
-        <% for (Category c : categories) { %>
-        <div class="cat-modal-overlay"
-             id="edit-category-<%= c.getCategoryId() %>">
-            <section class="cat-modal" role="dialog" aria-modal="true"
-                     aria-labelledby="editCategoryTitle<%= c.getCategoryId() %>">
-                <div class="cat-modal-header">
-                    <h2 id="editCategoryTitle<%= c.getCategoryId() %>">Sửa danh
-                        mục</h2>
-                    <a href="#" aria-label="Đóng">&times;</a>
-                </div>
-
-                <form action="<%= contextPath %>/admin/categories" method="post"
-                      class="cat-modal-form" novalidate>
-                    <input type="hidden" name="action" value="update">
-                    <input type="hidden" name="categoryId"
-                           value="<%= c.getCategoryId() %>">
-
-                    <div class="cat-form-group">
-                        <label>Mã danh mục</label>
-                        <input type="text" value="<%= c.getCategoryId() %>"
-                               disabled>
-                    </div>
-
-                    <div class="cat-form-group">
-                        <label
-                            for="editCategoryName<%= c.getCategoryId() %>">Tên
-                            danh mục <span>*</span></label>
-                        <input id="editCategoryName<%= c.getCategoryId() %>"
-                               name="categoryName" type="text"
-                               value="<%= h(c.getCategoryName()) %>" required
-                               minlength="2" maxlength="100">
-                        <small class="cat-form-error"></small>
-                    </div>
-
-                    <div class="cat-form-group">
-                        <label
-                            for="editCategoryStatus<%= c.getCategoryId() %>">Trạng
-                            thái</label>
-                        <select id="editCategoryStatus<%= c.getCategoryId() %>"
-                                name="status">
-                            <option value="ACTIVE" <%="ACTIVE"
-                                .equalsIgnoreCase(c.getStatus()) ? "selected"
-                                : "" %>>Đang hoạt động</option>
-                            <option value="INACTIVE" <%="INACTIVE"
-                                .equalsIgnoreCase(c.getStatus()) ? "selected"
-                                : "" %>>Đã vô hiệu hóa</option>
-                        </select>
-                    </div>
-
-                    <div class="cat-modal-actions">
-                        <a class="cat-btn-cancel" href="#">Hủy</a>
-                        <button class="cat-btn-submit" type="submit">Cập
-                            nhật</button>
-                    </div>
-                </form>
-            </section>
-        </div>
-        <% } %>
-        <% } %>
-
         <jsp:include page="/includes/footer.jsp" />
-
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                // Trim search input on submit
-                var searchForm = document.getElementById("adminCategorySearchForm");
-                if (searchForm) {
-                    searchForm.addEventListener("submit", function () {
-                        var searchInput = document.getElementById("categorySearchInput");
-                        if (searchInput) {
-                            searchInput.value = searchInput.value.trim();
-                        }
-                    });
-                }
-
-                // Client-side validation for all modal forms
-                var modalForms = document.querySelectorAll(".cat-modal-form");
-                modalForms.forEach(function (form) {
-                    form.addEventListener("submit", function (e) {
-                        var nameInput = form.querySelector("input[name='categoryName']");
-                        var errorEl = nameInput
-                                ? nameInput.parentElement.querySelector(".cat-form-error")
-                                : null;
-
-                        if (!nameInput)
-                            return;
-
-                        var name = nameInput.value.trim();
-                        nameInput.value = name;
-
-                        if (name.length < 2 || name.length > 100) {
-                            e.preventDefault();
-                            if (errorEl) {
-                                errorEl.textContent = "Tên danh mục phải từ 2 đến 100 ký tự.";
-                                errorEl.style.display = "block";
-                            }
-                            nameInput.focus();
-                            return;
-                        }
-
-                        if (errorEl) {
-                            errorEl.style.display = "none";
-                        }
-                    });
-                });
-
-                // Clear the add form when its modal is opened
-                var addLink = document.querySelector('a[href="#add-category-modal"]');
-                if (addLink) {
-                    addLink.addEventListener("click", function () {
-                        var addInput = document.getElementById("addCategoryName");
-                        var addError = document.getElementById("addCategoryNameError");
-                        if (addInput)
-                            addInput.value = "";
-                        if (addError)
-                            addError.style.display = "none";
-                    });
-                }
-            });
-        </script>
-
     </body>
 
 </html>

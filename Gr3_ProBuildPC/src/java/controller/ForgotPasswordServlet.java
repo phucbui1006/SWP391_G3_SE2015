@@ -23,6 +23,12 @@ public class ForgotPasswordServlet extends HttpServlet {
 
         String email = request.getParameter("email").trim();
 
+        if (!util.ValidatorUtil.isValidEmail(email)) {
+            request.setAttribute("error", "Định dạng email không hợp lệ!");
+            request.getRequestDispatcher("/views/forget-password.jsp").forward(request, response);
+            return;
+        }
+
         UserDAO userDAO = new UserDAO();
         if (!userDAO.checkEmailExist(email)) {
             request.setAttribute("error", "Email không tồn tại trong hệ thống!");

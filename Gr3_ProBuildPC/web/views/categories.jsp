@@ -3,6 +3,7 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="model.Category" %>
 <%@ page import="model.Product" %>
+<%@ page import="dal.ProductDAO" %>
 
 <%!
     private String h(String value) {
@@ -23,6 +24,7 @@
     List<Category> categories = (List<Category>) request.getAttribute("categories");
     List<Product> products = (List<Product>) request.getAttribute("products");
     Category selectedCategory = (Category) request.getAttribute("selectedCategory");
+    ProductDAO productDAO = new ProductDAO();
 
     String selectedSort = (String) request.getAttribute("selectedSort");
     if (selectedSort == null || selectedSort.trim().isEmpty()) {
@@ -89,8 +91,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Danh mục sản phẩm - ProBuild PC</title>
         <meta name="description" content="Khám phá và so sánh các danh mục linh kiện máy tính chất lượng cao tại ProBuild PC. Tự tạo cấu hình PC chuyên nghiệp dễ dàng.">
-        <link rel="stylesheet" href="<%= ctx %>/css/style.css">
-        <link rel="stylesheet" href="<%= ctx %>/css/categories.css?v=51">
+        <link rel="stylesheet" href="<%= ctx %>/css/style.css?v=2">
+        <link rel="stylesheet" href="<%= ctx %>/css/categories.css?v=52">
     </head>
     <body class="categories-page" data-context-path="<%= ctx %>">
         <jsp:include page="/includes/header.jsp" />
@@ -207,67 +209,56 @@
 
                     <div class="category-product-grid">
                         <% if (products != null && !products.isEmpty()) { %>
-                            <% for (Product p : products) { %>
-                            <article class="category-product-card">
-                                <a class="category-product-image" href="<%= ctx %>/product-detail?id=<%= p.getProductId() %>">
-                                    <figure style="margin: 0; display: contents;">
-                                        <% if (p.getImageUrl() != null && !p.getImageUrl().trim().isEmpty()) { %>
-                                        <img src="<%= ctx %>/<%= h(p.getImageUrl()) %>" alt="<%= h(p.getProductName()) %>">
-                                        <% } else { %>
-                                        <span>PC</span>
-                                        <% } %>
-                                    </figure>
-                                </a>
-                                <h3>
-                                    <a href="<%= ctx %>/product-detail?id=<%= p.getProductId() %>">
-                                        <%= h(p.getProductName()) %>
+                            <% for (Product p : products) {
+                                double rating = productDAO.getAverageRating(p.getProductId());
+                                int fullStars = (int) rating;
+                            %>
+                            <article class="product-card">
+                                <figure>
+                                    <% if (p.getImageUrl() != null && !p.getImageUrl().trim().isEmpty()) { %>
+                                    <img src="<%= ctx %>/<%= h(p.getImageUrl()) %>" alt="<%= h(p.getProductName()) %>">
+                                    <% } else { %>
+                                    <span>PC</span>
+                                    <% } %>
+                                </figure>
+
+                                <h3><%= h(p.getProductName()) %></h3>
+
+                                <strong>
+                                    <%= String.format("%,d", p.getPrice().longValue()) %>đ
+                                </strong>
+
+                                <div class="product-rating">
+                                    <% for (int i = 1; i <= 5; i++) { %>
+                                    <i class="<%= i <= fullStars ? "fa-solid" : "fa-regular" %> fa-star"></i>
+                                    <% } %>
+                                    <span><%= String.format("%.1f", rating) %></span>
+                                </div>
+
+                                <p class="product-stock <%= p.getQuantity() > 0 ? "in-stock" : "out-of-stock" %>">
+                                    <% if (p.getQuantity() > 0) { %>
+                                    Còn hàng: <%= p.getQuantity() %>
+                                    <% } else { %>
+                                    Hết hàng
+                                    <% } %>
+                                </p>
+
+                                <div class="product-actions">
+                                    <a class="detail-btn" href="<%= ctx %>/product-detail?id=<%= p.getProductId() %>">
+                                        Xem chi tiết
                                     </a>
-                                </h3>
-                                <strong><%= String.format("%,d", p.getPrice().longValue()) %>đ</strong>
-                                <p class="stock">Số lượng: <%= p.getQuantity() %></p>
 
-                            <div class="card-actions">
-                                <a
-                                    href="<%= ctx %>/product-detail?id=<%= p.getProductId() %>">
-                                    Xem chi tiết
-                                </a>
-
-                                <% if (p.getQuantity()> 0) { %>
-                                <form action="<%= ctx %>/cart"
-                                      method="post"
-                                      class="cart-form">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="addToCart">
-                                    <input type="hidden"
-                                           name="productId"
-                                           value="<%= p.getProductId() %>">
-                                    <input type="hidden"
-                                           name="quantity"
-                                           value="1">
-
-                                    <button type="submit"
-                                            class="add-to-cart-btn"
-                                            data-add-to-cart-btn
-                                            title="Thêm vào giỏ hàng">
-                                        <i class="fa-solid fa-cart-shopping"></i>
-                                    </button>
-                                </form>
-                                <% } else { %>
-                                <button type="button"
-                                        class="add-to-cart-btn"
-                                        style="opacity: 0.6; cursor: not-allowed; background: #e5e7eb; border-color: #e5e7eb; color: #9ca3af;"
-                                        title="Sản phẩm tạm hết hàng"
-                                        disabled>
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                </button>
-                                <% } %>
-                            </div>
-
-                        </article>
-
-                        <% } %>
-
+                                    <form class="cart-form" action="<%= ctx %>/cart" method="post">
+                                        <input type="hidden" name="action" value="addToCart">
+                                        <input type="hidden" name="productId" value="<%= p.getProductId() %>">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button class="cart-btn" type="submit" data-add-to-cart-btn data-product-name="<%= h(p.getProductName()) %>" <%= p.getQuantity() > 0 ? "" : "disabled" %>>
+                                            <i class="fa-solid fa-cart-shopping"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </article>
+                            <% } %>
                         <% } else { %>
                             <div class="category-empty">
                                 <h3>Chưa có sản phẩm trong danh mục này</h3>

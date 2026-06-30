@@ -207,8 +207,7 @@
                                        id="recipientName"
                                        name="recipientName"
                                        value="<%= h(formRecipientName) %>"
-                                       placeholder="Nh&#7853;p t&#234;n ng&#432;&#7901;i nh&#7853;n"
-                                       required>
+                                       placeholder="Nh&#7853;p t&#234;n ng&#432;&#7901;i nh&#7853;n">
                             </div>
 
                             <div class="shipping-address-field">
@@ -217,8 +216,7 @@
                                        id="phoneNumber"
                                        name="phoneNumber"
                                        value="<%= h(formPhoneNumber) %>"
-                                       placeholder="Nh&#7853;p s&#7889; &#273;i&#7879;n tho&#7841;i"
-                                       required>
+                                       placeholder="Nh&#7853;p s&#7889; &#273;i&#7879;n tho&#7841;i">
                             </div>
 
                             <div class="shipping-address-field">
@@ -228,8 +226,7 @@
                                            id="addressDetail"
                                            name="addressDetail"
                                            value="<%= h(formAddressDetail) %>"
-                                           placeholder="S&#7889; 12, Th&#244;n 4"
-                                           required>
+                                           placeholder="S&#7889; 12, Th&#244;n 4">
                                     <span class="shipping-address-detail-suffix">, <%= h(fixedAddressSuffix) %></span>
                                 </div>
                                 <p class="shipping-address-detail-example">

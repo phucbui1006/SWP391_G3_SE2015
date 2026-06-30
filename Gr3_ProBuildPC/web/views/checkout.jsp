@@ -80,6 +80,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Thanh to&#225;n</title>
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
+        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
+        <script src="${pageContext.request.contextPath}/js/checkout.js"></script>
     </head>
     <body class="checkout-page">
         <jsp:include page="/includes/header.jsp" />
@@ -98,7 +100,7 @@
             <% } %>
 
             <div class="checkout-layout">
-                <form class="checkout-main-column" action="${pageContext.request.contextPath}/checkout" method="post">
+                <form class="checkout-main-column" action="${pageContext.request.contextPath}/checkout" method="post" onsubmit="return validateCheckoutForm(this)">
                     <input type="hidden" name="action" value="placeOrder">
                     <input type="hidden" name="selectedAddressId" value="<%= selectedAddress != null ? selectedAddress.getAddressId() : "" %>" data-checkout-selected-address-id>
 
@@ -181,12 +183,12 @@
                         <div class="checkout-note-field">
                             <textarea
                                 name="note"
+                                id="note"
                                 rows="4"
-                                maxlength="255"
                                 placeholder="Nh&#7853;p ghi ch&#250; cho &#273;&#417;n h&#224;ng..."
                                 data-checkout-note><%= h(orderNote) %></textarea>
                             <div class="checkout-note-counter">
-                                <span data-checkout-note-count><%= orderNote.length() %></span>/255
+                                <span data-checkout-note-count><%= orderNote.length() %></span>/1000
                             </div>
                         </div>
                     </section>
@@ -412,11 +414,7 @@
                     });
                 });
 
-                if (noteField && noteCountElement) {
-                    noteField.addEventListener('input', function () {
-                        noteCountElement.textContent = String(noteField.value.length);
-                    });
-                }
+
 
                 paymentInputs.forEach(function (input) {
                     input.addEventListener('change', function () {
@@ -433,6 +431,8 @@
                     }
                 });
             })();
+
+
         </script>
     </body>
 </html>

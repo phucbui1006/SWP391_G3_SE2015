@@ -76,6 +76,28 @@ public final class DashboardViewHelper {
         return formatter.format(safeValue) + "đ";
     }
 
+    public static String toJsonString(String value) {
+        String safeValue = value == null ? "" : value;
+        StringBuilder result = new StringBuilder("\"");
+        for (int i = 0; i < safeValue.length(); i++) {
+            char character = safeValue.charAt(i);
+            switch (character) {
+                case '\\' -> result.append("\\\\");
+                case '"' -> result.append("\\\"");
+                case '\n' -> result.append("\\n");
+                case '\r' -> result.append("\\r");
+                case '\t' -> result.append("\\t");
+                case '<' -> result.append("\\u003c");
+                case '>' -> result.append("\\u003e");
+                case '&' -> result.append("\\u0026");
+                case '\u2028' -> result.append("\\u2028");
+                case '\u2029' -> result.append("\\u2029");
+                default -> result.append(character);
+            }
+        }
+        return result.append('"').toString();
+    }
+
     public static String buildShipmentLink(String ctx, Integer statusId, boolean todayOnly, int page) {
         StringBuilder query = new StringBuilder();
         if (statusId != null) {

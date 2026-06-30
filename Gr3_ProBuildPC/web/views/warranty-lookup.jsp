@@ -125,13 +125,13 @@
                                         <div class="wl-strip-divider"></div>
 
                                         <div class="wl-order-detail-item">
-                                            <span class="wl-detail-label">Ngày đặt</span>
+                                            <span class="wl-detail-label">Ngày nhận</span>
                                             <span class="wl-detail-value">
                                                 <c:choose>
-                                                    <c:when test="${not empty orderInfo.orderDate}">
-                                                        <fmt:formatDate value="${orderInfo.orderDate}" pattern="dd/MM/yyyy" />
+                                                    <c:when test="${not empty orderInfo.deliveryDate}">
+                                                        <fmt:formatDate value="${orderInfo.deliveryDate}" pattern="dd/MM/yyyy" />
                                                     </c:when>
-                                                    <c:otherwise>Chưa có dữ liệu</c:otherwise>
+                                                    <c:otherwise>Chưa cập nhật</c:otherwise>
                                                 </c:choose>
                                             </span>
                                         </div>
@@ -260,8 +260,7 @@
                                                                 <c:otherwise>
                                                                     <form class="wl-claim-form"
                                                                           action="${ctx}/warranty-lookup"
-                                                                          method="post"
-                                                                          onsubmit="submitInlineWarrantyRequest(event, this)">
+                                                                          method="post">
 
                                                                         <input type="hidden" name="action" value="createRequest">
                                                                         <input type="hidden" name="orderId" value="${orderInfo.orderId}">
@@ -302,7 +301,7 @@
 
                                     <p class="wl-footnote">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                                        Thời gian bảo hành được tính từ ngày đơn hàng giao thành công.
+                                        Thời gian bảo hành được tính từ ngày nhận hàng. Nếu chưa có ngày nhận, hệ thống sử dụng ngày đặt hàng để tính toán.
                                     </p>
                                 </section>
                             </c:when>
@@ -361,14 +360,7 @@
 
         <jsp:include page="/includes/footer.jsp" />
 
-        <script>
-            function submitInlineWarrantyRequest(event, form) {
-                var btn = form.querySelector('button[type="submit"]');
-                if (btn) {
-                    btn.disabled = true;
-                    btn.innerHTML = '<span class="wl-btn-spinner"></span> Đang gửi...';
-                }
-            }
-        </script>
+        <script src="${ctx}/js/validator.js"></script>
+        <script src="${ctx}/js/warranty.js"></script>
     </body>
 </html>

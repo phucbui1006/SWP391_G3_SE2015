@@ -4,6 +4,7 @@
 <%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ page import="model.Brand" %>
 <%@ page import="model.Product" %>
+<%@ page import="dal.ProductDAO" %>
 
 <%!
     private String h(String value) {
@@ -29,6 +30,7 @@
     List<Brand> brands = (List<Brand>) request.getAttribute("brands");
     List<Product> products = (List<Product>) request.getAttribute("products");
     Brand selectedBrand = (Brand) request.getAttribute("selectedBrand");
+    ProductDAO productDAO = new ProductDAO();
     Integer selectedBrandId = (Integer) request.getAttribute("selectedBrandId");
     String selectedPriceRange = (String) request.getAttribute("selectedPriceRange");
     String selectedSort = (String) request.getAttribute("selectedSort");
@@ -182,6 +184,8 @@
                     <div class="brand-product-grid product-grid">
                         <% if (products != null && !products.isEmpty()) {
                             for (Product product : products) {
+                                double rating = productDAO.getAverageRating(product.getProductId());
+                                int fullStars = (int) rating;
                         %>
                         <article class="product-card">
                             <figure>
@@ -195,6 +199,13 @@
                             <h3><%= h(product.getProductName()) %></h3>
 
                             <strong><%= String.format("%,d", product.getPrice().longValue()) %>đ</strong>
+
+                            <div class="product-rating">
+                                <% for (int i = 1; i <= 5; i++) { %>
+                                <i class="<%= i <= fullStars ? "fa-solid" : "fa-regular" %> fa-star"></i>
+                                <% } %>
+                                <span><%= String.format("%.1f", rating) %></span>
+                            </div>
 
                             <p class="product-stock <%= product.getQuantity() > 0 ? "in-stock" : "out-of-stock" %>">
                                 <% if (product.getQuantity() > 0) { %>

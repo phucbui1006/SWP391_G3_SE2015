@@ -24,6 +24,7 @@
     String ctx = request.getContextPath();
     String placeholder = "Tìm kiếm linh kiện...";
     String searchAction = ctx + "/categories";
+    String searchParamName = "keyword";
     String searchKeyword = request.getParameter("keyword");
 
     if (searchKeyword == null) {
@@ -66,12 +67,20 @@
             if ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) {
                 placeholder = "Tìm kiếm mã đơn hàng...";
                 searchAction = ctx + "/order-history";
+                searchParamName = "keyword";
             } else {
                 placeholder = "Tìm kiếm yêu cầu bảo hành...";
+                searchAction = ctx + "/ManageWarranty";
+                searchParamName = "search";
+                searchKeyword = request.getParameter("search");
+                if (searchKeyword == null) {
+                    searchKeyword = "";
+                }
             }
         } else if ("SHIPMENT".equals(roleName)) {
             placeholder = "Tìm kiếm mã đơn hàng...";
             searchAction = ctx + "/order-history";
+            searchParamName = "keyword";
         }
     } else {
         roleName = "CUSTOMER";
@@ -171,8 +180,7 @@
         <a href="<%= ctx %>/order-history" class="menu-item <%= "/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-boxes-stacked"></i> Quản lý đơn hàng</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/ManageWarranty" class="menu-item <%= "/ManageWarranty".equals(currentPath) || "/manage-warranty".equals(currentPath) ? "active" : "" %>">🛡 Dịch vụ bảo hành</a>
-        <a href="#" class="menu-item"><i class="fa-solid fa-shield-heart"></i> Dịch vụ bảo hành</a>
+        <a href="<%= ctx %>/ManageWarranty" class="menu-item"><i class="fa-solid fa-shield-heart"></i> Dịch vụ bảo hành</a>
 
         <% } else if ("SHIPMENT".equals(roleName)) { %>
 
@@ -204,7 +212,7 @@
             <% if ("SHIPMENT".equals(roleName) && deliveryHistoryMode) { %>
             <input type="hidden" name="deliveryHistory" value="1">
             <% } %>
-            <input class="search-input" type="text" name="keyword" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
+            <input class="search-input" type="text" name="<%= searchParamName %>" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
             <button class="search-submit" type="submit">Tìm kiếm</button>
         </form>
         <% } %>

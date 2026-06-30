@@ -1,31 +1,39 @@
 package controller;
 
 import dal.AdminDashboardDAO;
-import dal.OrderHistoryDAO;
+import dal.EmployeeDashboardDAO;
+import dal.ShipmentDashboardDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.math.BigDecimal;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import model.AccountSummary;
 import model.AdminDashboardView;
 import model.DashboardProduct;
 import model.DashboardSummary;
+import model.EmployeeDashboardView;
 import model.OrderHistoryItem;
 import model.OrderStatus;
+import model.ShipmentDashboardView;
 import model.User;
+import model.WarrantyRequest;
 import util.DashboardViewHelper;
 
 @WebServlet(name = "DashboardServlet", urlPatterns = {"/Dashboard"})
 public class DashboardServlet extends HttpServlet {
 
     private static final int SHIPMENT_PAGE_SIZE = 10;
+    private static final int MAX_CHART_DAYS = 366;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -52,6 +60,8 @@ public class DashboardServlet extends HttpServlet {
 
         if (hasRole(user, "ADMIN")) {
             prepareAdminDashboard(request);
+        } else if (hasRole(user, "EMPLOYEE")) {
+            prepareEmployeeDashboard(request);
         } else if (hasRole(user, "SHIPMENT")) {
             prepareShipmentDashboard(request);
         }
@@ -60,87 +70,127 @@ public class DashboardServlet extends HttpServlet {
     }
 
     private void prepareAdminDashboard(HttpServletRequest request) {
-        LocalDate selectedDate = parseDate(request.getParameter("date"), LocalDate.now());
-        AdminDashboardDAO dashboardDAO = new AdminDashboardDAO();
-        DashboardSummary summary = dashboardDAO.getSummary(selectedDate);
-        List<DashboardProduct> bestSellingProducts = dashboardDAO.getBestSellingProducts(selectedDate, 5);
-        List<DashboardProduct> lowStockProducts = dashboardDAO.getLowStockProducts(5);
-        Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(selectedDate);
-        Map<String, Integer> warrantyStatusCounts = dashboardDAO.getWarrantyStatusCounts(selectedDate);
-        AccountSummary accountSummary = dashboardDAO.getAccountSummary();
-        int bestSellingTotal = dashboardDAO.countBestSellingProducts(selectedDate);
-        int lowStockTotal = dashboardDAO.countLowStockProducts();
-        boolean showWarrantyAll = "1".equals(request.getParameter("showWarrantyAll"));
+        LocalDate referenceDate = LocalDate.now();
+        LocalDate weekStart = referenceDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekEnd = weekStart.plusDays(6);
+        LocalDate chartStartDate = parseDate(request.getParameter("chartFrom"), weekStart);
+        LocalDate chartEndDate = parseDate(request.getParameter("chartTo"), weekEnd);
+        if (chartStartDate.isAfter(chartEndDate)) {
+            LocalDate temporaryDate = chartStartDate;
+            chartStartDate = chartEndDate;
+            chartEndDate = temporaryDate;
+        }
+        if (chartEndDate.isAfter(chartStartDate.plusDays(MAX_CHART_DAYS - 1L))) {
+            chartEndDate = chartStartDate.plusDays(MAX_CHART_DAYS - 1L);
+        }
 
-        request.setAttribute("adminDashboard", buildAdminDashboardView(
+        AdminDashboardDAO dashboardDAO = new AdminDashboardDAO();
+        DashboardSummary summary = dashboardDAO.getSummary(chartStartDate, chartEndDate);
+        List<DashboardProduct> bestSellingProducts = dashboardDAO.getBestSellingProducts(
+                chartStartDate, chartEndDate, 5);
+        List<DashboardProduct> lowStockProducts = dashboardDAO.getLowStockProducts(5);
+        Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(
+                chartStartDate, chartEndDate);
+        AccountSummary accountSummary = dashboardDAO.getAccountSummary();
+        int bestSellingTotal = dashboardDAO.countBestSellingProducts(chartStartDate, chartEndDate);
+        int lowStockTotal = dashboardDAO.countLowStockProducts();
+        Map<LocalDate, BigDecimal> revenueTimeline = dashboardDAO.getRevenueByDay(chartStartDate, chartEndDate);
+        Map<String, BigDecimal> categoryRevenue = dashboardDAO.getCategoryRevenue(chartStartDate, chartEndDate);
+
+        AdminDashboardView adminDashboard = buildAdminDashboardView(
                 request,
-                selectedDate,
+                chartStartDate,
+                chartEndDate,
                 summary,
                 bestSellingProducts,
                 bestSellingTotal,
                 lowStockProducts,
                 lowStockTotal,
                 orderStatusCounts,
-                warrantyStatusCounts,
-                accountSummary,
-                showWarrantyAll
-        ));
+                accountSummary
+        );
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd/MM");
+        DateTimeFormatter periodFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        adminDashboard.setRevenueTimeline(buildRevenueTimelinePoints(revenueTimeline, dayFormatter));
+        adminDashboard.setCategoryRevenue(buildCategoryRevenuePoints(categoryRevenue));
+        adminDashboard.setChartStartDate(chartStartDate);
+        adminDashboard.setChartEndDate(chartEndDate);
+        adminDashboard.setChartPeriodLabel(chartStartDate.format(periodFormatter)
+                + " - " + chartEndDate.format(periodFormatter));
+        request.setAttribute("adminDashboard", adminDashboard);
     }
 
-    private AdminDashboardView buildAdminDashboardView(HttpServletRequest request, LocalDate selectedDate,
+    private AdminDashboardView buildAdminDashboardView(HttpServletRequest request,
+            LocalDate chartStartDate, LocalDate chartEndDate,
             DashboardSummary summary, List<DashboardProduct> bestSellingProducts, int bestSellingTotal,
             List<DashboardProduct> lowStockProducts, int lowStockTotal, Map<String, Integer> orderStatusCounts,
-            Map<String, Integer> warrantyStatusCounts, AccountSummary accountSummary, boolean showWarrantyAll) {
+            AccountSummary accountSummary) {
         AdminDashboardView view = new AdminDashboardView();
         String ctx = request.getContextPath();
         DashboardSummary safeSummary = summary == null ? new DashboardSummary() : summary;
         AccountSummary safeAccountSummary = accountSummary == null ? new AccountSummary() : accountSummary;
 
-        view.setSelectedDate(selectedDate);
         view.setFormAction(ctx + "/Dashboard");
-        view.setWarrantyAllUrl(ctx + "/Dashboard?date=" + selectedDate + "&showWarrantyAll=1");
-        view.setStatCards(buildAdminStatCards(safeSummary));
+        view.setStatCards(buildAdminStatCards(safeSummary, ctx));
         view.setBestSellingProducts(buildProductRows(bestSellingProducts));
         view.setLowStockProducts(buildProductRows(lowStockProducts));
         view.setOrderSummaries(buildOrderSummaryRows(safeSummary, orderStatusCounts));
-        view.setWarrantyStatusCounts(buildWarrantyRows(warrantyStatusCounts, showWarrantyAll));
         view.setAccountSummaries(buildAccountRows(safeAccountSummary));
 
-        int bestSellingVisible = view.getBestSellingProducts().size();
-        if (bestSellingTotal > bestSellingVisible) {
-            view.setBestSellingFooterMessage("Còn " + (bestSellingTotal - bestSellingVisible)
-                    + " sản phẩm bán chạy khác trong ngày.");
-        }
+ //       int bestSellingVisible = view.getBestSellingProducts().size();
+//        if (bestSellingTotal > bestSellingVisible) {
+//            view.setBestSellingFooterMessage("Còn " + (bestSellingTotal - bestSellingVisible)
+//                    + " sản phẩm bán chạy khác trong khoảng đã chọn.");
+//        }
 
         int lowStockVisible = view.getLowStockProducts().size();
         if (lowStockTotal > lowStockVisible) {
             view.setLowStockFooterMessage("Còn " + (lowStockTotal - lowStockVisible)
-                    + " sản phẩm sắp hết hàng khác.");
-        }
-
-        int warrantyStatusTotal = warrantyStatusCounts == null ? 0 : warrantyStatusCounts.size();
-        if (!showWarrantyAll && warrantyStatusTotal > 5) {
-            view.setShowWarrantyFooter(true);
-            view.setWarrantyFooterMessage("Còn " + (warrantyStatusTotal - 5) + " trạng thái bảo hành khác.");
+                    + " sản phẩm khác sắp hết hàng");
         }
 
         return view;
     }
 
-    private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary) {
+    private List<AdminDashboardView.ChartPoint> buildRevenueTimelinePoints(
+            Map<LocalDate, BigDecimal> revenueByDay, DateTimeFormatter formatter) {
+        List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
+        if (revenueByDay != null) {
+            for (Map.Entry<LocalDate, BigDecimal> entry : revenueByDay.entrySet()) {
+                points.add(new AdminDashboardView.ChartPoint(
+                        entry.getKey().format(formatter), entry.getValue()));
+            }
+        }
+        return points;
+    }
+
+    private List<AdminDashboardView.ChartPoint> buildCategoryRevenuePoints(
+            Map<String, BigDecimal> revenueByCategory) {
+        List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
+        if (revenueByCategory != null) {
+            for (Map.Entry<String, BigDecimal> entry : revenueByCategory.entrySet()) {
+                points.add(new AdminDashboardView.ChartPoint(entry.getKey(), entry.getValue()));
+            }
+        }
+        return points;
+    }
+
+    private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary, String ctx) {
         List<AdminDashboardView.StatCard> cards = new ArrayList<>();
         cards.add(new AdminDashboardView.StatCard("red", "fa-solid fa-coins", "Tổng doanh thu",
-                DashboardViewHelper.formatCurrency(summary.getTotalRevenue())));
+                DashboardViewHelper.formatCurrency(summary.getTotalRevenue()), ctx + "/Dashboard#revenueCharts"));
         cards.add(new AdminDashboardView.StatCard("dark", "fa-solid fa-receipt", "Tổng đơn hàng",
-                String.valueOf(summary.getTotalOrders())));
+                String.valueOf(summary.getTotalOrders()), ctx + "/order-history"));
         cards.add(new AdminDashboardView.StatCard("blue", "fa-solid fa-desktop", "Tất cả sản phẩm",
-                String.valueOf(summary.getActiveProducts())));
+                String.valueOf(summary.getActiveProducts()), ctx + "/admin/products"));
         cards.add(new AdminDashboardView.StatCard("green", "fa-solid fa-tags", "Tất cả thương hiệu",
-                String.valueOf(summary.getTotalBrands())));
-        cards.add(new AdminDashboardView.StatCard("orange", "fa-solid fa-screwdriver-wrench", "Yêu cầu bảo hành",
-                String.valueOf(summary.getWarrantyRequests())));
+                String.valueOf(summary.getTotalBrands()), ctx + "/AdminBrands"));
+        cards.add(new AdminDashboardView.StatCard("orange", "fa-solid fa-screwdriver-wrench",
+                "Tổng yêu cầu bảo hành đã tiếp nhận",
+                String.valueOf(summary.getAcceptedWarrantyRequests()),
+                ctx + "/ManageWarranty?statusFilter=2"));
         cards.add(new AdminDashboardView.StatCard("purple", "fa-solid fa-truck-ramp-box", "Lô hàng đã nhập",
-                String.valueOf(summary.getImportedBatches())));
+                String.valueOf(summary.getImportedBatches()), ctx + "/BatchServlet"));
         return cards;
     }
 
@@ -173,7 +223,7 @@ public class DashboardServlet extends HttpServlet {
         rows.add(new AdminDashboardView.OrderSummaryRow(
                 "Tổng đơn hàng",
                 String.valueOf(totalOrders),
-                "Tất cả đơn phát sinh trong ngày đã chọn",
+                "Tất cả đơn phát sinh trong khoảng đã chọn",
                 ""
         ));
         rows.add(new AdminDashboardView.OrderSummaryRow(
@@ -238,25 +288,6 @@ public class DashboardServlet extends HttpServlet {
                 && !value.contains("cho ");
     }
 
-    private List<AdminDashboardView.CountRow> buildWarrantyRows(Map<String, Integer> counts, boolean showAll) {
-        List<AdminDashboardView.CountRow> rows = new ArrayList<>();
-        if (counts == null) {
-            return rows;
-        }
-
-        int index = 0;
-        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
-            if (showAll || index < 5) {
-                rows.add(new AdminDashboardView.CountRow(
-                        DashboardViewHelper.h(entry.getKey()),
-                        entry.getValue() == null ? 0 : entry.getValue()
-                ));
-            }
-            index++;
-        }
-        return rows;
-    }
-
     private List<AdminDashboardView.CountRow> buildAccountRows(AccountSummary summary) {
         List<AdminDashboardView.CountRow> rows = new ArrayList<>();
         rows.add(new AdminDashboardView.CountRow("Khách hàng", summary.getCustomers()));
@@ -267,125 +298,186 @@ public class DashboardServlet extends HttpServlet {
         return rows;
     }
 
+    private void prepareEmployeeDashboard(HttpServletRequest request) {
+        LocalDate referenceDate = LocalDate.now();
+        LocalDate weekStart = referenceDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekEnd = weekStart.plusDays(6);
+        LocalDate startDate = parseDate(request.getParameter("chartFrom"), weekStart);
+        LocalDate endDate = parseDate(request.getParameter("chartTo"), weekEnd);
+        if (startDate.isAfter(endDate)) {
+            LocalDate temporaryDate = startDate;
+            startDate = endDate;
+            endDate = temporaryDate;
+        }
+        if (endDate.isAfter(startDate.plusDays(MAX_CHART_DAYS - 1L))) {
+            endDate = startDate.plusDays(MAX_CHART_DAYS - 1L);
+        }
+
+        EmployeeDashboardView employeeDashboard = new EmployeeDashboardDAO()
+                .getDashboard(startDate, endDate);
+        employeeDashboard.setFormAction(request.getContextPath() + "/Dashboard");
+        employeeDashboard.setSummaryCards(buildEmployeeSummaryCards(employeeDashboard));
+        employeeDashboard.setWarrantyRows(buildEmployeeWarrantyRows(
+                employeeDashboard.getWarranties(), request.getContextPath()));
+        employeeDashboard.setOrderRows(buildEmployeeOrderRows(
+                employeeDashboard.getOrders(), request.getContextPath()));
+        request.setAttribute("employeeDashboard", employeeDashboard);
+    }
+
     private void prepareShipmentDashboard(HttpServletRequest request) {
         Integer selectedStatusId = parsePositiveInteger(request.getParameter("statusId"));
         boolean todayOnly = "1".equals(request.getParameter("today"));
         int page = parsePositiveInt(request.getParameter("page"), 1);
-
-        OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
-        List<OrderStatus> allStatusOptions = orderHistoryDAO.getOrderStatuses();
-        List<OrderStatus> statusOptions = filterShipmentStatuses(allStatusOptions);
-        List<Integer> removedShipmentStatusIds = getRemovedShipmentStatusIds(allStatusOptions);
-        if (isRemovedShipmentStatus(selectedStatusId, statusOptions)) {
-            selectedStatusId = null;
-        }
-
-        int totalOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
-                null, null, selectedStatusId, false, false, todayOnly, removedShipmentStatusIds);
-        int totalPages = Math.max(1, (int) Math.ceil(totalOrders / (double) SHIPMENT_PAGE_SIZE));
-        if (page > totalPages) {
-            page = totalPages;
-        }
-
-        List<OrderHistoryItem> shipmentOrders = orderHistoryDAO.getOrdersExcludingStatusIds(
-                null,
-                null,
-                selectedStatusId,
-                page,
-                SHIPMENT_PAGE_SIZE,
-                false,
-                false,
-                todayOnly,
-                removedShipmentStatusIds
-        );
-
-        Map<Integer, Integer> shipmentStatusCounts = new LinkedHashMap<>();
-        int allActiveOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
-                null, null, null, false, false, false, removedShipmentStatusIds);
-        int todayOrders = orderHistoryDAO.countOrdersExcludingStatusIds(
-                null, null, null, false, false, true, removedShipmentStatusIds);
-        for (OrderStatus status : statusOptions) {
-            shipmentStatusCounts.put(
-                    status.getStatusId(),
-                    orderHistoryDAO.countOrdersExcludingStatusIds(
-                            null, null, status.getStatusId(), false, false, false, removedShipmentStatusIds)
-            );
-        }
-
-        request.setAttribute("shipmentOrders", shipmentOrders);
-        request.setAttribute("shipmentStatusOptions", statusOptions);
-        request.setAttribute("shipmentStatusCounts", shipmentStatusCounts);
-        request.setAttribute("shipmentAllActiveCount", allActiveOrders);
-        request.setAttribute("shipmentTodayCount", todayOrders);
-        request.setAttribute("shipmentSelectedStatusId", selectedStatusId);
-        request.setAttribute("shipmentTodayOnly", todayOnly);
-        request.setAttribute("shipmentPage", page);
-        request.setAttribute("shipmentTotalPages", totalPages);
-        request.setAttribute("shipmentTotalOrders", totalOrders);
+        ShipmentDashboardView shipmentDashboard = new ShipmentDashboardDAO()
+                .getDashboard(selectedStatusId, todayOnly, page, SHIPMENT_PAGE_SIZE);
+        prepareShipmentView(shipmentDashboard, request.getContextPath());
+        request.setAttribute("shipmentDashboard", shipmentDashboard);
     }
 
-    private List<OrderStatus> filterShipmentStatuses(List<OrderStatus> statuses) {
-        List<OrderStatus> filteredStatuses = new ArrayList<>();
-        if (statuses == null) {
-            return filteredStatuses;
-        }
-
-        for (OrderStatus status : statuses) {
-            if (!isHiddenShipmentStatus(status)) {
-                filteredStatuses.add(status);
-            }
-        }
-        return filteredStatuses;
+    private List<EmployeeDashboardView.SummaryCard> buildEmployeeSummaryCards(
+            EmployeeDashboardView dashboard) {
+        List<EmployeeDashboardView.SummaryCard> cards = new ArrayList<>();
+        cards.add(new EmployeeDashboardView.SummaryCard(
+                "today", "fa-solid fa-list-check", "Công việc cần xử lý",
+                dashboard.getTotalWorkCount(), "mục"));
+        cards.add(new EmployeeDashboardView.SummaryCard(
+                "waiting", "fa-regular fa-clock", "Bảo hành chờ tiếp nhận",
+                dashboard.getWaitingWarrantyCount(), "yêu cầu"));
+        cards.add(new EmployeeDashboardView.SummaryCard(
+                "received", "fa-solid fa-inbox", "Bảo hành đã tiếp nhận",
+                dashboard.getReceivedWarrantyCount(), "yêu cầu"));
+        cards.add(new EmployeeDashboardView.SummaryCard(
+                "rejected", "fa-solid fa-triangle-exclamation", "Giao hàng thất bại",
+                dashboard.getFailedOrderCount(), "đơn"));
+        cards.add(new EmployeeDashboardView.SummaryCard(
+                "cancelled", "fa-solid fa-ban", "Đơn hàng đã hủy",
+                dashboard.getCancelledOrderCount(), "đơn"));
+        return cards;
     }
 
-    private List<Integer> getRemovedShipmentStatusIds(List<OrderStatus> statuses) {
-        List<Integer> statusIds = new ArrayList<>();
-        if (statuses == null) {
-            return statusIds;
+    private List<EmployeeDashboardView.WarrantyRow> buildEmployeeWarrantyRows(
+            List<WarrantyRequest> warranties, String ctx) {
+        List<EmployeeDashboardView.WarrantyRow> rows = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        if (warranties == null) {
+            return rows;
         }
 
-        for (OrderStatus status : statuses) {
-            if (isHiddenShipmentStatus(status)) {
-                statusIds.add(status.getStatusId());
-            }
+        for (WarrantyRequest warranty : warranties) {
+            String detailUrl = ctx + "/ManageWarranty?action=edit&warrantyId="
+                    + warranty.getWarrantyId() + "&statusFilter=1";
+            rows.add(new EmployeeDashboardView.WarrantyRow(
+                    warranty.getWarrantyId(),
+                    DashboardViewHelper.h(warranty.getCustomerName()),
+                    DashboardViewHelper.h(warranty.getProductName()),
+                    warranty.getRequestDate() == null ? "-" : dateFormat.format(warranty.getRequestDate()),
+                    DashboardViewHelper.h(DashboardViewHelper.defaultText(
+                            warranty.getStatusName(), "Chờ tiếp nhận")),
+                    warranty.getStatusId() == 1 ? "waiting" : "received",
+                    detailUrl
+            ));
         }
-        return statusIds;
+        return rows;
     }
 
-    private boolean isRemovedShipmentStatus(Integer selectedStatusId, List<OrderStatus> statusOptions) {
-        if (selectedStatusId == null) {
-            return false;
+    private List<EmployeeDashboardView.OrderRow> buildEmployeeOrderRows(
+            List<OrderHistoryItem> orders, String ctx) {
+        List<EmployeeDashboardView.OrderRow> rows = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        if (orders == null) {
+            return rows;
         }
 
-        for (OrderStatus status : statusOptions) {
-            if (status.getStatusId() == selectedStatusId) {
-                return false;
-            }
+        for (OrderHistoryItem order : orders) {
+            rows.add(new EmployeeDashboardView.OrderRow(
+                    order.getOrderId(),
+                    DashboardViewHelper.h(order.getCustomerName()),
+                    order.getOrderDate() == null ? "-" : dateFormat.format(order.getOrderDate()),
+                    DashboardViewHelper.formatCurrency(order.getTotalAmount()),
+                    DashboardViewHelper.h(DashboardViewHelper.defaultText(
+                            order.getStatusName(), "Chưa cập nhật")),
+                    DashboardViewHelper.statusClass(order.getStatusName()),
+                    ctx + "/order-history?statusId=" + order.getStatusId()
+                            + "&selectedOrderId=" + order.getOrderId()
+            ));
         }
-        return true;
+        return rows;
     }
 
-    private boolean isHiddenShipmentStatus(OrderStatus status) {
-        return isPendingConfirmationStatus(status) || isPreparingOrderStatus(status);
-    }
-
-    private boolean isPendingConfirmationStatus(OrderStatus status) {
-        if (status == null || status.getStatusName() == null) {
-            return false;
+    private void prepareShipmentView(ShipmentDashboardView dashboard, String ctx) {
+        List<ShipmentDashboardView.SummaryCard> cards = new ArrayList<>();
+        cards.add(new ShipmentDashboardView.SummaryCard(
+                "all", "fa-solid fa-boxes-stacked", "Tất cả đơn hàng",
+                dashboard.getAllActiveCount()));
+        cards.add(new ShipmentDashboardView.SummaryCard(
+                "today", "fa-solid fa-calendar-check", "Đơn hàng hôm nay",
+                dashboard.getTodayCount()));
+        for (OrderStatus status : dashboard.getStatusOptions()) {
+            Integer count = dashboard.getStatusCounts().get(status.getStatusId());
+            cards.add(new ShipmentDashboardView.SummaryCard(
+                    DashboardViewHelper.statusClass(status.getStatusName()),
+                    DashboardViewHelper.statusIcon(status.getStatusName()),
+                    DashboardViewHelper.h(status.getStatusName()),
+                    count == null ? 0 : count
+            ));
         }
+        dashboard.setSummaryCards(cards);
 
-        String statusName = status.getStatusName().toLowerCase();
-        return (statusName.contains("chờ") || statusName.contains("cho "))
-                && (statusName.contains("xác nhận") || statusName.contains("xac nhan"));
-    }
-
-    private boolean isPreparingOrderStatus(OrderStatus status) {
-        if (status == null || status.getStatusName() == null) {
-            return false;
+        List<ShipmentDashboardView.FilterTab> tabs = new ArrayList<>();
+        tabs.add(new ShipmentDashboardView.FilterTab(
+                "Tất cả",
+                DashboardViewHelper.buildShipmentLink(ctx, null, false, 1),
+                dashboard.getSelectedStatusId() == null && !dashboard.isTodayOnly()));
+        tabs.add(new ShipmentDashboardView.FilterTab(
+                "Hôm nay",
+                DashboardViewHelper.buildShipmentLink(
+                        ctx, dashboard.getSelectedStatusId(), true, 1),
+                dashboard.isTodayOnly()));
+        for (OrderStatus status : dashboard.getStatusOptions()) {
+            tabs.add(new ShipmentDashboardView.FilterTab(
+                    DashboardViewHelper.h(status.getStatusName()),
+                    DashboardViewHelper.buildShipmentLink(ctx, status.getStatusId(), false, 1),
+                    !dashboard.isTodayOnly()
+                            && dashboard.getSelectedStatusId() != null
+                            && dashboard.getSelectedStatusId() == status.getStatusId()
+            ));
         }
+        dashboard.setFilterTabs(tabs);
 
-        String statusName = status.getStatusName().toLowerCase();
-        return statusName.contains("chuẩn bị") || statusName.contains("chuan bi");
+        List<ShipmentDashboardView.OrderRow> rows = new ArrayList<>();
+        for (OrderHistoryItem order : dashboard.getOrders()) {
+            String displayStatus = DashboardViewHelper.defaultText(
+                    order.getDisplayStatus(), "Chưa cập nhật");
+            rows.add(new ShipmentDashboardView.OrderRow(
+                    order.getDisplayTrackingCode(),
+                    DashboardViewHelper.h(DashboardViewHelper.defaultText(
+                            order.getRecipientName(), order.getCustomerName())),
+                    DashboardViewHelper.h(DashboardViewHelper.defaultText(
+                            order.getShippingAddress(), "Chưa cập nhật địa chỉ")),
+                    DashboardViewHelper.h(displayStatus),
+                    DashboardViewHelper.statusClass(displayStatus)
+            ));
+        }
+        dashboard.setOrderRows(rows);
+
+        List<ShipmentDashboardView.PageLink> pageLinks = new ArrayList<>();
+        for (int pageNumber = 1; pageNumber <= dashboard.getTotalPages(); pageNumber++) {
+            pageLinks.add(new ShipmentDashboardView.PageLink(
+                    pageNumber,
+                    DashboardViewHelper.buildShipmentLink(
+                            ctx, dashboard.getSelectedStatusId(), dashboard.isTodayOnly(), pageNumber),
+                    pageNumber == dashboard.getPage()
+            ));
+        }
+        dashboard.setPageLinks(pageLinks);
+        dashboard.setPreviousPageUrl(dashboard.getPage() <= 1 ? "#"
+                : DashboardViewHelper.buildShipmentLink(
+                        ctx, dashboard.getSelectedStatusId(), dashboard.isTodayOnly(),
+                        dashboard.getPage() - 1));
+        dashboard.setNextPageUrl(dashboard.getPage() >= dashboard.getTotalPages() ? "#"
+                : DashboardViewHelper.buildShipmentLink(
+                        ctx, dashboard.getSelectedStatusId(), dashboard.isTodayOnly(),
+                        dashboard.getPage() + 1));
     }
 
     private boolean hasRole(User user, String expectedRole) {

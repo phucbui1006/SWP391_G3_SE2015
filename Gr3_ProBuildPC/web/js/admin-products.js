@@ -1,26 +1,17 @@
-/**
- * Admin Products – Client-side Validation & Dynamic Specification Management
- * Mirrors the structure of admin-brands.js using the centralized Validator library.
- */
+
 document.addEventListener("DOMContentLoaded", function () {
 
-    // ── Context path injected from JSP via data attribute ──
     var body = document.querySelector("body.admin-product-body");
     var contextPath = body ? body.getAttribute("data-ctx") || "" : "";
 
-    // ── File validation constants ──
     var allowedImageTypes = ["png", "jpg", "jpeg", "webp"];
     var imageTypeMessage = "Định dạng file không hợp lệ. Chỉ chấp nhận .png, .jpg, .jpeg, .webp.";
     var imageSizeMessage = "Dung lượng file vượt quá 2MB. Vui lòng chọn ảnh nhỏ hơn.";
 
-    // ══════════════════════════════════════════════════════════
-    //  FORM VALIDATION  (using centralized Validator library)
-    // ══════════════════════════════════════════════════════════
 
     /**
-     * Validates an image file input using Validator helpers.
-     * Returns true if valid or if no file is selected (optional).
-     */
+     * Validates 
+     ảnh    */
     function validateImageFile(fileInput, isRequired) {
         var file = fileInput.files[0];
         if (!file) {
@@ -51,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /**
-     * Updates the local file upload thumbnail preview dynamically using FileReader.
+     * Cập nhật ảnh xem trước.
      */
     function updateImagePreview(fileInput, previewContainerId, previewImgId) {
         var file = fileInput.files[0];
@@ -68,32 +59,24 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /**
-     * Validates warranty period.
-     * Must not be empty, must be a valid integer, and must be > 0.
-     */
-    /**
-     * Helper to show warning alert message inside form
+     * Hiển thị một thông báo cảnh báo (warning) trực tiếp bên trong giao diện của một biểu mẫu
      */
     function showWarningAlert(form, message) {
-        // Disabled: do not display top level warning alert boxes
     }
 
+    /**Xóa hoặc ẩn thông báo cảnh báo đã hiển thị trước đó trong form.*/
     function clearWarningAlert(form) {
-        // Disabled: do not display top level warning alert boxes
     }
 
     /**
      * Validates warranty period.
-     * Must not be empty, must be a valid integer, and must be > 0.
-     */
-    /**
-     * Validates warranty period.
-     * Must not be empty, must be a valid integer, must be > 0 and <= 120.
      */
     function validateWarranty(value) {
-        if (value === null || value === undefined || value === "") return false;
+        if (value === null || value === undefined || value === "")
+            return false;
         var trimmed = value.trim();
-        if (!/^\d+$/.test(trimmed)) return false;
+        if (!/^\d+$/.test(trimmed))
+            return false;
         var val = parseInt(trimmed, 10);
         return val > 0 && val <= 120;
     }
@@ -112,7 +95,8 @@ document.addEventListener("DOMContentLoaded", function () {
             var nameOk = Validator.validateProductName(nameInp.value);
             Validator.showFeedback(nameInp, nameOk, "Tên sản phẩm phải từ 3 đến 255 ký tự.");
             if (!nameOk) {
-                if (isValid) nameInp.focus();
+                if (isValid)
+                    nameInp.focus();
                 isValid = false;
             }
         }
@@ -123,7 +107,8 @@ document.addEventListener("DOMContentLoaded", function () {
             var catOk = catInp.value !== "";
             Validator.showFeedback(catInp, catOk, "Vui lòng chọn danh mục.");
             if (!catOk) {
-                if (isValid) catInp.focus();
+                if (isValid)
+                    catInp.focus();
                 isValid = false;
             }
         }
@@ -134,7 +119,8 @@ document.addEventListener("DOMContentLoaded", function () {
             var brandOk = brandInp.value !== "";
             Validator.showFeedback(brandInp, brandOk, "Vui lòng chọn thương hiệu.");
             if (!brandOk) {
-                if (isValid) brandInp.focus();
+                if (isValid)
+                    brandInp.focus();
                 isValid = false;
             }
         }
@@ -151,7 +137,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                     showWarningAlert(form, "Giá bán phải là số lớn hơn 0 và chia hết cho 1000.");
                 }
-                if (isValid) priceInp.focus();
+                if (isValid)
+                    priceInp.focus();
                 isValid = false;
             }
         }
@@ -168,7 +155,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                     showWarningAlert(form, "Thời gian bảo hành phải là số nguyên dương lớn hơn 0.");
                 }
-                if (isValid) warrantyInp.focus();
+                if (isValid)
+                    warrantyInp.focus();
                 isValid = false;
             }
         }
@@ -265,7 +253,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         }
                     }
                     clearWarningAlert(form);
-                    
+
                     var prefix = isNew ? "add" : "edit";
                     updateImagePreview(fileInp, prefix + "ImgPreviewContainer", prefix + "ImgPreview");
                 }
@@ -273,15 +261,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ══════════════════════════════════════════════════════════
-    //  DYNAMIC SPECIFICATIONS (AJAX)
-    // ══════════════════════════════════════════════════════════
 
     /**
-     * Renders spec template fields into a target container.
-     * @param {Array} templates - Array of CategorySpecTemplate JSON objects
-     * @param {HTMLElement} fieldsDiv - The container to render into
-     * @param {Object} existingSpecs - Map of specName -> specValue for pre-filling (optional)
+     *Tự động tạo (render) các ô nhập liệu thuộc tính sản phẩm
      */
     function renderSpecFields(templates, fieldsDiv, existingSpecs) {
         fieldsDiv.innerHTML = "";
@@ -299,17 +281,14 @@ document.addEventListener("DOMContentLoaded", function () {
             label.innerHTML = template.specName + (template.isRequired ? " <span>*</span>" : "");
             formGroup.appendChild(label);
 
-            // Hidden field for spec name
             var hiddenName = document.createElement("input");
             hiddenName.type = "hidden";
             hiddenName.name = "spec_names[]";
             hiddenName.value = template.specName;
             formGroup.appendChild(hiddenName);
 
-            // Determine pre-fill value
             var preValue = specMap[template.specName] || "";
 
-            // Spec value input based on type
             var inputElement;
             if (template.specType === "SELECT") {
                 inputElement = document.createElement("select");
@@ -361,9 +340,9 @@ document.addEventListener("DOMContentLoaded", function () {
      */
     function fetchCategoryTemplates(categoryId) {
         return fetch(contextPath + "/GetCategoryTemplates?categoryId=" + categoryId)
-            .then(function (response) {
-                return response.json();
-            });
+                .then(function (response) {
+                    return response.json();
+                });
     }
 
     /**
@@ -372,9 +351,9 @@ document.addEventListener("DOMContentLoaded", function () {
      */
     function fetchProductSpecs(productId) {
         return fetch(contextPath + "/GetProductSpecs?productId=" + productId)
-            .then(function (response) {
-                return response.json();
-            });
+                .then(function (response) {
+                    return response.json();
+                });
     }
 
     /**
@@ -406,8 +385,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 addSpecBtn.style.display = "inline-flex";
             } else {
                 addSpecBtn.style.display = "none";
-                if (addSpecsContainer) addSpecsContainer.style.display = "none";
-                if (addSpecsFields) addSpecsFields.innerHTML = "";
+                if (addSpecsContainer)
+                    addSpecsContainer.style.display = "none";
+                if (addSpecsFields)
+                    addSpecsFields.innerHTML = "";
             }
         });
 
@@ -415,34 +396,38 @@ document.addEventListener("DOMContentLoaded", function () {
         addSpecBtn.addEventListener("click", function (e) {
             e.preventDefault();
             var categoryId = addCategorySelect.value;
-            if (!categoryId) return;
+            if (!categoryId)
+                return;
 
             addSpecBtn.disabled = true;
             addSpecBtn.textContent = "Đang tải...";
 
             fetchCategoryTemplates(categoryId)
-                .then(function (data) {
-                    if (data.length === 0) {
-                        if (addSpecsContainer) addSpecsContainer.style.display = "none";
-                        if (addSpecsFields) addSpecsFields.innerHTML = "";
-                        addSpecBtn.textContent = "Không có thông số cho danh mục này";
-                        setTimeout(function () {
-                            addSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
-                            addSpecBtn.disabled = false;
-                        }, 2000);
-                        return;
-                    }
+                    .then(function (data) {
+                        if (data.length === 0) {
+                            if (addSpecsContainer)
+                                addSpecsContainer.style.display = "none";
+                            if (addSpecsFields)
+                                addSpecsFields.innerHTML = "";
+                            addSpecBtn.textContent = "Không có thông số cho danh mục này";
+                            setTimeout(function () {
+                                addSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
+                                addSpecBtn.disabled = false;
+                            }, 2000);
+                            return;
+                        }
 
-                    renderSpecFields(data, addSpecsFields, {});
-                    if (addSpecsContainer) addSpecsContainer.style.display = "block";
-                    addSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
-                    addSpecBtn.disabled = false;
-                })
-                .catch(function (err) {
-                    console.error("Error fetching specifications:", err);
-                    addSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
-                    addSpecBtn.disabled = false;
-                });
+                        renderSpecFields(data, addSpecsFields, {});
+                        if (addSpecsContainer)
+                            addSpecsContainer.style.display = "block";
+                        addSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
+                        addSpecBtn.disabled = false;
+                    })
+                    .catch(function (err) {
+                        console.error("Error fetching specifications:", err);
+                        addSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
+                        addSpecBtn.disabled = false;
+                    });
         });
     }
 
@@ -461,7 +446,8 @@ document.addEventListener("DOMContentLoaded", function () {
             var categoryId = editCategorySelect ? editCategorySelect.value : "";
             var productId = document.getElementById("editProductId").value;
 
-            if (!categoryId) return;
+            if (!categoryId)
+                return;
 
             editSpecBtn.disabled = true;
             editSpecBtn.textContent = "Đang tải...";
@@ -471,32 +457,35 @@ document.addEventListener("DOMContentLoaded", function () {
                 fetchCategoryTemplates(categoryId),
                 productId ? fetchProductSpecs(productId) : Promise.resolve([])
             ])
-                .then(function (results) {
-                    var templates = results[0];
-                    var existingSpecs = results[1];
+                    .then(function (results) {
+                        var templates = results[0];
+                        var existingSpecs = results[1];
 
-                    if (templates.length === 0) {
-                        if (editSpecsContainer) editSpecsContainer.style.display = "none";
-                        if (editSpecsFields) editSpecsFields.innerHTML = "";
-                        editSpecBtn.textContent = "Không có thông số cho danh mục này";
-                        setTimeout(function () {
-                            editSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
-                            editSpecBtn.disabled = false;
-                        }, 2000);
-                        return;
-                    }
+                        if (templates.length === 0) {
+                            if (editSpecsContainer)
+                                editSpecsContainer.style.display = "none";
+                            if (editSpecsFields)
+                                editSpecsFields.innerHTML = "";
+                            editSpecBtn.textContent = "Không có thông số cho danh mục này";
+                            setTimeout(function () {
+                                editSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
+                                editSpecBtn.disabled = false;
+                            }, 2000);
+                            return;
+                        }
 
-                    var specMap = specsToMap(existingSpecs);
-                    renderSpecFields(templates, editSpecsFields, specMap);
-                    if (editSpecsContainer) editSpecsContainer.style.display = "block";
-                    editSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
-                    editSpecBtn.disabled = false;
-                })
-                .catch(function (err) {
-                    console.error("Error fetching specifications:", err);
-                    editSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
-                    editSpecBtn.disabled = false;
-                });
+                        var specMap = specsToMap(existingSpecs);
+                        renderSpecFields(templates, editSpecsFields, specMap);
+                        if (editSpecsContainer)
+                            editSpecsContainer.style.display = "block";
+                        editSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
+                        editSpecBtn.disabled = false;
+                    })
+                    .catch(function (err) {
+                        console.error("Error fetching specifications:", err);
+                        editSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
+                        editSpecBtn.disabled = false;
+                    });
         });
     }
 
@@ -505,7 +494,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // ══════════════════════════════════════════════════════════
 
     function clearFormFields(form) {
-        if (!form) return;
+        if (!form)
+            return;
         form.querySelectorAll("input").forEach(function (inp) {
             if (inp.name !== "action") {
                 inp.value = "";
@@ -535,13 +525,17 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
         // Reset spec state
-        if (addSpecBtn) addSpecBtn.style.display = "none";
-        if (addSpecsContainer) addSpecsContainer.style.display = "none";
-        if (addSpecsFields) addSpecsFields.innerHTML = "";
+        if (addSpecBtn)
+            addSpecBtn.style.display = "none";
+        if (addSpecsContainer)
+            addSpecsContainer.style.display = "none";
+        if (addSpecsFields)
+            addSpecsFields.innerHTML = "";
 
         // Re-enable submit
         var submitBtn = addForm ? addForm.querySelector("button[type='submit']") : null;
-        if (submitBtn) submitBtn.disabled = false;
+        if (submitBtn)
+            submitBtn.disabled = false;
     };
 
     window.openEditModal = function (productId, productName, categoryId, brandId, price, warrantyMonths, description, currentImgUrl) {
@@ -577,8 +571,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Reset spec state for edit modal
-        if (editSpecsContainer) editSpecsContainer.style.display = "none";
-        if (editSpecsFields) editSpecsFields.innerHTML = "";
+        if (editSpecsContainer)
+            editSpecsContainer.style.display = "none";
+        if (editSpecsFields)
+            editSpecsFields.innerHTML = "";
         if (editSpecBtn) {
             editSpecBtn.style.display = "inline-flex";
             editSpecBtn.disabled = false;
@@ -587,7 +583,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Re-enable submit
         var submitBtn = editForm ? editForm.querySelector("button[type='submit']") : null;
-        if (submitBtn) submitBtn.disabled = false;
+        if (submitBtn)
+            submitBtn.disabled = false;
     };
 
     window.openPriceModal = function (productId, productName, currentPrice) {
@@ -661,7 +658,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // ══════════════════════════════════════════════════════════
 
     function resetFormAndErrors(form) {
-        if (!form) return;
+        if (!form)
+            return;
         form.reset();
         clearFormFields(form);
         clearWarningAlert(form);
@@ -672,13 +670,15 @@ document.addEventListener("DOMContentLoaded", function () {
             el.textContent = "";
             el.style.display = "none";
         });
-        
+
         // Reset dynamic specs elements
         var addSpecsContainer = document.getElementById("dynamicSpecsContainer");
         var addSpecsFields = document.getElementById("dynamicSpecsFields");
         var addSpecBtn = document.getElementById("addSpecBtn");
-        if (addSpecsContainer) addSpecsContainer.style.display = "none";
-        if (addSpecsFields) addSpecsFields.innerHTML = "";
+        if (addSpecsContainer)
+            addSpecsContainer.style.display = "none";
+        if (addSpecsFields)
+            addSpecsFields.innerHTML = "";
         if (addSpecBtn) {
             addSpecBtn.style.display = "none";
             addSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
@@ -688,8 +688,10 @@ document.addEventListener("DOMContentLoaded", function () {
         var editSpecsContainer = document.getElementById("editDynamicSpecsContainer");
         var editSpecsFields = document.getElementById("editDynamicSpecsFields");
         var editSpecBtn = document.getElementById("editSpecBtn");
-        if (editSpecsContainer) editSpecsContainer.style.display = "none";
-        if (editSpecsFields) editSpecsFields.innerHTML = "";
+        if (editSpecsContainer)
+            editSpecsContainer.style.display = "none";
+        if (editSpecsFields)
+            editSpecsFields.innerHTML = "";
         if (editSpecBtn) {
             editSpecBtn.style.display = "inline-flex";
             editSpecBtn.textContent = "Lựa chọn thông số kĩ thuật";
@@ -700,16 +702,22 @@ document.addEventListener("DOMContentLoaded", function () {
         var addImgPreviewContainer = document.getElementById("addImgPreviewContainer");
         var addImgPreview = document.getElementById("addImgPreview");
         var addCurrentImg = document.getElementById("addCurrentImg");
-        if (addImgPreviewContainer) addImgPreviewContainer.style.display = "none";
-        if (addImgPreview) addImgPreview.src = "";
-        if (addCurrentImg) addCurrentImg.value = "";
+        if (addImgPreviewContainer)
+            addImgPreviewContainer.style.display = "none";
+        if (addImgPreview)
+            addImgPreview.src = "";
+        if (addCurrentImg)
+            addCurrentImg.value = "";
 
         var editImgPreviewContainer = document.getElementById("editImgPreviewContainer");
         var editImgPreview = document.getElementById("editImgPreview");
         var editCurrentImg = document.getElementById("editCurrentImg");
-        if (editImgPreviewContainer) editImgPreviewContainer.style.display = "none";
-        if (editImgPreview) editImgPreview.src = "";
-        if (editCurrentImg) editCurrentImg.value = "";
+        if (editImgPreviewContainer)
+            editImgPreviewContainer.style.display = "none";
+        if (editImgPreview)
+            editImgPreview.src = "";
+        if (editCurrentImg)
+            editCurrentImg.value = "";
     }
 
     // Bind click events on dismiss buttons (X icon and Cancel button)
@@ -729,4 +737,5 @@ document.addEventListener("DOMContentLoaded", function () {
             resetFormAndErrors(document.getElementById("editProductForm"));
         }
     });
+
 });

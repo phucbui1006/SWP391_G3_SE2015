@@ -1,187 +1,165 @@
 document.addEventListener('DOMContentLoaded', function () {
-    var addForm = document.getElementById('addCategoryForm');
-    var editForm = document.getElementById('editCategoryForm');
+    const addForm = document.getElementById('addCategoryForm');
+    const editForm = document.getElementById('editCategoryForm');
 
-    function ensureErrorBox(form) {
-        var errorBox = form.querySelector('.category-form-error');
-        if (!errorBox) {
-            errorBox = document.createElement('div');
-            errorBox.className = 'category-form-error category-alert error';
-            errorBox.style.marginBottom = '16px';
-            form.insertBefore(errorBox, form.firstChild);
-        }
-        return errorBox;
-    }
+    const addCategoryNameInput = document.getElementById('addCategoryName');
+    const editCategoryIdInput = document.getElementById('editCategoryId');
+    const editCategoryNameInput = document.getElementById('editCategoryName');
 
-    function clearFormError(form) {
-        var errorBox = form.querySelector('.category-form-error');
-        if (errorBox) {
-            errorBox.remove();
-        }
-    }
-
-    function validateCategoryName(form) {
-        var nameInput = form.querySelector('input[name="categoryName"]');
-        var isValid = true;
-
-        if (!nameInput) {
-            return true;
-        }
-
-        var value = (nameInput.value || '').trim();
-        if (!value) {
-            Validator.showFeedback(nameInput, false, 'Tên danh mục không được để trống.');
-            isValid = false;
-        } else if (value.length < 2 || value.length > 100) {
-            Validator.showFeedback(nameInput, false, 'Tên danh mục phải có độ dài từ 2 đến 100 ký tự.');
-            isValid = false;
-        } else {
-            Validator.showFeedback(nameInput, true, '');
-        }
-
-        return isValid;
-    }
-
-    function validateSpecRow(row) {
-        var rowValid = true;
-        var specNameInput = row.querySelector('input[name^="specName_"]');
-        var specTypeInput = row.querySelector('select[name^="specType_"], input[name^="specType_"]');
-        var allowedValuesInput = row.querySelector('input[name^="allowedValues_"]');
-        var displayOrderInput = row.querySelector('input[name^="displayOrder_"]');
-
-        if (!specNameInput) {
-            return true;
-        }
-
-        var specName = (specNameInput.value || '').trim();
-        if (!specName) {
-            Validator.showFeedback(specNameInput, false, 'Tên thuộc tính không được để trống.');
-            rowValid = false;
-        } else if (specName.length > 255) {
-            Validator.showFeedback(specNameInput, false, 'Tên thuộc tính không được vượt quá 255 ký tự.');
-            rowValid = false;
-        } else {
-            Validator.showFeedback(specNameInput, true, '');
-        }
-
-        var specType = specTypeInput ? (specTypeInput.value || '').trim().toUpperCase() : '';
-        if (specType !== 'TEXT' && specType !== 'SELECT' && specType !== 'NUMBER') {
-            if (specTypeInput) {
-                Validator.showFeedback(specTypeInput, false, 'Kiểu dữ liệu thuộc tính không hợp lệ.');
+    // 1. Populate modal on clicking Edit
+    document.addEventListener('click', function (event) {
+        const btnEdit = event.target.closest('.category-actions .btn-edit');
+        if (btnEdit) {
+            const categoryId = btnEdit.getAttribute('data-id');
+            const categoryName = btnEdit.getAttribute('data-name');
+            
+            if (editCategoryIdInput) {
+                editCategoryIdInput.value = categoryId;
             }
-            rowValid = false;
-        } else if (specTypeInput) {
-            Validator.showFeedback(specTypeInput, true, '');
-        }
-
-        if (specType === 'SELECT') {
-            var allowedValues = (allowedValuesInput ? allowedValuesInput.value : '') || '';
-            if (!allowedValues.trim()) {
-                if (allowedValuesInput) {
-                    Validator.showFeedback(allowedValuesInput, false, 'Đối với kiểu SELECT, giá trị cho phép không được để trống.');
-                }
-                rowValid = false;
-            } else if (allowedValues.length > 500) {
-                if (allowedValuesInput) {
-                    Validator.showFeedback(allowedValuesInput, false, 'Giá trị cho phép không được vượt quá 500 ký tự.');
-                }
-                rowValid = false;
-            } else if (allowedValuesInput) {
-                Validator.showFeedback(allowedValuesInput, true, '');
-            }
-        } else if (allowedValuesInput) {
-            Validator.showFeedback(allowedValuesInput, true, '');
-        }
-
-        if (!displayOrderInput) {
-            return rowValid;
-        }
-
-        var displayOrderValue = (displayOrderInput.value || '').trim();
-        var displayOrder = parseInt(displayOrderValue, 10);
-        if (!/^-?\d+$/.test(displayOrderValue) || isNaN(displayOrder) || displayOrder < 0) {
-            Validator.showFeedback(displayOrderInput, false, 'Thứ tự hiển thị phải là số không âm.');
-            rowValid = false;
-        } else {
-            Validator.showFeedback(displayOrderInput, true, '');
-        }
-
-        return rowValid;
-    }
-
-    function validateAllRows(form) {
-        var rows = Array.prototype.slice.call(form.querySelectorAll('tbody tr'));
-        var valid = true;
-        var specRows = rows.filter(function (row) {
-            return row.querySelector('input[name^="specName_"]') || row.querySelector('select[name^="specType_"]');
-        });
-
-        specRows.forEach(function (row) {
-            if (!validateSpecRow(row)) {
-                valid = false;
-            }
-        });
-
-        return valid;
-    }
-
-    function validateCategoryForm(form, actionValue) {
-        clearFormError(form);
-
-        var isValid = true;
-        if (!validateCategoryName(form)) {
-            isValid = false;
-        }
-
-        if (actionValue === 'saveCategory') {
-            if (!validateAllRows(form)) {
-                isValid = false;
-            }
-        } else if (actionValue && actionValue.indexOf('saveSpec_') === 0) {
-            var rowIndex = parseInt(actionValue.replace('saveSpec_', ''), 10);
-            var targetRow = form.querySelectorAll('tbody tr')[rowIndex];
-            if (targetRow && !validateSpecRow(targetRow)) {
-                isValid = false;
+            if (editCategoryNameInput) {
+                editCategoryNameInput.value = categoryName;
+                // Clear any leftover validation styles when opening
+                clearValidationFeedback(editCategoryNameInput);
             }
         }
+    });
+
+    // Helper functions for custom yellow/orange warning validation styling
+    function applyValidationFeedback(inputElement, isValid, errorMessage) {
+        if (!inputElement) return;
+
+        let parent = inputElement.parentElement;
+        let feedback = parent.querySelector('.error-feedback');
 
         if (!isValid) {
-            var errorBox = ensureErrorBox(form);
-            errorBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>Vui lòng sửa các trường không hợp lệ trước khi lưu.';
-            return false;
+            // Apply inline yellow warning highlight
+            inputElement.classList.add('is-invalid');
+            inputElement.style.borderColor = '#ff9f0a';
+            inputElement.style.boxShadow = '0 0 0 2px rgba(255, 159, 10, 0.2)';
+            
+            if (!feedback) {
+                feedback = document.createElement('small');
+                feedback.className = 'error-feedback';
+                feedback.style.color = '#ff9f0a'; // Use matching warning color for text
+                feedback.style.display = 'block';
+                feedback.style.marginTop = '5px';
+                feedback.style.fontWeight = '600';
+                parent.appendChild(feedback);
+            }
+            feedback.textContent = errorMessage;
+        } else {
+            clearValidationFeedback(inputElement);
         }
-
-        return true;
     }
 
-    function attachValidation(form) {
-        if (!form) {
-            return;
+    function clearValidationFeedback(inputElement) {
+        if (!inputElement) return;
+
+        let parent = inputElement.parentElement;
+        inputElement.classList.remove('is-invalid');
+        inputElement.style.borderColor = '';
+        inputElement.style.boxShadow = '';
+        
+        const feedback = parent.querySelector('.error-feedback');
+        if (feedback) {
+            feedback.remove();
         }
+    }
 
-        form.addEventListener('submit', function (event) {
-            var submitter = event.submitter;
-            var actionValue = '';
-            if (submitter && submitter.getAttribute('name') === 'action') {
-                actionValue = submitter.value || '';
-            }
+    function resetModalForm(form) {
+        if (!form) return;
+        form.reset();
+        form.querySelectorAll('input').forEach(input => {
+            clearValidationFeedback(input);
+        });
+    }
 
-            if (actionValue === 'addSpec' || actionValue === 'cancel') {
-                clearFormError(form);
-                return;
-            }
+    // 2. Real-time validation for Add & Edit
+    if (addCategoryNameInput) {
+        addCategoryNameInput.addEventListener('blur', function () {
+            const value = (addCategoryNameInput.value || '').trim();
+            const isValid = value.length >= 2 && value.length <= 100;
+            const msg = !value ? 'Tên danh mục không được để trống.' : 'Tên danh mục phải từ 2 đến 100 ký tự.';
+            applyValidationFeedback(addCategoryNameInput, isValid, msg);
+        });
 
-            if (actionValue.indexOf('editSpec_') === 0 || actionValue.indexOf('toggleRequired_') === 0) {
-                clearFormError(form);
-                return;
-            }
-
-            if (!validateCategoryForm(form, actionValue)) {
-                event.preventDefault();
+        addCategoryNameInput.addEventListener('input', function () {
+            if (addCategoryNameInput.classList.contains('is-invalid')) {
+                const value = (addCategoryNameInput.value || '').trim();
+                const isValid = value.length >= 2 && value.length <= 100;
+                const msg = !value ? 'Tên danh mục không được để trống.' : 'Tên danh mục phải từ 2 đến 100 ký tự.';
+                applyValidationFeedback(addCategoryNameInput, isValid, msg);
             }
         });
     }
 
-    attachValidation(addForm);
-    attachValidation(editForm);
+    if (editCategoryNameInput) {
+        editCategoryNameInput.addEventListener('blur', function () {
+            const value = (editCategoryNameInput.value || '').trim();
+            const isValid = value.length >= 2 && value.length <= 100;
+            const msg = !value ? 'Tên danh mục không được để trống.' : 'Tên danh mục phải từ 2 đến 100 ký tự.';
+            applyValidationFeedback(editCategoryNameInput, isValid, msg);
+        });
+
+        editCategoryNameInput.addEventListener('input', function () {
+            if (editCategoryNameInput.classList.contains('is-invalid')) {
+                const value = (editCategoryNameInput.value || '').trim();
+                const isValid = value.length >= 2 && value.length <= 100;
+                const msg = !value ? 'Tên danh mục không được để trống.' : 'Tên danh mục phải từ 2 đến 100 ký tự.';
+                applyValidationFeedback(editCategoryNameInput, isValid, msg);
+            }
+        });
+    }
+
+    // 3. Close & Reset Actions
+    function handleModalClose() {
+        resetModalForm(addForm);
+        resetModalForm(editForm);
+    }
+
+    // Listen to close buttons
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('.btn-close-modal') || event.target.closest('.brand-modal-overlay')) {
+            handleModalClose();
+        }
+    });
+
+    // Listen to hashchange event (when hash goes empty e.g. clicking Hủy/Close target)
+    window.addEventListener('hashchange', function () {
+        if (!window.location.hash || (window.location.hash !== '#addCategoryModal' && window.location.hash !== '#editCategoryModal')) {
+            handleModalClose();
+        }
+    });
+
+    // 4. Form Submit validation
+    if (addForm) {
+        addForm.addEventListener('submit', function (event) {
+            if (addCategoryNameInput) {
+                const value = (addCategoryNameInput.value || '').trim();
+                const isValid = value.length >= 2 && value.length <= 100;
+                const msg = !value ? 'Tên danh mục không được để trống.' : 'Tên danh mục phải từ 2 đến 100 ký tự.';
+                applyValidationFeedback(addCategoryNameInput, isValid, msg);
+
+                if (!isValid) {
+                    event.preventDefault();
+                }
+            }
+        });
+    }
+
+    if (editForm) {
+        editForm.addEventListener('submit', function (event) {
+            if (editCategoryNameInput) {
+                const value = (editCategoryNameInput.value || '').trim();
+                const isValid = value.length >= 2 && value.length <= 100;
+                const msg = !value ? 'Tên danh mục không được để trống.' : 'Tên danh mục phải từ 2 đến 100 ký tự.';
+                applyValidationFeedback(editCategoryNameInput, isValid, msg);
+
+                if (!isValid) {
+                    event.preventDefault();
+                }
+            }
+        });
+    }
+
 });

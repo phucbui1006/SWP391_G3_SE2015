@@ -408,8 +408,7 @@
                                 type="number"
                                 name="importQuantity"
                                 min="1"
-                                required
-                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                readonly
                                 value="<%= editItem.getImportQuantity() %>">
                         </div>
 
@@ -419,8 +418,7 @@
                                 type="number"
                                 name="quantity"
                                 min="0"
-                                required
-                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                readonly
                                 value="<%= editItem.getQuantity() %>">
                         </div>
                     </div>

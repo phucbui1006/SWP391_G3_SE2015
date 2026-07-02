@@ -15,6 +15,7 @@ public class AdminDashboardView {
     private List<ChartPoint> revenueTimeline = new ArrayList<>();
     private List<ChartPoint> categoryRevenue = new ArrayList<>();
     private List<ChartPoint> orderStatusCounts = new ArrayList<>();
+    private List<ChartPoint> lowStockProductsChart = new ArrayList<>();
     private LocalDate chartStartDate;
     private LocalDate chartEndDate;
     private String chartPeriodLabel;
@@ -91,6 +92,14 @@ public class AdminDashboardView {
 
     public void setOrderStatusCounts(List<ChartPoint> orderStatusCounts) {
         this.orderStatusCounts = orderStatusCounts == null ? new ArrayList<>() : orderStatusCounts;
+    }
+
+    public List<ChartPoint> getLowStockProductsChart() {
+        return lowStockProductsChart;
+    }
+
+    public void setLowStockProductsChart(List<ChartPoint> lowStockProductsChart) {
+        this.lowStockProductsChart = lowStockProductsChart == null ? new ArrayList<>() : lowStockProductsChart;
     }
 
     public LocalDate getChartStartDate() {

@@ -207,6 +207,37 @@ public class AdminDashboardDAO extends DBContext {
         return products;
     }
 
+    public List<DashboardProduct> getAllLowStockProducts() {
+        List<DashboardProduct> products = new ArrayList<>();
+        String sql = """
+                SELECT p.product_id,
+                       p.product_name,
+                       p.status,
+                       COALESCE(stock.quantity, 0) AS stock_quantity,
+                       0 AS sold_quantity
+                FROM products p
+                LEFT JOIN (
+                    SELECT product_id, SUM(quantity) AS quantity
+                    FROM batch_items
+                    GROUP BY product_id
+                ) stock ON stock.product_id = p.product_id
+                WHERE COALESCE(stock.quantity, 0) <= 5
+                ORDER BY stock_quantity ASC, p.product_id DESC
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    products.add(mapProduct(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return products;
+    }
+
     public int countLowStockProducts() {
         String sql = """
                 SELECT COUNT(*) AS value

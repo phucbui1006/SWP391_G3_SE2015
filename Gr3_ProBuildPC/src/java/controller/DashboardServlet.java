@@ -88,7 +88,7 @@ public class DashboardServlet extends HttpServlet {
         DashboardSummary summary = dashboardDAO.getSummary(chartStartDate, chartEndDate);
         List<DashboardProduct> bestSellingProducts = dashboardDAO.getBestSellingProducts(
                 chartStartDate, chartEndDate, 5);
-        List<DashboardProduct> lowStockProducts = dashboardDAO.getLowStockProducts(5);
+        List<DashboardProduct> lowStockProducts = dashboardDAO.getAllLowStockProducts();
         Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(
                 chartStartDate, chartEndDate);
         AccountSummary accountSummary = dashboardDAO.getAccountSummary();
@@ -134,21 +134,10 @@ public class DashboardServlet extends HttpServlet {
         view.setStatCards(buildAdminStatCards(safeSummary, ctx));
         view.setBestSellingProducts(buildProductRows(bestSellingProducts));
         view.setLowStockProducts(buildProductRows(lowStockProducts));
+        view.setLowStockProductsChart(buildLowStockChartPoints(lowStockProducts));
         view.setOrderSummaries(buildOrderSummaryRows(safeSummary, orderStatusCounts));
         view.setOrderStatusCounts(buildOrderStatusChartPoints(orderStatusCounts));
         view.setAccountSummaries(buildAccountRows(safeAccountSummary));
-
- //       int bestSellingVisible = view.getBestSellingProducts().size();
-//        if (bestSellingTotal > bestSellingVisible) {
-//            view.setBestSellingFooterMessage("Còn " + (bestSellingTotal - bestSellingVisible)
-//                    + " sản phẩm bán chạy khác trong khoảng đã chọn.");
-//        }
-
-        int lowStockVisible = view.getLowStockProducts().size();
-        if (lowStockTotal > lowStockVisible) {
-            view.setLowStockFooterMessage("Còn " + (lowStockTotal - lowStockVisible)
-                    + " sản phẩm khác sắp hết hàng");
-        }
 
         return view;
     }
@@ -187,6 +176,20 @@ public class DashboardServlet extends HttpServlet {
                 }
                 int total = entry.getValue() == null ? 0 : entry.getValue();
                 points.add(new AdminDashboardView.ChartPoint(status, BigDecimal.valueOf(total)));
+            }
+        }
+        return points;
+    }
+
+    private List<AdminDashboardView.ChartPoint> buildLowStockChartPoints(
+            List<DashboardProduct> products) {
+        List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
+        if (products != null) {
+            for (DashboardProduct product : products) {
+                points.add(new AdminDashboardView.ChartPoint(
+                        product.getProductName(),
+                        BigDecimal.valueOf(product.getStockQuantity())
+                ));
             }
         }
         return points;

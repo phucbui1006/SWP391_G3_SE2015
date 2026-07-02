@@ -115,39 +115,17 @@
                             </div>
                         </section>
 
-                        <aside class="admin-panel admin-quick-panel">
+                        <aside class="admin-panel admin-quick-panel admin-chart-panel">
                             <div class="admin-panel-header">
-                                <h2>Sản phẩm mức tồn kho thấp (< 5)</h2>
+                                <h2>Sản phẩm mức tồn kho thấp (&lt;5)</h2>
                             </div>
-
-                            <table class="admin-dashboard-table admin-low-stock-table compact">
-                                <thead>
-                                    <tr>
-                                        <th>Sản phẩm</th>
-                                        <th>SL</th>
-                                        <th>Trạng thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% for (int rowIndex = 0; rowIndex < ADMIN_TABLE_ROWS; rowIndex++) {
-                                        if (rowIndex < adminDashboard.getLowStockProducts().size()) {
-                                            AdminDashboardView.ProductRow product = adminDashboard.getLowStockProducts().get(rowIndex);
-                                    %>
-                                    <tr>
-                                        <td><%= product.getProductName() %></td>
-                                        <td><%= product.getStockQuantity() %></td>
-                                        <td><span class="admin-status <%= product.getStatusClass() %>"><%= product.getStatus() %></span></td>
-                                    </tr>
-                                    <% } else { %>
-                                    <tr class="admin-placeholder-row">
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                    </tr>
-                                    <% }
-                                    } %>
-                                </tbody>
-                            </table>
+                            <div class="admin-chart-body">
+                                <% if (adminDashboard.getLowStockProducts().isEmpty()) { %>
+                                <p class="admin-empty-message">Không có sản phẩm nào sắp hết hàng.</p>
+                                <% } else { %>
+                                <canvas id="lowStockProductsChart" aria-label="Biểu đồ sản phẩm tồn kho thấp"></canvas>
+                                <% } %>
+                            </div>
                             <div class="admin-panel-footer">
                                 <span><%= adminDashboard.getLowStockFooterMessage() != null
                                         ? adminDashboard.getLowStockFooterMessage()
@@ -233,6 +211,18 @@
                                 <% for (int i = 0; i < adminDashboard.getBestSellingProducts().size(); i++) {
                                     AdminDashboardView.ProductRow product = adminDashboard.getBestSellingProducts().get(i); %>
                                 <%= i > 0 ? "," : "" %><%= product.getSoldQuantity() %>
+                                <% } %>
+                            ];
+                            const lowStockLabels = [
+                                <% for (int i = 0; i < adminDashboard.getLowStockProductsChart().size(); i++) {
+                                    AdminDashboardView.ChartPoint point = adminDashboard.getLowStockProductsChart().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
+                                <% } %>
+                            ];
+                            const lowStockValues = [
+                                <% for (int i = 0; i < adminDashboard.getLowStockProductsChart().size(); i++) {
+                                    AdminDashboardView.ChartPoint point = adminDashboard.getLowStockProductsChart().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
                                 <% } %>
                             ];
                             const orderStatusLabels = [
@@ -352,6 +342,47 @@
                                             tooltip: {
                                                 callbacks: {
                                                     label: context => formatProductCount(context.parsed.x)
+                                                }
+                                            }
+                                        },
+                                        scales: {
+                                            x: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    precision: 0,
+                                                    callback: value => new Intl.NumberFormat('vi-VN').format(value)
+                                                },
+                                                grid: {color: '#eef2f7'}
+                                            },
+                                            y: {grid: {display: false}}
+                                        }
+                                    }
+                                });
+                            }
+                            
+                            const lowStockCanvas = document.getElementById('lowStockProductsChart');
+                            if (lowStockCanvas) {
+                                new Chart(lowStockCanvas, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: lowStockLabels,
+                                        datasets: [{
+                                            label: 'Tồn kho',
+                                            data: lowStockValues,
+                                            backgroundColor: '#f59e0b',
+                                            borderRadius: 8,
+                                            maxBarThickness: 34
+                                        }]
+                                    },
+                                    options: {
+                                        indexAxis: 'y',
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {display: false},
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: context => 'Tồn kho: ' + formatProductCount(context.parsed.x)
                                                 }
                                             }
                                         },

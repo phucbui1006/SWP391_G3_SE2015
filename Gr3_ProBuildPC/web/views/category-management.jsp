@@ -151,7 +151,7 @@
                                 <th>#</th>
                                 <th>Tên danh mục</th>
                                 <th>Trạng thái</th>
-                                <th>Số lượng sản phẩm</th>
+                                <th>Số sản phẩm</th>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>

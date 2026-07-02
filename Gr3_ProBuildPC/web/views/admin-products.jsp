@@ -223,7 +223,8 @@
                                 <th>Danh mục</th>
                                 <th>Thương hiệu</th>
                                 <th>Giá bán</th>
-                                <th>Số lượng</th>
+                                <th>Số lượng nhập</th>
+                                <th>Số lượng tồn</th>
                                 <th>Trạng thái</th>
                                 <th>Thao tác</th>
                             </tr>
@@ -231,7 +232,7 @@
                         <tbody>
                             <% if (products.isEmpty()) { %>
                             <tr>
-                                <td colspan="9" style="text-align:center; padding: 40px; color: #9ca3af;">
+                                <td colspan="10" style="text-align:center; padding: 40px; color: #9ca3af;">
                                     Không tìm thấy sản phẩm nào khớp với bộ lọc
                                 </td>
                             </tr>
@@ -256,10 +257,14 @@
                                     <%= String.format("%,d", p.getPrice().longValue()) %>đ
                                 </td>
                                 <td>
+                                    <%= p.getImportQuantity() %>
+                                </td>
+                                <td style="
+                                    padding-left: 30px;">
                                     <% if (p.getQuantity() > 0) { %>
-                                    <span><%= p.getQuantity() %> sản phẩm</span>
+                                    <span><%= p.getQuantity() %></span>
                                     <% } else { %>
-                                    <span>Hết hàng</span>
+                                    <span style="color: #ef4444; font-weight: 500;">0</span>
                                     <% } %>
                                 </td>
                                 <td>
@@ -272,7 +277,7 @@
                                         <!-- Edit Details -->
                                         <a href="#edit-product-modal" class="action-btn btn-edit" title="Sửa thông tin sản phẩm"
                                            onclick="openEditModal(<%= p.getProductId() %>, '<%= h(p.getProductName()) %>', <%= p.getCategoryId() %>, <%= p.getBrandId() %>, <%= p.getPrice() %>, <%= p.getWarrantyMonths() %>, '<%= h(p.getDescription()) %>', '<%= p.getImageUrl() %>')">
-                                           Sửa
+                                            Sửa
                                         </a>
 
                                         <!-- Toggle Status -->
@@ -596,57 +601,57 @@
 
         <% if (failedAction != null && !failedAction.isEmpty()) { %>
         <script>
-                                                        // Auto-open the correct modal when the servlet forwards back on validation failure
-                                                        (function () {
-                                                            var action = "<%= h(failedAction) %>";
-                                                            if (action === "add") {
-                                                                window.location.hash = "add-product-modal";
-                                                            } else if (action === "update") {
-                                                                window.location.hash = "edit-product-modal";
-                                                            }
-                                                        })();
+                                               // Auto-open the correct modal when the servlet forwards back on validation failure
+                                               (function () {
+                                                   var action = "<%= h(failedAction) %>";
+                                                   if (action === "add") {
+                                                       window.location.hash = "add-product-modal";
+                                                   } else if (action === "update") {
+                                                       window.location.hash = "edit-product-modal";
+                                                   }
+                                               })();
 
-                                                        // Map and display backend validation errors to their inputs inline
-                                                        document.addEventListener("DOMContentLoaded", function () {
-                                                            var action = "<%= h(failedAction) %>";
-                                                            var prefix = action === "add" ? "add" : "edit";
+                                               // Map and display backend validation errors to their inputs inline
+                                               document.addEventListener("DOMContentLoaded", function () {
+                                                   var action = "<%= h(failedAction) %>";
+                                                   var prefix = action === "add" ? "add" : "edit";
 
-                                                            var fieldMapping = {
-                                                                "productName": prefix + "ProductName",
-                                                                "categoryId": prefix + "Category",
-                                                                "brandId": prefix + "Brand",
-                                                                "price": prefix + "Price",
-                                                                "warrantyMonths": prefix + "WarrantyMonths",
-                                                                "imgFile": prefix + "ImageFile"
-                                                            };
+                                                   var fieldMapping = {
+                                                       "productName": prefix + "ProductName",
+                                                       "categoryId": prefix + "Category",
+                                                       "brandId": prefix + "Brand",
+                                                       "price": prefix + "Price",
+                                                       "warrantyMonths": prefix + "WarrantyMonths",
+                                                       "imgFile": prefix + "ImageFile"
+                                                   };
 
             <% 
                     java.util.Map<String, String> backendErrors = (java.util.Map<String, String>) request.getAttribute("errors");
                     if (backendErrors != null && !backendErrors.isEmpty()) {
                         for (java.util.Map.Entry<String, String> entry : backendErrors.entrySet()) {
             %>
-                                                            var fieldKey = "<%= h(entry.getKey()) %>";
-                                                            var errMsg = "<%= h(entry.getValue()) %>";
-                                                            var inputId = fieldMapping[fieldKey];
-                                                            if (inputId) {
-                                                                var inp = document.getElementById(inputId);
-                                                                if (inp) {
-                                                                    inp.classList.add("is-invalid");
-                                                                    var parent = inp.closest(".form-group");
-                                                                    if (parent) {
-                                                                        var errText = parent.querySelector(".form-error-text");
-                                                                        if (errText) {
-                                                                            errText.textContent = errMsg;
-                                                                            errText.style.display = "block";
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
+                                                   var fieldKey = "<%= h(entry.getKey()) %>";
+                                                   var errMsg = "<%= h(entry.getValue()) %>";
+                                                   var inputId = fieldMapping[fieldKey];
+                                                   if (inputId) {
+                                                       var inp = document.getElementById(inputId);
+                                                       if (inp) {
+                                                           inp.classList.add("is-invalid");
+                                                           var parent = inp.closest(".form-group");
+                                                           if (parent) {
+                                                               var errText = parent.querySelector(".form-error-text");
+                                                               if (errText) {
+                                                                   errText.textContent = errMsg;
+                                                                   errText.style.display = "block";
+                                                               }
+                                                           }
+                                                       }
+                                                   }
             <% 
                         }
                     } 
             %>
-                                                        });
+                                               });
         </script>
         <% } %>
 

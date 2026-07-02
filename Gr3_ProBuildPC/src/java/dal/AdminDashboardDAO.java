@@ -36,7 +36,7 @@ public class AdminDashboardDAO extends DBContext {
         summary.setActiveProducts(queryInt("SELECT COUNT(*) AS value FROM products WHERE UPPER(status) = 'ACTIVE'"));
         summary.setTotalBrands(queryInt("SELECT COUNT(*) AS value FROM brands"));
         summary.setAcceptedWarrantyRequests(queryInt(
-                "SELECT COUNT(*) AS value FROM warranties WHERE status_id = 2"));
+                "SELECT COUNT(*) AS value FROM warranties WHERE status_id = 3"));
         summary.setImportedBatches(queryInt("""
                 SELECT COUNT(*) AS value FROM batch WHERE date BETWEEN ? AND ?
                 """, startDate, endDate));

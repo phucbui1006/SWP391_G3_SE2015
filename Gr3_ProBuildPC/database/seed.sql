@@ -88,9 +88,8 @@ VALUES
 INSERT INTO WARRANTY_STATUS (status_id, status_name)
 VALUES
 (1, 'Chờ tiếp nhận'),
-(2, 'Đã tiếp nhận'),
-(3, 'Từ chối'),
-(4, 'Hoàn tất');
+(2, 'Từ chối'),
+(3, 'Chấp nhận');
 
 -- =========================
 -- NGƯỜI DÙNG

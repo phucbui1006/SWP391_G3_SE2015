@@ -12,6 +12,10 @@
         <servlet-name>BatchItemServlet</servlet-name>
         <servlet-class>controller.BatchItemServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>RevenueServlet</servlet-name>
+        <servlet-class>controller.RevenueServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>UpdateProfileServlet</servlet-name>
         <url-pattern>/UpdateProfileServlet</url-pattern>
@@ -23,6 +27,10 @@
     <servlet-mapping>
         <servlet-name>BatchItemServlet</servlet-name>
         <url-pattern>/BatchItemServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>RevenueServlet</servlet-name>
+        <url-pattern>/RevenueServlet</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

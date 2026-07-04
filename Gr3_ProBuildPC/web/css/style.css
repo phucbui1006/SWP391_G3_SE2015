@@ -10079,6 +10079,29 @@ body.dashboard-body .dashboard-card.shipment-shell {
     padding: 0;
 }
 
+.admin-account-chart-wrap {
+    display: grid;
+    grid-template-columns: minmax(210px, 0.85fr) minmax(220px, 1fr);
+    gap: 8px;
+    align-items: center;
+    min-height: 320px;
+    padding: 20px;
+}
+
+.admin-account-chart {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    justify-self: center;
+}
+
+.admin-account-chart-wrap .admin-account-grid {
+    align-self: stretch;
+    border: 1px solid #eceff4;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
 .admin-count-list p,
 .admin-account-grid div {
     min-height: 49px;
@@ -10104,6 +10127,9 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
 .admin-count-list span,
 .admin-account-grid span {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
     color: black;
     font-size: 14px;
     font-weight: 400;
@@ -10114,6 +10140,50 @@ body.dashboard-body .dashboard-card.shipment-shell {
     color: black;
     font-size: 14px;
     font-weight: 400;
+}
+
+.admin-account-dot {
+    width: 10px;
+    height: 10px;
+    flex: 0 0 10px;
+    border-radius: 50%;
+    background: #dc2626;
+}
+
+.admin-account-grid div:nth-child(2) .admin-account-dot {
+    background: #2563eb;
+}
+
+.admin-account-grid div:nth-child(3) .admin-account-dot {
+    background: #16a34a;
+}
+
+.admin-account-grid div:nth-child(4) .admin-account-dot {
+    background: #f59e0b;
+}
+
+.admin-account-grid div:nth-child(5) .admin-account-dot {
+    background: #7c3aed;
+}
+
+.admin-account-grid div:nth-child(6) .admin-account-dot {
+    background: #0891b2;
+}
+
+.admin-account-grid div:nth-child(7) .admin-account-dot {
+    background: #db2777;
+}
+
+.admin-account-grid div:nth-child(8) .admin-account-dot {
+    background: #65a30d;
+}
+
+.admin-account-grid div:nth-child(9) .admin-account-dot {
+    background: #ea580c;
+}
+
+.admin-account-grid div:nth-child(10) .admin-account-dot {
+    background: #475569;
 }
 
 .admin-count-list .admin-empty-message,
@@ -10315,6 +10385,16 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
     .admin-dashboard-table {
         min-width: 0;
+    }
+
+    .admin-account-chart-wrap {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        padding: 16px;
+    }
+
+    .admin-account-chart {
+        height: 220px;
     }
 }
 

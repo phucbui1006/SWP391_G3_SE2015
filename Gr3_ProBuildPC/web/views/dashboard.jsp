@@ -157,14 +157,33 @@
                             </div>
                         </section>
 
-                        <section class="admin-panel">
+                        <section class="admin-panel admin-chart-panel admin-account-panel">
                             <div class="admin-panel-header">
-                                <h2>Tổng quan tài khoản</h2>
+                                <div>
+                                    <h2>Tổng quan tài khoản</h2>
+                                    <p class="admin-chart-period">Số lượng tài khoản theo nhóm</p>
+                                </div>
                             </div>
 
-                            <div class="admin-account-grid">
-                                <% for (AdminDashboardView.CountRow accountRow : adminDashboard.getAccountSummaries()) { %>
-                                <div><span><%= accountRow.getLabel() %></span><strong><%= accountRow.getValue() %></strong></div>
+                            <div class="admin-account-chart-wrap">
+                                <% if (adminDashboard.getAccountSummaries().isEmpty()) { %>
+                                <p class="admin-empty-message">Chưa có dữ liệu tài khoản.</p>
+                                <% } else { %>
+                                <div class="admin-account-chart">
+                                    <canvas id="accountOverviewChart" aria-label="Biểu đồ tổng quan tài khoản"></canvas>
+                                </div>
+                                <div class="admin-account-grid">
+                                    <% for (int i = 0; i < adminDashboard.getAccountSummaries().size(); i++) {
+                                        AdminDashboardView.CountRow accountRow = adminDashboard.getAccountSummaries().get(i); %>
+                                    <div>
+                                        <span>
+                                            <i class="admin-account-dot"></i>
+                                            <%= accountRow.getLabel() %>
+                                        </span>
+                                        <strong><%= accountRow.getValue() %></strong>
+                                    </div>
+                                    <% } %>
+                                </div>
                                 <% } %>
                             </div>
                             <div class="admin-panel-footer">
@@ -237,6 +256,18 @@
                                 <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
                                 <% } %>
                             ];
+                            const accountLabels = [
+                                <% for (int i = 0; i < adminDashboard.getAccountSummaries().size(); i++) {
+                                    AdminDashboardView.CountRow accountRow = adminDashboard.getAccountSummaries().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(accountRow.getLabel()) %>
+                                <% } %>
+                            ];
+                            const accountValues = [
+                                <% for (int i = 0; i < adminDashboard.getAccountSummaries().size(); i++) {
+                                    AdminDashboardView.CountRow accountRow = adminDashboard.getAccountSummaries().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= accountRow.getValue() %>
+                                <% } %>
+                            ];
 
                             const formatCurrency = value =>
                                 new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
@@ -244,6 +275,8 @@
                                 new Intl.NumberFormat('vi-VN').format(value) + ' đơn';
                             const formatProductCount = value =>
                                 new Intl.NumberFormat('vi-VN').format(value) + ' sản phẩm';
+                            const formatAccountCount = value =>
+                                new Intl.NumberFormat('vi-VN').format(value) + ' tài khoản';
                             const commonTooltip = {
                                 callbacks: {
                                     label: context => context.dataset.label
@@ -441,6 +474,55 @@
                                                 grid: {color: '#eef2f7'}
                                             },
                                             x: {grid: {display: false}}
+                                        }
+                                    }
+                                });
+                            }
+
+                            const accountCanvas = document.getElementById('accountOverviewChart');
+                            if (accountCanvas) {
+                                const accountColors = [
+                                    '#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#7c3aed',
+                                    '#0891b2', '#db2777', '#65a30d', '#ea580c', '#475569'
+                                ];
+                                new Chart(accountCanvas, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: accountLabels,
+                                        datasets: [{
+                                            label: 'Số tài khoản',
+                                            data: accountValues,
+                                            backgroundColor: accountLabels.map((_, index) =>
+                                                accountColors[index % accountColors.length]),
+                                            borderRadius: 8,
+                                            maxBarThickness: 34
+                                        }]
+                                    },
+                                    options: {
+                                        indexAxis: 'y',
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {display: false},
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: context => context.label + ': ' + formatAccountCount(context.parsed.x)
+                                                }
+                                            }
+                                        },
+                                        scales: {
+                                            x: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    precision: 0,
+                                                    callback: value => new Intl.NumberFormat('vi-VN').format(value)
+                                                },
+                                                grid: {color: '#eef2f7'}
+                                            },
+                                            y: {
+                                                ticks: {display: false},
+                                                grid: {display: false}
+                                            }
                                         }
                                     }
                                 });

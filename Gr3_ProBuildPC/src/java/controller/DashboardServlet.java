@@ -92,20 +92,14 @@ public class DashboardServlet extends HttpServlet {
         Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(
                 chartStartDate, chartEndDate);
         AccountSummary accountSummary = dashboardDAO.getAccountSummary();
-        int bestSellingTotal = dashboardDAO.countBestSellingProducts(chartStartDate, chartEndDate);
-        int lowStockTotal = dashboardDAO.countLowStockProducts();
         Map<LocalDate, BigDecimal> revenueTimeline = dashboardDAO.getRevenueByDay(chartStartDate, chartEndDate);
         Map<String, BigDecimal> categoryRevenue = dashboardDAO.getCategoryRevenue(chartStartDate, chartEndDate);
 
         AdminDashboardView adminDashboard = buildAdminDashboardView(
                 request,
-                chartStartDate,
-                chartEndDate,
                 summary,
                 bestSellingProducts,
-                bestSellingTotal,
                 lowStockProducts,
-                lowStockTotal,
                 orderStatusCounts,
                 accountSummary
         );
@@ -121,9 +115,8 @@ public class DashboardServlet extends HttpServlet {
     }
 
     private AdminDashboardView buildAdminDashboardView(HttpServletRequest request,
-            LocalDate chartStartDate, LocalDate chartEndDate,
-            DashboardSummary summary, List<DashboardProduct> bestSellingProducts, int bestSellingTotal,
-            List<DashboardProduct> lowStockProducts, int lowStockTotal, Map<String, Integer> orderStatusCounts,
+            DashboardSummary summary, List<DashboardProduct> bestSellingProducts,
+            List<DashboardProduct> lowStockProducts, Map<String, Integer> orderStatusCounts,
             AccountSummary accountSummary) {
         AdminDashboardView view = new AdminDashboardView();
         String ctx = request.getContextPath();
@@ -133,9 +126,7 @@ public class DashboardServlet extends HttpServlet {
         view.setFormAction(ctx + "/Dashboard");
         view.setStatCards(buildAdminStatCards(safeSummary, ctx));
         view.setBestSellingProducts(buildProductRows(bestSellingProducts));
-        view.setLowStockProducts(buildProductRows(lowStockProducts));
         view.setLowStockProductsChart(buildLowStockChartPoints(lowStockProducts));
-        view.setOrderSummaries(buildOrderSummaryRows(safeSummary, orderStatusCounts));
         view.setOrderStatusCounts(buildOrderStatusChartPoints(orderStatusCounts));
         view.setAccountSummaries(buildAccountRows(safeAccountSummary));
 
@@ -230,90 +221,11 @@ public class DashboardServlet extends HttpServlet {
 
         for (DashboardProduct product : products) {
             rows.add(new AdminDashboardView.ProductRow(
-                    String.valueOf(product.getProductId()),
                     DashboardViewHelper.h(product.getProductName()),
-                    product.getSoldQuantity(),
-                    product.getStockQuantity(),
-                    DashboardViewHelper.h(product.getStatus()),
-                    DashboardViewHelper.productStatusClass(product.getStatus())
+                    product.getSoldQuantity()
             ));
         }
         return rows;
-    }
-
-    private List<AdminDashboardView.OrderSummaryRow> buildOrderSummaryRows(
-            DashboardSummary summary, Map<String, Integer> orderStatusCounts) {
-        List<AdminDashboardView.OrderSummaryRow> rows = new ArrayList<>();
-        int totalOrders = summary.getTotalOrders();
-        BigDecimal totalRevenue = summary.getTotalRevenue() == null ? BigDecimal.ZERO : summary.getTotalRevenue();
-        int successfulOrders = countSuccessfulOrders(orderStatusCounts);
-
-        rows.add(new AdminDashboardView.OrderSummaryRow(
-                "Tổng đơn hàng",
-                String.valueOf(totalOrders),
-                "Tất cả đơn phát sinh trong khoảng đã chọn",
-                ""
-        ));
-        rows.add(new AdminDashboardView.OrderSummaryRow(
-                "Doanh thu",
-                DashboardViewHelper.formatCurrency(totalRevenue),
-                "Không tính đơn đã hủy",
-                ""
-        ));
-        rows.add(new AdminDashboardView.OrderSummaryRow(
-                "Đã giao thành công/hoàn thành",
-                String.valueOf(successfulOrders),
-                "Tổng đơn đã giao thành công hoặc đã hoàn thành",
-                "delivered"
-        ));
-
-        if (orderStatusCounts != null) {
-            for (Map.Entry<String, Integer> entry : orderStatusCounts.entrySet()) {
-                String status = DashboardViewHelper.defaultText(entry.getKey(), "Chưa cập nhật");
-                if (isConfirmedOrderStatus(status) || isSuccessfulOrderStatus(status)) {
-                    continue;
-                }
-                rows.add(new AdminDashboardView.OrderSummaryRow(
-                        DashboardViewHelper.h(status),
-                        String.valueOf(entry.getValue() == null ? 0 : entry.getValue()),
-                        "Theo trạng thái đơn hàng",
-                        DashboardViewHelper.statusClass(status)
-                ));
-            }
-        }
-
-        return rows;
-    }
-
-    private int countSuccessfulOrders(Map<String, Integer> orderStatusCounts) {
-        if (orderStatusCounts == null) {
-            return 0;
-        }
-
-        int total = 0;
-        for (Map.Entry<String, Integer> entry : orderStatusCounts.entrySet()) {
-            if (isSuccessfulOrderStatus(entry.getKey())) {
-                total += entry.getValue() == null ? 0 : entry.getValue();
-            }
-        }
-        return total;
-    }
-
-    private boolean isSuccessfulOrderStatus(String status) {
-        String value = status == null ? "" : status.toLowerCase();
-        return value.contains("đã giao")
-                || value.contains("da giao")
-                || value.contains("hoàn thành")
-                || value.contains("hoan thanh")
-                || value.contains("thành công")
-                || value.contains("thanh cong");
-    }
-
-    private boolean isConfirmedOrderStatus(String status) {
-        String value = status == null ? "" : status.toLowerCase();
-        return (value.contains("xác nhận") || value.contains("xac nhan"))
-                && !value.contains("chờ")
-                && !value.contains("cho ");
     }
 
     private List<AdminDashboardView.CountRow> buildAccountRows(AccountSummary summary) {

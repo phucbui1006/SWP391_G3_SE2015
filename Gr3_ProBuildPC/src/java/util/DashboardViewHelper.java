@@ -66,10 +66,6 @@ public final class DashboardViewHelper {
         return "fa-solid fa-box";
     }
 
-    public static String productStatusClass(String status) {
-        return status != null && "ACTIVE".equalsIgnoreCase(status.trim()) ? "active" : "inactive";
-    }
-
     public static String formatCurrency(BigDecimal value) {
         DecimalFormat formatter = new DecimalFormat("#,###");
         BigDecimal safeValue = value == null ? BigDecimal.ZERO : value;

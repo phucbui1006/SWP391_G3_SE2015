@@ -21,7 +21,6 @@
     }
 
     String ctx = request.getContextPath();
-    final int ADMIN_TABLE_ROWS = 5;
 %>
 
 <!DOCTYPE html>
@@ -108,9 +107,7 @@
                                 <% } %>
                             </div>
                             <div class="admin-panel-footer">
-                                <span><%= adminDashboard.getBestSellingFooterMessage() != null
-                                        ? adminDashboard.getBestSellingFooterMessage()
-                                        : "Mở trang quản lý toàn bộ sản phẩm." %></span>
+                                <span>Mở trang quản lý toàn bộ sản phẩm.</span>
                                 <a href="<%= ctx %>/admin/products">Xem tất cả</a>
                             </div>
                         </section>
@@ -120,16 +117,14 @@
                                 <h2>Sản phẩm mức tồn kho thấp (&lt;5)</h2>
                             </div>
                             <div class="admin-chart-body">
-                                <% if (adminDashboard.getLowStockProducts().isEmpty()) { %>
+                                <% if (adminDashboard.getLowStockProductsChart().isEmpty()) { %>
                                 <p class="admin-empty-message">Không có sản phẩm nào sắp hết hàng.</p>
                                 <% } else { %>
                                 <canvas id="lowStockProductsChart" aria-label="Biểu đồ sản phẩm tồn kho thấp"></canvas>
                                 <% } %>
                             </div>
                             <div class="admin-panel-footer">
-                                <span><%= adminDashboard.getLowStockFooterMessage() != null
-                                        ? adminDashboard.getLowStockFooterMessage()
-                                        : "Danh sách sản phẩm theo tồn kho tăng dần." %></span>
+                                <span>Danh sách sản phẩm theo tồn kho tăng dần.</span>
                                 <a href="<%= ctx %>/admin/products?sort=qty_asc">Xem tất cả</a>
                             </div>
                         </aside>

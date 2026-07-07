@@ -79,12 +79,12 @@
                         <section class="admin-panel admin-chart-panel">
                             <div class="admin-panel-header">
                                 <div>
-                                    <h2>Cơ cấu doanh thu theo danh mục</h2>
+                                    <h2>Cơ cấu số sản phẩm bán ra theo danh mục</h2>
                                     <p class="admin-chart-period"><%= adminDashboard.getChartPeriodLabel() %></p>
                                 </div>
                             </div>
                             <div class="admin-chart-body admin-pie-chart-body">
-                                <canvas id="categoryRevenueChart" aria-label="Biểu đồ tròn doanh thu theo danh mục"></canvas>
+                                <canvas id="categorySoldProductsChart" aria-label="Biểu đồ tròn số sản phẩm bán ra theo danh mục"></canvas>
                             </div>
                         </section>
                     </div>
@@ -144,18 +144,6 @@
                                 <div class="admin-account-chart">
                                     <canvas id="accountOverviewChart" aria-label="Biểu đồ tổng quan tài khoản"></canvas>
                                 </div>
-                                <div class="admin-account-grid">
-                                    <% for (int i = 0; i < adminDashboard.getAccountSummaries().size(); i++) {
-                                        AdminDashboardView.CountRow accountRow = adminDashboard.getAccountSummaries().get(i); %>
-                                    <div>
-                                        <span>
-                                            <i class="admin-account-dot"></i>
-                                            <%= accountRow.getLabel() %>
-                                        </span>
-                                        <strong><%= accountRow.getValue() %></strong>
-                                    </div>
-                                    <% } %>
-                                </div>
                             </div>
                             <div class="admin-panel-footer">
                                 <span><a href="<%= ctx %>/AccountManagement?type=user">Quản lý khách hàng</a></span>
@@ -167,78 +155,18 @@
                     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
                     <script>
                         (() => {
-                            const timelineLabels = [
-                                <% for (int i = 0; i < adminDashboard.getRevenueTimeline().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getRevenueTimeline().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
-                            ];
-                            const timelineValues = [
-                                <% for (int i = 0; i < adminDashboard.getRevenueTimeline().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getRevenueTimeline().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
-                                <% } %>
-                            ];
-                            const categoryLabels = [
-                                <% for (int i = 0; i < adminDashboard.getCategoryRevenue().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getCategoryRevenue().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
-                            ];
-                            const categoryValues = [
-                                <% for (int i = 0; i < adminDashboard.getCategoryRevenue().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getCategoryRevenue().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
-                                <% } %>
-                            ];
-                            const bestSellingLabels = [
-                                <% for (int i = 0; i < adminDashboard.getBestSellingProducts().size(); i++) {
-                                    AdminDashboardView.ProductRow product = adminDashboard.getBestSellingProducts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(product.getProductName()) %>
-                                <% } %>
-                            ];
-                            const bestSellingValues = [
-                                <% for (int i = 0; i < adminDashboard.getBestSellingProducts().size(); i++) {
-                                    AdminDashboardView.ProductRow product = adminDashboard.getBestSellingProducts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= product.getSoldQuantity() %>
-                                <% } %>
-                            ];
-                            const lowStockLabels = [
-                                <% for (int i = 0; i < adminDashboard.getLowStockProductsChart().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getLowStockProductsChart().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
-                            ];
-                            const lowStockValues = [
-                                <% for (int i = 0; i < adminDashboard.getLowStockProductsChart().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getLowStockProductsChart().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
-                                <% } %>
-                            ];
-                            const orderStatusLabels = [
-                                <% for (int i = 0; i < adminDashboard.getOrderStatusCounts().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getOrderStatusCounts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
-                            ];
-                            const orderStatusValues = [
-                                <% for (int i = 0; i < adminDashboard.getOrderStatusCounts().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getOrderStatusCounts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
-                                <% } %>
-                            ];
-                            const accountLabels = [
-                                <% for (int i = 0; i < adminDashboard.getAccountSummaries().size(); i++) {
-                                    AdminDashboardView.CountRow accountRow = adminDashboard.getAccountSummaries().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(accountRow.getLabel()) %>
-                                <% } %>
-                            ];
-                            const accountValues = [
-                                <% for (int i = 0; i < adminDashboard.getAccountSummaries().size(); i++) {
-                                    AdminDashboardView.CountRow accountRow = adminDashboard.getAccountSummaries().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= accountRow.getValue() %>
-                                <% } %>
-                            ];
+                            const timelineLabels = <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getRevenueTimeline()) %>;
+                            const timelineValues = <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getRevenueTimeline()) %>;
+                            const categoryLabels = <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getCategorySoldProducts()) %>;
+                            const categoryValues = <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getCategorySoldProducts()) %>;
+                            const bestSellingLabels = <%= DashboardViewHelper.productNamesToJson(adminDashboard.getBestSellingProducts()) %>;
+                            const bestSellingValues = <%= DashboardViewHelper.productSoldQuantitiesToJson(adminDashboard.getBestSellingProducts()) %>;
+                            const lowStockLabels = <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getLowStockProductsChart()) %>;
+                            const lowStockValues = <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getLowStockProductsChart()) %>;
+                            const orderStatusLabels = <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getOrderStatusCounts()) %>;
+                            const orderStatusValues = <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getOrderStatusCounts()) %>;
+                            const accountLabels = <%= DashboardViewHelper.countRowLabelsToJson(adminDashboard.getAccountSummaries()) %>;
+                            const accountValues = <%= DashboardViewHelper.countRowValuesToJson(adminDashboard.getAccountSummaries()) %>;
 
                             const formatCurrency = value =>
                                 new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
@@ -259,8 +187,8 @@
                             const categoryChartLabels = hasCategoryData ? categoryLabels : [''];
                             const categoryChartValues = hasCategoryData ? categoryValues : [1];
                             const categoryTooltip = hasCategoryData
-                                ? commonTooltip
-                                : {callbacks: {label: () => formatCurrency(0)}};
+                                ? {callbacks: {label: context => context.label + ': ' + formatProductCount(context.parsed)}}
+                                : {callbacks: {label: () => formatProductCount(0)}};
                             const ensureBarLabels = labels => labels.length ? labels : [''];
                             const ensureBarValues = values => values.length ? values : [0];
 
@@ -299,7 +227,7 @@
                                 }
                             });
 
-                            const categoryCanvas = document.getElementById('categoryRevenueChart');
+                            const categoryCanvas = document.getElementById('categorySoldProductsChart');
                             if (categoryCanvas) {
                                 const colors = [
                                     '#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#7c3aed',

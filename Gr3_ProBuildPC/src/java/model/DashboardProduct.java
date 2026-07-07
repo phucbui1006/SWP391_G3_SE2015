@@ -2,7 +2,6 @@ package model;
 
 public class DashboardProduct {
     private String productName;
-    private int stockQuantity;
     private int soldQuantity;
 
     public DashboardProduct() {
@@ -14,14 +13,6 @@ public class DashboardProduct {
 
     public void setProductName(String productName) {
         this.productName = productName;
-    }
-
-    public int getStockQuantity() {
-        return stockQuantity;
-    }
-
-    public void setStockQuantity(int stockQuantity) {
-        this.stockQuantity = stockQuantity;
     }
 
     public int getSoldQuantity() {

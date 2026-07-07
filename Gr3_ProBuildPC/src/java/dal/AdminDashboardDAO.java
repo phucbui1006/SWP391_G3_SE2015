@@ -78,11 +78,11 @@ public class AdminDashboardDAO extends DBContext {
         return revenueByDay;
     }
 
-    public Map<String, BigDecimal> getCategoryRevenue(LocalDate startDate, LocalDate endDate) {
-        Map<String, BigDecimal> revenueByCategory = new LinkedHashMap<>();
+    public Map<String, Integer> getCategorySoldQuantities(LocalDate startDate, LocalDate endDate) {
+        Map<String, Integer> soldQuantitiesByCategory = new LinkedHashMap<>();
         String sql = """
                 SELECT c.category_name,
-                       COALESCE(SUM(od.subtotal), 0) AS revenue
+                       COALESCE(SUM(od.quantity), 0) AS sold_quantity
                 FROM order_details od
                 INNER JOIN orders o ON o.order_id = od.order_id
                 INNER JOIN products p ON p.product_id = od.product_id
@@ -94,8 +94,8 @@ public class AdminDashboardDAO extends DBContext {
                        OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
                            AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
                 GROUP BY c.category_id, c.category_name
-                HAVING revenue > 0
-                ORDER BY revenue DESC, c.category_name
+                HAVING sold_quantity > 0
+                ORDER BY sold_quantity DESC, c.category_name
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -103,14 +103,14 @@ public class AdminDashboardDAO extends DBContext {
             ps.setDate(2, Date.valueOf(endDate));
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    revenueByCategory.put(rs.getString("category_name"),
-                            nullToZero(rs.getBigDecimal("revenue")));
+                    soldQuantitiesByCategory.put(rs.getString("category_name"),
+                            rs.getInt("sold_quantity"));
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return revenueByCategory;
+        return soldQuantitiesByCategory;
     }
 
     public List<DashboardProduct> getBestSellingProducts(LocalDate startDate, LocalDate endDate, int limit) {
@@ -151,33 +151,36 @@ public class AdminDashboardDAO extends DBContext {
         return products;
     }
 
-    public List<DashboardProduct> getAllLowStockProducts() {
-        List<DashboardProduct> products = new ArrayList<>();
+    public Map<Integer, Integer> getLowStockProductCounts(int maxStockQuantity) {
+        Map<Integer, Integer> counts = new LinkedHashMap<>();
         String sql = """
-                SELECT p.product_name,
-                       COALESCE(stock.quantity, 0) AS stock_quantity,
-                       0 AS sold_quantity
-                FROM products p
-                LEFT JOIN (
-                    SELECT product_id, SUM(quantity) AS quantity
-                    FROM batch_items
-                    GROUP BY product_id
-                ) stock ON stock.product_id = p.product_id
-                WHERE COALESCE(stock.quantity, 0) <= 5
-                ORDER BY stock_quantity ASC, p.product_id DESC
+                SELECT stock_quantity, COUNT(*) AS total
+                FROM (
+                    SELECT COALESCE(stock.quantity, 0) AS stock_quantity
+                    FROM products p
+                    LEFT JOIN (
+                        SELECT product_id, SUM(quantity) AS quantity
+                        FROM batch_items
+                        GROUP BY product_id
+                    ) stock ON stock.product_id = p.product_id
+                ) product_stock
+                WHERE stock_quantity BETWEEN 0 AND ?
+                GROUP BY stock_quantity
+                ORDER BY stock_quantity ASC
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, maxStockQuantity);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    products.add(mapProduct(rs));
+                    counts.put(rs.getInt("stock_quantity"), rs.getInt("total"));
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return products;
+        return counts;
     }
 
     public Map<String, Integer> getOrderStatusCounts(LocalDate startDate, LocalDate endDate) {
@@ -229,14 +232,6 @@ public class AdminDashboardDAO extends DBContext {
         summary.setLocked(queryInt("SELECT COUNT(*) AS value FROM users WHERE UPPER(COALESCE(status, '')) <> 'ACTIVE'"));
         summary.setActive(queryInt("SELECT COUNT(*) AS value FROM users WHERE UPPER(COALESCE(status, 'ACTIVE')) = 'ACTIVE'"));
         return summary;
-    }
-
-    private DashboardProduct mapProduct(ResultSet rs) throws SQLException {
-        DashboardProduct product = new DashboardProduct();
-        product.setProductName(rs.getString("product_name"));
-        product.setStockQuantity(rs.getInt("stock_quantity"));
-        product.setSoldQuantity(rs.getInt("sold_quantity"));
-        return product;
     }
 
     private DashboardProduct mapBestSellingProduct(ResultSet rs) throws SQLException {

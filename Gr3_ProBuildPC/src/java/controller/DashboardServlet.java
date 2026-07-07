@@ -34,6 +34,7 @@ public class DashboardServlet extends HttpServlet {
 
     private static final int SHIPMENT_PAGE_SIZE = 10;
     private static final int MAX_CHART_DAYS = 366;
+    private static final int LOW_STOCK_MAX_QUANTITY = 5;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -88,25 +89,25 @@ public class DashboardServlet extends HttpServlet {
         DashboardSummary summary = dashboardDAO.getSummary(chartStartDate, chartEndDate);
         List<DashboardProduct> bestSellingProducts = dashboardDAO.getBestSellingProducts(
                 chartStartDate, chartEndDate, 5);
-        List<DashboardProduct> lowStockProducts = dashboardDAO.getAllLowStockProducts();
+        Map<Integer, Integer> lowStockProductCounts = dashboardDAO.getLowStockProductCounts(LOW_STOCK_MAX_QUANTITY);
         Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(
                 chartStartDate, chartEndDate);
         AccountSummary accountSummary = dashboardDAO.getAccountSummary();
         Map<LocalDate, BigDecimal> revenueTimeline = dashboardDAO.getRevenueByDay(chartStartDate, chartEndDate);
-        Map<String, BigDecimal> categoryRevenue = dashboardDAO.getCategoryRevenue(chartStartDate, chartEndDate);
+        Map<String, Integer> categorySoldQuantities = dashboardDAO.getCategorySoldQuantities(chartStartDate, chartEndDate);
 
         AdminDashboardView adminDashboard = buildAdminDashboardView(
                 request,
                 summary,
                 bestSellingProducts,
-                lowStockProducts,
+                lowStockProductCounts,
                 orderStatusCounts,
                 accountSummary
         );
         DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd/MM");
         DateTimeFormatter periodFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         adminDashboard.setRevenueTimeline(buildRevenueTimelinePoints(revenueTimeline, dayFormatter));
-        adminDashboard.setCategoryRevenue(buildCategoryRevenuePoints(categoryRevenue));
+        adminDashboard.setCategorySoldProducts(buildCategorySoldProductPoints(categorySoldQuantities));
         adminDashboard.setChartStartDate(chartStartDate);
         adminDashboard.setChartEndDate(chartEndDate);
         adminDashboard.setChartPeriodLabel(chartStartDate.format(periodFormatter)
@@ -116,7 +117,7 @@ public class DashboardServlet extends HttpServlet {
 
     private AdminDashboardView buildAdminDashboardView(HttpServletRequest request,
             DashboardSummary summary, List<DashboardProduct> bestSellingProducts,
-            List<DashboardProduct> lowStockProducts, Map<String, Integer> orderStatusCounts,
+            Map<Integer, Integer> lowStockProductCounts, Map<String, Integer> orderStatusCounts,
             AccountSummary accountSummary) {
         AdminDashboardView view = new AdminDashboardView();
         String ctx = request.getContextPath();
@@ -126,7 +127,7 @@ public class DashboardServlet extends HttpServlet {
         view.setFormAction(ctx + "/Dashboard");
         view.setStatCards(buildAdminStatCards(safeSummary, ctx));
         view.setBestSellingProducts(buildProductRows(bestSellingProducts));
-        view.setLowStockProductsChart(buildLowStockChartPoints(lowStockProducts));
+        view.setLowStockProductsChart(buildLowStockChartPoints(lowStockProductCounts));
         view.setOrderStatusCounts(buildOrderStatusChartPoints(orderStatusCounts));
         view.setAccountSummaries(buildAccountRows(safeAccountSummary));
 
@@ -145,12 +146,13 @@ public class DashboardServlet extends HttpServlet {
         return points;
     }
 
-    private List<AdminDashboardView.ChartPoint> buildCategoryRevenuePoints(
-            Map<String, BigDecimal> revenueByCategory) {
+    private List<AdminDashboardView.ChartPoint> buildCategorySoldProductPoints(
+            Map<String, Integer> soldQuantitiesByCategory) {
         List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
-        if (revenueByCategory != null) {
-            for (Map.Entry<String, BigDecimal> entry : revenueByCategory.entrySet()) {
-                points.add(new AdminDashboardView.ChartPoint(entry.getKey(), entry.getValue()));
+        if (soldQuantitiesByCategory != null) {
+            for (Map.Entry<String, Integer> entry : soldQuantitiesByCategory.entrySet()) {
+                int soldQuantity = entry.getValue() == null ? 0 : entry.getValue();
+                points.add(new AdminDashboardView.ChartPoint(entry.getKey(), BigDecimal.valueOf(soldQuantity)));
             }
         }
         return points;
@@ -173,21 +175,15 @@ public class DashboardServlet extends HttpServlet {
     }
 
     private List<AdminDashboardView.ChartPoint> buildLowStockChartPoints(
-            List<DashboardProduct> products) {
+            Map<Integer, Integer> productCountsByStock) {
         List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
-        int[] productCountsByStock = new int[6];
-        if (products != null) {
-            for (DashboardProduct product : products) {
-                int stockQuantity = product.getStockQuantity();
-                if (stockQuantity >= 0 && stockQuantity < productCountsByStock.length) {
-                    productCountsByStock[stockQuantity]++;
-                }
-            }
-        }
-        for (int stockQuantity = 0; stockQuantity < productCountsByStock.length; stockQuantity++) {
+        for (int stockQuantity = 0; stockQuantity <= LOW_STOCK_MAX_QUANTITY; stockQuantity++) {
+            int productCount = productCountsByStock == null
+                    ? 0
+                    : productCountsByStock.getOrDefault(stockQuantity, 0);
             points.add(new AdminDashboardView.ChartPoint(
                     "Tồn = " + stockQuantity,
-                    BigDecimal.valueOf(productCountsByStock[stockQuantity])
+                    BigDecimal.valueOf(productCount)
             ));
         }
         return points;

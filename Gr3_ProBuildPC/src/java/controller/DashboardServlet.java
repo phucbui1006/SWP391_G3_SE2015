@@ -175,13 +175,20 @@ public class DashboardServlet extends HttpServlet {
     private List<AdminDashboardView.ChartPoint> buildLowStockChartPoints(
             List<DashboardProduct> products) {
         List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
+        int[] productCountsByStock = new int[6];
         if (products != null) {
             for (DashboardProduct product : products) {
-                points.add(new AdminDashboardView.ChartPoint(
-                        product.getProductName(),
-                        BigDecimal.valueOf(product.getStockQuantity())
-                ));
+                int stockQuantity = product.getStockQuantity();
+                if (stockQuantity >= 0 && stockQuantity < productCountsByStock.length) {
+                    productCountsByStock[stockQuantity]++;
+                }
             }
+        }
+        for (int stockQuantity = 0; stockQuantity < productCountsByStock.length; stockQuantity++) {
+            points.add(new AdminDashboardView.ChartPoint(
+                    "Tồn = " + stockQuantity,
+                    BigDecimal.valueOf(productCountsByStock[stockQuantity])
+            ));
         }
         return points;
     }

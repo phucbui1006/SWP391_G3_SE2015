@@ -84,11 +84,7 @@
                                 </div>
                             </div>
                             <div class="admin-chart-body admin-pie-chart-body">
-                                <% if (adminDashboard.getCategoryRevenue().isEmpty()) { %>
-                                <p class="admin-empty-message">Chưa có doanh thu theo danh mục trong khoảng thời gian này.</p>
-                                <% } else { %>
                                 <canvas id="categoryRevenueChart" aria-label="Biểu đồ tròn doanh thu theo danh mục"></canvas>
-                                <% } %>
                             </div>
                         </section>
                     </div>
@@ -100,31 +96,21 @@
                             </div>
 
                             <div class="admin-chart-body">
-                                <% if (adminDashboard.getBestSellingProducts().isEmpty()) { %>
-                                <p class="admin-empty-message">Chưa có sản phẩm bán ra trong khoảng thời gian này.</p>
-                                <% } else { %>
                                 <canvas id="bestSellingProductsChart" aria-label="Biểu đồ thanh ngang top 5 sản phẩm bán chạy nhất"></canvas>
-                                <% } %>
                             </div>
                             <div class="admin-panel-footer">
-                                <span>Mở trang quản lý toàn bộ sản phẩm.</span>
                                 <a href="<%= ctx %>/admin/products">Xem tất cả</a>
                             </div>
                         </section>
 
                         <aside class="admin-panel admin-quick-panel admin-chart-panel">
                             <div class="admin-panel-header">
-                                <h2>Sản phẩm mức tồn kho thấp (&lt;5)</h2>
+                                <h2>Sản phẩm mức tồn kho thấp (&le;5)</h2>
                             </div>
                             <div class="admin-chart-body">
-                                <% if (adminDashboard.getLowStockProductsChart().isEmpty()) { %>
-                                <p class="admin-empty-message">Không có sản phẩm nào sắp hết hàng.</p>
-                                <% } else { %>
                                 <canvas id="lowStockProductsChart" aria-label="Biểu đồ sản phẩm tồn kho thấp"></canvas>
-                                <% } %>
                             </div>
                             <div class="admin-panel-footer">
-                                <span>Danh sách sản phẩm theo tồn kho tăng dần.</span>
                                 <a href="<%= ctx %>/admin/products?sort=qty_asc">Xem tất cả</a>
                             </div>
                         </aside>
@@ -140,14 +126,9 @@
                             </div>
 
                             <div class="admin-chart-body admin-order-status-chart-body">
-                                <% if (adminDashboard.getOrderStatusCounts().isEmpty()) { %>
-                                <p class="admin-empty-message">Không có đơn hàng trong khoảng thời gian đã chọn.</p>
-                                <% } else { %>
                                 <canvas id="orderStatusChart" aria-label="Biểu đồ số lượng đơn hàng theo trạng thái"></canvas>
-                                <% } %>
                             </div>
                             <div class="admin-panel-footer">
-                                <span>Quản lý và theo dõi toàn bộ đơn hàng.</span>
                                 <a href="<%= ctx %>/order-history">Xem tất cả</a>
                             </div>
                         </section>
@@ -156,14 +137,10 @@
                             <div class="admin-panel-header">
                                 <div>
                                     <h2>Tổng quan tài khoản</h2>
-                                    <p class="admin-chart-period">Số lượng tài khoản theo nhóm</p>
                                 </div>
                             </div>
 
                             <div class="admin-account-chart-wrap">
-                                <% if (adminDashboard.getAccountSummaries().isEmpty()) { %>
-                                <p class="admin-empty-message">Chưa có dữ liệu tài khoản.</p>
-                                <% } else { %>
                                 <div class="admin-account-chart">
                                     <canvas id="accountOverviewChart" aria-label="Biểu đồ tổng quan tài khoản"></canvas>
                                 </div>
@@ -179,7 +156,6 @@
                                     </div>
                                     <% } %>
                                 </div>
-                                <% } %>
                             </div>
                             <div class="admin-panel-footer">
                                 <span><a href="<%= ctx %>/AccountManagement?type=user">Quản lý khách hàng</a></span>
@@ -279,6 +255,14 @@
                                         : context.label + ': ' + formatCurrency(context.parsed)
                                 }
                             };
+                            const hasCategoryData = categoryValues.some(value => Number(value) > 0);
+                            const categoryChartLabels = hasCategoryData ? categoryLabels : [''];
+                            const categoryChartValues = hasCategoryData ? categoryValues : [1];
+                            const categoryTooltip = hasCategoryData
+                                ? commonTooltip
+                                : {callbacks: {label: () => formatCurrency(0)}};
+                            const ensureBarLabels = labels => labels.length ? labels : [''];
+                            const ensureBarValues = values => values.length ? values : [0];
 
                             new Chart(document.getElementById('revenueTimelineChart'), {
                                 type: 'line',
@@ -324,11 +308,11 @@
                                 new Chart(categoryCanvas, {
                                     type: 'pie',
                                     data: {
-                                        labels: categoryLabels,
+                                        labels: categoryChartLabels,
                                         datasets: [{
-                                            data: categoryValues,
-                                            backgroundColor: categoryLabels.map((_, index) =>
-                                                colors[index % colors.length]),
+                                            data: categoryChartValues,
+                                            backgroundColor: categoryChartLabels.map((_, index) =>
+                                                hasCategoryData ? colors[index % colors.length] : '#e5e7eb'),
                                             borderColor: '#ffffff',
                                             borderWidth: 2
                                         }]
@@ -339,9 +323,10 @@
                                         plugins: {
                                             legend: {
                                                 position: 'bottom',
+                                                display: hasCategoryData,
                                                 labels: {usePointStyle: true, padding: 16}
                                             },
-                                            tooltip: commonTooltip
+                                            tooltip: categoryTooltip
                                         }
                                     }
                                 });
@@ -352,10 +337,10 @@
                                 new Chart(bestSellingCanvas, {
                                     type: 'bar',
                                     data: {
-                                        labels: bestSellingLabels,
+                                        labels: ensureBarLabels(bestSellingLabels),
                                         datasets: [{
                                             label: 'Đã bán',
-                                            data: bestSellingValues,
+                                            data: ensureBarValues(bestSellingValues),
                                             backgroundColor: '#dc2626',
                                             borderRadius: 8,
                                             maxBarThickness: 34
@@ -393,10 +378,10 @@
                                 new Chart(lowStockCanvas, {
                                     type: 'bar',
                                     data: {
-                                        labels: lowStockLabels,
+                                        labels: ensureBarLabels(lowStockLabels),
                                         datasets: [{
-                                            label: 'Tồn kho',
-                                            data: lowStockValues,
+                                            label: 'Số sản phẩm',
+                                            data: ensureBarValues(lowStockValues),
                                             backgroundColor: '#f59e0b',
                                             borderRadius: 8,
                                             maxBarThickness: 34
@@ -410,7 +395,7 @@
                                             legend: {display: false},
                                             tooltip: {
                                                 callbacks: {
-                                                    label: context => 'Tồn kho: ' + formatProductCount(context.parsed.x)
+                                                    label: context => formatProductCount(context.parsed.x)
                                                 }
                                             }
                                         },
@@ -438,11 +423,11 @@
                                 new Chart(orderStatusCanvas, {
                                     type: 'bar',
                                     data: {
-                                        labels: orderStatusLabels,
+                                        labels: ensureBarLabels(orderStatusLabels),
                                         datasets: [{
                                             label: 'Số lượng đơn hàng',
-                                            data: orderStatusValues,
-                                            backgroundColor: orderStatusLabels.map((_, index) =>
+                                            data: ensureBarValues(orderStatusValues),
+                                            backgroundColor: ensureBarLabels(orderStatusLabels).map((_, index) =>
                                                 statusColors[index % statusColors.length]),
                                             borderRadius: 8,
                                             maxBarThickness: 44
@@ -483,11 +468,11 @@
                                 new Chart(accountCanvas, {
                                     type: 'bar',
                                     data: {
-                                        labels: accountLabels,
+                                        labels: ensureBarLabels(accountLabels),
                                         datasets: [{
                                             label: 'Số tài khoản',
-                                            data: accountValues,
-                                            backgroundColor: accountLabels.map((_, index) =>
+                                            data: ensureBarValues(accountValues),
+                                            backgroundColor: ensureBarLabels(accountLabels).map((_, index) =>
                                                 accountColors[index % accountColors.length]),
                                             borderRadius: 8,
                                             maxBarThickness: 34

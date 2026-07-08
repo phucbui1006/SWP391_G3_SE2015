@@ -2,26 +2,23 @@ package controller;
 
 import dal.AdminDashboardDAO;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.time.DayOfWeek;
 import java.util.List;
-import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.DashboardSummary;
-import model.AccountSummary;
 import model.RevenueRow;
 import model.User;
-import util.DashboardViewHelper;
 
-@WebServlet(name = "RevenueServlet", urlPatterns = {"/RevenueServlet"})
-public class RevenueServlet extends HttpServlet {
+@WebServlet(name = "RevenueExportServlet", urlPatterns = {"/RevenueExportServlet"})
+public class RevenueExportServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -42,7 +39,7 @@ public class RevenueServlet extends HttpServlet {
         LocalDate referenceDate = LocalDate.now();
         LocalDate weekStart = referenceDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate weekEnd = weekStart.plusDays(6);
-        
+
         String fromStr = request.getParameter("fromDate");
         String toStr = request.getParameter("toDate");
         String type = request.getParameter("type");
@@ -60,54 +57,30 @@ public class RevenueServlet extends HttpServlet {
         }
 
         AdminDashboardDAO dao = new AdminDashboardDAO();
-        
-        DashboardSummary summary = dao.getSummary(startDate, endDate);
-        Map<String, Integer> orderStatusCounts = dao.getOrderStatusCounts(startDate, endDate);
-        AccountSummary accountSummary = dao.getAccountSummary();
-        
-        int successOrders = 0;
-        if (orderStatusCounts != null) {
-            for (Map.Entry<String, Integer> entry : orderStatusCounts.entrySet()) {
-                String status = entry.getKey().toLowerCase();
-                if (status.contains("giao") || status.contains("hoàn thành") || status.contains("thành công")) {
-                    successOrders += entry.getValue();
-                }
-            }
-        }
-
         List<RevenueRow> revenueList = dao.getRevenueStatistics(startDate, endDate, type);
 
-        StringBuilder labels = new StringBuilder("[");
-        StringBuilder data = new StringBuilder("[");
-        for (int i = 0; i < revenueList.size(); i++) {
-            RevenueRow row = revenueList.get(i);
-            labels.append("'").append(row.getLabel()).append("'");
-            data.append(row.getRevenue().toString());
-            if (i < revenueList.size() - 1) {
-                labels.append(", ");
-                data.append(", ");
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename=\"revenue_report.csv\"");
+        response.setCharacterEncoding("UTF-8");
+
+        try (PrintWriter out = response.getWriter()) {
+            // Write UTF-8 BOM so Excel opens it with the correct encoding
+            out.write('\ufeff');
+            
+            // Header
+            out.println("STT,Thời gian,Số đơn,Doanh thu (VND),Trung bình/Đơn (VND)");
+            
+            // Data rows
+            for (int i = 0; i < revenueList.size(); i++) {
+                RevenueRow row = revenueList.get(i);
+                out.printf("%d,\"%s\",%d,\"%s\",\"%s\"\n",
+                        (i + 1),
+                        row.getLabel(),
+                        row.getOrderCount(),
+                        row.getFormattedRevenue().replace("₫", "").trim(),
+                        row.getFormattedAverage().replace("₫", "").trim());
             }
         }
-        labels.append("]");
-        data.append("]");
-
-        request.setAttribute("totalRevenue", DashboardViewHelper.formatCurrency(summary.getTotalRevenue()));
-        request.setAttribute("totalOrders", summary.getTotalOrders());
-        request.setAttribute("successOrders", successOrders);
-        request.setAttribute("totalCustomers", accountSummary.getCustomers());
-        
-        request.setAttribute("revenueList", revenueList);
-        request.setAttribute("chartLabels", labels.toString());
-        request.setAttribute("chartData", data.toString());
-        
-        if (fromStr == null) {
-            request.setAttribute("fromDate", startDate.toString());
-        }
-        if (toStr == null) {
-            request.setAttribute("toDate", endDate.toString());
-        }
-
-        request.getRequestDispatcher("/views/revenue.jsp").forward(request, response);
     }
 
     private LocalDate parseDate(String value, LocalDate defaultValue) {

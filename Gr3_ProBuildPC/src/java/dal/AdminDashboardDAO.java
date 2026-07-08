@@ -13,6 +13,7 @@ import java.util.Map;
 import model.AccountSummary;
 import model.DashboardProduct;
 import model.DashboardSummary;
+import model.RevenueRow;
 
 public class AdminDashboardDAO extends DBContext {
 
@@ -76,6 +77,53 @@ public class AdminDashboardDAO extends DBContext {
             e.printStackTrace();
         }
         return revenueByDay;
+    }
+
+    public List<RevenueRow> getRevenueStatistics(LocalDate startDate, LocalDate endDate, String groupBy) {
+        List<RevenueRow> list = new ArrayList<>();
+        String dateFormat;
+        if ("year".equalsIgnoreCase(groupBy)) {
+            dateFormat = "%Y";
+        } else if ("month".equalsIgnoreCase(groupBy)) {
+            dateFormat = "%m-%Y";
+        } else {
+            dateFormat = "%d-%m-%Y";
+        }
+
+        String sql = """
+                SELECT DATE_FORMAT(o.order_date, ?) AS label,
+                       COUNT(o.order_id) AS order_count,
+                       COALESCE(SUM(o.total_amount), 0) AS revenue
+                FROM orders o
+                LEFT JOIN orders_status os ON os.status_id = o.status_id
+                WHERE o.order_date >= ?
+                  AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
+                  AND (os.status_name IS NULL
+                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
+                           AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
+                GROUP BY DATE_FORMAT(o.order_date, ?)
+                ORDER BY MIN(o.order_date) ASC
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, dateFormat);
+            ps.setDate(2, Date.valueOf(startDate));
+            ps.setDate(3, Date.valueOf(endDate));
+            ps.setString(4, dateFormat);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new RevenueRow(
+                        rs.getString("label"),
+                        rs.getInt("order_count"),
+                        nullToZero(rs.getBigDecimal("revenue"))
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public Map<String, Integer> getCategorySoldQuantities(LocalDate startDate, LocalDate endDate) {

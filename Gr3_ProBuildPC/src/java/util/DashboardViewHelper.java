@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
+import java.util.List;
+import model.AdminDashboardView;
 
 public final class DashboardViewHelper {
 
@@ -66,10 +68,6 @@ public final class DashboardViewHelper {
         return "fa-solid fa-box";
     }
 
-    public static String productStatusClass(String status) {
-        return status != null && "ACTIVE".equalsIgnoreCase(status.trim()) ? "active" : "inactive";
-    }
-
     public static String formatCurrency(BigDecimal value) {
         DecimalFormat formatter = new DecimalFormat("#,###");
         BigDecimal safeValue = value == null ? BigDecimal.ZERO : value;
@@ -96,6 +94,84 @@ public final class DashboardViewHelper {
             }
         }
         return result.append('"').toString();
+    }
+
+    public static String chartPointLabelsToJson(List<AdminDashboardView.ChartPoint> points) {
+        StringBuilder result = new StringBuilder("[");
+        if (points != null) {
+            for (int i = 0; i < points.size(); i++) {
+                if (i > 0) {
+                    result.append(",");
+                }
+                result.append(toJsonString(points.get(i).getLabel()));
+            }
+        }
+        return result.append("]").toString();
+    }
+
+    public static String chartPointValuesToJson(List<AdminDashboardView.ChartPoint> points) {
+        StringBuilder result = new StringBuilder("[");
+        if (points != null) {
+            for (int i = 0; i < points.size(); i++) {
+                if (i > 0) {
+                    result.append(",");
+                }
+                result.append(points.get(i).getValue().toPlainString());
+            }
+        }
+        return result.append("]").toString();
+    }
+
+    public static String productNamesToJson(List<AdminDashboardView.ProductRow> products) {
+        StringBuilder result = new StringBuilder("[");
+        if (products != null) {
+            for (int i = 0; i < products.size(); i++) {
+                if (i > 0) {
+                    result.append(",");
+                }
+                result.append(toJsonString(products.get(i).getProductName()));
+            }
+        }
+        return result.append("]").toString();
+    }
+
+    public static String productSoldQuantitiesToJson(List<AdminDashboardView.ProductRow> products) {
+        StringBuilder result = new StringBuilder("[");
+        if (products != null) {
+            for (int i = 0; i < products.size(); i++) {
+                if (i > 0) {
+                    result.append(",");
+                }
+                result.append(products.get(i).getSoldQuantity());
+            }
+        }
+        return result.append("]").toString();
+    }
+
+    public static String countRowLabelsToJson(List<AdminDashboardView.CountRow> rows) {
+        StringBuilder result = new StringBuilder("[");
+        if (rows != null) {
+            for (int i = 0; i < rows.size(); i++) {
+                if (i > 0) {
+                    result.append(",");
+                }
+                result.append(toJsonString(rows.get(i).getLabel()));
+            }
+        }
+        return result.append("]").toString();
+    }
+
+    public static String countRowValuesToJson(List<AdminDashboardView.CountRow> rows) {
+        StringBuilder result = new StringBuilder("[");
+        if (rows != null) {
+            for (int i = 0; i < rows.size(); i++) {
+                if (i > 0) {
+                    result.append(",");
+                }
+                result.append(rows.get(i).getValue());
+            }
+        }
+        return result.append("]").toString();
     }
 
     public static String buildShipmentLink(String ctx, Integer statusId, boolean todayOnly, int page) {

@@ -34,6 +34,7 @@ public class DashboardServlet extends HttpServlet {
 
     private static final int SHIPMENT_PAGE_SIZE = 10;
     private static final int MAX_CHART_DAYS = 366;
+    private static final int LOW_STOCK_MAX_QUANTITY = 5;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -88,31 +89,25 @@ public class DashboardServlet extends HttpServlet {
         DashboardSummary summary = dashboardDAO.getSummary(chartStartDate, chartEndDate);
         List<DashboardProduct> bestSellingProducts = dashboardDAO.getBestSellingProducts(
                 chartStartDate, chartEndDate, 5);
-        List<DashboardProduct> lowStockProducts = dashboardDAO.getLowStockProducts(5);
+        Map<Integer, Integer> lowStockProductCounts = dashboardDAO.getLowStockProductCounts(LOW_STOCK_MAX_QUANTITY);
         Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(
                 chartStartDate, chartEndDate);
         AccountSummary accountSummary = dashboardDAO.getAccountSummary();
-        int bestSellingTotal = dashboardDAO.countBestSellingProducts(chartStartDate, chartEndDate);
-        int lowStockTotal = dashboardDAO.countLowStockProducts();
         Map<LocalDate, BigDecimal> revenueTimeline = dashboardDAO.getRevenueByDay(chartStartDate, chartEndDate);
-        Map<String, BigDecimal> categoryRevenue = dashboardDAO.getCategoryRevenue(chartStartDate, chartEndDate);
+        Map<String, Integer> categorySoldQuantities = dashboardDAO.getCategorySoldQuantities(chartStartDate, chartEndDate);
 
         AdminDashboardView adminDashboard = buildAdminDashboardView(
                 request,
-                chartStartDate,
-                chartEndDate,
                 summary,
                 bestSellingProducts,
-                bestSellingTotal,
-                lowStockProducts,
-                lowStockTotal,
+                lowStockProductCounts,
                 orderStatusCounts,
                 accountSummary
         );
         DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd/MM");
         DateTimeFormatter periodFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         adminDashboard.setRevenueTimeline(buildRevenueTimelinePoints(revenueTimeline, dayFormatter));
-        adminDashboard.setCategoryRevenue(buildCategoryRevenuePoints(categoryRevenue));
+        adminDashboard.setCategorySoldProducts(buildCategorySoldProductPoints(categorySoldQuantities));
         adminDashboard.setChartStartDate(chartStartDate);
         adminDashboard.setChartEndDate(chartEndDate);
         adminDashboard.setChartPeriodLabel(chartStartDate.format(periodFormatter)
@@ -121,9 +116,8 @@ public class DashboardServlet extends HttpServlet {
     }
 
     private AdminDashboardView buildAdminDashboardView(HttpServletRequest request,
-            LocalDate chartStartDate, LocalDate chartEndDate,
-            DashboardSummary summary, List<DashboardProduct> bestSellingProducts, int bestSellingTotal,
-            List<DashboardProduct> lowStockProducts, int lowStockTotal, Map<String, Integer> orderStatusCounts,
+            DashboardSummary summary, List<DashboardProduct> bestSellingProducts,
+            Map<Integer, Integer> lowStockProductCounts, Map<String, Integer> orderStatusCounts,
             AccountSummary accountSummary) {
         AdminDashboardView view = new AdminDashboardView();
         String ctx = request.getContextPath();
@@ -133,21 +127,9 @@ public class DashboardServlet extends HttpServlet {
         view.setFormAction(ctx + "/Dashboard");
         view.setStatCards(buildAdminStatCards(safeSummary, ctx));
         view.setBestSellingProducts(buildProductRows(bestSellingProducts));
-        view.setLowStockProducts(buildProductRows(lowStockProducts));
-        view.setOrderSummaries(buildOrderSummaryRows(safeSummary, orderStatusCounts));
+        view.setLowStockProductsChart(buildLowStockChartPoints(lowStockProductCounts));
+        view.setOrderStatusCounts(buildOrderStatusChartPoints(orderStatusCounts));
         view.setAccountSummaries(buildAccountRows(safeAccountSummary));
-
- //       int bestSellingVisible = view.getBestSellingProducts().size();
-//        if (bestSellingTotal > bestSellingVisible) {
-//            view.setBestSellingFooterMessage("Còn " + (bestSellingTotal - bestSellingVisible)
-//                    + " sản phẩm bán chạy khác trong khoảng đã chọn.");
-//        }
-
-        int lowStockVisible = view.getLowStockProducts().size();
-        if (lowStockTotal > lowStockVisible) {
-            view.setLowStockFooterMessage("Còn " + (lowStockTotal - lowStockVisible)
-                    + " sản phẩm khác sắp hết hàng");
-        }
 
         return view;
     }
@@ -164,15 +146,55 @@ public class DashboardServlet extends HttpServlet {
         return points;
     }
 
-    private List<AdminDashboardView.ChartPoint> buildCategoryRevenuePoints(
-            Map<String, BigDecimal> revenueByCategory) {
+    private List<AdminDashboardView.ChartPoint> buildCategorySoldProductPoints(
+            Map<String, Integer> soldQuantitiesByCategory) {
         List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
-        if (revenueByCategory != null) {
-            for (Map.Entry<String, BigDecimal> entry : revenueByCategory.entrySet()) {
-                points.add(new AdminDashboardView.ChartPoint(entry.getKey(), entry.getValue()));
+        if (soldQuantitiesByCategory != null) {
+            for (Map.Entry<String, Integer> entry : soldQuantitiesByCategory.entrySet()) {
+                int soldQuantity = entry.getValue() == null ? 0 : entry.getValue();
+                points.add(new AdminDashboardView.ChartPoint(entry.getKey(), BigDecimal.valueOf(soldQuantity)));
             }
         }
         return points;
+    }
+
+    private List<AdminDashboardView.ChartPoint> buildOrderStatusChartPoints(
+            Map<String, Integer> orderStatusCounts) {
+        List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
+        if (orderStatusCounts != null) {
+            for (Map.Entry<String, Integer> entry : orderStatusCounts.entrySet()) {
+                String status = DashboardViewHelper.defaultText(entry.getKey(), "Chưa cập nhật");
+                if (isHiddenOrderStatusInChart(status)) {
+                    continue;
+                }
+                int total = entry.getValue() == null ? 0 : entry.getValue();
+                points.add(new AdminDashboardView.ChartPoint(status, BigDecimal.valueOf(total)));
+            }
+        }
+        return points;
+    }
+
+    private List<AdminDashboardView.ChartPoint> buildLowStockChartPoints(
+            Map<Integer, Integer> productCountsByStock) {
+        List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
+        for (int stockQuantity = 0; stockQuantity <= LOW_STOCK_MAX_QUANTITY; stockQuantity++) {
+            int productCount = productCountsByStock == null
+                    ? 0
+                    : productCountsByStock.getOrDefault(stockQuantity, 0);
+            points.add(new AdminDashboardView.ChartPoint(
+                    "Tồn = " + stockQuantity,
+                    BigDecimal.valueOf(productCount)
+            ));
+        }
+        return points;
+    }
+
+    private boolean isHiddenOrderStatusInChart(String status) {
+        String value = status == null ? "" : status.toLowerCase();
+        return value.contains("chờ xác nhận")
+                || value.contains("cho xac nhan")
+                || value.contains("đang chuẩn bị hàng")
+                || value.contains("dang chuan bi hang");
     }
 
     private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary, String ctx) {
@@ -202,90 +224,11 @@ public class DashboardServlet extends HttpServlet {
 
         for (DashboardProduct product : products) {
             rows.add(new AdminDashboardView.ProductRow(
-                    String.valueOf(product.getProductId()),
                     DashboardViewHelper.h(product.getProductName()),
-                    product.getSoldQuantity(),
-                    product.getStockQuantity(),
-                    DashboardViewHelper.h(product.getStatus()),
-                    DashboardViewHelper.productStatusClass(product.getStatus())
+                    product.getSoldQuantity()
             ));
         }
         return rows;
-    }
-
-    private List<AdminDashboardView.OrderSummaryRow> buildOrderSummaryRows(
-            DashboardSummary summary, Map<String, Integer> orderStatusCounts) {
-        List<AdminDashboardView.OrderSummaryRow> rows = new ArrayList<>();
-        int totalOrders = summary.getTotalOrders();
-        BigDecimal totalRevenue = summary.getTotalRevenue() == null ? BigDecimal.ZERO : summary.getTotalRevenue();
-        int successfulOrders = countSuccessfulOrders(orderStatusCounts);
-
-        rows.add(new AdminDashboardView.OrderSummaryRow(
-                "Tổng đơn hàng",
-                String.valueOf(totalOrders),
-                "Tất cả đơn phát sinh trong khoảng đã chọn",
-                ""
-        ));
-        rows.add(new AdminDashboardView.OrderSummaryRow(
-                "Doanh thu",
-                DashboardViewHelper.formatCurrency(totalRevenue),
-                "Không tính đơn đã hủy",
-                ""
-        ));
-        rows.add(new AdminDashboardView.OrderSummaryRow(
-                "Đã giao thành công/hoàn thành",
-                String.valueOf(successfulOrders),
-                "Tổng đơn đã giao thành công hoặc đã hoàn thành",
-                "delivered"
-        ));
-
-        if (orderStatusCounts != null) {
-            for (Map.Entry<String, Integer> entry : orderStatusCounts.entrySet()) {
-                String status = DashboardViewHelper.defaultText(entry.getKey(), "Chưa cập nhật");
-                if (isConfirmedOrderStatus(status) || isSuccessfulOrderStatus(status)) {
-                    continue;
-                }
-                rows.add(new AdminDashboardView.OrderSummaryRow(
-                        DashboardViewHelper.h(status),
-                        String.valueOf(entry.getValue() == null ? 0 : entry.getValue()),
-                        "Theo trạng thái đơn hàng",
-                        DashboardViewHelper.statusClass(status)
-                ));
-            }
-        }
-
-        return rows;
-    }
-
-    private int countSuccessfulOrders(Map<String, Integer> orderStatusCounts) {
-        if (orderStatusCounts == null) {
-            return 0;
-        }
-
-        int total = 0;
-        for (Map.Entry<String, Integer> entry : orderStatusCounts.entrySet()) {
-            if (isSuccessfulOrderStatus(entry.getKey())) {
-                total += entry.getValue() == null ? 0 : entry.getValue();
-            }
-        }
-        return total;
-    }
-
-    private boolean isSuccessfulOrderStatus(String status) {
-        String value = status == null ? "" : status.toLowerCase();
-        return value.contains("đã giao")
-                || value.contains("da giao")
-                || value.contains("hoàn thành")
-                || value.contains("hoan thanh")
-                || value.contains("thành công")
-                || value.contains("thanh cong");
-    }
-
-    private boolean isConfirmedOrderStatus(String status) {
-        String value = status == null ? "" : status.toLowerCase();
-        return (value.contains("xác nhận") || value.contains("xac nhan"))
-                && !value.contains("chờ")
-                && !value.contains("cho ");
     }
 
     private List<AdminDashboardView.CountRow> buildAccountRows(AccountSummary summary) {
@@ -516,11 +459,4 @@ public class DashboardServlet extends HttpServlet {
         }
     }
 
-//    private String normalizeText(String value) {
-//        if (value == null || value.trim().isEmpty()) {
-//            return null;
-//        }
-//
-//        return value.trim();
-//    }
 }

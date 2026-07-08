@@ -15,6 +15,7 @@ public class ProductDAO extends DBContext {
             SELECT p.product_id,
                    p.product_name,
                    p.price,
+                   COALESCE(stock.import_quantity, 0) AS import_quantity,
                    COALESCE(stock.quantity, 0) AS quantity,
                    COALESCE(stock.batch_id, 0) AS batch_id,
                    p.description,
@@ -30,6 +31,7 @@ public class ProductDAO extends DBContext {
             FROM products p
             LEFT JOIN (
                 SELECT product_id,
+                       SUM(import_quantity) AS import_quantity,
                        SUM(quantity) AS quantity,
                        MIN(batch_id) AS batch_id
                 FROM batch_items
@@ -45,6 +47,7 @@ public class ProductDAO extends DBContext {
         p.setProductId(rs.getInt("product_id"));
         p.setPrice(rs.getBigDecimal("price"));
         p.setQuantity(rs.getInt("quantity"));
+        p.setImportQuantity(rs.getInt("import_quantity"));
         p.setBatchId(rs.getInt("batch_id"));
         p.setDescription(rs.getString("description"));
         p.setImageUrl(rs.getString("image_url"));

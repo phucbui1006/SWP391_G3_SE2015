@@ -26,6 +26,21 @@
                                             selectedRating = (Integer) request.getAttribute("selectedRating");
                                             }
 
+                                            boolean hasImage = false;
+                                            if (request.getAttribute("hasImage") != null) {
+                                                hasImage = (Boolean) request.getAttribute("hasImage");
+                                            }
+
+                                            int currentPage = 1;
+                                            if (request.getAttribute("currentPage") != null) {
+                                                currentPage = (Integer) request.getAttribute("currentPage");
+                                            }
+
+                                            int totalPages = 1;
+                                            if (request.getAttribute("totalPages") != null) {
+                                                totalPages = (Integer) request.getAttribute("totalPages");
+                                            }
+
                                             int fullStars = (int) avgRating;
                                             int maxQuantity = product.getQuantity() > 0 ? product.getQuantity() : 1;
 
@@ -44,9 +59,13 @@
                                             int count3 = 0;
                                             int count2 = 0;
                                             int count1 = 0;
+                                            int countHasImage = 0;
 
                                             if (allReviews != null) {
                                             for (Review r : allReviews) {
+                                            if (r.getImages() != null && !r.getImages().isEmpty()) {
+                                                countHasImage++;
+                                            }
                                             if (r.getRating() == 5) {
                                             count5++;
                                             } else if (r.getRating() == 4) {
@@ -379,12 +398,13 @@
                                                                     </div>
 
                                                                     <div class="review-filter">
-                                                                        <a class="review-filter-btn <%= selectedRating == 0 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>">Tất cả (<%= totalAllReviews %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 5 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=5">5 sao (<%= count5 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 4 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=4">4 sao (<%= count4 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 3 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=3">3 sao (<%= count3 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 2 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=2">2 sao (<%= count2 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 1 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=1">1 sao (<%= count1 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 0 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>">Tất cả (<%= totalAllReviews %>)</a>
+                                                                        <a class="review-filter-btn <%= hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %><%= selectedRating > 0 ? "&rating=" + selectedRating : "" %><%= hasImage ? "" : "&hasImage=true" %>">Có hình ảnh (<%= countHasImage %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 5 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=5<%= hasImage ? "&hasImage=true" : "" %>">5 sao (<%= count5 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 4 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=4<%= hasImage ? "&hasImage=true" : "" %>">4 sao (<%= count4 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 3 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=3<%= hasImage ? "&hasImage=true" : "" %>">3 sao (<%= count3 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 2 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=2<%= hasImage ? "&hasImage=true" : "" %>">2 sao (<%= count2 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 1 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=1<%= hasImage ? "&hasImage=true" : "" %>">1 sao (<%= count1 %>)</a>
                                                                     </div>
 
                                                                 </div>
@@ -468,23 +488,46 @@
 
                                                                                 <% } else { %>
 
-                                                                                    <div class="empty-review">
-                                                                                        <i
-                                                                                            class="fa-regular fa-comment-dots"></i>
+                                                                                        <div class="empty-review">
+                                                                                            <i class="fa-regular fa-comment-dots"></i>
 
-                                                                                        <% if (selectedRating==0) { %>
-                                                                                            <p>Chưa có đánh giá nào cho
-                                                                                                sản phẩm này.</p>
-                                                                                            <% } else { %>
-                                                                                                <p>Không có đánh giá <%=
-                                                                                                        selectedRating
-                                                                                                        %> sao nào.</p>
-                                                                                                <% } %>
-                                                                                    </div>
+                                                                                            <% if (selectedRating==0 && !hasImage) { %>
+                                                                                                <p>Chưa có đánh giá nào cho
+                                                                                                    sản phẩm này.</p>
+                                                                                                <% } else if (hasImage) { %>
+                                                                                                    <p>Không có đánh giá có hình ảnh nào<%= selectedRating > 0 ? (" (" + selectedRating + " sao)") : "" %>.</p>
+                                                                                                <% } else { %>
+                                                                                                    <p>Không có đánh giá <%=
+                                                                                                            selectedRating
+                                                                                                            %> sao nào.</p>
+                                                                                                    <% } %>
+                                                                                        </div>
 
                                                                                     <% } %>
 
                                                                 </div>
+
+                                                                <% if (totalPages > 0 && (reviews != null && !reviews.isEmpty())) { %>
+                                                                    <div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px;">
+                                                                        
+                                                                        <% if (currentPage > 1) { %>
+                                                                            <a href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %><%= selectedRating > 0 ? "&rating=" + selectedRating : "" %><%= hasImage ? "&hasImage=true" : "" %>&page=<%= currentPage - 1 %>" class="page-link" style="padding: 8px 12px; border: 1px solid #e5e9f0; border-radius: 4px; color: #1e293b; background: #fff; text-decoration: none; font-weight: bold;">&lt;</a>
+                                                                        <% } else { %>
+                                                                            <span class="page-link disabled" style="padding: 8px 12px; border: 1px solid #e5e9f0; border-radius: 4px; color: #94a3b8; background: #f8fafc; cursor: not-allowed; font-weight: bold;">&lt;</span>
+                                                                        <% } %>
+                                                                        
+                                                                        <span class="page-info" style="font-size: 14px; color: #475569;">
+                                                                            Trang <strong><%= currentPage %></strong> / <strong><%= totalPages %></strong>
+                                                                        </span>
+                                                                        
+                                                                        <% if (currentPage < totalPages) { %>
+                                                                            <a href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %><%= selectedRating > 0 ? "&rating=" + selectedRating : "" %><%= hasImage ? "&hasImage=true" : "" %>&page=<%= currentPage + 1 %>" class="page-link" style="padding: 8px 12px; border: 1px solid #e5e9f0; border-radius: 4px; color: #1e293b; background: #fff; text-decoration: none; font-weight: bold;">&gt;</a>
+                                                                        <% } else { %>
+                                                                            <span class="page-link disabled" style="padding: 8px 12px; border: 1px solid #e5e9f0; border-radius: 4px; color: #94a3b8; background: #f8fafc; cursor: not-allowed; font-weight: bold;">&gt;</span>
+                                                                        <% } %>
+                                                                    </div>
+                                                                <% } %>
+
                                                             </section>
 
                                                             <script

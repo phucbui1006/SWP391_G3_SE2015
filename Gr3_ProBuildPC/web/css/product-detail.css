@@ -298,33 +298,12 @@ body.product-detail-body {
     overflow: hidden;
 }
 
-.qty-btn {
-    width: 42px;
-    height: 42px;
-    background: #ffffff;
-    border: none;
-    color: #374151;
-    font-size: 18px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s ease;
-}
-
-.qty-btn:hover {
-    background: #f3f4f6;
-}
-
 .quantity-input {
-    width: 60px;
+    width: 76px;
     height: 42px;
-    padding: 0;
+    padding: 0 8px;
     border: none;
-    border-left: 1px solid var(--card-border);
-    border-right: 1px solid var(--card-border);
-    border-radius: 0;
+    border-radius: var(--radius-sm);
     background: #ffffff;
     color: var(--text-main);
     text-align: center;

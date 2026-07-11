@@ -10,6 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import model.Category;
 import model.Product;
@@ -28,23 +31,27 @@ public class CategoryServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
+        String ctx = request.getContextPath();
+
         String sort = request.getParameter("sort");
         if (sort == null || sort.trim().isEmpty()) {
             sort = "newest";
+        } else {
+            sort = sort.trim();
         }
 
         String keyword = request.getParameter("keyword");
-        if (keyword != null) {
-            keyword = keyword.trim();
-        } else {
+        if (keyword == null) {
             keyword = "";
+        } else {
+            keyword = keyword.trim();
         }
 
         String contentKeyword = request.getParameter("contentKeyword");
-        if (contentKeyword != null) {
-            contentKeyword = contentKeyword.trim();
-        } else {
+        if (contentKeyword == null) {
             contentKeyword = "";
+        } else {
+            contentKeyword = contentKeyword.trim();
         }
 
         String activeKeyword = "";
@@ -87,14 +94,19 @@ public class CategoryServlet extends HttpServlet {
                 products = productDAO.getAllProducts(sort);
             }
         }
+
+        if (products == null) {
+            products = new ArrayList<>();
+        }
+
         int pageSize = 12;
+        int currentPage = 1;
 
         String pageRaw = request.getParameter("page");
-        int currentPage = 1;
 
         try {
             if (pageRaw != null && !pageRaw.trim().isEmpty()) {
-                currentPage = Integer.parseInt(pageRaw);
+                currentPage = Integer.parseInt(pageRaw.trim());
             }
         } catch (NumberFormatException e) {
             currentPage = 1;
@@ -104,8 +116,7 @@ public class CategoryServlet extends HttpServlet {
             currentPage = 1;
         }
 
-        int totalProducts = products == null ? 0 : products.size();
-        
+        int totalProducts = products.size();
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
 
         if (totalPages == 0) {
@@ -121,12 +132,36 @@ public class CategoryServlet extends HttpServlet {
 
         List<Product> pagingProducts;
 
-        if (products == null || products.isEmpty()) {
-            pagingProducts = new java.util.ArrayList<>();
+        if (products.isEmpty()) {
+            pagingProducts = new ArrayList<>();
         } else {
             pagingProducts = products.subList(fromIndex, toIndex);
         }
 
+        String title = "Tất cả sản phẩm";
+        if (selectedCategory != null) {
+            title = "Danh mục: " + selectedCategory.getCategoryName();
+        }
+
+        String clearSearchUrl = ctx + "/categories?sort=" + encode(sort);
+
+        String pagingUrl = ctx + "/categories?";
+
+        if (selectedCategory != null) {
+            pagingUrl += "id=" + selectedCategory.getCategoryId() + "&";
+        }
+
+        if (!keyword.isEmpty()) {
+            pagingUrl += "keyword=" + encode(keyword) + "&";
+        }
+
+        if (!contentKeyword.isEmpty()) {
+            pagingUrl += "contentKeyword=" + encode(contentKeyword) + "&";
+        }
+
+        pagingUrl += "sort=" + encode(sort) + "&page=";
+
+        request.setAttribute("ctx", ctx);
         request.setAttribute("categories", categories);
         request.setAttribute("products", pagingProducts);
         request.setAttribute("totalProducts", totalProducts);
@@ -136,6 +171,10 @@ public class CategoryServlet extends HttpServlet {
         request.setAttribute("selectedSort", sort);
         request.setAttribute("keyword", keyword);
         request.setAttribute("contentKeyword", contentKeyword);
+        request.setAttribute("searchValue", contentKeyword);
+        request.setAttribute("title", title);
+        request.setAttribute("clearSearchUrl", clearSearchUrl);
+        request.setAttribute("pagingUrl", pagingUrl);
 
         HttpSession session = request.getSession(false);
 
@@ -151,6 +190,10 @@ public class CategoryServlet extends HttpServlet {
             String cartMessage = (String) session.getAttribute("cartMessage");
             String cartMessageType = (String) session.getAttribute("cartMessageType");
 
+            if (cartMessageType == null) {
+                cartMessageType = "success";
+            }
+
             if (cartMessage != null) {
                 request.setAttribute("cartMessage", cartMessage);
                 request.setAttribute("cartMessageType", cartMessageType);
@@ -161,5 +204,13 @@ public class CategoryServlet extends HttpServlet {
         }
 
         request.getRequestDispatcher("/views/categories.jsp").forward(request, response);
+    }
+
+    private String encode(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }

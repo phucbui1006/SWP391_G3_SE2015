@@ -113,7 +113,6 @@ public class WarrantyLookupServlet extends HttpServlet {
 
             WarrantyDAO warrantyDAO = new WarrantyDAO();
 
-            // Security check: Customer can only submit warranty requests if order status is exactly "Đã giao hàng"
             if (orderId == null) {
                 session.setAttribute("warrantyFailMessage", "Mã đơn hàng không hợp lệ.");
                 redirectBack(response, request, orderId);
@@ -129,7 +128,6 @@ public class WarrantyLookupServlet extends HttpServlet {
                 return;
             }
 
-            // Decoupled validation: uses customer_id + product_id (no orderDetailId)
             boolean valid = warrantyDAO.isWarrantyRequestValid(
                     account.getCustomerId(),
                     productId
@@ -144,7 +142,6 @@ public class WarrantyLookupServlet extends HttpServlet {
                 return;
             }
 
-            // Check if user already has a pending or active warranty request for this product
             if (warrantyDAO.isWarrantyPendingOrActive(account.getCustomerId(), productId)) {
                 session.setAttribute(
                         "warrantyFailMessage",

@@ -111,7 +111,7 @@ CREATE TABLE PRODUCTS (
     product_id      INT AUTO_INCREMENT PRIMARY KEY,
     category_id     INT NOT NULL,
     brand_id        INT NOT NULL,
-    product_name    VARCHAR(255) NOT NULL,
+    product_name    VARCHAR(255) NOT NULL UNIQUE,
     description     TEXT,
     image_url       VARCHAR(255),
     price           DECIMAL(18, 2) NOT NULL,

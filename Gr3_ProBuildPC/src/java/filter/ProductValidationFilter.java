@@ -14,8 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import model.Brand;
@@ -32,15 +31,14 @@ public class ProductValidationFilter implements Filter {
     private final BrandDAO brandDAO = new BrandDAO();
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {}
+    public void init(FilterConfig filterConfig) throws ServletException {
+    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
-
         if (!"POST".equalsIgnoreCase(req.getMethod())) {
             chain.doFilter(request, response);
             return;
@@ -48,7 +46,7 @@ public class ProductValidationFilter implements Filter {
 
         String action = req.getParameter("action");
         if ("add".equalsIgnoreCase(action) || "update".equalsIgnoreCase(action)) {
-            Map<String, String> errors = new HashMap<>();
+            Map<String, String> errors = new LinkedHashMap<>();
 
             String productName = req.getParameter("productName");
             String categoryIdRaw = req.getParameter("categoryId");
@@ -63,6 +61,42 @@ public class ProductValidationFilter implements Filter {
 
             Integer categoryId = parseId(categoryIdRaw);
             Integer brandId = parseId(brandIdRaw);
+            Integer productId = parseId(req.getParameter("productId"));
+            Product existingProduct = null;
+
+            if ("update".equalsIgnoreCase(action)) {
+                if (productId == null) {
+                    errors.put("productId", "Sản phẩm cần cập nhật không hợp lệ.");
+                } else {
+                    existingProduct = productDAO.getProductByIdForAdmin(productId);
+                    if (existingProduct == null) {
+                        errors.put("productId", "Không tìm thấy sản phẩm cần cập nhật.");
+                    } else {
+                        currentImg = existingProduct.getImageUrl();
+                    }
+                }
+            }
+
+            if (categoryId != null && categoryDAO.getCategoryById(categoryId) == null) {
+                errors.put("categoryId", "Danh mục không tồn tại.");
+            }
+            if (brandId != null && brandDAO.getBrandById(brandId) == null) {
+                errors.put("brandId", "Thương hiệu không tồn tại.");
+            }
+
+            if ("add".equalsIgnoreCase(action)
+                    && util.ProductValidator.validateProductName(productName) == null
+                    && productDAO.existsByProductName(productName)) {
+                errors.put("productName", "Tên sản phẩm đã tồn tại trong hệ thống.");
+            }
+            if ("update".equalsIgnoreCase(action)
+                    && productId != null
+                    && existingProduct != null
+                    && util.ProductValidator.validateProductName(productName) == null
+                    && productDAO.existsByProductNameExceptId(productName, productId)) {
+
+                errors.put("productName", "Tên sản phẩm đã tồn tại trong hệ thống.");
+            }
 
             Part filePart = null;
             try {
@@ -72,9 +106,9 @@ public class ProductValidationFilter implements Filter {
             }
 
             String savedImgPath = util.ProductValidator.validate(
-                action, productName, categoryId, brandId, priceRaw, 
-                warrantyMonthsRaw, description, currentImg, filePart, 
-                specNames, specValues, categoryDAO, req.getServletContext(), errors
+                    action, productName, categoryId, brandId, priceRaw,
+                    warrantyMonthsRaw, description, currentImg, filePart,
+                    specNames, specValues, categoryDAO, req.getServletContext(), errors
             );
 
             // Expose the saved image path to both Servlet (savedProductImg) and JSP (enteredCurrentImg)
@@ -83,13 +117,14 @@ public class ProductValidationFilter implements Filter {
                 req.setAttribute("enteredCurrentImg", savedImgPath);
             }
 
-            // If validation errors are present, block Servlet and forward back to the JSP form
+            if (errors.isEmpty()) {
+                req.setAttribute("productValidationPassed", Boolean.TRUE);
+            }
+
             if (!errors.isEmpty()) {
                 req.setAttribute("errors", errors);
-                // Set first error message in request for backward compatibility in alert boxes
                 req.setAttribute("error", errors.values().iterator().next());
-                
-                // Preserve the inputs to repopulate the form
+
                 req.setAttribute("enteredProductId", parseId(req.getParameter("productId")));
                 req.setAttribute("enteredProductName", productName);
                 req.setAttribute("enteredCategoryId", categoryId);
@@ -99,7 +134,7 @@ public class ProductValidationFilter implements Filter {
                 req.setAttribute("enteredDescription", description);
                 req.setAttribute("enteredCurrentImg", savedImgPath != null ? savedImgPath : currentImg);
                 req.setAttribute("failedAction", action);
-                
+
                 req.setAttribute("enteredSpecNames", specNames);
                 req.setAttribute("enteredSpecValues", specValues);
 
@@ -108,7 +143,6 @@ public class ProductValidationFilter implements Filter {
                     req.setAttribute("specTemplates", specTemplates);
                 }
 
-                // Populate dependencies and return to administration view
                 populatePageDataWithDefaults(req);
                 req.getRequestDispatcher("/views/admin-products.jsp").forward(req, res);
                 return;
@@ -119,7 +153,8 @@ public class ProductValidationFilter implements Filter {
     }
 
     @Override
-    public void destroy() {}
+    public void destroy() {
+    }
 
     private Integer parseId(String val) {
         if (val == null || val.trim().isEmpty()) {
@@ -164,6 +199,5 @@ public class ProductValidationFilter implements Filter {
         request.setAttribute("startItem", startItem);
         request.setAttribute("endItem", endItem);
     }
-
 
 }

@@ -5,10 +5,17 @@ import model.CategorySpecTemplate;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
-public class ProductValidator {
+public final class ProductValidator {
+
+    private ProductValidator() {
+    }
 
     public static String validate(
             String action,
@@ -58,27 +65,32 @@ public class ProductValidator {
             errors.put("description", descError);
         }
 
-        // 6. Validate & Save Image File
+        // 6. Validate Image File
+        String imgError = validateImageFile(filePart, action, currentImg);
+        if (imgError != null) {
+            errors.put("imgFile", imgError);
+        }
+
+        // 7. Validate Dynamic Specifications before writing any uploaded file.
+        validateSpecifications(categoryId, specNames, specValues, categoryDAO, errors);
+
+        if (!errors.isEmpty()) {
+            return null;
+        }
+
         String savedImgPath = null;
         try {
-            String imgError = validateImageFile(filePart, action, currentImg);
-            if (imgError != null) {
-                errors.put("imgFile", imgError);
-            } else if (filePart != null && filePart.getSize() > 0) {
-                // Valid new image upload - save it immediately
+            if (filePart != null && filePart.getSize() > 0) {
                 savedImgPath = saveUploadedProductImage(filePart, servletContext);
-            } else {
-                // Use preserved current image path
-                if (currentImg != null && !currentImg.trim().isEmpty()) {
-                    savedImgPath = currentImg.trim();
+                if (savedImgPath == null) {
+                    errors.put("imgFile", "Không thể lưu hình ảnh sản phẩm.");
                 }
+            } else if (currentImg != null && !currentImg.trim().isEmpty()) {
+                savedImgPath = currentImg.trim();
             }
         } catch (Exception e) {
             errors.put("imgFile", "Lỗi xử lý tệp tin tải lên.");
         }
-
-        // 7. Validate Dynamic Specifications
-        validateSpecifications(categoryId, specNames, specValues, categoryDAO, errors);
 
         return savedImgPath;
     }
@@ -134,15 +146,17 @@ public class ProductValidator {
         if (description == null || description.trim().isEmpty()) {
             return "Mô tả chi tiết không được để trống.";
         }
+        if (description.trim().length() > 10000) {
+            return "Mô tả chi tiết không được vượt quá 10.000 ký tự.";
+        }
         return null;
     }
 
     public static String validateImageFile(Part filePart, String action, String currentImg) {
         if (filePart == null || filePart.getSize() == 0) {
-            if ("add".equalsIgnoreCase(action)) {
-                if (currentImg == null || currentImg.trim().isEmpty()) {
-                    return "Vui lòng chọn hình ảnh sản phẩm.";
-                }
+            if ("add".equalsIgnoreCase(action)
+                    || currentImg == null || currentImg.trim().isEmpty()) {
+                return "Vui lòng chọn hình ảnh sản phẩm.";
             }
             return null;
         }
@@ -152,12 +166,12 @@ public class ProductValidator {
         }
 
         String submittedName = filePart.getSubmittedFileName();
-        if (submittedName == null || filePart.getContentType() == null || 
-            !filePart.getContentType().startsWith("image/") ||
-            (!submittedName.toLowerCase().endsWith(".png") &&
-             !submittedName.toLowerCase().endsWith(".jpg") &&
-             !submittedName.toLowerCase().endsWith(".jpeg") &&
-             !submittedName.toLowerCase().endsWith(".webp"))) {
+        if (submittedName == null || filePart.getContentType() == null
+                || !filePart.getContentType().startsWith("image/")
+                || (!submittedName.toLowerCase().endsWith(".png")
+                && !submittedName.toLowerCase().endsWith(".jpg")
+                && !submittedName.toLowerCase().endsWith(".jpeg")
+                && !submittedName.toLowerCase().endsWith(".webp"))) {
             return "File không hợp lệ hoặc vượt quá 2MB!";
         }
 
@@ -176,50 +190,94 @@ public class ProductValidator {
         }
 
         List<CategorySpecTemplate> templates = categoryDAO.getTemplatesByCategoryId(categoryId);
-        if (templates != null && !templates.isEmpty()) {
-            if (specNames == null || specValues == null || specNames.length == 0 || specValues.length == 0) {
-                errors.put("specifications", "Vui lòng lựa chọn và nhập đầy đủ thông số kỹ thuật theo danh mục.");
-                return;
+        if (templates == null || templates.isEmpty()) {
+            return;
+        }
+
+        Map<String, String> submittedSpecs = new HashMap<>();
+        Set<String> duplicateNames = new HashSet<>();
+        int nameCount = specNames == null ? 0 : specNames.length;
+        int valueCount = specValues == null ? 0 : specValues.length;
+
+        if (nameCount != valueCount) {
+            errors.put("specifications", "Dữ liệu thông số kỹ thuật không hợp lệ.");
+        }
+
+        int specLength = Math.min(nameCount, valueCount);
+        for (int i = 0; i < specLength; i++) {
+            String name = specNames[i] == null ? "" : specNames[i].trim();
+            if (name.isEmpty()) {
+                continue;
             }
 
-            int specLength = Math.min(specNames.length, specValues.length);
-
-            for (CategorySpecTemplate template : templates) {
-                boolean found = false;
-                String specValue = null;
-
-                // Find matching specification
-                for (int i = 0; i < specLength; i++) {
-                    String name = specNames[i];
-                    if (name != null && name.trim().equalsIgnoreCase(template.getSpecName())) {
-                        found = true;
-                        specValue = specValues[i];
-                        break;
-                    }
-                }
-
-                // Enforce required constraint
-                if (template.isRequired()) {
-                    if (!found || specValue == null || specValue.trim().isEmpty()) {
-                        errors.put("spec_" + template.getTemplateId(), "Thông số '" + template.getSpecName() + "' không được để trống.");
-                    }
-                }
-
-                // Validate dynamic numeric spec template values (> 0)
-                if (found && specValue != null && !specValue.trim().isEmpty()) {
-                    if ("NUMBER".equalsIgnoreCase(template.getSpecType())) {
-                        try {
-                            double val = Double.parseDouble(specValue.trim());
-                            if (val <= 0) {
-                                errors.put("spec_" + template.getTemplateId(), "Thông số '" + template.getSpecName() + "' phải lớn hơn 0.");
-                            }
-                        } catch (NumberFormatException e) {
-                            errors.put("spec_" + template.getTemplateId(), "Thông số '" + template.getSpecName() + "' phải là một số hợp lệ.");
-                        }
-                    }
-                }
+            String normalizedName = name.toLowerCase(Locale.ROOT);
+            if (submittedSpecs.containsKey(normalizedName)) {
+                duplicateNames.add(normalizedName);
+            } else {
+                submittedSpecs.put(normalizedName, specValues[i]);
             }
         }
+
+        if (!duplicateNames.isEmpty()) {
+            errors.put("specifications", "Thông số kỹ thuật bị trùng lặp.");
+        }
+
+        Set<String> validTemplateNames = new HashSet<>();
+        for (CategorySpecTemplate template : templates) {
+            String normalizedTemplateName = template.getSpecName().trim().toLowerCase(Locale.ROOT);
+            validTemplateNames.add(normalizedTemplateName);
+            String rawValue = submittedSpecs.get(normalizedTemplateName);
+            String value = rawValue == null ? "" : rawValue.trim();
+            String errorKey = "spec_" + template.getTemplateId();
+
+            if (template.isRequired() && value.isEmpty()) {
+                errors.put(errorKey, "Thông số '" + template.getSpecName() + "' không được để trống.");
+                continue;
+            }
+
+            if (value.isEmpty()) {
+                continue;
+            }
+
+            if (value.length() > 255) {
+                errors.put(errorKey, "Thông số '" + template.getSpecName() + "' không được vượt quá 255 ký tự.");
+                continue;
+            }
+
+            if ("NUMBER".equalsIgnoreCase(template.getSpecType())) {
+                try {
+                    BigDecimal numericValue = new BigDecimal(value);
+                    if (numericValue.compareTo(BigDecimal.ZERO) <= 0) {
+                        errors.put(errorKey, "Thông số '" + template.getSpecName() + "' phải lớn hơn 0.");
+                    }
+                } catch (NumberFormatException e) {
+                    errors.put(errorKey, "Thông số '" + template.getSpecName() + "' phải là một số hợp lệ.");
+                }
+            } else if ("SELECT".equalsIgnoreCase(template.getSpecType())
+                    && !isAllowedValue(value, template.getAllowedValues())) {
+                errors.put(errorKey, "Giá trị của thông số '" + template.getSpecName() + "' không hợp lệ.");
+            }
+        }
+
+        for (String submittedName : submittedSpecs.keySet()) {
+            if (!validTemplateNames.contains(submittedName)) {
+                errors.put("specifications", "Có thông số kỹ thuật không thuộc danh mục đã chọn.");
+                break;
+            }
+        }
+    }
+
+    private static boolean isAllowedValue(String value, String allowedValues) {
+        if (allowedValues == null || allowedValues.trim().isEmpty()) {
+            return false;
+        }
+
+        for (String allowedValue : allowedValues.split(",")) {
+            if (allowedValue.trim().equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String saveUploadedProductImage(Part filePart, jakarta.servlet.ServletContext context) throws IOException {

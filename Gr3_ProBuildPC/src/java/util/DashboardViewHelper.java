@@ -1,8 +1,6 @@
 package util;
 
 import java.math.BigDecimal;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 
 public final class DashboardViewHelper {
@@ -98,31 +96,4 @@ public final class DashboardViewHelper {
         return result.append('"').toString();
     }
 
-    public static String buildShipmentLink(String ctx, Integer statusId, boolean todayOnly, int page) {
-        StringBuilder query = new StringBuilder();
-        if (statusId != null) {
-            appendParam(query, "statusId", String.valueOf(statusId));
-        }
-        if (todayOnly) {
-            appendParam(query, "today", "1");
-        }
-        if (page > 1) {
-            appendParam(query, "page", String.valueOf(page));
-        }
-        return ctx + "/Dashboard" + (query.length() == 0 ? "" : "?" + query);
-    }
-
-    private static void appendParam(StringBuilder query, String name, String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return;
-        }
-
-        if (query.length() > 0) {
-            query.append("&");
-        }
-
-        query.append(name)
-                .append("=")
-                .append(URLEncoder.encode(value.trim(), StandardCharsets.UTF_8));
-    }
 }

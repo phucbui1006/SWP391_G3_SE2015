@@ -97,7 +97,6 @@ public class ProductDAO extends DBContext {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -136,7 +135,6 @@ public class ProductDAO extends DBContext {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -158,7 +156,6 @@ public class ProductDAO extends DBContext {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return null;
@@ -174,7 +171,6 @@ public class ProductDAO extends DBContext {
                 return mapProduct(rs);
             }
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -200,7 +196,6 @@ public class ProductDAO extends DBContext {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -312,7 +307,6 @@ public class ProductDAO extends DBContext {
             params.add("%" + keyword.trim() + "%");
         }
 
-      
         sql += getOrderBy(sort);
 
         try {
@@ -648,6 +642,46 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
+    public boolean existsByProductNameExceptId(String productName, int productId) {
+        if (productName == null || productName.trim().isEmpty()) {
+            return false;
+        }
+
+        String sql = """
+                SELECT 1
+                FROM products
+                WHERE LOWER(TRIM(product_name)) = LOWER(?)
+                  AND product_id <> ?
+                LIMIT 1
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, productName.trim());
+            ps.setInt(2, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    public boolean existsByProductName(String productName) {
+        if (productName == null || productName.trim().isEmpty()) {
+            return false;
+        }
+
+        String sql = "SELECT 1 FROM products WHERE LOWER(TRIM(product_name)) = LOWER(?) LIMIT 1";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, productName.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
     public boolean addProduct(String productName, int categoryId, int brandId, BigDecimal price, String description, String imageUrl, int warrantyMonths, String[] specNames, String[] specValues) {
         String sql = """
             INSERT INTO products (product_name, category_id, brand_id, price, description, image_url, warranty_months, status)
@@ -666,7 +700,7 @@ public class ProductDAO extends DBContext {
             psProduct.setString(5, description);
             psProduct.setString(6, imageUrl);
             psProduct.setInt(7, warrantyMonths);
-            
+
             int affected = psProduct.executeUpdate();
             if (affected == 0) {
                 connection.rollback();
@@ -704,14 +738,12 @@ public class ProductDAO extends DBContext {
 
             connection.commit();
             return true;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
             try {
                 if (connection != null) {
                     connection.rollback();
                 }
             } catch (SQLException ex) {
-                ex.printStackTrace();
             }
         } finally {
             try {
@@ -725,24 +757,9 @@ public class ProductDAO extends DBContext {
                     psSpec.close();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
             }
         }
         return false;
-    }
-
-    private int getNextProductId() {
-        String sql = "SELECT COALESCE(MAX(product_id), 0) + 1 AS next_id FROM products";
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("next_id");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 1;
     }
 
     public boolean updateProduct(int productId, String productName, int categoryId, int brandId, BigDecimal price, String description, String imageUrl, int warrantyMonths, String[] specNames, String[] specValues) {
@@ -801,14 +818,12 @@ public class ProductDAO extends DBContext {
 
             connection.commit();
             return true;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
             try {
                 if (connection != null) {
                     connection.rollback();
                 }
             } catch (SQLException ex) {
-                ex.printStackTrace();
             }
         } finally {
             try {
@@ -825,7 +840,6 @@ public class ProductDAO extends DBContext {
                     psInsert.close();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
             }
         }
         return false;
@@ -847,8 +861,7 @@ public class ProductDAO extends DBContext {
                 );
                 list.add(spec);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
         }
         return list;
     }

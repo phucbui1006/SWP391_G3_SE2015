@@ -8,15 +8,15 @@ public class EmployeeDashboardView {
     private String formAction;
     private LocalDate startDate;
     private LocalDate endDate;
-    private List<WarrantyRequest> warranties = new ArrayList<>();
-    private List<OrderHistoryItem> orders = new ArrayList<>();
     private int waitingWarrantyCount;
-    private int receivedWarrantyCount;
+    private int rejectedWarrantyCount;
+    private int acceptedWarrantyCount;
     private int failedOrderCount;
     private int cancelledOrderCount;
+    private int deliveredOrderCount;
+    private List<ChartPoint> warrantyStatusCounts = new ArrayList<>();
+    private List<ChartPoint> orderStatusCounts = new ArrayList<>();
     private List<SummaryCard> summaryCards = new ArrayList<>();
-    private List<WarrantyRow> warrantyRows = new ArrayList<>();
-    private List<OrderRow> orderRows = new ArrayList<>();
 
     public String getFormAction() {
         return formAction;
@@ -42,33 +42,7 @@ public class EmployeeDashboardView {
         this.endDate = endDate;
     }
 
-    public List<WarrantyRequest> getWarranties() {
-        return warranties;
-    }
 
-    public void setWarranties(List<WarrantyRequest> warranties) {
-        this.warranties = warranties == null ? new ArrayList<>() : warranties;
-    }
-
-    public List<OrderHistoryItem> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(List<OrderHistoryItem> orders) {
-        this.orders = orders == null ? new ArrayList<>() : orders;
-    }
-
-    public int getWarrantyTotal() {
-        return warranties.size();
-    }
-
-    public int getOrderTotal() {
-        return orders.size();
-    }
-
-    public int getTotalWorkCount() {
-        return getWarrantyTotal() + getOrderTotal();
-    }
 
     public int getWaitingWarrantyCount() {
         return waitingWarrantyCount;
@@ -78,12 +52,20 @@ public class EmployeeDashboardView {
         this.waitingWarrantyCount = waitingWarrantyCount;
     }
 
-    public int getReceivedWarrantyCount() {
-        return receivedWarrantyCount;
+    public int getRejectedWarrantyCount() {
+        return rejectedWarrantyCount;
     }
 
-    public void setReceivedWarrantyCount(int receivedWarrantyCount) {
-        this.receivedWarrantyCount = receivedWarrantyCount;
+    public void setRejectedWarrantyCount(int rejectedWarrantyCount) {
+        this.rejectedWarrantyCount = rejectedWarrantyCount;
+    }
+
+    public int getAcceptedWarrantyCount() {
+        return acceptedWarrantyCount;
+    }
+
+    public void setAcceptedWarrantyCount(int acceptedWarrantyCount) {
+        this.acceptedWarrantyCount = acceptedWarrantyCount;
     }
 
     public int getFailedOrderCount() {
@@ -110,20 +92,48 @@ public class EmployeeDashboardView {
         this.summaryCards = summaryCards == null ? new ArrayList<>() : summaryCards;
     }
 
-    public List<WarrantyRow> getWarrantyRows() {
-        return warrantyRows;
+
+
+    public int getDeliveredOrderCount() {
+        return deliveredOrderCount;
     }
 
-    public void setWarrantyRows(List<WarrantyRow> warrantyRows) {
-        this.warrantyRows = warrantyRows == null ? new ArrayList<>() : warrantyRows;
+    public void setDeliveredOrderCount(int deliveredOrderCount) {
+        this.deliveredOrderCount = deliveredOrderCount;
     }
 
-    public List<OrderRow> getOrderRows() {
-        return orderRows;
+    public List<ChartPoint> getWarrantyStatusCounts() {
+        return warrantyStatusCounts;
     }
 
-    public void setOrderRows(List<OrderRow> orderRows) {
-        this.orderRows = orderRows == null ? new ArrayList<>() : orderRows;
+    public void setWarrantyStatusCounts(List<ChartPoint> warrantyStatusCounts) {
+        this.warrantyStatusCounts = warrantyStatusCounts == null ? new ArrayList<>() : warrantyStatusCounts;
+    }
+
+    public List<ChartPoint> getOrderStatusCounts() {
+        return orderStatusCounts;
+    }
+
+    public void setOrderStatusCounts(List<ChartPoint> orderStatusCounts) {
+        this.orderStatusCounts = orderStatusCounts == null ? new ArrayList<>() : orderStatusCounts;
+    }
+
+    public static class ChartPoint {
+        private final String label;
+        private final int value;
+
+        public ChartPoint(String label, int value) {
+            this.label = label;
+            this.value = value;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public int getValue() {
+            return value;
+        }
     }
 
     public static class SummaryCard {
@@ -162,101 +172,5 @@ public class EmployeeDashboardView {
         }
     }
 
-    public static class WarrantyRow {
-        private final int warrantyId;
-        private final String customerName;
-        private final String productName;
-        private final String requestDate;
-        private final String status;
-        private final String statusClass;
-        private final String detailUrl;
 
-        public WarrantyRow(int warrantyId, String customerName, String productName,
-                String requestDate, String status, String statusClass, String detailUrl) {
-            this.warrantyId = warrantyId;
-            this.customerName = customerName;
-            this.productName = productName;
-            this.requestDate = requestDate;
-            this.status = status;
-            this.statusClass = statusClass;
-            this.detailUrl = detailUrl;
-        }
-
-        public int getWarrantyId() {
-            return warrantyId;
-        }
-
-        public String getCustomerName() {
-            return customerName;
-        }
-
-        public String getProductName() {
-            return productName;
-        }
-
-        public String getRequestDate() {
-            return requestDate;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public String getStatusClass() {
-            return statusClass;
-        }
-
-        public String getDetailUrl() {
-            return detailUrl;
-        }
-    }
-
-    public static class OrderRow {
-        private final int orderId;
-        private final String customerName;
-        private final String orderDate;
-        private final String totalAmount;
-        private final String status;
-        private final String statusClass;
-        private final String detailUrl;
-
-        public OrderRow(int orderId, String customerName, String orderDate,
-                String totalAmount, String status, String statusClass, String detailUrl) {
-            this.orderId = orderId;
-            this.customerName = customerName;
-            this.orderDate = orderDate;
-            this.totalAmount = totalAmount;
-            this.status = status;
-            this.statusClass = statusClass;
-            this.detailUrl = detailUrl;
-        }
-
-        public int getOrderId() {
-            return orderId;
-        }
-
-        public String getCustomerName() {
-            return customerName;
-        }
-
-        public String getOrderDate() {
-            return orderDate;
-        }
-
-        public String getTotalAmount() {
-            return totalAmount;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public String getStatusClass() {
-            return statusClass;
-        }
-
-        public String getDetailUrl() {
-            return detailUrl;
-        }
-    }
 }

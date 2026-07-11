@@ -1,137 +1,174 @@
 /**
- * Frontend Validation for Warranty Module
- * Uses centralized Validator library.
+ * Frontend validation for warranty lookup, request and response forms.
+ * Backend validation remains the source of truth; these checks improve UX.
  */
 document.addEventListener("DOMContentLoaded", function () {
-    // ══════════════════════════════════════════════════════════
-    // 1. CLIENT WARRANTY REQUEST FORM VALIDATION
-    // ══════════════════════════════════════════════════════════
-    const claimForms = document.querySelectorAll(".wl-claim-form");
+    const validator = window.Validator;
 
-    claimForms.forEach(form => {
-        const requestInput = form.querySelector("textarea[name='request']");
+    if (!validator) {
+        return;
+    }
 
-        if (requestInput) {
-            // Real-time validation on blur
-            requestInput.addEventListener("blur", () => {
-                const val = requestInput.value.trim();
-                const isValid = val.length >= 10 && val.length <= 1000;
-                Validator.showFeedback(
-                    requestInput,
-                    isValid,
-                    "Lý do bảo hành phải từ 10 đến 1000 ký tự."
-                );
-            });
-
-            // Real-time validation on input (only if it was marked invalid before)
-            requestInput.addEventListener("input", () => {
-                if (requestInput.classList.contains("is-invalid")) {
-                    const val = requestInput.value.trim();
-                    const isValid = val.length >= 10 && val.length <= 1000;
-                    Validator.showFeedback(
-                        requestInput,
-                        isValid,
-                        "Lý do bảo hành phải từ 10 đến 1000 ký tự."
-                    );
-                }
-            });
+    const getLengthMessage = (value, fieldName, minLength, maxLength) => {
+        if (!value.trim()) {
+            return `Vui lòng nhập ${fieldName}.`;
         }
+        return `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} phải từ ${minLength} đến ${maxLength} ký tự.`;
+    };
 
-        form.addEventListener("submit", (e) => {
-            if (requestInput) {
-                const val = requestInput.value.trim();
-                const isValid = val.length >= 10 && val.length <= 1000;
-                Validator.showFeedback(
-                    requestInput,
-                    isValid,
-                    "Lý do bảo hành phải từ 10 đến 1000 ký tự."
+    const validateTextLength = (input, fieldName, minLength, maxLength) => {
+        const value = input.value.trim();
+        const isValid = value.length >= minLength && value.length <= maxLength;
+
+        validator.showFeedback(
+                input,
+                isValid,
+                getLengthMessage(value, fieldName, minLength, maxLength)
                 );
+        input.setAttribute("aria-invalid", String(!isValid));
+        return isValid;
+    };
 
-                if (!isValid) {
-                    e.preventDefault();
-                    requestInput.focus();
-                    return;
-                }
+    const bindTextValidation = (input, validate) => {
+        input.addEventListener("blur", validate);
+        input.addEventListener("input", () => {
+            if (input.classList.contains("is-invalid")) {
+                validate();
+            }
+        });
+    };
+
+    const searchForm = document.getElementById("warranty-search-form");
+    if (searchForm) {
+        const orderIdInput = searchForm.querySelector("input[name='orderId']");
+        const orderIdFeedback = document.getElementById("orderIdFeedback");
+
+        const validateOrderId = () => {
+            const value = orderIdInput.value.trim();
+            const matchesFormat = /^(?:PB)?[0-9]+$/i.test(value);
+            const digits = value.replace(/[^0-9]/g, "");
+            const numericId = Number(digits);
+            const isValid = matchesFormat
+                    && Number.isInteger(numericId)
+                    && numericId > 0
+                    && numericId <= 2147483647;
+            let message = "";
+
+            if (!value) {
+                message = "Vui lòng nhập mã đơn hàng.";
+            } else if (!isValid) {
+                message = "Mã đơn hàng phải là số dương hoặc bắt đầu bằng PB (ví dụ: PB10006).";
             }
 
-            // Disable button and display spinner on valid submission
-            const btn = form.querySelector('button[type="submit"]');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="wl-btn-spinner"></span> Đang gửi...';
+            orderIdInput.classList.toggle("is-invalid", !isValid);
+            orderIdInput.setAttribute("aria-invalid", String(!isValid));
+
+            if (orderIdFeedback) {
+                orderIdFeedback.textContent = message;
+                orderIdFeedback.hidden = isValid;
+            }
+
+            return isValid;
+        };
+
+        orderIdInput.addEventListener("blur", validateOrderId);
+        orderIdInput.addEventListener("input", () => {
+            if (orderIdInput.classList.contains("is-invalid")) {
+                validateOrderId();
+            }
+        });
+
+        searchForm.addEventListener("submit", event => {
+            if (!validateOrderId()) {
+                event.preventDefault();
+                orderIdInput.focus();
+                return;
+            }
+
+            orderIdInput.value = orderIdInput.value.trim();
+            const submitButton = searchForm.querySelector("button[type='submit']");
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = "Đang kiểm tra...";
+            }
+        });
+    }
+
+    // Customer warranty request forms
+    document.querySelectorAll(".wl-claim-form").forEach(form => {
+        const requestInput = form.querySelector("textarea[name='request']");
+        if (!requestInput) {
+            return;
+        }
+
+        const validateRequest = () => validateTextLength(
+                    requestInput,
+                    "lý do bảo hành",
+                    10,
+                    1000
+                    );
+
+        bindTextValidation(requestInput, validateRequest);
+
+        form.addEventListener("submit", event => {
+            if (!validateRequest()) {
+                event.preventDefault();
+                requestInput.focus();
+                return;
+            }
+
+            requestInput.value = requestInput.value.trim();
+            const submitButton = form.querySelector("button[type='submit']");
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span class="wl-btn-spinner"></span> Đang gửi...';
             }
         });
     });
 
-    // ══════════════════════════════════════════════════════════
-    // 2. EMPLOYEE WARRANTY UPDATE FORM VALIDATION
-    // ══════════════════════════════════════════════════════════
+    // Employee warranty response form
     const editForm = document.getElementById("edit-warranty-form");
     if (editForm) {
         const responseInput = editForm.querySelector("textarea[name='response']");
         const statusSelect = editForm.querySelector("select[name='statusId']");
 
-        if (responseInput) {
-            // Real-time validation on blur
-            responseInput.addEventListener("blur", () => {
-                const val = responseInput.value.trim();
-                const isValid = val.length >= 5 && val.length <= 1000;
-                Validator.showFeedback(
+        const validateResponse = () => validateTextLength(
                     responseInput,
-                    isValid,
-                    "Phản hồi của cửa hàng phải từ 5 đến 1000 ký tự."
-                );
-            });
-
-            // Real-time validation on input
-            responseInput.addEventListener("input", () => {
-                if (responseInput.classList.contains("is-invalid")) {
-                    const val = responseInput.value.trim();
-                    const isValid = val.length >= 5 && val.length <= 1000;
-                    Validator.showFeedback(
-                        responseInput,
-                        isValid,
-                        "Phản hồi của cửa hàng phải từ 5 đến 1000 ký tự."
+                    "phản hồi của cửa hàng",
+                    5,
+                    1000
                     );
-                }
-            });
-        }
 
-        editForm.addEventListener("submit", (e) => {
-            let isFormValid = true;
-
-            // Validate response text
-            if (responseInput) {
-                const val = responseInput.value.trim();
-                const isValid = val.length >= 5 && val.length <= 1000;
-                Validator.showFeedback(
-                    responseInput,
-                    isValid,
-                    "Phản hồi của cửa hàng phải từ 5 đến 1000 ký tự."
-                );
-                if (!isValid) {
-                    isFormValid = false;
-                    responseInput.focus();
-                }
-            }
-
-            // Validate status value selection
-            if (statusSelect) {
-                const val = statusSelect.value;
-                const isValid = val === "1" || val === "2" || val === "3";
-                Validator.showFeedback(
+        const validateStatus = () => {
+            const isValid = ["1", "2", "3"].includes(statusSelect.value);
+            validator.showFeedback(
                     statusSelect,
                     isValid,
                     "Vui lòng lựa chọn trạng thái bảo hành hợp lệ."
-                );
-                if (!isValid) {
-                    isFormValid = false;
-                    if (isFormValid) statusSelect.focus();
-                }
+                    );
+            statusSelect.setAttribute("aria-invalid", String(!isValid));
+            return isValid;
+        };
+
+        bindTextValidation(responseInput, validateResponse);
+        statusSelect.addEventListener("blur", validateStatus);
+        statusSelect.addEventListener("change", validateStatus);
+
+        editForm.addEventListener("submit", event => {
+            const isStatusValid = validateStatus();
+            const isResponseValid = validateResponse();
+
+            if (!isStatusValid || !isResponseValid) {
+                event.preventDefault();
+                (isStatusValid ? responseInput : statusSelect).focus();
+                return;
             }
 
-            if (!isFormValid) {
-                e.preventDefault();
+            responseInput.value = responseInput.value.trim();
+            const submitButton = editForm.querySelector("button[type='submit']");
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = "Đang lưu...";
             }
         });
     }

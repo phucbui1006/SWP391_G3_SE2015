@@ -16,6 +16,12 @@ import model.DashboardSummary;
 
 public class AdminDashboardDAO extends DBContext {
 
+    private static final String NOT_CANCELLED_ORDER_CONDITION = """
+            AND (os.status_name IS NULL
+                 OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
+                     AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
+            """;
+
     public DashboardSummary getSummary(LocalDate startDate, LocalDate endDate) {
         DashboardSummary summary = new DashboardSummary();
         summary.setTotalRevenue(queryBigDecimal("""
@@ -24,10 +30,7 @@ public class AdminDashboardDAO extends DBContext {
                 LEFT JOIN orders_status os ON os.status_id = o.status_id
                 WHERE o.order_date >= ?
                   AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-                  AND (os.status_name IS NULL
-                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
-                           AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
-                """, startDate, endDate));
+                """ + NOT_CANCELLED_ORDER_CONDITION, startDate, endDate));
         summary.setTotalOrders(queryInt("""
                 SELECT COUNT(*) AS value
                 FROM orders
@@ -56,9 +59,7 @@ public class AdminDashboardDAO extends DBContext {
                 LEFT JOIN orders_status os ON os.status_id = o.status_id
                 WHERE o.order_date >= ?
                   AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-                  AND (os.status_name IS NULL
-                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
-                           AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
+                """ + NOT_CANCELLED_ORDER_CONDITION + """
                 GROUP BY DATE(o.order_date)
                 ORDER BY revenue_date
                 """;
@@ -90,9 +91,7 @@ public class AdminDashboardDAO extends DBContext {
                 LEFT JOIN orders_status os ON os.status_id = o.status_id
                 WHERE o.order_date >= ?
                   AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-                  AND (os.status_name IS NULL
-                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
-                           AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
+                """ + NOT_CANCELLED_ORDER_CONDITION + """
                 GROUP BY c.category_id, c.category_name
                 HAVING sold_quantity > 0
                 ORDER BY sold_quantity DESC, c.category_name
@@ -124,11 +123,7 @@ public class AdminDashboardDAO extends DBContext {
                LEFT JOIN orders_status os ON os.status_id = o.status_id
                WHERE o.order_date >= ?
                  AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-                 AND (
-                       os.status_name IS NULL
-                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
-                           AND LOWER(os.status_name) NOT LIKE LOWER('%huy%'))
-                     )
+               """ + NOT_CANCELLED_ORDER_CONDITION + """
                GROUP BY p.product_id, p.product_name
                ORDER BY sold_quantity DESC
                LIMIT ?

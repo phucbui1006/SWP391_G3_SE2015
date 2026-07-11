@@ -27,6 +27,7 @@ public class BuildPCServlet extends HttpServlet {
     private static final String SESSION_CART_ITEM_COUNT = "sessionCartItemCount";
     private static final String BUILD_MESSAGE = "buildPcMessage";
     private static final String BUILD_MESSAGE_TYPE = "buildPcMessageType";
+    private static final int MAX_BUILD_QUANTITY_DIGITS = 9;
 
     private static final int CPU_CATEGORY_ID = 1;
     private static final int MAINBOARD_CATEGORY_ID = 2;
@@ -172,7 +173,7 @@ public class BuildPCServlet extends HttpServlet {
             throws IOException {
         HttpSession session = request.getSession();
         String slot = normalizeSlot(request.getParameter("slot"));
-        Integer quantity = parsePositiveInteger(request.getParameter("quantity"));
+        Integer quantity = parseBuildQuantity(request.getParameter("quantity"));
         Integer delta = parseInteger(request.getParameter("delta"));
 
         if (slot == null || (quantity == null && delta == null)) {
@@ -265,6 +266,12 @@ public class BuildPCServlet extends HttpServlet {
 
             if (product == null || availableQuantity <= 0) {
                 setFlash(session, "Một linh kiện trong cấu hình đã hết hàng hoặc ngừng kinh doanh.", "error");
+                response.sendRedirect(request.getContextPath() + "/build-pc");
+                return;
+            }
+
+            if (!isValidSelectedQuantity(selectedQuantities, entry.getKey(), availableQuantity)) {
+                setFlash(session, "Số lượng linh kiện không hợp lệ. Vui lòng kiểm tra lại cấu hình.", "error");
                 response.sendRedirect(request.getContextPath() + "/build-pc");
                 return;
             }
@@ -389,6 +396,14 @@ public class BuildPCServlet extends HttpServlet {
         return quantity == null || quantity < 1 ? 1 : quantity;
     }
 
+    private boolean isValidSelectedQuantity(Map<String, Integer> selectedQuantities, String slot, int availableQuantity) {
+        Integer quantity = selectedQuantities.get(slot);
+        if (quantity == null) {
+            quantity = 1;
+        }
+        return quantity >= 1 && quantity <= availableQuantity;
+    }
+
     private int getCategoryIdBySlot(String slot) {
         switch (slot) {
             case "CPU":
@@ -439,6 +454,23 @@ public class BuildPCServlet extends HttpServlet {
         try {
             int parsedValue = Integer.parseInt(value);
             return parsedValue > 0 ? parsedValue : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Integer parseBuildQuantity(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        if (!trimmed.matches("^[1-9][0-9]*$") || trimmed.length() > MAX_BUILD_QUANTITY_DIGITS) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(trimmed);
         } catch (NumberFormatException e) {
             return null;
         }

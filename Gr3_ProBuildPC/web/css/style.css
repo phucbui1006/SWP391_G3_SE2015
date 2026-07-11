@@ -9036,46 +9036,32 @@ body.admin-brand-body .site-footer {
 }
 
 .build-quantity {
-    display: grid;
-    grid-template-columns: 34px 52px 34px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
     padding: 0;
 }
 
-.build-qty-btn,
 .build-qty-input {
-    height: 34px;
-    border: 1px solid #dbe1ea;
-    border-radius: 6px;
-    background: #fff;
-    color: #0046ff;
+    width: 74px;
+    height: 40px;
+    padding: 0 14px;
+    border: 1px solid #cfd6e3;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #000000;
     font-family: inherit;
-    font-size: 16px;
-    font-weight: 900;
+    font-size: 20px;
+    font-weight: 400;
     text-align: center;
-}
-
-.build-qty-btn {
-    cursor: pointer;
-}
-
-.build-qty-btn:hover {
-    border-color: #ed1c24;
-    color: #ed1c24;
-}
-
-.build-qty-input {
-    width: 52px;
-    padding: 0 4px;
     outline: none;
-    color: #1f2937;
 }
 
 .build-qty-input:focus {
-    border-color: #ed1c24;
-    box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.12);
+    border-color: #9fb0c8;
+    box-shadow: 0 0 0 3px rgba(159, 176, 200, 0.18);
 }
 
 .build-part-actions {
@@ -9294,8 +9280,9 @@ body.admin-brand-body .site-footer {
     }
 
     .build-quantity {
-        padding: 0 16px 14px;
-        justify-content: start;
+        margin: 0 16px 14px;
+        padding: 0;
+        justify-content: center;
     }
 
     .build-part-actions {
@@ -9957,44 +9944,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     word-break: normal;
 }
 
-.admin-best-selling-table th:nth-child(1),
-.admin-best-selling-table td:nth-child(1) {
-    width: 82px;
-}
-
-.admin-best-selling-table th:nth-child(3),
-.admin-best-selling-table td:nth-child(3),
-.admin-low-stock-table th:nth-child(2),
-.admin-low-stock-table td:nth-child(2) {
-    width: 76px;
-    text-align: center;
-}
-
-.admin-low-stock-table th:nth-child(3),
-.admin-low-stock-table td:nth-child(3) {
-    width: 112px;
-}
-
-.admin-latest-orders-table th:nth-child(1),
-.admin-latest-orders-table td:nth-child(1) {
-    width: 82px;
-}
-
-.admin-latest-orders-table th:nth-child(3),
-.admin-latest-orders-table td:nth-child(3) {
-    width: 112px;
-}
-
-.admin-latest-orders-table th:nth-child(4),
-.admin-latest-orders-table td:nth-child(4) {
-    width: 124px;
-}
-
-.admin-latest-orders-table th:nth-child(5),
-.admin-latest-orders-table td:nth-child(5) {
-    width: 118px;
-}
-
 .admin-dashboard-table th,
 .employee-request-table th,
 .shipment-order-table th {
@@ -10028,7 +9977,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-weight: 400;
 }
 
-.admin-dashboard-table .admin-status,
 .admin-dashboard-table .shipment-status,
 .employee-request-table .request-status,
 .shipment-order-table .shipment-status {
@@ -10042,11 +9990,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-size: 14px;
     line-height: 1.45;
     font-weight: 400;
-}
-
-.admin-dashboard-table .admin-placeholder-row td {
-    height: 50px;
-    color: transparent;
 }
 
 .admin-panel-footer {
@@ -10072,18 +10015,7 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-weight: 900;
 }
 
-.admin-count-list,
-.admin-account-grid {
-    display: grid;
-    gap: 0;
-    padding: 0;
-}
-
 .admin-account-chart-wrap {
-    display: grid;
-    grid-template-columns: minmax(210px, 0.85fr) minmax(220px, 1fr);
-    gap: 8px;
-    align-items: center;
     min-height: 320px;
     padding: 20px;
 }
@@ -10095,106 +10027,12 @@ body.dashboard-body .dashboard-card.shipment-shell {
     justify-self: center;
 }
 
-.admin-account-chart-wrap .admin-account-grid {
-    align-self: stretch;
-    border: 1px solid #eceff4;
-    border-radius: 6px;
-    overflow: hidden;
-}
-
-.admin-count-list p,
-.admin-account-grid div {
-    min-height: 49px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin: 0;
-    padding: 14px 16px;
-    border: 0;
-    border-bottom: 1px solid #eceff4;
-    background: transparent;
-    color: black;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 14px;
-    font-weight: 400;
-}
-
-.admin-count-list p:last-child,
-.admin-account-grid div:last-child {
-    border-bottom: 0;
-}
-
-.admin-count-list span,
-.admin-account-grid span {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    color: black;
-    font-size: 14px;
-    font-weight: 400;
-}
-
-.admin-count-list strong,
-.admin-account-grid strong {
-    color: black;
-    font-size: 14px;
-    font-weight: 400;
-}
-
-.admin-account-dot {
-    width: 10px;
-    height: 10px;
-    flex: 0 0 10px;
-    border-radius: 50%;
-    background: #dc2626;
-}
-
-.admin-account-grid div:nth-child(2) .admin-account-dot {
-    background: #2563eb;
-}
-
-.admin-account-grid div:nth-child(3) .admin-account-dot {
-    background: #16a34a;
-}
-
-.admin-account-grid div:nth-child(4) .admin-account-dot {
-    background: #f59e0b;
-}
-
-.admin-account-grid div:nth-child(5) .admin-account-dot {
-    background: #7c3aed;
-}
-
-.admin-account-grid div:nth-child(6) .admin-account-dot {
-    background: #0891b2;
-}
-
-.admin-account-grid div:nth-child(7) .admin-account-dot {
-    background: #db2777;
-}
-
-.admin-account-grid div:nth-child(8) .admin-account-dot {
-    background: #65a30d;
-}
-
-.admin-account-grid div:nth-child(9) .admin-account-dot {
-    background: #ea580c;
-}
-
-.admin-account-grid div:nth-child(10) .admin-account-dot {
-    background: #475569;
-}
-
-.admin-count-list .admin-empty-message,
-.admin-account-grid .admin-empty-message,
 .admin-dashboard-table .admin-empty-message {
     color: black !important;
     font-size: 14px !important;
     font-weight: 400 !important;
 }
 
-.admin-status,
 .request-status,
 .shipment-status {
     min-height: 28px;
@@ -10209,7 +10047,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     white-space: nowrap;
 }
 
-.admin-dashboard-table .admin-status,
 .admin-dashboard-table .shipment-status,
 .employee-request-table .request-status,
 .shipment-order-table .shipment-status {
@@ -10224,7 +10061,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-weight: 400;
 }
 
-.admin-status.active,
 .request-status.received,
 .shipment-status.confirmed {
     color: black !important;
@@ -10249,7 +10085,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
 }
 
-.admin-status.inactive,
 .request-status.rejected {
     background: #fff1f2;
     color: #dc2626;

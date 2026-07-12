@@ -47,6 +47,53 @@
         }
         return "◈";
     }
+
+    private String getPlaceholderImage(String key) {
+        if ("CPU".equals(key)) {
+            return "images/buildPC/CPU.png";
+        } else if ("Mainboard".equals(key)) {
+            return "images/buildPC/MainBoard.png";
+        } else if ("GPU".equals(key)) {
+            return "images/buildPC/GPU.png";
+        } else if ("RAM".equals(key)) {
+            return "images/buildPC/RAM.png";
+        } else if ("SSD".equals(key)) {
+            return "images/buildPC/SSD.png";
+        } else if ("Case".equals(key)) {
+            return "images/buildPC/VỏCase.png";
+        } else if ("Monitor".equals(key)) {
+            return "images/buildPC/Screen.png";
+        } else if ("Keyboard".equals(key)) {
+            return "images/buildPC/KeyBoard.png";
+        } else if ("Mouse".equals(key)) {
+            return "images/buildPC/Mouse.png";
+        }
+        return "";
+    }
+
+    private String getEmptySlotLabel(BuildPCSlot slot) {
+        String key = slot.getKey();
+        if ("CPU".equals(key)) {
+            return "CPU";
+        } else if ("Mainboard".equals(key)) {
+            return "Mainboard";
+        } else if ("GPU".equals(key)) {
+            return "Card màn hình";
+        } else if ("RAM".equals(key)) {
+            return "RAM";
+        } else if ("SSD".equals(key)) {
+            return "Ổ cứng SSD";
+        } else if ("Case".equals(key)) {
+            return "Vỏ Case";
+        } else if ("Monitor".equals(key)) {
+            return "Màn hình";
+        } else if ("Keyboard".equals(key)) {
+            return "Bàn phím";
+        } else if ("Mouse".equals(key)) {
+            return "Chuột";
+        }
+        return slot.getDisplayName();
+    }
 %>
 
 <%
@@ -71,13 +118,19 @@
         <link rel="stylesheet" href="<%= ctx %>/css/style.css">
     </head>
 
-    <body class="build-pc-page" style="padding-bottom: 0px; padding-left: 0px; padding-right: 0px; padding-top: 0px">
+    <body class="build-pc-page" data-context-path="<%= ctx %>" style="padding-bottom: 0px; padding-left: 0px; padding-right: 0px; padding-top: 0px">
         <jsp:include page="/includes/header.jsp" />
 
         <main class="build-pc-shell">
             <section class="build-pc-main">
+                <nav class="build-breadcrumb" aria-label="Breadcrumb">
+                    <a href="<%= ctx %>/home">Trang chủ</a>
+                    <span>›</span>
+                    <strong>Build PC</strong>
+                </nav>
+
                 <div class="build-pc-heading">
-                    <div>
+                    <div class="headerBuild" style="text-center">
                         <h1>BUILD PC</h1>
                         <p>Tự tay lựa chọn linh kiện để tạo nên cấu hình PC theo nhu cầu của bạn.</p>
                     </div>
@@ -98,48 +151,47 @@
                     <% if (buildSlots != null) { %>
                     <% for (BuildPCSlot slot : buildSlots) { %>
                     <% Product selectedProduct = slot.getSelectedProduct(); %>
-                    <div class="build-part-row">
+                    <div class="build-part-row <%= selectedProduct == null ? "is-empty" : "" %>">
+                        <% if (selectedProduct == null) { %>
+                        <div class="build-empty-slot-main">
+                            <img class="build-slot-placeholder"
+                                 src="<%= ctx %>/<%= escapeHtml(getPlaceholderImage(slot.getKey())) %>"
+                                 alt="<%= escapeHtml(getEmptySlotLabel(slot)) %>">
+                            <strong><%= escapeHtml(getEmptySlotLabel(slot)) %></strong>
+                        </div>
+
+                        <button class="build-empty-choose build-open-quick-view" type="button"
+                                data-build-modal="build-modal-<%= escapeHtml(slot.getKey()) %>">
+                            Chọn
+                        </button>
+                        <% } else { %>
                         <div class="build-part-type">
                             <strong><%= escapeHtml(slot.getDisplayName()) %></strong>
                         </div>
 
                         <div class="build-part-product">
-                            <% if (selectedProduct != null && selectedProduct.getImageUrl() != null) { %>
+                            <% if (selectedProduct.getImageUrl() != null) { %>
                             <img src="<%= ctx %>/<%= escapeHtml(selectedProduct.getImageUrl()) %>" alt="<%= escapeHtml(selectedProduct.getProductName()) %>">
                             <% } else { %>
                             <div class="build-empty-image" aria-hidden="true"><%= getIcon(slot.getKey()) %></div>
                             <% } %>
 
                             <div>
-                                <% if (selectedProduct != null) { %>
                                 <h2><%= escapeHtml(selectedProduct.getProductName()) %></h2>
                                 <strong><%= formatMoney(currencyFormatter, selectedProduct.getPrice()) %></strong>
-                                <% } else if (slot.isCompatibilityChecked() && slot.getAvailableProducts().isEmpty()) { %>
-                                <h2>Chưa thể chọn <%= escapeHtml(slot.getDisplayName()) %></h2>
-                                <% } else { %>
-                                <h2>Chưa chọn <%= escapeHtml(slot.getDisplayName()) %></h2>
-                                <% } %>
                             </div>
                         </div>
 
                         <div class="build-quick-cell">
-                            <% if (selectedProduct != null) { %>
                             <form class="build-quantity" action="<%= ctx %>/build-pc" method="post">
                                 <input type="hidden" name="action" value="updateQuantity">
                                 <input type="hidden" name="slot" value="<%= escapeHtml(slot.getKey()) %>">
                                 <input class="build-qty-input" type="number" name="quantity" value="<%= slot.getQuantity() %>" min="1" max="<%= selectedProduct.getQuantity() %>" step="1" inputmode="numeric" data-max-quantity="<%= selectedProduct.getQuantity() %>">
                             </form>
-                            <% } else { %>
-                            <button class="build-change-btn build-open-quick-view" type="button"
-                                    data-build-modal="build-modal-<%= escapeHtml(slot.getKey()) %>">
-                                Xem linh kiện
-                            </button>
-                            <% } %>
                             <small><%= slot.getAvailableProducts().size() %> sản phẩm phù hợp</small>
                         </div>
 
                         <div class="build-part-actions">
-                            <% if (selectedProduct != null) { %>
                             <button class="build-detail-link build-open-quick-view" type="button"
                                     data-build-modal="build-modal-<%= escapeHtml(slot.getKey()) %>">
                                 Thay đổi
@@ -154,10 +206,8 @@
                             <a class="build-detail-link" href="<%= ctx %>/product-detail?id=<%= selectedProduct.getProductId() %>">
                                 Xem chi tiết
                             </a>
-                            <% } else { %>
-                            <span class="build-waiting">Đang trống</span>
-                            <% } %>
                         </div>
+                        <% } %>
                     </div>
 
                     <div class="build-quick-view" id="build-modal-<%= escapeHtml(slot.getKey()) %>" aria-hidden="true">
@@ -221,23 +271,48 @@
                     <strong class="build-total" data-build-total><%= formatMoney(currencyFormatter, buildTotal) %></strong>
 
                     <div class="build-cart-action">
-                        <form class="build-add-cart-form" action="<%= ctx %>/build-pc" method="post">
+                        <form class="build-add-cart-form cart-form" action="<%= ctx %>/build-pc" method="post">
                             <input type="hidden" name="action" value="addToCart">
-                            <button class="build-cart-btn" type="submit">
+                            <button class="build-cart-btn" type="submit" data-add-to-cart-btn data-product-name="Cấu hình Build PC">
                                 <span aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></span>
                                 Thêm cấu hình vào giỏ hàng
                             </button>
                         </form>
                     </div>
                 </div>
-                </div>
             </aside>
         </main>
 
         <jsp:include page="/includes/footer.jsp" />
 
+        <div class="home-toast" data-home-toast hidden>
+            <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
+            <div class="home-toast-message" data-home-toast-message></div>
+        </div>
+
         <script src="<%= ctx %>/js/validator.js"></script>
         <script>
+            function validateQuantity(form, showFeedback) {
+                var firstInvalidInput = null;
+                document.querySelectorAll(".build-qty-input").forEach(function (input) {
+                    var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || "1", 10);
+                    var isValid = Validator.validateBuildQuantity(input.value, maxQuantity);
+                    if (showFeedback) {
+                        Validator.showFeedback(input, isValid, "Số lượng phải từ 1 đến " + maxQuantity + ".");
+                    }
+                    if (!isValid && !firstInvalidInput) {
+                        firstInvalidInput = input;
+                    }
+                });
+
+                if (firstInvalidInput) {
+                    firstInvalidInput.focus();
+                    return false;
+                }
+
+                return true;
+            }
+
             document.querySelectorAll(".build-open-quick-view").forEach(function (button) {
                 button.addEventListener("click", function () {
                     var modal = document.getElementById(button.getAttribute("data-build-modal"));
@@ -319,22 +394,12 @@
 
             document.querySelectorAll(".build-add-cart-form").forEach(function (form) {
                 form.addEventListener("submit", function (event) {
-                    var firstInvalidInput = null;
-                    document.querySelectorAll(".build-qty-input").forEach(function (input) {
-                        var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || "1", 10);
-                        var isValid = Validator.validateBuildQuantity(input.value, maxQuantity);
-                        Validator.showFeedback(input, isValid, "Số lượng phải từ 1 đến " + maxQuantity + ".");
-                        if (!isValid && !firstInvalidInput) {
-                            firstInvalidInput = input;
-                        }
-                    });
-
-                    if (firstInvalidInput) {
+                    if (!validateQuantity(form, true)) {
                         event.preventDefault();
-                        firstInvalidInput.focus();
                     }
                 });
             });
         </script>
+        <script src="<%= ctx %>/js/cart.js"></script>
     </body>
 </html>

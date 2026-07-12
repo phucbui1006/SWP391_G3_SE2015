@@ -12,7 +12,7 @@
         <title><c:out value="${product.productName}"/> - ProBuild PC</title>
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/product-detail.css?v=202">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/product-detail.css?v=203">
     </head>
 
     <body class="product-detail-body" data-context-path="${pageContext.request.contextPath}">
@@ -106,45 +106,87 @@
                     </div>
 
                     <div class="purchase-panel-new">
-                        <form class="purchase-form"
-                              method="post"
-                              action="${pageContext.request.contextPath}/cart">
-                            <input type="hidden" name="action" value="addToCart">
-                            <input type="hidden" name="productId" value="${product.productId}">
-                            <input type="hidden" name="redirect" value="${fn:escapeXml(currentUrl)}">
 
-                            <div class="info-label">SỐ LƯỢNG</div>
+                        <c:choose>
 
-                            <div class="quantity-box">
-                                <input class="quantity-input"
-                                       id="quantityInput"
-                                       type="number"
-                                       name="quantity"
-                                       value="1"
-                                       min="1"
-                                       step="1"
-                                       max="${maxQuantity}"
-                                       data-max-quantity="${maxQuantity}"
-                                       inputmode="numeric"
-                                       ${product.quantity > 0 ? "" : "disabled"}>
-                            </div>
+                            <c:when test="${product.quantity > 0}">
 
-                            <div class="action-buttons">
-                                <button type="submit"
-                                        formaction="${pageContext.request.contextPath}/checkout"
-                                        class="buy-btn"
-                                        ${product.quantity > 0 ? "" : "disabled"}>
-                                    Mua ngay
-                                </button>
+                                <form class="purchase-form"
+                                      method="post"
+                                      novalidate
+                                      action="${pageContext.request.contextPath}/cart">
 
-                                <button type="submit"
-                                        class="add-cart-btn"
-                                        data-add-to-cart-btn
-                                        ${product.quantity > 0 ? "" : "disabled"}>
-                                    <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng
-                                </button>
-                            </div>
-                        </form>
+                                    <input type="hidden" name="action" value="addToCart">
+                                    <input type="hidden" name="productId" value="${product.productId}">
+                                    <input type="hidden" name="redirect" value="${fn:escapeXml(currentUrl)}">
+
+                                    <div class="info-label">SỐ LƯỢNG</div>
+
+                                    <div class="quantity-field">
+                                        <div class="quantity-box">
+                                            <input class="quantity-input"
+                                                   id="quantityInput"
+                                                   type="number"
+                                                   name="quantity"
+                                                   value="${not empty quantityValue ? quantityValue : 1}"
+                                                   min="1"
+                                                   step="1"
+                                                   max="${maxQuantity}"
+                                                   data-max-quantity="${maxQuantity}"
+                                                   inputmode="numeric">
+                                        </div>
+
+                                        <p class="quantity-error"
+                                           id="quantityError"
+                                           role="alert"
+                                           aria-live="polite"
+                                           ${empty quantityError ? "hidden" : ""}>
+                                            <c:out value="${quantityError}"/>
+                                        </p>
+                                    </div>
+
+                                    <div class="action-buttons">
+
+                                        <button type="submit"
+                                                formaction="${pageContext.request.contextPath}/checkout"
+                                                class="buy-btn">
+                                            Mua ngay
+                                        </button>
+
+                                        <button type="submit"
+                                                class="add-cart-btn"
+                                                data-add-to-cart-btn>
+                                            <i class="fa-solid fa-cart-shopping"></i>
+                                            Giỏ hàng
+                                        </button>
+
+                                    </div>
+
+                                </form>
+
+                            </c:when>
+
+                            <c:otherwise>
+
+                                <div class="out-of-stock-panel">
+
+                                    <i class="fa-solid fa-box-open out-stock-icon"></i>
+
+                                    <h3>Sản phẩm hiện đã hết hàng</h3>
+
+                                    <p>
+                                        Rất tiếc, sản phẩm này hiện không còn trong kho.
+                                        Vui lòng quay lại sau hoặc tham khảo các sản phẩm tương tự bên dưới.
+                                    </p>
+
+                                    
+
+                                </div>
+
+                            </c:otherwise>
+
+                        </c:choose>
+
                     </div>
 
                 </div>
@@ -417,9 +459,8 @@
 
         <jsp:include page="/includes/footer.jsp" />
 
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script src="${pageContext.request.contextPath}/js/cart.js"></script>
-        <script src="${pageContext.request.contextPath}/js/product-detail.js?v=203"></script>
+        <script src="${pageContext.request.contextPath}/js/cart.js?v=2"></script>
+        <script src="${pageContext.request.contextPath}/js/product-detail.js?v=204"></script>
 
     </body>
 </html>

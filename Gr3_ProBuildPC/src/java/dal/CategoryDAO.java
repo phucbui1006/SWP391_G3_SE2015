@@ -179,36 +179,45 @@ public class CategoryDAO extends DBContext {
     }
 
     public boolean addCategory(String categoryName) {
-        int nextCategoryId = getnextCategoryId();
         String sql = """
-            INSERT INTO categories (category_id, category_name)
-            VALUES (?, ?)
+            INSERT INTO categories (category_name)
+            VALUES (?)
         """;
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, nextCategoryId);
-            ps.setString(2, categoryName);
+            ps.setString(1, categoryName);
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return false;
     }
 
-    private int getnextCategoryId() {
-        String sql = "SELECT MAX(category_id) + 1 AS next_id\n"
-                + "FROM Categories";
+    public boolean categoryNameExists(String categoryName, Integer excludedCategoryId) {
+        String sql = "SELECT 1 FROM categories WHERE category_name = ?";
+
+        if (excludedCategoryId != null) {
+            sql += " AND category_id <> ?";
+        }
+
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("next_id");
+            ps.setString(1, categoryName);
+
+            if (excludedCategoryId != null) {
+                ps.setInt(2, excludedCategoryId);
             }
+
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
         } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return 1;
+
+        return false;
     }
 
     public boolean updateCategoryName(int categoryId, String categoryName) {

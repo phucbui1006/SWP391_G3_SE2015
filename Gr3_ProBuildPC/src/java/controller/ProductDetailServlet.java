@@ -191,6 +191,8 @@ public class ProductDetailServlet extends HttpServlet {
 
         String cartMessage = (String) session.getAttribute("cartMessage");
         String cartMessageType = (String) session.getAttribute("cartMessageType");
+        String quantityError = (String) session.getAttribute("productDetailQuantityError");
+        String quantityValue = (String) session.getAttribute("productDetailQuantityValue");
 
         if (cartMessageType == null) {
             cartMessageType = "success";
@@ -198,8 +200,12 @@ public class ProductDetailServlet extends HttpServlet {
 
         request.setAttribute("cartMessage", cartMessage);
         request.setAttribute("cartMessageType", cartMessageType);
+        request.setAttribute("quantityError", quantityError);
+        request.setAttribute("quantityValue", quantityValue);
 
         session.removeAttribute("cartMessage");
         session.removeAttribute("cartMessageType");
+        session.removeAttribute("productDetailQuantityError");
+        session.removeAttribute("productDetailQuantityValue");
     }
 }

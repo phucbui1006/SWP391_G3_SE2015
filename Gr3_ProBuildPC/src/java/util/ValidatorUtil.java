@@ -49,6 +49,36 @@ public class ValidatorUtil {
         return length >= 2 && length < 20;
     }
 
+    public static String getCategoryNameError(String categoryName) {
+        if (categoryName == null || categoryName.trim().isEmpty()) {
+            return "Tên danh mục không được để trống.";
+        }
+
+        String trimmed = categoryName.trim();
+
+        if (trimmed.length() < 2 || trimmed.length() > 100) {
+            return "Tên danh mục phải từ 2 đến 100 ký tự.";
+        }
+
+        if (trimmed.matches(".*\\s{2,}.*")) {
+            return "Tên danh mục không được chứa nhiều dấu cách liên tiếp.";
+        }
+
+        return null;
+    }
+
+    public static boolean isValidCategoryId(String categoryIdRaw) {
+        if (categoryIdRaw == null || categoryIdRaw.trim().isEmpty()) {
+            return false;
+        }
+
+        try {
+            return Integer.parseInt(categoryIdRaw.trim()) > 0;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
     public static boolean isAllowedBrandImage(Part filePart, boolean required) {
         if (filePart == null || filePart.getSize() == 0) {
             return !required;
@@ -115,6 +145,40 @@ public class ValidatorUtil {
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    public static String getPurchaseQuantityError(String quantityRaw) {
+        if (quantityRaw == null || quantityRaw.trim().isEmpty()
+                || !quantityRaw.trim().matches("^\\d+$")) {
+            return "Vui lòng chỉ nhập số nguyên cho số lượng.";
+        }
+
+        try {
+            int quantity = Integer.parseInt(quantityRaw.trim());
+            if (quantity < 1) {
+                return "Số lượng phải lớn hơn hoặc bằng 1.";
+            }
+        } catch (NumberFormatException e) {
+            return "Số lượng không hợp lệ.";
+        }
+
+        return null;
+    }
+
+    public static Integer parsePurchaseQuantity(String quantityRaw) {
+        if (getPurchaseQuantityError(quantityRaw) != null) {
+            return null;
+        }
+
+        return Integer.valueOf(quantityRaw.trim());
+    }
+
+    public static String getPurchaseStockError(int requestedQuantity, int stockQuantity) {
+        if (requestedQuantity > stockQuantity) {
+            return "Số lượng không được lớn hơn số lượng trong kho (" + stockQuantity + ").";
+        }
+
+        return null;
     }
 
     public static boolean isValidRating(String ratingStr) {

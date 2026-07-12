@@ -289,8 +289,11 @@ body.product-detail-body {
     letter-spacing: 0.5px;
 }
 
-.quantity-box {
+.quantity-field {
     margin-bottom: 24px;
+}
+
+.quantity-box {
     display: inline-flex;
     align-items: center;
     border: 1px solid var(--card-border);
@@ -314,6 +317,18 @@ body.product-detail-body {
 
 .quantity-input:focus {
     box-shadow: none;
+}
+
+.quantity-error {
+    margin: 7px 0 0;
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.quantity-error[hidden] {
+    display: none;
 }
 
 .action-buttons {
@@ -1018,4 +1033,41 @@ body.product-detail-body {
         font-size: 14px;
         padding-top: 6px;
     }
+}
+.out-of-stock-panel {
+    text-align: center;
+    padding: 35px 20px;
+}
+
+.out-stock-icon {
+    font-size: 46px;
+    color: #dc2626;
+    margin-bottom: 18px;
+}
+
+.out-of-stock-panel h3 {
+    font-size: 22px;
+    color: #dc2626;
+    margin-bottom: 12px;
+}
+
+.out-of-stock-panel p {
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 24px;
+}
+
+.continue-shopping-btn {
+    display: inline-block;
+    background: #ed1c24;
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 28px;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: .25s;
+}
+
+.continue-shopping-btn:hover {
+    background: #111827;
 }

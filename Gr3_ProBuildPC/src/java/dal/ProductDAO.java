@@ -225,7 +225,6 @@ public class ProductDAO extends DBContext {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -284,7 +283,6 @@ public class ProductDAO extends DBContext {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -323,7 +321,6 @@ public class ProductDAO extends DBContext {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -352,8 +349,7 @@ public class ProductDAO extends DBContext {
                 return avg;
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
         }
 
         return 0;
@@ -396,7 +392,6 @@ public class ProductDAO extends DBContext {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -443,7 +438,6 @@ public class ProductDAO extends DBContext {
                 list.add(p);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -463,8 +457,7 @@ public class ProductDAO extends DBContext {
 
             return ps.executeUpdate() > 0;
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
         }
 
         return false;
@@ -505,7 +498,6 @@ public class ProductDAO extends DBContext {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -522,7 +514,6 @@ public class ProductDAO extends DBContext {
                 return rs.getInt(1) > 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -565,8 +556,7 @@ public class ProductDAO extends DBContext {
             if (rs.next()) {
                 return rs.getInt(1);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
         }
         return 0;
     }
@@ -637,7 +627,6 @@ public class ProductDAO extends DBContext {
                 list.add(mapProduct(rs));
             }
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return list;
     }

@@ -347,6 +347,7 @@ public class DashboardServlet extends HttpServlet {
     private List<EmployeeDashboardView.SummaryCard> buildEmployeeSummaryCards(
             EmployeeDashboardView dashboard) {
         List<EmployeeDashboardView.SummaryCard> cards = new ArrayList<>();
+      
         cards.add(new EmployeeDashboardView.SummaryCard(
                 "delivered", "fa-solid fa-circle-check", "Đơn hàng đã giao",
                 dashboard.getDeliveredOrderCount(), "đơn"));

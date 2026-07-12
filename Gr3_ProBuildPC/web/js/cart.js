@@ -134,6 +134,11 @@
                 }
 
                 if (!response.ok || !data.success) {
+                    if (data.field === 'quantity' && typeof showQuantityError === 'function') {
+                        showQuantityError(data.message || 'Số lượng không hợp lệ.');
+                        return;
+                    }
+
                     showToast(data.message || 'Không thể thêm sản phẩm vào giỏ hàng lúc này.', false);
                     return;
                 }

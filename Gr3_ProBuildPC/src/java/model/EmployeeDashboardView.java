@@ -102,6 +102,7 @@ public class EmployeeDashboardView {
         this.deliveredOrderCount = deliveredOrderCount;
     }
 
+
     public List<ChartPoint> getWarrantyStatusCounts() {
         return warrantyStatusCounts;
     }

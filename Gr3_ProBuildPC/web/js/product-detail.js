@@ -1,17 +1,27 @@
 function showQuantityError(message) {
-    if (typeof Swal === 'undefined') {
+    var quantityInput = document.querySelector('.purchase-form input[name="quantity"]');
+    var errorMessage = document.getElementById('quantityError');
+
+    if (!quantityInput || !errorMessage) {
         return;
     }
 
-    Swal.fire({
-        title: 'Số lượng không hợp lệ!',
-        text: message,
-        icon: 'warning',
-        timer: 3000,
-        showConfirmButton: false,
-        toast: true,
-        position: 'bottom-end'
-    });
+    errorMessage.textContent = message;
+    errorMessage.hidden = false;
+    quantityInput.setAttribute('aria-invalid', 'true');
+}
+
+function clearQuantityError() {
+    var quantityInput = document.querySelector('.purchase-form input[name="quantity"]');
+    var errorMessage = document.getElementById('quantityError');
+
+    if (!quantityInput || !errorMessage) {
+        return;
+    }
+
+    errorMessage.textContent = '';
+    errorMessage.hidden = true;
+    quantityInput.setAttribute('aria-invalid', 'false');
 }
 
 function isTypingNumberKey(event) {
@@ -79,6 +89,7 @@ function validateQuantity(form, showError) {
         return false;
     }
 
+    clearQuantityError();
     return true;
 }
 
@@ -112,12 +123,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (currentValue !== numericValue) {
                 quantityInput.value = numericValue;
                 showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+                return;
             }
 
-            quantityInput.setAttribute(
-                    'aria-invalid',
-                    String(quantityInput.value !== '' && !/^\d+$/.test(quantityInput.value))
-                    );
+            clearQuantityError();
         });
 
         quantityInput.addEventListener('paste', function (event) {
@@ -134,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
         quantityInput.addEventListener('blur', function () {
             if (quantityInput.value.trim() === '') {
                 quantityInput.value = '1';
-                quantityInput.setAttribute('aria-invalid', 'false');
+                clearQuantityError();
                 return;
             }
 

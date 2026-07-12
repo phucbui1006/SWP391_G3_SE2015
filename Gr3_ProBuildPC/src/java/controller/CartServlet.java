@@ -15,6 +15,7 @@ import java.util.List;
 import model.CartItem;
 import model.Product;
 import model.User;
+import util.ValidatorUtil;
 
 @WebServlet(name = "CartServlet", urlPatterns = {"/cart"})
 public class CartServlet extends HttpServlet {
@@ -206,9 +207,8 @@ public class CartServlet extends HttpServlet {
         }
 
         Integer productId = parsePositiveInteger(request.getParameter("productId"));
-        Integer requestedQuantity = parsePositiveInteger(request.getParameter("quantity"));
 
-        if (productId == null || requestedQuantity == null) {
+        if (productId == null) {
             if (ajaxRequest) {
                 writeJsonResponse(response, HttpServletResponse.SC_BAD_REQUEST,
                         "{\"success\":false,\"message\":\"Thông tin sản phẩm không hợp lệ.\"}");
@@ -220,6 +220,18 @@ public class CartServlet extends HttpServlet {
             }
             return;
         }
+
+        String quantityRaw = request.getParameter("quantity");
+        String quantityError = ValidatorUtil.getPurchaseQuantityError(quantityRaw);
+
+        if (quantityError != null) {
+            sendProductDetailQuantityError(
+                    request, response, ajaxRequest, returnUrl, quantityRaw, quantityError
+            );
+            return;
+        }
+
+        int requestedQuantity = ValidatorUtil.parsePurchaseQuantity(quantityRaw);
 
         ProductDAO productDAO = new ProductDAO();
         Product product = productDAO.getProductById(productId);
@@ -265,6 +277,14 @@ public class CartServlet extends HttpServlet {
             return;
         }
 
+        String stockError = ValidatorUtil.getPurchaseStockError(requestedQuantity, stockQuantity);
+        if (stockError != null) {
+            sendProductDetailQuantityError(
+                    request, response, ajaxRequest, returnUrl, quantityRaw, stockError
+            );
+            return;
+        }
+
         CartDAO cartDAO = new CartDAO();
         List<CartItem> cartItems = cartDAO.getCartItemsByCustomerId(customerId);
 
@@ -291,16 +311,12 @@ public class CartServlet extends HttpServlet {
         if (currentCartQuantity + requestedQuantity > stockQuantity) {
             int canAddMore = stockQuantity - currentCartQuantity;
 
-            String message = "Số lượng muốn thêm vượt quá số lượng trong kho. Bạn chỉ có thể thêm tối đa "
-                    + canAddMore + " sản phẩm nữa.";
+            String message = "Số lượng có thể thêm không được lớn hơn số lượng còn lại trong kho ("
+                    + canAddMore + ").";
 
-            if (ajaxRequest) {
-                writeJsonResponse(response, HttpServletResponse.SC_CONFLICT,
-                        "{\"success\":false,\"message\":\"" + escapeJson(message) + "\"}");
-            } else {
-                setProductDetailFlash(session, message, "error");
-                response.sendRedirect(returnUrl);
-            }
+            sendProductDetailQuantityError(
+                    request, response, ajaxRequest, returnUrl, quantityRaw, message
+            );
             return;
         }
 
@@ -465,6 +481,31 @@ public class CartServlet extends HttpServlet {
     private void setProductDetailFlash(HttpSession session, String message, String type) {
         session.setAttribute("cartMessage", message);
         session.setAttribute("cartMessageType", type);
+    }
+
+    private void sendProductDetailQuantityError(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            boolean ajaxRequest,
+            String returnUrl,
+            String quantityRaw,
+            String message) throws IOException {
+        if (ajaxRequest) {
+            writeJsonResponse(response, HttpServletResponse.SC_BAD_REQUEST,
+                    "{\"success\":false,\"field\":\"quantity\",\"message\":\""
+                    + escapeJson(message) + "\"}");
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        session.setAttribute("productDetailQuantityError", message);
+
+        Integer quantity = ValidatorUtil.parsePurchaseQuantity(quantityRaw);
+        if (quantity != null) {
+            session.setAttribute("productDetailQuantityValue", String.valueOf(quantity));
+        }
+
+        response.sendRedirect(returnUrl);
     }
 
     private String escapeJson(String value) {

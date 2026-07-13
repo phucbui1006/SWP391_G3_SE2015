@@ -246,38 +246,63 @@
                         </c:choose>
                     </div>
 
-                    <div class="category-pagination">
+                    <c:if test="${totalPages > 1}">
+                        <div class="category-pagination">
 
-                        <%
-                            int fromPage = Math.max(2, currentPage - 2);
-                            int toPage = Math.min(totalPages - 1, currentPage + 2);
-                            if (currentPage <= 4) {
-                                fromPage = 2;
-                                toPage = Math.min(totalPages - 1, 5);
-                            } else if (currentPage >= totalPages - 3) {
-                                fromPage = Math.max(2, totalPages - 4);
-                                toPage = totalPages - 1;
-                            }
-                        %>
-                        <a class="<%= currentPage == 1 ? "active" : "" %>" href="<%= pagingUrl + 1 %>">1</a>
-                        <% if (fromPage > 2) { %>
-                        <span>...</span>
-                        <% } %>
-                        <% for (int i = fromPage; i <= toPage; i++) { %>
-                        <a class="<%= currentPage == i ? "active" : "" %>" href="<%= pagingUrl + i %>">
-                            <%= i %>
-                        </a>
-                        <% } %>
-                        <% if (toPage < totalPages - 1) { %>
-                        <span>...</span>
-                        <% } %>
-                        <% if (totalPages > 1) { %>
-                        <a class="<%= currentPage == totalPages ? "active" : "" %>" href="<%= pagingUrl + totalPages %>">
-                            <%= totalPages %>
-                        </a>
-                        <% } %>
+                            <c:if test="${currentPage > 1}">
+                                <c:set var="previousPageUrl" value="${pagingUrl}${currentPage - 1}" />
+                                <a href="<c:out value="${previousPageUrl}" />">Trước</a>
+                            </c:if>
 
-                    </div>
+                            <c:choose>
+                                <c:when test="${currentPage <= 4}">
+                                    <c:set var="fromPage" value="2" />
+                                    <c:set var="toPage" value="${totalPages - 1 < 5 ? totalPages - 1 : 5}" />
+                                </c:when>
+
+                                <c:when test="${currentPage >= totalPages - 3}">
+                                    <c:set var="fromPage" value="${totalPages - 4 > 2 ? totalPages - 4 : 2}" />
+                                    <c:set var="toPage" value="${totalPages - 1}" />
+                                </c:when>
+
+                                <c:otherwise>
+                                    <c:set var="fromPage" value="${currentPage - 2}" />
+                                    <c:set var="toPage" value="${currentPage + 2}" />
+                                </c:otherwise>
+                            </c:choose>
+
+                            <c:set var="firstPageUrl" value="${pagingUrl}1" />
+                            <a class="${currentPage == 1 ? 'active' : ''}" href="<c:out value="${firstPageUrl}" />">1</a>
+
+                            <c:if test="${fromPage > 2}">
+                                <span>...</span>
+                            </c:if>
+
+                            <c:forEach begin="${fromPage}" end="${toPage}" var="pageNumber">
+                                <c:set var="numberedPageUrl" value="${pagingUrl}${pageNumber}" />
+                                <a class="${currentPage == pageNumber ? 'active' : ''}"
+                                   href="<c:out value="${numberedPageUrl}" />">
+                                    ${pageNumber}
+                                </a>
+                            </c:forEach>
+
+                            <c:if test="${toPage < totalPages - 1}">
+                                <span>...</span>
+                            </c:if>
+
+                            <c:set var="lastPageUrl" value="${pagingUrl}${totalPages}" />
+                            <a class="${currentPage == totalPages ? 'active' : ''}"
+                               href="<c:out value="${lastPageUrl}" />">
+                                ${totalPages}
+                            </a>
+
+                            <c:if test="${currentPage < totalPages}">
+                                <c:set var="nextPageUrl" value="${pagingUrl}${currentPage + 1}" />
+                                <a href="<c:out value="${nextPageUrl}" />">Sau</a>
+                            </c:if>
+
+                        </div>
+                    </c:if>
                 </section>
             </section>
         </main>

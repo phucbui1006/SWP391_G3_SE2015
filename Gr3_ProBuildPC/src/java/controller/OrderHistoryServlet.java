@@ -13,7 +13,9 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import model.OrderHistoryItem;
 import model.OrderStatus;
 import model.User;
@@ -72,7 +74,7 @@ public class OrderHistoryServlet extends HttpServlet {
             }
         }
 
-        List<OrderStatus> statusOptions = orderHistoryDAO.getOrderStatuses();
+        List<OrderStatus> statusOptions = filterStatusOptions(orderHistoryDAO.getOrderStatuses());
         HttpSession session = request.getSession(false);
         moveFlashToRequest(session, request, SUCCESS_FLASH, "success");
         moveFlashToRequest(session, request, ERROR_FLASH, "error");
@@ -94,6 +96,41 @@ public class OrderHistoryServlet extends HttpServlet {
         request.setAttribute("deliveryHistoryMode", deliveryHistoryMode);
 
         request.getRequestDispatcher(VIEW_PATH).forward(request, response);
+    }
+
+    private List<OrderStatus> filterStatusOptions(List<OrderStatus> statuses) {
+        List<OrderStatus> filtered = new ArrayList<>();
+        if (statuses == null) {
+            return filtered;
+        }
+
+        for (OrderStatus status : statuses) {
+            if (status == null || shouldHideStatus(status.getStatusName())) {
+                continue;
+            }
+            filtered.add(status);
+        }
+        return filtered;
+    }
+
+    private boolean shouldHideStatus(String statusName) {
+        String normalized = normalizeVietnameseText(statusName);
+        return normalized.contains("cho xac nhan")
+                || normalized.contains("dang chuan bi hang");
+    }
+
+    private String normalizeVietnameseText(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        String normalized = java.text.Normalizer.normalize(value, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .replace('đ', 'd')
+                .replace('Đ', 'D')
+                .toLowerCase(Locale.ROOT)
+                .trim();
+        return normalized;
     }
 
     @Override

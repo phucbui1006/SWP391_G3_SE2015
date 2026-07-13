@@ -499,7 +499,7 @@ body.order-history-body * {
 }
 
 .order-history-pagination a.prev::after {
-    content: "Tr\01B0\1EDBc";
+    content: "Trước";
 }
 
 .order-history-pagination a.next::after {

@@ -113,9 +113,9 @@ public class CartServlet extends HttpServlet {
         }
 
         Integer cartItemId = parsePositiveInteger(request.getParameter("cartItemId"));
-        Integer requestedQuantity = parsePositiveInteger(request.getParameter("quantity"));
+        int requestedQuantity = ValidatorUtil.normalizeCartQuantity(request.getParameter("quantity"));
 
-        if (cartItemId == null || requestedQuantity == null) {
+        if (cartItemId == null) {
             writeJsonResponse(response, HttpServletResponse.SC_BAD_REQUEST,
                     "{\"success\":false,\"message\":\"So luong cap nhat khong hop le.\"}");
             return;

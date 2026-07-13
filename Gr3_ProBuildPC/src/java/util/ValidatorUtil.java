@@ -11,7 +11,7 @@ public class ValidatorUtil {
     private static final Pattern PASSWORD_PATTERN = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,31}$");
     private static final Pattern NAME_PATTERN = Pattern.compile("^[\\p{L}\\s]+$");
     private static final Pattern OTP_PATTERN = Pattern.compile("^\\d{6}$");
-    
+
     private static final long MAX_BRAND_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
 
     public static boolean isValidEmail(String email) {
@@ -51,17 +51,17 @@ public class ValidatorUtil {
 
     public static String getCategoryNameError(String categoryName) {
         if (categoryName == null || categoryName.trim().isEmpty()) {
-            return "Tên danh mục không được để trống.";
+            return "TÃªn danh má»¥c khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.";
         }
 
         String trimmed = categoryName.trim();
 
         if (trimmed.length() < 2 || trimmed.length() > 100) {
-            return "Tên danh mục phải từ 2 đến 100 ký tự.";
+            return "TÃªn danh má»¥c pháº£i tá»« 2 Ä‘áº¿n 100 kÃ½ tá»±.";
         }
 
         if (trimmed.matches(".*\\s{2,}.*")) {
-            return "Tên danh mục không được chứa nhiều dấu cách liên tiếp.";
+            return "TÃªn danh má»¥c khÃ´ng Ä‘Æ°á»£c chá»©a nhiá»u dáº¥u cÃ¡ch liÃªn tiáº¿p.";
         }
 
         return null;
@@ -101,23 +101,22 @@ public class ValidatorUtil {
                 || lowerName.endsWith(".jpeg")
                 || lowerName.endsWith(".webp");
     }
+
     public static boolean isValidAddress(String address) {
         if (address == null || address.trim().isEmpty()) return false;
         String trimmed = address.trim();
-        // Allow basic alphanumeric and common punctuation, length 5 to 255
         return trimmed.length() >= 5 && trimmed.length() <= 255;
     }
 
     public static boolean isValidNote(String note) {
-        if (note == null) return true; // Optional
+        if (note == null) return true;
         String trimmed = note.trim();
-        return trimmed.length() <= 1000; // Limit note length
+        return trimmed.length() <= 1000;
     }
 
     public static boolean isValidSearchQuery(String query) {
         if (query == null || query.trim().isEmpty()) return false;
         String trimmed = query.trim();
-        // Disallow suspicious characters: <, >, =, %, script
         if (trimmed.matches(".*[<>='\"%].*")) return false;
         return trimmed.length() <= 100;
     }
@@ -137,7 +136,7 @@ public class ValidatorUtil {
         if (priceStr == null || priceStr.trim().isEmpty()) return false;
         try {
             double price = Double.parseDouble(priceStr);
-            return price > 0 && price <= 2000000000.0; // max 2 tỷ
+            return price > 0 && price <= 2000000000.0;
         } catch (NumberFormatException e) {
             return false;
         }
@@ -156,16 +155,16 @@ public class ValidatorUtil {
     public static String getPurchaseQuantityError(String quantityRaw) {
         if (quantityRaw == null || quantityRaw.trim().isEmpty()
                 || !quantityRaw.trim().matches("^\\d+$")) {
-            return "Vui lòng chỉ nhập số nguyên cho số lượng.";
+            return "Vui lÃ²ng chá»‰ nháº­p sá»‘ nguyÃªn cho sá»‘ lÆ°á»£ng.";
         }
 
         try {
             int quantity = Integer.parseInt(quantityRaw.trim());
             if (quantity < 1) {
-                return "Số lượng phải lớn hơn hoặc bằng 1.";
+                return "Sá»‘ lÆ°á»£ng pháº£i lá»›n hÆ¡n hoáº·c báº±ng 1.";
             }
         } catch (NumberFormatException e) {
-            return "Số lượng không hợp lệ.";
+            return "Sá»‘ lÆ°á»£ng khÃ´ng há»£p lá»‡.";
         }
 
         return null;
@@ -179,9 +178,23 @@ public class ValidatorUtil {
         return Integer.valueOf(quantityRaw.trim());
     }
 
+    public static int normalizeCartQuantity(String quantityRaw) {
+        if (quantityRaw == null) return 1;
+
+        String digitsOnly = quantityRaw.replaceAll("\\D+", "");
+        if (digitsOnly.isEmpty()) return 1;
+
+        try {
+            int quantity = Integer.parseInt(digitsOnly);
+            return quantity < 1 ? 1 : quantity;
+        } catch (NumberFormatException e) {
+            return Integer.MAX_VALUE;
+        }
+    }
+
     public static String getPurchaseStockError(int requestedQuantity, int stockQuantity) {
         if (requestedQuantity > stockQuantity) {
-            return "Số lượng không được lớn hơn số lượng trong kho (" + stockQuantity + ").";
+            return "Sá»‘ lÆ°á»£ng khÃ´ng Ä‘Æ°á»£c lá»›n hÆ¡n sá»‘ lÆ°á»£ng trong kho (" + stockQuantity + ").";
         }
 
         return null;

@@ -26,6 +26,21 @@
                                             selectedRating = (Integer) request.getAttribute("selectedRating");
                                             }
 
+                                            boolean hasImage = false;
+                                            if (request.getAttribute("hasImage") != null) {
+                                                hasImage = (Boolean) request.getAttribute("hasImage");
+                                            }
+
+                                            int currentPage = 1;
+                                            if (request.getAttribute("currentPage") != null) {
+                                                currentPage = (Integer) request.getAttribute("currentPage");
+                                            }
+
+                                            int totalPages = 1;
+                                            if (request.getAttribute("totalPages") != null) {
+                                                totalPages = (Integer) request.getAttribute("totalPages");
+                                            }
+
                                             int fullStars = (int) avgRating;
                                             int maxQuantity = product.getQuantity() > 0 ? product.getQuantity() : 1;
 
@@ -37,6 +52,15 @@
                                             currentUrl += "?id=" + product.getProductId();
                                             }
 
+                                            String reviewPagingUrl = contextPath + "/product-detail?id=" + product.getProductId();
+                                            if (selectedRating > 0) {
+                                                reviewPagingUrl += "&rating=" + selectedRating;
+                                            }
+                                            if (hasImage) {
+                                                reviewPagingUrl += "&hasImage=true";
+                                            }
+                                            reviewPagingUrl += "&page=";
+
                                             int totalAllReviews = allReviews == null ? 0 : allReviews.size();
 
                                             int count5 = 0;
@@ -44,9 +68,13 @@
                                             int count3 = 0;
                                             int count2 = 0;
                                             int count1 = 0;
+                                            int countHasImage = 0;
 
                                             if (allReviews != null) {
                                             for (Review r : allReviews) {
+                                            if (r.getImages() != null && !r.getImages().isEmpty()) {
+                                                countHasImage++;
+                                            }
                                             if (r.getRating() == 5) {
                                             count5++;
                                             } else if (r.getRating() == 4) {
@@ -379,12 +407,13 @@
                                                                     </div>
 
                                                                     <div class="review-filter">
-                                                                        <a class="review-filter-btn <%= selectedRating == 0 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>">Tất cả (<%= totalAllReviews %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 5 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=5">5 sao (<%= count5 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 4 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=4">4 sao (<%= count4 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 3 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=3">3 sao (<%= count3 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 2 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=2">2 sao (<%= count2 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 1 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=1">1 sao (<%= count1 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 0 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>">Tất cả (<%= totalAllReviews %>)</a>
+                                                                        <a class="review-filter-btn <%= hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %><%= selectedRating > 0 ? "&rating=" + selectedRating : "" %><%= hasImage ? "" : "&hasImage=true" %>">Có hình ảnh (<%= countHasImage %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 5 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=5<%= hasImage ? "&hasImage=true" : "" %>">5 sao (<%= count5 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 4 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=4<%= hasImage ? "&hasImage=true" : "" %>">4 sao (<%= count4 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 3 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=3<%= hasImage ? "&hasImage=true" : "" %>">3 sao (<%= count3 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 2 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=2<%= hasImage ? "&hasImage=true" : "" %>">2 sao (<%= count2 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 1 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=1<%= hasImage ? "&hasImage=true" : "" %>">1 sao (<%= count1 %>)</a>
                                                                     </div>
 
                                                                 </div>
@@ -393,22 +422,17 @@
 
                                                                     <% if (reviews !=null && !reviews.isEmpty()) { %>
 
-                                                                        <% for (Review review : reviews) { String
-                                                                            nameSeed=String.valueOf(review.getUserId());
-                                                                            String
-                                                                            initial=nameSeed.substring(Math.max(0,
-                                                                            nameSeed.length() - 2)); %>
+                                                                        <% for (Review review : reviews) { %>
 
                                                                             <article class="review-item">
-
-                                                                                <div class="avatar">
-                                                                                    U<%= initial %>
-                                                                                </div>
 
                                                                                 <div class="review-content">
 
                                                                                     <div class="review-content-header">
                                                                                         <div>
+                                                                                            <div class="reviewer-name"><%= review.getReviewerName() != null
+                                                                                                    ? review.getReviewerName()
+                                                                                                    : "User" %></div>
                                                                                             <h4>Người dùng #<%=
                                                                                                     review.getUserId()
                                                                                                     %>
@@ -468,23 +492,67 @@
 
                                                                                 <% } else { %>
 
-                                                                                    <div class="empty-review">
-                                                                                        <i
-                                                                                            class="fa-regular fa-comment-dots"></i>
+                                                                                        <div class="empty-review">
+                                                                                            <i class="fa-regular fa-comment-dots"></i>
 
-                                                                                        <% if (selectedRating==0) { %>
-                                                                                            <p>Chưa có đánh giá nào cho
-                                                                                                sản phẩm này.</p>
-                                                                                            <% } else { %>
-                                                                                                <p>Không có đánh giá <%=
-                                                                                                        selectedRating
-                                                                                                        %> sao nào.</p>
-                                                                                                <% } %>
-                                                                                    </div>
+                                                                                            <% if (selectedRating==0 && !hasImage) { %>
+                                                                                                <p>Chưa có đánh giá nào cho
+                                                                                                    sản phẩm này.</p>
+                                                                                                <% } else if (hasImage) { %>
+                                                                                                    <p>Không có đánh giá có hình ảnh nào<%= selectedRating > 0 ? (" (" + selectedRating + " sao)") : "" %>.</p>
+                                                                                                <% } else { %>
+                                                                                                    <p>Không có đánh giá <%=
+                                                                                                            selectedRating
+                                                                                                            %> sao nào.</p>
+                                                                                                    <% } %>
+                                                                                        </div>
 
                                                                                     <% } %>
 
                                                                 </div>
+
+                                                                <% if (totalPages > 1 && (reviews != null && !reviews.isEmpty())) { %>
+                                                                    <div class="review-pagination">
+
+                                                                        <% if (currentPage > 1) { %>
+                                                                            <a href="<%= reviewPagingUrl + (currentPage - 1) %>">Trước</a>
+                                                                        <% } %>
+
+                                                                        <%
+                                                                            int fromPage = Math.max(2, currentPage - 2);
+                                                                            int toPage = Math.min(totalPages - 1, currentPage + 2);
+                                                                            if (currentPage <= 4) {
+                                                                                fromPage = 2;
+                                                                                toPage = Math.min(totalPages - 1, 5);
+                                                                            } else if (currentPage >= totalPages - 3) {
+                                                                                fromPage = Math.max(2, totalPages - 4);
+                                                                                toPage = totalPages - 1;
+                                                                            }
+                                                                        %>
+                                                                        <a class="<%= currentPage == 1 ? "active" : "" %>" href="<%= reviewPagingUrl + 1 %>">1</a>
+                                                                        <% if (fromPage > 2) { %>
+                                                                            <span>...</span>
+                                                                        <% } %>
+                                                                        <% for (int i = fromPage; i <= toPage; i++) { %>
+                                                                            <a class="<%= currentPage == i ? "active" : "" %>" href="<%= reviewPagingUrl + i %>">
+                                                                                <%= i %>
+                                                                            </a>
+                                                                        <% } %>
+                                                                        <% if (toPage < totalPages - 1) { %>
+                                                                            <span>...</span>
+                                                                        <% } %>
+                                                                        <% if (totalPages > 1) { %>
+                                                                            <a class="<%= currentPage == totalPages ? "active" : "" %>" href="<%= reviewPagingUrl + totalPages %>">
+                                                                                <%= totalPages %>
+                                                                            </a>
+                                                                        <% } %>
+
+                                                                        <% if (currentPage < totalPages) { %>
+                                                                            <a href="<%= reviewPagingUrl + (currentPage + 1) %>">Sau</a>
+                                                                        <% } %>
+                                                                    </div>
+                                                                <% } %>
+
                                                             </section>
 
                                                             <script

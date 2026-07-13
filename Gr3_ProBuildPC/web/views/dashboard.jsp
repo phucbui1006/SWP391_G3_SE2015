@@ -53,6 +53,15 @@
 
                     <div class="admin-stat-grid" >
                         <% for (AdminDashboardView.StatCard stat : adminDashboard.getStatCards()) { %>
+                        <% if (stat.getUrl() == null || stat.getUrl().trim().isEmpty()) { %>
+                        <div class="admin-stat-card">
+                            <span class="admin-stat-icon <%= stat.getIconClass() %>"><i class="<%= stat.getIcon() %>"></i></span>
+                            <span>
+                                <small><%= stat.getLabel() %></small>
+                                <strong><%= stat.getValue() %></strong>
+                            </span>
+                        </div>
+                        <% } else { %>
                         <a class="admin-stat-card" href="<%= stat.getUrl() %>">
                             <span class="admin-stat-icon <%= stat.getIconClass() %>"><i class="<%= stat.getIcon() %>"></i></span>
                             <span>
@@ -60,6 +69,7 @@
                                 <strong><%= stat.getValue() %></strong>
                             </span>
                         </a>
+                        <% } %>
                         <% } %>
                     </div>
 
@@ -152,291 +162,24 @@
                         </section>
                     </div>
 
-                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
                     <script>
-                        (() => {
-                            const timelineLabels = <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getRevenueTimeline()) %>;
-                            const timelineValues = <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getRevenueTimeline()) %>;
-                            const categoryLabels = <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getCategorySoldProducts()) %>;
-                            const categoryValues = <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getCategorySoldProducts()) %>;
-                            const bestSellingLabels = <%= DashboardViewHelper.productNamesToJson(adminDashboard.getBestSellingProducts()) %>;
-                            const bestSellingValues = <%= DashboardViewHelper.productSoldQuantitiesToJson(adminDashboard.getBestSellingProducts()) %>;
-                            const lowStockLabels = <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getLowStockProductsChart()) %>;
-                            const lowStockValues = <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getLowStockProductsChart()) %>;
-                            const orderStatusLabels = <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getOrderStatusCounts()) %>;
-                            const orderStatusValues = <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getOrderStatusCounts()) %>;
-                            const accountLabels = <%= DashboardViewHelper.countRowLabelsToJson(adminDashboard.getAccountSummaries()) %>;
-                            const accountValues = <%= DashboardViewHelper.countRowValuesToJson(adminDashboard.getAccountSummaries()) %>;
-
-                            const formatCurrency = value =>
-                                new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
-                            const formatOrderCount = value =>
-                                new Intl.NumberFormat('vi-VN').format(value) + ' đơn';
-                            const formatProductCount = value =>
-                                new Intl.NumberFormat('vi-VN').format(value) + ' sản phẩm';
-                            const formatAccountCount = value =>
-                                new Intl.NumberFormat('vi-VN').format(value) + ' tài khoản';
-                            const commonTooltip = {
-                                callbacks: {
-                                    label: context => context.dataset.label
-                                        ? context.dataset.label + ': ' + formatCurrency(context.parsed.y)
-                                        : context.label + ': ' + formatCurrency(context.parsed)
-                                }
-                            };
-                            const hasCategoryData = categoryValues.some(value => Number(value) > 0);
-                            const categoryChartLabels = hasCategoryData ? categoryLabels : [''];
-                            const categoryChartValues = hasCategoryData ? categoryValues : [1];
-                            const categoryTooltip = hasCategoryData
-                                ? {callbacks: {label: context => context.label + ': ' + formatProductCount(context.parsed)}}
-                                : {callbacks: {label: () => formatProductCount(0)}};
-                            const ensureBarLabels = labels => labels.length ? labels : [''];
-                            const ensureBarValues = values => values.length ? values : [0];
-
-                            new Chart(document.getElementById('revenueTimelineChart'), {
-                                type: 'line',
-                                data: {
-                                    labels: timelineLabels,
-                                    datasets: [{
-                                        label: 'Doanh thu',
-                                        data: timelineValues,
-                                        borderColor: '#dc2626',
-                                        backgroundColor: 'rgba(220, 38, 38, 0.12)',
-                                        pointBackgroundColor: '#dc2626',
-                                        pointRadius: 4,
-                                        pointHoverRadius: 6,
-                                        borderWidth: 3,
-                                        tension: 0.35,
-                                        fill: true
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: {display: false},
-                                        tooltip: commonTooltip
-                                    },
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            ticks: {callback: value => formatCurrency(value)},
-                                            grid: {color: '#eef2f7'}
-                                        },
-                                        x: {grid: {display: false}}
-                                    }
-                                }
-                            });
-
-                            const categoryCanvas = document.getElementById('categorySoldProductsChart');
-                            if (categoryCanvas) {
-                                const colors = [
-                                    '#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#7c3aed',
-                                    '#0891b2', '#db2777', '#65a30d', '#ea580c', '#475569'
-                                ];
-                                new Chart(categoryCanvas, {
-                                    type: 'pie',
-                                    data: {
-                                        labels: categoryChartLabels,
-                                        datasets: [{
-                                            data: categoryChartValues,
-                                            backgroundColor: categoryChartLabels.map((_, index) =>
-                                                hasCategoryData ? colors[index % colors.length] : '#e5e7eb'),
-                                            borderColor: '#ffffff',
-                                            borderWidth: 2
-                                        }]
-                                    },
-                                    options: {
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {
-                                                position: 'bottom',
-                                                display: hasCategoryData,
-                                                labels: {usePointStyle: true, padding: 16}
-                                            },
-                                            tooltip: categoryTooltip
-                                        }
-                                    }
-                                });
-                            }
-
-                            const bestSellingCanvas = document.getElementById('bestSellingProductsChart');
-                            if (bestSellingCanvas) {
-                                new Chart(bestSellingCanvas, {
-                                    type: 'bar',
-                                    data: {
-                                        labels: ensureBarLabels(bestSellingLabels),
-                                        datasets: [{
-                                            label: 'Đã bán',
-                                            data: ensureBarValues(bestSellingValues),
-                                            backgroundColor: '#dc2626',
-                                            borderRadius: 8,
-                                            maxBarThickness: 34
-                                        }]
-                                    },
-                                    options: {
-                                        indexAxis: 'y',
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {display: false},
-                                            tooltip: {
-                                                callbacks: {
-                                                    label: context => formatProductCount(context.parsed.x)
-                                                }
-                                            }
-                                        },
-                                        scales: {
-                                            x: {
-                                                beginAtZero: true,
-                                                ticks: {
-                                                    precision: 0,
-                                                    callback: value => new Intl.NumberFormat('vi-VN').format(value)
-                                                },
-                                                grid: {color: '#eef2f7'}
-                                            },
-                                            y: {grid: {display: false}}
-                                        }
-                                    }
-                                });
-                            }
-                            
-                            const lowStockCanvas = document.getElementById('lowStockProductsChart');
-                            if (lowStockCanvas) {
-                                new Chart(lowStockCanvas, {
-                                    type: 'bar',
-                                    data: {
-                                        labels: ensureBarLabels(lowStockLabels),
-                                        datasets: [{
-                                            label: 'Số sản phẩm',
-                                            data: ensureBarValues(lowStockValues),
-                                            backgroundColor: '#f59e0b',
-                                            borderRadius: 8,
-                                            maxBarThickness: 34
-                                        }]
-                                    },
-                                    options: {
-                                        indexAxis: 'y',
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {display: false},
-                                            tooltip: {
-                                                callbacks: {
-                                                    label: context => formatProductCount(context.parsed.x)
-                                                }
-                                            }
-                                        },
-                                        scales: {
-                                            x: {
-                                                beginAtZero: true,
-                                                ticks: {
-                                                    precision: 0,
-                                                    callback: value => new Intl.NumberFormat('vi-VN').format(value)
-                                                },
-                                                grid: {color: '#eef2f7'}
-                                            },
-                                            y: {grid: {display: false}}
-                                        }
-                                    }
-                                });
-                            }
-
-                            const orderStatusCanvas = document.getElementById('orderStatusChart');
-                            if (orderStatusCanvas) {
-                                const statusColors = [
-                                    '#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed',
-                                    '#0891b2', '#db2777', '#65a30d', '#ea580c', '#475569'
-                                ];
-                                new Chart(orderStatusCanvas, {
-                                    type: 'bar',
-                                    data: {
-                                        labels: ensureBarLabels(orderStatusLabels),
-                                        datasets: [{
-                                            label: 'Số lượng đơn hàng',
-                                            data: ensureBarValues(orderStatusValues),
-                                            backgroundColor: ensureBarLabels(orderStatusLabels).map((_, index) =>
-                                                statusColors[index % statusColors.length]),
-                                            borderRadius: 8,
-                                            maxBarThickness: 44
-                                        }]
-                                    },
-                                    options: {
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {display: false},
-                                            tooltip: {
-                                                callbacks: {
-                                                    label: context => formatOrderCount(context.parsed.y)
-                                                }
-                                            }
-                                        },
-                                        scales: {
-                                            y: {
-                                                beginAtZero: true,
-                                                ticks: {
-                                                    precision: 0,
-                                                    callback: value => new Intl.NumberFormat('vi-VN').format(value)
-                                                },
-                                                grid: {color: '#eef2f7'}
-                                            },
-                                            x: {grid: {display: false}}
-                                        }
-                                    }
-                                });
-                            }
-
-                            const accountCanvas = document.getElementById('accountOverviewChart');
-                            if (accountCanvas) {
-                                const accountColors = [
-                                    '#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#7c3aed',
-                                    '#0891b2', '#db2777', '#65a30d', '#ea580c', '#475569'
-                                ];
-                                new Chart(accountCanvas, {
-                                    type: 'bar',
-                                    data: {
-                                        labels: ensureBarLabels(accountLabels),
-                                        datasets: [{
-                                            label: 'Số tài khoản',
-                                            data: ensureBarValues(accountValues),
-                                            backgroundColor: ensureBarLabels(accountLabels).map((_, index) =>
-                                                accountColors[index % accountColors.length]),
-                                            borderRadius: 8,
-                                            maxBarThickness: 34
-                                        }]
-                                    },
-                                    options: {
-                                        indexAxis: 'y',
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {display: false},
-                                            tooltip: {
-                                                callbacks: {
-                                                    label: context => context.label + ': ' + formatAccountCount(context.parsed.x)
-                                                }
-                                            }
-                                        },
-                                        scales: {
-                                            x: {
-                                                beginAtZero: true,
-                                                ticks: {
-                                                    precision: 0,
-                                                    callback: value => new Intl.NumberFormat('vi-VN').format(value)
-                                                },
-                                                grid: {color: '#eef2f7'}
-                                            },
-                                            y: {
-                                                ticks: {display: false},
-                                                grid: {display: false}
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                        })();
+                        window.adminDashboardData = {
+                            timelineLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getRevenueTimeline()) %>,
+                            timelineValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getRevenueTimeline()) %>,
+                            categoryLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getCategorySoldProducts()) %>,
+                            categoryValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getCategorySoldProducts()) %>,
+                            bestSellingLabels: <%= DashboardViewHelper.productNamesToJson(adminDashboard.getBestSellingProducts()) %>,
+                            bestSellingValues: <%= DashboardViewHelper.productSoldQuantitiesToJson(adminDashboard.getBestSellingProducts()) %>,
+                            lowStockLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getLowStockProductsChart()) %>,
+                            lowStockValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getLowStockProductsChart()) %>,
+                            orderStatusLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getOrderStatusCounts()) %>,
+                            orderStatusValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getOrderStatusCounts()) %>,
+                            accountLabels: <%= DashboardViewHelper.countRowLabelsToJson(adminDashboard.getAccountSummaries()) %>,
+                            accountValues: <%= DashboardViewHelper.countRowValuesToJson(adminDashboard.getAccountSummaries()) %>
+                        };
                     </script>
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+                    <script src="<%= ctx %>/js/admin-dashboard.js"></script>
                 </div>
 
 
@@ -621,8 +364,12 @@
                             <a class="<%= shipmentDashboard.getPage() <= 1 ? "disabled" : "" %>"
                                href="<%= shipmentDashboard.getPreviousPageUrl() %>">‹</a>
                             <% for (ShipmentDashboardView.PageLink pageLink : shipmentDashboard.getPageLinks()) { %>
+                            <% if (pageLink.isClickable()) { %>
                             <a class="<%= pageLink.isActive() ? "active" : "" %>"
-                               href="<%= pageLink.getUrl() %>"><%= pageLink.getPageNumber() %></a>
+                               href="<%= pageLink.getUrl() %>"><%= pageLink.getLabel() %></a>
+                            <% } else { %>
+                            <span class="disabled"><%= pageLink.getLabel() %></span>
+                            <% } %>
                             <% } %>
                             <a class="<%= shipmentDashboard.getPage() >= shipmentDashboard.getTotalPages() ? "disabled" : "" %>"
                                href="<%= shipmentDashboard.getNextPageUrl() %>">›</a>

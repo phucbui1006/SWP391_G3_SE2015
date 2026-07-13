@@ -243,18 +243,20 @@ public class ShipmentDashboardView {
     }
 
     public static class PageLink {
-        private final int pageNumber;
+        private final String label;
         private final String url;
         private final boolean active;
+        private final boolean clickable;
 
-        public PageLink(int pageNumber, String url, boolean active) {
-            this.pageNumber = pageNumber;
+        public PageLink(String label, String url, boolean active, boolean clickable) {
+            this.label = label;
             this.url = url;
             this.active = active;
+            this.clickable = clickable;
         }
 
-        public int getPageNumber() {
-            return pageNumber;
+        public String getLabel() {
+            return label;
         }
 
         public String getUrl() {
@@ -263,6 +265,10 @@ public class ShipmentDashboardView {
 
         public boolean isActive() {
             return active;
+        }
+
+        public boolean isClickable() {
+            return clickable;
         }
     }
 }

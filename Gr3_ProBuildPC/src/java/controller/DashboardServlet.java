@@ -200,7 +200,7 @@ public class DashboardServlet extends HttpServlet {
     private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary, String ctx) {
         List<AdminDashboardView.StatCard> cards = new ArrayList<>();
         cards.add(new AdminDashboardView.StatCard("red", "fa-solid fa-coins", "Tổng doanh thu",
-                DashboardViewHelper.formatCurrency(summary.getTotalRevenue()), ctx + "/Dashboard#revenueCharts"));
+                DashboardViewHelper.formatCurrency(summary.getTotalRevenue()), ""));
         cards.add(new AdminDashboardView.StatCard("dark", "fa-solid fa-receipt", "Tổng đơn hàng",
                 String.valueOf(summary.getTotalOrders()), ctx + "/order-history"));
         cards.add(new AdminDashboardView.StatCard("blue", "fa-solid fa-desktop", "Tất cả sản phẩm",
@@ -404,12 +404,51 @@ public class DashboardServlet extends HttpServlet {
         dashboard.setOrderRows(rows);
 
         List<ShipmentDashboardView.PageLink> pageLinks = new ArrayList<>();
-        for (int pageNumber = 1; pageNumber <= dashboard.getTotalPages(); pageNumber++) {
+        int currentPage = dashboard.getPage();
+        int totalPages = dashboard.getTotalPages();
+        int fromPage = Math.max(2, currentPage - 2);
+        int toPage = Math.min(totalPages - 1, currentPage + 2);
+        if (currentPage <= 4) {
+            fromPage = 2;
+            toPage = Math.min(totalPages - 1, 5);
+        } else if (currentPage >= totalPages - 3) {
+            fromPage = Math.max(2, totalPages - 4);
+            toPage = totalPages - 1;
+        }
+
+        pageLinks.add(new ShipmentDashboardView.PageLink(
+                "1",
+                DashboardViewHelper.buildShipmentLink(
+                        ctx, dashboard.getSelectedStatusId(), dashboard.isTodayOnly(), 1),
+                currentPage == 1,
+                true
+        ));
+
+        if (fromPage > 2) {
+            pageLinks.add(new ShipmentDashboardView.PageLink("...", "#", false, false));
+        }
+
+        for (int pageNumber = fromPage; pageNumber <= toPage; pageNumber++) {
             pageLinks.add(new ShipmentDashboardView.PageLink(
-                    pageNumber,
+                    String.valueOf(pageNumber),
                     DashboardViewHelper.buildShipmentLink(
                             ctx, dashboard.getSelectedStatusId(), dashboard.isTodayOnly(), pageNumber),
-                    pageNumber == dashboard.getPage()
+                    pageNumber == currentPage,
+                    true
+            ));
+        }
+
+        if (toPage < totalPages - 1) {
+            pageLinks.add(new ShipmentDashboardView.PageLink("...", "#", false, false));
+        }
+
+        if (totalPages > 1) {
+            pageLinks.add(new ShipmentDashboardView.PageLink(
+                    String.valueOf(totalPages),
+                    DashboardViewHelper.buildShipmentLink(
+                            ctx, dashboard.getSelectedStatusId(), dashboard.isTodayOnly(), totalPages),
+                    currentPage == totalPages,
+                    true
             ));
         }
         dashboard.setPageLinks(pageLinks);

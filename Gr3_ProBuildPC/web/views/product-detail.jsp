@@ -52,6 +52,15 @@
                                             currentUrl += "?id=" + product.getProductId();
                                             }
 
+                                            String reviewPagingUrl = contextPath + "/product-detail?id=" + product.getProductId();
+                                            if (selectedRating > 0) {
+                                                reviewPagingUrl += "&rating=" + selectedRating;
+                                            }
+                                            if (hasImage) {
+                                                reviewPagingUrl += "&hasImage=true";
+                                            }
+                                            reviewPagingUrl += "&page=";
+
                                             int totalAllReviews = allReviews == null ? 0 : allReviews.size();
 
                                             int count5 = 0;
@@ -413,22 +422,17 @@
 
                                                                     <% if (reviews !=null && !reviews.isEmpty()) { %>
 
-                                                                        <% for (Review review : reviews) { String
-                                                                            nameSeed=String.valueOf(review.getUserId());
-                                                                            String
-                                                                            initial=nameSeed.substring(Math.max(0,
-                                                                            nameSeed.length() - 2)); %>
+                                                                        <% for (Review review : reviews) { %>
 
                                                                             <article class="review-item">
-
-                                                                                <div class="avatar">
-                                                                                    U<%= initial %>
-                                                                                </div>
 
                                                                                 <div class="review-content">
 
                                                                                     <div class="review-content-header">
                                                                                         <div>
+                                                                                            <div class="reviewer-name"><%= review.getReviewerName() != null
+                                                                                                    ? review.getReviewerName()
+                                                                                                    : "User" %></div>
                                                                                             <h4>Người dùng #<%=
                                                                                                     review.getUserId()
                                                                                                     %>
@@ -507,23 +511,21 @@
 
                                                                 </div>
 
-                                                                <% if (totalPages > 0 && (reviews != null && !reviews.isEmpty())) { %>
-                                                                    <div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px;">
-                                                                        
+                                                                <% if (totalPages > 1 && (reviews != null && !reviews.isEmpty())) { %>
+                                                                    <div class="review-pagination">
+
                                                                         <% if (currentPage > 1) { %>
-                                                                            <a href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %><%= selectedRating > 0 ? "&rating=" + selectedRating : "" %><%= hasImage ? "&hasImage=true" : "" %>&page=<%= currentPage - 1 %>" class="page-link" style="padding: 8px 12px; border: 1px solid #e5e9f0; border-radius: 4px; color: #1e293b; background: #fff; text-decoration: none; font-weight: bold;">&lt;</a>
-                                                                        <% } else { %>
-                                                                            <span class="page-link disabled" style="padding: 8px 12px; border: 1px solid #e5e9f0; border-radius: 4px; color: #94a3b8; background: #f8fafc; cursor: not-allowed; font-weight: bold;">&lt;</span>
+                                                                            <a href="<%= reviewPagingUrl + (currentPage - 1) %>">Trước</a>
                                                                         <% } %>
-                                                                        
-                                                                        <span class="page-info" style="font-size: 14px; color: #475569;">
-                                                                            Trang <strong><%= currentPage %></strong> / <strong><%= totalPages %></strong>
-                                                                        </span>
-                                                                        
+
+                                                                        <% for (int i = 1; i <= totalPages; i++) { %>
+                                                                            <a class="<%= currentPage == i ? "active" : "" %>" href="<%= reviewPagingUrl + i %>">
+                                                                                <%= i %>
+                                                                            </a>
+                                                                        <% } %>
+
                                                                         <% if (currentPage < totalPages) { %>
-                                                                            <a href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %><%= selectedRating > 0 ? "&rating=" + selectedRating : "" %><%= hasImage ? "&hasImage=true" : "" %>&page=<%= currentPage + 1 %>" class="page-link" style="padding: 8px 12px; border: 1px solid #e5e9f0; border-radius: 4px; color: #1e293b; background: #fff; text-decoration: none; font-weight: bold;">&gt;</a>
-                                                                        <% } else { %>
-                                                                            <span class="page-link disabled" style="padding: 8px 12px; border: 1px solid #e5e9f0; border-radius: 4px; color: #94a3b8; background: #f8fafc; cursor: not-allowed; font-weight: bold;">&gt;</span>
+                                                                            <a href="<%= reviewPagingUrl + (currentPage + 1) %>">Sau</a>
                                                                         <% } %>
                                                                     </div>
                                                                 <% } %>

@@ -50,8 +50,8 @@ public class RevenueServlet extends HttpServlet {
             type = "day";
         }
 
-        LocalDate startDate = parseDate(fromStr, weekStart);
-        LocalDate endDate = parseDate(toStr, weekEnd);
+        LocalDate startDate = parseDate(fromStr, weekStart, false, type);
+        LocalDate endDate = parseDate(toStr, weekEnd, true, type);
 
         if (startDate.isAfter(endDate)) {
             LocalDate temp = startDate;
@@ -110,13 +110,32 @@ public class RevenueServlet extends HttpServlet {
         request.getRequestDispatcher("/views/revenue.jsp").forward(request, response);
     }
 
-    private LocalDate parseDate(String value, LocalDate defaultValue) {
+    private LocalDate parseDate(String value, LocalDate defaultValue, boolean isEnd, String type) {
         if (value == null || value.trim().isEmpty()) {
             return defaultValue;
         }
         try {
-            return LocalDate.parse(value.trim());
-        } catch (DateTimeParseException e) {
+            String v = value.trim();
+            if ("year".equalsIgnoreCase(type)) {
+                int year = Integer.parseInt(v);
+                if (isEnd) {
+                    return LocalDate.of(year, 12, 31);
+                } else {
+                    return LocalDate.of(year, 1, 1);
+                }
+            } else if ("month".equalsIgnoreCase(type)) {
+                String[] parts = v.split("-");
+                int year = Integer.parseInt(parts[0]);
+                int month = Integer.parseInt(parts[1]);
+                if (isEnd) {
+                    return LocalDate.of(year, month, 1).with(TemporalAdjusters.lastDayOfMonth());
+                } else {
+                    return LocalDate.of(year, month, 1);
+                }
+            } else {
+                return LocalDate.parse(v);
+            }
+        } catch (Exception e) {
             return defaultValue;
         }
     }

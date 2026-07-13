@@ -83,13 +83,20 @@ public class AdminDashboardDAO extends DBContext {
     public List<RevenueRow> getRevenueStatistics(LocalDate startDate, LocalDate endDate, String groupBy) {
         List<RevenueRow> list = new ArrayList<>();
         String dateFormat;
+        java.time.format.DateTimeFormatter javaFormatter;
+
         if ("year".equalsIgnoreCase(groupBy)) {
             dateFormat = "%Y";
+            javaFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy");
         } else if ("month".equalsIgnoreCase(groupBy)) {
             dateFormat = "%m-%Y";
+            javaFormatter = java.time.format.DateTimeFormatter.ofPattern("MM-yyyy");
         } else {
             dateFormat = "%d-%m-%Y";
+            javaFormatter = java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy");
         }
+
+        Map<String, RevenueRow> sqlData = new LinkedHashMap<>();
 
         String sql = """
                 SELECT DATE_FORMAT(o.order_date, ?) AS label,
@@ -114,8 +121,9 @@ public class AdminDashboardDAO extends DBContext {
             
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(new RevenueRow(
-                        rs.getString("label"),
+                    String label = rs.getString("label");
+                    sqlData.put(label, new RevenueRow(
+                        label,
                         rs.getInt("order_count"),
                         nullToZero(rs.getBigDecimal("revenue"))
                     ));
@@ -124,6 +132,30 @@ public class AdminDashboardDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        // Bù lấp các khoảng thời gian bị thiếu
+        if ("year".equalsIgnoreCase(groupBy)) {
+            for (int y = startDate.getYear(); y <= endDate.getYear(); y++) {
+                String label = String.valueOf(y);
+                list.add(sqlData.getOrDefault(label, new RevenueRow(label, 0, BigDecimal.ZERO)));
+            }
+        } else if ("month".equalsIgnoreCase(groupBy)) {
+            LocalDate current = startDate.withDayOfMonth(1);
+            LocalDate endMonth = endDate.withDayOfMonth(1);
+            while (!current.isAfter(endMonth)) {
+                String label = current.format(javaFormatter);
+                list.add(sqlData.getOrDefault(label, new RevenueRow(label, 0, BigDecimal.ZERO)));
+                current = current.plusMonths(1);
+            }
+        } else { // default is day
+            LocalDate current = startDate;
+            while (!current.isAfter(endDate)) {
+                String label = current.format(javaFormatter);
+                list.add(sqlData.getOrDefault(label, new RevenueRow(label, 0, BigDecimal.ZERO)));
+                current = current.plusDays(1);
+            }
+        }
+
         return list;
     }
 

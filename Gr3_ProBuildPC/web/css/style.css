@@ -4003,19 +4003,7 @@ body.admin-brand-body {
 }
 
 .brand-current-logo button,
-.brand-secondary-button {
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #e1e5ec;
-    border-radius: 5px;
-    background: #fff;
-    color: #4d5562;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-}
+
 
 .brand-form-actions {
     display: flex;

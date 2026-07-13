@@ -54,6 +54,46 @@ public class ProductDetailServlet extends HttpServlet {
                 reviews = reviewDAO.getReviewsByProductIdAndRating(productId, selectedRating);
             }
 
+            boolean hasImage = "true".equals(request.getParameter("hasImage"));
+            if (hasImage) {
+                List<Review> filteredReviews = new java.util.ArrayList<>();
+                for (Review r : reviews) {
+                    if (r.getImages() != null && !r.getImages().isEmpty()) {
+                        filteredReviews.add(r);
+                    }
+                }
+                reviews = filteredReviews;
+            }
+
+            int page = 1;
+            String pageRaw = request.getParameter("page");
+            if (pageRaw != null && !pageRaw.trim().isEmpty()) {
+                try {
+                    page = Integer.parseInt(pageRaw);
+                } catch (NumberFormatException e) {
+                    page = 1;
+                }
+            }
+
+            int pageSize = 5;
+            int totalReviewsCount = reviews.size();
+            int totalPages = (int) Math.ceil((double) totalReviewsCount / pageSize);
+
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            int startIndex = (page - 1) * pageSize;
+            int endIndex = Math.min(startIndex + pageSize, totalReviewsCount);
+            
+            List<Review> pagedReviews = new java.util.ArrayList<>();
+            if (totalReviewsCount > 0) {
+                pagedReviews = reviews.subList(startIndex, endIndex);
+            }
+
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("selectedRating", selectedRating);
+            request.setAttribute("hasImage", hasImage);
             double avgRating = productDAO.getAverageRating(productId);
             int fullStars = (int) avgRating;
 
@@ -108,7 +148,7 @@ public class ProductDetailServlet extends HttpServlet {
 
             request.setAttribute("product", product);
             request.setAttribute("specifications", specList);
-            request.setAttribute("reviews", reviews);
+            request.setAttribute("reviews", pagedReviews);
             request.setAttribute("allReviews", allReviews);
             request.setAttribute("avgRating", avgRating);
             request.setAttribute("fullStars", fullStars);

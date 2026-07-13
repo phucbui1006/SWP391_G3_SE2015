@@ -167,11 +167,10 @@
         <a href="${pageContext.request.contextPath}/BatchServlet" class="menu-item <%= "/BatchServlet".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-warehouse"></i> Lô hàng</a>
         <span class="menu-divider"></span>
 
-        
         <a href="<%= ctx %>/ManageWarranty" class="menu-item"><i class="fa-solid fa-shield-halved"></i> Bảo hành</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item"><i class="fa-solid fa-chart-line"></i> Thống kê doanh thu</a>
+        <a href="<%= ctx %>/views/revenue.jsp" class="menu-item"><i class="fa-solid fa-chart-line"></i> Thống kê doanh thu</a>
         <% } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) { %>
 
 

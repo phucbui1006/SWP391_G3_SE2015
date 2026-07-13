@@ -21,7 +21,6 @@
     }
 
     String ctx = request.getContextPath();
-    final int ADMIN_TABLE_ROWS = 5;
 %>
 
 <!DOCTYPE html>
@@ -54,6 +53,15 @@
 
                     <div class="admin-stat-grid" >
                         <% for (AdminDashboardView.StatCard stat : adminDashboard.getStatCards()) { %>
+                        <% if (stat.getUrl() == null || stat.getUrl().trim().isEmpty()) { %>
+                        <div class="admin-stat-card">
+                            <span class="admin-stat-icon <%= stat.getIconClass() %>"><i class="<%= stat.getIcon() %>"></i></span>
+                            <span>
+                                <small><%= stat.getLabel() %></small>
+                                <strong><%= stat.getValue() %></strong>
+                            </span>
+                        </div>
+                        <% } else { %>
                         <a class="admin-stat-card" href="<%= stat.getUrl() %>">
                             <span class="admin-stat-icon <%= stat.getIconClass() %>"><i class="<%= stat.getIcon() %>"></i></span>
                             <span>
@@ -61,6 +69,7 @@
                                 <strong><%= stat.getValue() %></strong>
                             </span>
                         </a>
+                        <% } %>
                         <% } %>
                     </div>
 
@@ -80,16 +89,12 @@
                         <section class="admin-panel admin-chart-panel">
                             <div class="admin-panel-header">
                                 <div>
-                                    <h2>Cơ cấu doanh thu theo danh mục</h2>
+                                    <h2>Cơ cấu số sản phẩm bán ra theo danh mục</h2>
                                     <p class="admin-chart-period"><%= adminDashboard.getChartPeriodLabel() %></p>
                                 </div>
                             </div>
                             <div class="admin-chart-body admin-pie-chart-body">
-                                <% if (adminDashboard.getCategoryRevenue().isEmpty()) { %>
-                                <p class="admin-empty-message">Chưa có doanh thu theo danh mục trong khoảng thời gian này.</p>
-                                <% } else { %>
-                                <canvas id="categoryRevenueChart" aria-label="Biểu đồ tròn doanh thu theo danh mục"></canvas>
-                                <% } %>
+                                <canvas id="categorySoldProductsChart" aria-label="Biểu đồ tròn số sản phẩm bán ra theo danh mục"></canvas>
                             </div>
                         </section>
                     </div>
@@ -101,35 +106,21 @@
                             </div>
 
                             <div class="admin-chart-body">
-                                <% if (adminDashboard.getBestSellingProducts().isEmpty()) { %>
-                                <p class="admin-empty-message">Chưa có sản phẩm bán ra trong khoảng thời gian này.</p>
-                                <% } else { %>
                                 <canvas id="bestSellingProductsChart" aria-label="Biểu đồ thanh ngang top 5 sản phẩm bán chạy nhất"></canvas>
-                                <% } %>
                             </div>
                             <div class="admin-panel-footer">
-                                <span><%= adminDashboard.getBestSellingFooterMessage() != null
-                                        ? adminDashboard.getBestSellingFooterMessage()
-                                        : "Mở trang quản lý toàn bộ sản phẩm." %></span>
                                 <a href="<%= ctx %>/admin/products">Xem tất cả</a>
                             </div>
                         </section>
 
                         <aside class="admin-panel admin-quick-panel admin-chart-panel">
                             <div class="admin-panel-header">
-                                <h2>Sản phẩm mức tồn kho thấp (&lt;5)</h2>
+                                <h2>Sản phẩm mức tồn kho thấp (&le;5)</h2>
                             </div>
                             <div class="admin-chart-body">
-                                <% if (adminDashboard.getLowStockProducts().isEmpty()) { %>
-                                <p class="admin-empty-message">Không có sản phẩm nào sắp hết hàng.</p>
-                                <% } else { %>
                                 <canvas id="lowStockProductsChart" aria-label="Biểu đồ sản phẩm tồn kho thấp"></canvas>
-                                <% } %>
                             </div>
                             <div class="admin-panel-footer">
-                                <span><%= adminDashboard.getLowStockFooterMessage() != null
-                                        ? adminDashboard.getLowStockFooterMessage()
-                                        : "Danh sách sản phẩm theo tồn kho tăng dần." %></span>
                                 <a href="<%= ctx %>/admin/products?sort=qty_asc">Xem tất cả</a>
                             </div>
                         </aside>
@@ -145,27 +136,24 @@
                             </div>
 
                             <div class="admin-chart-body admin-order-status-chart-body">
-                                <% if (adminDashboard.getOrderStatusCounts().isEmpty()) { %>
-                                <p class="admin-empty-message">Không có đơn hàng trong khoảng thời gian đã chọn.</p>
-                                <% } else { %>
                                 <canvas id="orderStatusChart" aria-label="Biểu đồ số lượng đơn hàng theo trạng thái"></canvas>
-                                <% } %>
                             </div>
                             <div class="admin-panel-footer">
-                                <span>Quản lý và theo dõi toàn bộ đơn hàng.</span>
                                 <a href="<%= ctx %>/order-history">Xem tất cả</a>
                             </div>
                         </section>
 
-                        <section class="admin-panel">
+                        <section class="admin-panel admin-chart-panel admin-account-panel">
                             <div class="admin-panel-header">
-                                <h2>Tổng quan tài khoản</h2>
+                                <div>
+                                    <h2>Tổng quan tài khoản</h2>
+                                </div>
                             </div>
 
-                            <div class="admin-account-grid">
-                                <% for (AdminDashboardView.CountRow accountRow : adminDashboard.getAccountSummaries()) { %>
-                                <div><span><%= accountRow.getLabel() %></span><strong><%= accountRow.getValue() %></strong></div>
-                                <% } %>
+                            <div class="admin-account-chart-wrap">
+                                <div class="admin-account-chart">
+                                    <canvas id="accountOverviewChart" aria-label="Biểu đồ tổng quan tài khoản"></canvas>
+                                </div>
                             </div>
                             <div class="admin-panel-footer">
                                 <span><a href="<%= ctx %>/AccountManagement?type=user">Quản lý khách hàng</a></span>
@@ -174,279 +162,24 @@
                         </section>
                     </div>
 
-                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
                     <script>
-                        (() => {
-                            const timelineLabels = [
-                                <% for (int i = 0; i < adminDashboard.getRevenueTimeline().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getRevenueTimeline().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
-                            ];
-                            const timelineValues = [
-                                <% for (int i = 0; i < adminDashboard.getRevenueTimeline().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getRevenueTimeline().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
-                                <% } %>
-                            ];
-                            const categoryLabels = [
-                                <% for (int i = 0; i < adminDashboard.getCategoryRevenue().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getCategoryRevenue().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
-                            ];
-                            const categoryValues = [
-                                <% for (int i = 0; i < adminDashboard.getCategoryRevenue().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getCategoryRevenue().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
-                                <% } %>
-                            ];
-                            const bestSellingLabels = [
-                                <% for (int i = 0; i < adminDashboard.getBestSellingProducts().size(); i++) {
-                                    AdminDashboardView.ProductRow product = adminDashboard.getBestSellingProducts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(product.getProductName()) %>
-                                <% } %>
-                            ];
-                            const bestSellingValues = [
-                                <% for (int i = 0; i < adminDashboard.getBestSellingProducts().size(); i++) {
-                                    AdminDashboardView.ProductRow product = adminDashboard.getBestSellingProducts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= product.getSoldQuantity() %>
-                                <% } %>
-                            ];
-                            const lowStockLabels = [
-                                <% for (int i = 0; i < adminDashboard.getLowStockProductsChart().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getLowStockProductsChart().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
-                            ];
-                            const lowStockValues = [
-                                <% for (int i = 0; i < adminDashboard.getLowStockProductsChart().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getLowStockProductsChart().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
-                                <% } %>
-                            ];
-                            const orderStatusLabels = [
-                                <% for (int i = 0; i < adminDashboard.getOrderStatusCounts().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getOrderStatusCounts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
-                            ];
-                            const orderStatusValues = [
-                                <% for (int i = 0; i < adminDashboard.getOrderStatusCounts().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getOrderStatusCounts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
-                                <% } %>
-                            ];
-
-                            const formatCurrency = value =>
-                                new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
-                            const formatOrderCount = value =>
-                                new Intl.NumberFormat('vi-VN').format(value) + ' đơn';
-                            const formatProductCount = value =>
-                                new Intl.NumberFormat('vi-VN').format(value) + ' sản phẩm';
-                            const commonTooltip = {
-                                callbacks: {
-                                    label: context => context.dataset.label
-                                        ? context.dataset.label + ': ' + formatCurrency(context.parsed.y)
-                                        : context.label + ': ' + formatCurrency(context.parsed)
-                                }
-                            };
-
-                            new Chart(document.getElementById('revenueTimelineChart'), {
-                                type: 'line',
-                                data: {
-                                    labels: timelineLabels,
-                                    datasets: [{
-                                        label: 'Doanh thu',
-                                        data: timelineValues,
-                                        borderColor: '#dc2626',
-                                        backgroundColor: 'rgba(220, 38, 38, 0.12)',
-                                        pointBackgroundColor: '#dc2626',
-                                        pointRadius: 4,
-                                        pointHoverRadius: 6,
-                                        borderWidth: 3,
-                                        tension: 0.35,
-                                        fill: true
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: {display: false},
-                                        tooltip: commonTooltip
-                                    },
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            ticks: {callback: value => formatCurrency(value)},
-                                            grid: {color: '#eef2f7'}
-                                        },
-                                        x: {grid: {display: false}}
-                                    }
-                                }
-                            });
-
-                            const categoryCanvas = document.getElementById('categoryRevenueChart');
-                            if (categoryCanvas) {
-                                const colors = [
-                                    '#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#7c3aed',
-                                    '#0891b2', '#db2777', '#65a30d', '#ea580c', '#475569'
-                                ];
-                                new Chart(categoryCanvas, {
-                                    type: 'pie',
-                                    data: {
-                                        labels: categoryLabels,
-                                        datasets: [{
-                                            data: categoryValues,
-                                            backgroundColor: categoryLabels.map((_, index) =>
-                                                colors[index % colors.length]),
-                                            borderColor: '#ffffff',
-                                            borderWidth: 2
-                                        }]
-                                    },
-                                    options: {
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {
-                                                position: 'bottom',
-                                                labels: {usePointStyle: true, padding: 16}
-                                            },
-                                            tooltip: commonTooltip
-                                        }
-                                    }
-                                });
-                            }
-
-                            const bestSellingCanvas = document.getElementById('bestSellingProductsChart');
-                            if (bestSellingCanvas) {
-                                new Chart(bestSellingCanvas, {
-                                    type: 'bar',
-                                    data: {
-                                        labels: bestSellingLabels,
-                                        datasets: [{
-                                            label: 'Đã bán',
-                                            data: bestSellingValues,
-                                            backgroundColor: '#dc2626',
-                                            borderRadius: 8,
-                                            maxBarThickness: 34
-                                        }]
-                                    },
-                                    options: {
-                                        indexAxis: 'y',
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {display: false},
-                                            tooltip: {
-                                                callbacks: {
-                                                    label: context => formatProductCount(context.parsed.x)
-                                                }
-                                            }
-                                        },
-                                        scales: {
-                                            x: {
-                                                beginAtZero: true,
-                                                ticks: {
-                                                    precision: 0,
-                                                    callback: value => new Intl.NumberFormat('vi-VN').format(value)
-                                                },
-                                                grid: {color: '#eef2f7'}
-                                            },
-                                            y: {grid: {display: false}}
-                                        }
-                                    }
-                                });
-                            }
-                            
-                            const lowStockCanvas = document.getElementById('lowStockProductsChart');
-                            if (lowStockCanvas) {
-                                new Chart(lowStockCanvas, {
-                                    type: 'bar',
-                                    data: {
-                                        labels: lowStockLabels,
-                                        datasets: [{
-                                            label: 'Tồn kho',
-                                            data: lowStockValues,
-                                            backgroundColor: '#f59e0b',
-                                            borderRadius: 8,
-                                            maxBarThickness: 34
-                                        }]
-                                    },
-                                    options: {
-                                        indexAxis: 'y',
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {display: false},
-                                            tooltip: {
-                                                callbacks: {
-                                                    label: context => 'Tồn kho: ' + formatProductCount(context.parsed.x)
-                                                }
-                                            }
-                                        },
-                                        scales: {
-                                            x: {
-                                                beginAtZero: true,
-                                                ticks: {
-                                                    precision: 0,
-                                                    callback: value => new Intl.NumberFormat('vi-VN').format(value)
-                                                },
-                                                grid: {color: '#eef2f7'}
-                                            },
-                                            y: {grid: {display: false}}
-                                        }
-                                    }
-                                });
-                            }
-
-                            const orderStatusCanvas = document.getElementById('orderStatusChart');
-                            if (orderStatusCanvas) {
-                                const statusColors = [
-                                    '#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed',
-                                    '#0891b2', '#db2777', '#65a30d', '#ea580c', '#475569'
-                                ];
-                                new Chart(orderStatusCanvas, {
-                                    type: 'bar',
-                                    data: {
-                                        labels: orderStatusLabels,
-                                        datasets: [{
-                                            label: 'Số lượng đơn hàng',
-                                            data: orderStatusValues,
-                                            backgroundColor: orderStatusLabels.map((_, index) =>
-                                                statusColors[index % statusColors.length]),
-                                            borderRadius: 8,
-                                            maxBarThickness: 44
-                                        }]
-                                    },
-                                    options: {
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {display: false},
-                                            tooltip: {
-                                                callbacks: {
-                                                    label: context => formatOrderCount(context.parsed.y)
-                                                }
-                                            }
-                                        },
-                                        scales: {
-                                            y: {
-                                                beginAtZero: true,
-                                                ticks: {
-                                                    precision: 0,
-                                                    callback: value => new Intl.NumberFormat('vi-VN').format(value)
-                                                },
-                                                grid: {color: '#eef2f7'}
-                                            },
-                                            x: {grid: {display: false}}
-                                        }
-                                    }
-                                });
-                            }
-                        })();
+                        window.adminDashboardData = {
+                            timelineLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getRevenueTimeline()) %>,
+                            timelineValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getRevenueTimeline()) %>,
+                            categoryLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getCategorySoldProducts()) %>,
+                            categoryValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getCategorySoldProducts()) %>,
+                            bestSellingLabels: <%= DashboardViewHelper.productNamesToJson(adminDashboard.getBestSellingProducts()) %>,
+                            bestSellingValues: <%= DashboardViewHelper.productSoldQuantitiesToJson(adminDashboard.getBestSellingProducts()) %>,
+                            lowStockLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getLowStockProductsChart()) %>,
+                            lowStockValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getLowStockProductsChart()) %>,
+                            orderStatusLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getOrderStatusCounts()) %>,
+                            orderStatusValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getOrderStatusCounts()) %>,
+                            accountLabels: <%= DashboardViewHelper.countRowLabelsToJson(adminDashboard.getAccountSummaries()) %>,
+                            accountValues: <%= DashboardViewHelper.countRowValuesToJson(adminDashboard.getAccountSummaries()) %>
+                        };
                     </script>
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+                    <script src="<%= ctx %>/js/admin-dashboard.js"></script>
                 </div>
 
 

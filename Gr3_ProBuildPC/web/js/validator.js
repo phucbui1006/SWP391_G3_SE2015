@@ -110,6 +110,20 @@ const Validator = {
         return !isNaN(qty) && qty >= 0 && qty <= 100000;
     },
 
+    validateBuildQuantity(qtyStr, maxQuantity = 1) {
+        if (!qtyStr) return false;
+        const trimmed = String(qtyStr).trim();
+        if (!/^[1-9][0-9]*$/.test(trimmed) || trimmed.length > 9) return false;
+
+        const qty = Number(trimmed);
+        const max = Number(maxQuantity);
+        return Number.isSafeInteger(qty)
+                && qty >= 1
+                && Number.isSafeInteger(max)
+                && max >= 1
+                && qty <= max;
+    },
+
     validateRating(ratingStr) {
         if (!ratingStr) return false;
         const rating = parseInt(ratingStr, 10);

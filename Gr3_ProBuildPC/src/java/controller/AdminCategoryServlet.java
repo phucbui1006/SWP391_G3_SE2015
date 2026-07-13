@@ -32,17 +32,13 @@ public class AdminCategoryServlet extends HttpServlet {
 
         String keyword = request.getParameter("keyword");
         String status = normalizeStatusFilter(request.getParameter("status"));
-        String sort = request.getParameter("sort");
+        String sort = normalizeSort(request.getParameter("sort"));
         String pageRaw = request.getParameter("page");
 
         if (keyword == null) {
             keyword = "";
         } else {
             keyword = keyword.trim();
-        }
-
-        if (sort == null || sort.trim().isEmpty()) {
-            sort = "newest";
         }
 
         int currentPage = 1;
@@ -129,7 +125,7 @@ public class AdminCategoryServlet extends HttpServlet {
             handleStatusChange(request, session);
             String keyword = request.getParameter("keyword");
             String status = normalizeStatusFilter(request.getParameter("status"));
-            String sort = request.getParameter("sort");
+            String sort = normalizeSort(request.getParameter("sort"));
             String page = request.getParameter("page");
             response.sendRedirect(request.getContextPath() + "/admin/categories" + buildQuery(keyword, status, sort, page));
         }
@@ -281,11 +277,19 @@ public class AdminCategoryServlet extends HttpServlet {
         return "ALL";
     }
 
+    private String normalizeSort(String value) {
+        if (value != null && "oldest".equalsIgnoreCase(value.trim())) {
+            return "oldest";
+        }
+
+        return "newest";
+    }
+
     private String buildQuery(String keyword, String status, String sort, String page) {
         StringBuilder query = new StringBuilder("?");
         appendQueryParam(query, "keyword", keyword == null ? "" : keyword.trim());
         appendQueryParam(query, "status", normalizeStatusFilter(status));
-        appendQueryParam(query, "sort", sort == null || sort.trim().isEmpty() ? "newest" : sort.trim());
+        appendQueryParam(query, "sort", normalizeSort(sort));
         appendQueryParam(query, "page", page == null || page.trim().isEmpty() ? "1" : page.trim());
         return query.toString();
     }

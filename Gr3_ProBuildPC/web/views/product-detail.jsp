@@ -124,7 +124,7 @@
 
                                                 <link rel="stylesheet" href="<%= contextPath %>/css/style.css">
                                                 <link rel="stylesheet"
-                                                    href="<%= contextPath %>/css/product-detail.css?v=200">
+                                                    href="<%= contextPath %>/css/product-detail.css?v=202">
                                             </head>
 
                                             <body class="product-detail-body" data-context-path="<%= contextPath %>">
@@ -212,17 +212,16 @@
                                                                     </div>
 
                                                                     <div class="purchase-panel-new">
-                                                                        <form class="purchase-form" method="post">
+                                                                        <form class="purchase-form" method="post" novalidate>
                                                                             <input type="hidden" name="action" value="addToCart">
                                                                             <input type="hidden" name="productId" value="<%= product.getProductId() %>">
                                                                             <input type="hidden" name="redirect" value="<%= currentUrl %>">
 
                                                                             <div class="info-label">SỐ LƯỢNG</div>
                                                                             <div class="quantity-box">
-                                                                                <button type="button" class="qty-btn" onclick="decreaseQty()">-</button>
-                                                                                <input class="quantity-input" id="quantityInput" type="number" name="quantity" value="1" inputmode="numeric" min="1" step="1" max="<%= maxQuantity %>" data-max-quantity="<%= maxQuantity %>" <%=product.getQuantity()> 0 ? "" : "disabled" %>>
-                                                                                <button type="button" class="qty-btn" onclick="increaseQty()">+</button>
+                                                                                <input class="quantity-input" id="quantityInput" type="number" name="quantity" value="1" inputmode="numeric" min="1" step="1" max="<%= maxQuantity %>" data-max-quantity="<%= maxQuantity %>" aria-describedby="quantityError" aria-invalid="false" <%=product.getQuantity()> 0 ? "" : "disabled" %>>
                                                                             </div>
+                                                                            <p id="quantityError" class="quantity-error" role="alert" aria-live="polite" hidden></p>
 
                                                                             <div class="action-buttons">
                                                                                 <button type="submit" formaction="<%= contextPath %>/checkout" class="buy-btn" <%=product.getQuantity()> 0 ? "" : "disabled" %>>
@@ -493,7 +492,6 @@
                                                                                 <% } else { %>
 
                                                                                         <div class="empty-review">
-                                                                                            <i class="fa-regular fa-comment-dots"></i>
 
                                                                                             <% if (selectedRating==0 && !hasImage) { %>
                                                                                                 <p>Chưa có đánh giá nào cho
@@ -555,20 +553,32 @@
 
                                                             </section>
 
-                                                            <script
-                                                                src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
                                                             <script src="<%= contextPath %>/js/cart.js"></script>
                                                             <script>
                                                                 function showQuantityError(message) {
-                                                                    Swal.fire({
-                                                                        title: 'Số lượng không hợp lệ!',
-                                                                        text: message,
-                                                                        icon: 'warning',
-                                                                        timer: 3000,
-                                                                        showConfirmButton: false,
-                                                                        toast: true,
-                                                                        position: 'bottom-end'
-                                                                    });
+                                                                    var quantityInput = document.getElementById('quantityInput');
+                                                                    var errorMessage = document.getElementById('quantityError');
+
+                                                                    if (!quantityInput || !errorMessage) {
+                                                                        return;
+                                                                    }
+
+                                                                    errorMessage.textContent = message;
+                                                                    errorMessage.hidden = false;
+                                                                    quantityInput.setAttribute('aria-invalid', 'true');
+                                                                }
+
+                                                                function clearQuantityError() {
+                                                                    var quantityInput = document.getElementById('quantityInput');
+                                                                    var errorMessage = document.getElementById('quantityError');
+
+                                                                    if (!quantityInput || !errorMessage) {
+                                                                        return;
+                                                                    }
+
+                                                                    errorMessage.textContent = '';
+                                                                    errorMessage.hidden = true;
+                                                                    quantityInput.setAttribute('aria-invalid', 'false');
                                                                 }
 
                                                                 function isTypingNumberKey(event) {
@@ -627,20 +637,13 @@
                                                                         return false;
                                                                     }
 
+                                                                    clearQuantityError();
                                                                     return true;
                                                                 }
 
                                                                 function handleAddToCartAjax(btn, inStock) {
                                                                     if (!inStock) {
-                                                                        Swal.fire({
-                                                                            title: 'Hết hàng!',
-                                                                            text: 'Sản phẩm này hiện tại đã hết hàng.',
-                                                                            icon: 'error',
-                                                                            timer: 3000,
-                                                                            showConfirmButton: false,
-                                                                            toast: true,
-                                                                            position: 'bottom-end'
-                                                                        });
+                                                                        showQuantityError('Sản phẩm này hiện tại đã hết hàng.');
                                                                         return;
                                                                     }
 
@@ -681,6 +684,15 @@
                                                                             showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
                                                                         });
 
+                                                                        quantityInput.addEventListener('input', function () {
+                                                                            if (quantityInput.value.trim() === '') {
+                                                                                clearQuantityError();
+                                                                                return;
+                                                                            }
+
+                                                                            validateQuantity(purchaseForm, true);
+                                                                        });
+
                                                                         quantityInput.addEventListener('blur', function () {
                                                                             validateQuantity(purchaseForm, quantityInput.value.trim() !== '');
                                                                         });
@@ -694,22 +706,6 @@
                                                                         });
                                                                     }
                                                                 });
-                                                                function increaseQty() {
-                                                                    var input = document.getElementById('quantityInput');
-                                                                    if(input && !input.disabled) {
-                                                                        var max = parseInt(input.dataset.maxQuantity || input.max || '1', 10);
-                                                                        var val = parseInt(input.value || 0, 10);
-                                                                        if (val < max) input.value = val + 1;
-                                                                    }
-                                                                }
-
-                                                                function decreaseQty() {
-                                                                    var input = document.getElementById('quantityInput');
-                                                                    if(input && !input.disabled) {
-                                                                        var val = parseInt(input.value || 0, 10);
-                                                                        if (val > 1) input.value = val - 1;
-                                                                    }
-                                                                }
                                                             </script>
 
                                                 </main>
@@ -718,67 +714,9 @@
                                                     <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
                                                     <div class="home-toast-message" data-home-toast-message></div>
                                                 </div>
-                                            </div>
 
-                                            <small>
-                                                <i class="fa-regular fa-calendar-days"></i>
-                                                <fmt:formatDate value="${review.date}" pattern="dd/MM/yyyy HH:mm"/>
-                                            </small>
-                                        </div>
+                                                <jsp:include page="/includes/footer.jsp" />
 
-                                        <p><c:out value="${review.comment}"/></p>
+                                            </body>
 
-                                        <c:if test="${not empty review.images}">
-                                            <div class="review-images-row">
-                                                <c:forEach var="imgPath" items="${review.images}">
-                                                    <div class="review-img-container">
-                                                        <a href="${pageContext.request.contextPath}/${fn:escapeXml(imgPath)}"
-                                                           target="_blank"
-                                                           rel="noopener noreferrer">
-                                                            <img class="review-img"
-                                                                 src="${pageContext.request.contextPath}/${fn:escapeXml(imgPath)}"
-                                                                 alt="Hình ảnh đánh giá">
-                                                        </a>
-                                                    </div>
-                                                </c:forEach>
-                                            </div>
-                                        </c:if>
-
-                                    </div>
-
-                                </article>
-                            </c:forEach>
-                        </c:when>
-
-                        <c:otherwise>
-                            <div class="empty-review">
-
-                                <c:choose>
-                                    <c:when test="${selectedRating == 0}">
-                                        <p>Chưa có đánh giá nào cho sản phẩm này.</p>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <p>Không có đánh giá ${selectedRating} sao nào.</p>
-                                    </c:otherwise>
-                                </c:choose>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
-
-                </div>
-            </section>
-
-        </main>
-
-        <div class="home-toast" data-home-toast hidden>
-            <div class="home-toast-icon" data-home-toast-icon aria-hidden="true">+</div>
-            <div class="home-toast-message" data-home-toast-message></div>
-        </div>
-
-        <jsp:include page="/includes/footer.jsp" />
-
-        <script src="${pageContext.request.contextPath}/js/cart.js?v=2"></script>
-        <script src="${pageContext.request.contextPath}/js/product-detail.js?v=204"></script>
-
-    </body>
-</html>
+                                            </html>

@@ -64,7 +64,6 @@
 
                             <div class="filter-form-group filter-actions">
                                 <button type="submit" class="btn-filter-submit">Tìm kiếm</button>
-                                <a href="${ctx}/warranty-history" class="btn-filter-clear">Xóa lọc</a>
                             </div>
                         </div>
                     </form>

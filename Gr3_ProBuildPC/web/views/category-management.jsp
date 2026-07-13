@@ -186,12 +186,6 @@
                             <option value="oldest" <%= "oldest".equals(sort) ? "selected" : "" %>>
                                 Cũ nhất
                             </option>
-                            <option value="name_asc" <%= "name_asc".equals(sort) ? "selected" : "" %>>
-                                Tên A-Z
-                            </option>
-                            <option value="name_desc" <%= "name_desc".equals(sort) ? "selected" : "" %>>
-                                Tên Z-A
-                            </option>
                         </select>
 
                         <button type="submit">Tìm kiếm</button>

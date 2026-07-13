@@ -17,6 +17,7 @@ public class ProductDAO extends DBContext {
                    p.price,
                    COALESCE(stock.import_quantity, 0) AS import_quantity,
                    COALESCE(stock.quantity, 0) AS quantity,
+                   COALESCE(sales.sold_quantity, 0) AS sold_quantity,
                    COALESCE(stock.batch_id, 0) AS batch_id,
                    p.description,
                    p.image_url,
@@ -36,7 +37,16 @@ public class ProductDAO extends DBContext {
                        MIN(batch_id) AS batch_id
                 FROM batch_items
                 GROUP BY product_id
-            ) stock ON stock.product_id = p.product_id
+             ) stock ON stock.product_id = p.product_id
+            LEFT JOIN (
+                SELECT od.product_id,
+                       SUM(od.quantity) AS sold_quantity
+                FROM order_details od
+                JOIN orders o ON o.order_id = od.order_id
+                JOIN orders_status os ON os.status_id = o.status_id
+                WHERE os.status_name = 'Đã giao hàng'
+                GROUP BY od.product_id
+            ) sales ON sales.product_id = p.product_id
             JOIN brands br ON p.brand_id = br.brand_id
             JOIN categories c ON p.category_id = c.category_id
             """;
@@ -48,6 +58,7 @@ public class ProductDAO extends DBContext {
         p.setPrice(rs.getBigDecimal("price"));
         p.setQuantity(rs.getInt("quantity"));
         p.setImportQuantity(rs.getInt("import_quantity"));
+        p.setSoldQuantity(rs.getInt("sold_quantity"));
         p.setBatchId(rs.getInt("batch_id"));
         p.setDescription(rs.getString("description"));
         p.setImageUrl(rs.getString("image_url"));
@@ -598,16 +609,7 @@ public class ProductDAO extends DBContext {
         } else if ("oldest".equals(sort)) {
             sql.append(" ORDER BY p.product_id ASC ");
         } else if ("bestSeller".equals(sort)) {
-            sql.append("""
-                 ORDER BY (
-                     SELECT COALESCE(SUM(od.quantity), 0)
-                     FROM order_details od
-                     JOIN orders o ON od.order_id = o.order_id
-                     JOIN orders_status os ON o.status_id = os.status_id
-                     WHERE od.product_id = p.product_id
-                     AND os.status_name = 'Đã giao hàng'
-                 ) DESC, p.product_id DESC 
-                 """);
+            sql.append(" ORDER BY sold_quantity DESC, p.product_id DESC ");
         } else {
             sql.append(" ORDER BY p.product_id DESC "); // newest default
         }

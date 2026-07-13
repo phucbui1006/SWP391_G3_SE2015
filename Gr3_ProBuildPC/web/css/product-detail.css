@@ -335,6 +335,7 @@ body.product-detail-body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
+    margin-top: 12px;
 }
 
 .add-cart-btn,

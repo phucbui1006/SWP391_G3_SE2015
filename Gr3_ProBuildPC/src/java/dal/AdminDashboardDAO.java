@@ -13,6 +13,7 @@ import java.util.Map;
 import model.AccountSummary;
 import model.DashboardProduct;
 import model.DashboardSummary;
+import model.RevenueRow;
 
 public class AdminDashboardDAO extends DBContext {
 
@@ -77,6 +78,85 @@ public class AdminDashboardDAO extends DBContext {
             e.printStackTrace();
         }
         return revenueByDay;
+    }
+
+    public List<RevenueRow> getRevenueStatistics(LocalDate startDate, LocalDate endDate, String groupBy) {
+        List<RevenueRow> list = new ArrayList<>();
+        String dateFormat;
+        java.time.format.DateTimeFormatter javaFormatter;
+
+        if ("year".equalsIgnoreCase(groupBy)) {
+            dateFormat = "%Y";
+            javaFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy");
+        } else if ("month".equalsIgnoreCase(groupBy)) {
+            dateFormat = "%m-%Y";
+            javaFormatter = java.time.format.DateTimeFormatter.ofPattern("MM-yyyy");
+        } else {
+            dateFormat = "%d-%m-%Y";
+            javaFormatter = java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        }
+
+        Map<String, RevenueRow> sqlData = new LinkedHashMap<>();
+
+        String sql = """
+                SELECT DATE_FORMAT(o.order_date, ?) AS label,
+                       COUNT(o.order_id) AS order_count,
+                       COALESCE(SUM(o.total_amount), 0) AS revenue
+                FROM orders o
+                LEFT JOIN orders_status os ON os.status_id = o.status_id
+                WHERE o.order_date >= ?
+                  AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
+                  AND (os.status_name IS NULL
+                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
+                           AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
+                GROUP BY DATE_FORMAT(o.order_date, ?)
+                ORDER BY MIN(o.order_date) ASC
+                """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, dateFormat);
+            ps.setDate(2, Date.valueOf(startDate));
+            ps.setDate(3, Date.valueOf(endDate));
+            ps.setString(4, dateFormat);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String label = rs.getString("label");
+                    sqlData.put(label, new RevenueRow(
+                        label,
+                        rs.getInt("order_count"),
+                        nullToZero(rs.getBigDecimal("revenue"))
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Bù lấp các khoảng thời gian bị thiếu
+        if ("year".equalsIgnoreCase(groupBy)) {
+            for (int y = startDate.getYear(); y <= endDate.getYear(); y++) {
+                String label = String.valueOf(y);
+                list.add(sqlData.getOrDefault(label, new RevenueRow(label, 0, BigDecimal.ZERO)));
+            }
+        } else if ("month".equalsIgnoreCase(groupBy)) {
+            LocalDate current = startDate.withDayOfMonth(1);
+            LocalDate endMonth = endDate.withDayOfMonth(1);
+            while (!current.isAfter(endMonth)) {
+                String label = current.format(javaFormatter);
+                list.add(sqlData.getOrDefault(label, new RevenueRow(label, 0, BigDecimal.ZERO)));
+                current = current.plusMonths(1);
+            }
+        } else { // default is day
+            LocalDate current = startDate;
+            while (!current.isAfter(endDate)) {
+                String label = current.format(javaFormatter);
+                list.add(sqlData.getOrDefault(label, new RevenueRow(label, 0, BigDecimal.ZERO)));
+                current = current.plusDays(1);
+            }
+        }
+
+        return list;
     }
 
     public Map<String, Integer> getCategorySoldQuantities(LocalDate startDate, LocalDate endDate) {

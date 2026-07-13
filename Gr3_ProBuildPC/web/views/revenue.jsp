@@ -21,13 +21,13 @@
                     <div class="admin-dashboard">
 
                         <!-- Header / Filter -->
+                        <!-- Header / Filter -->
                         <form id="adminChartFilter" class="admin-chart-filter" action="RevenueServlet" method="get">
                             <label>
-                                
-                                <input type="date" id="fromDate" name="fromDate" value="${param.fromDate}" title="Từ ngày" required> -
-                                <input type="date" id="toDate" name="toDate" value="${param.toDate}" title="Đến ngày" required>
+                                <input type="date" id="fromDate" name="fromDate" value="${param.fromDate}" title="Từ" required> -
+                                <input type="date" id="toDate" name="toDate" value="${param.toDate}" title="Đến" required>
                             </label>
-                            <select name="type" style="height: 40px; border-radius: 8px; font-size: 13px; font-weight: 800; padding: 0 12px; border: 1px solid #d8dee9; background: #ffffff; color: #111827; outline: none; font-family: inherit;">
+                            <select name="type" id="statType" style="height: 40px; border-radius: 8px; font-size: 13px; font-weight: 800; padding: 0 12px; border: 1px solid #d8dee9; background: #ffffff; color: #111827; outline: none; font-family: inherit;">
                                 <option value="day" ${param.type=='day' ? 'selected' : '' }>Ngày</option>
                                 <option value="month" ${param.type=='month' ? 'selected' : '' }>Tháng</option>
                                 <option value="year" ${param.type=='year' ? 'selected' : '' }>Năm</option>
@@ -134,63 +134,112 @@
                     const fromDateInput = document.getElementById('fromDate');
                     const toDateInput = document.getElementById('toDate');
                     const form = document.getElementById('adminChartFilter');
+                    const statType = document.getElementById('statType');
                     
-                    // Get today's date in YYYY-MM-DD format based on local time
+                    // Get today's date
                     const today = new Date();
                     const todayFormatted = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+                    const currentMonth = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+                    const currentYear = today.getFullYear();
                     
-                    // Set max date to today for both inputs
-                    if (fromDateInput && toDateInput) {
-                        fromDateInput.setAttribute('max', todayFormatted);
-                        toDateInput.setAttribute('max', todayFormatted);
-
-                        function updateToDateState() {
-                            if (fromDateInput.value) {
-                                toDateInput.disabled = false;
-                                toDateInput.setAttribute('min', fromDateInput.value);
-                            } else {
-                                toDateInput.disabled = true;
-                                if(!toDateInput.value) toDateInput.value = '';
-                            }
+                    function updateInputTypes() {
+                        const type = statType.value;
+                        if (type === 'day') {
+                            fromDateInput.type = 'date';
+                            toDateInput.type = 'date';
+                            fromDateInput.setAttribute('max', todayFormatted);
+                            toDateInput.setAttribute('max', todayFormatted);
+                            fromDateInput.removeAttribute('min');
+                        } else if (type === 'month') {
+                            fromDateInput.type = 'month';
+                            toDateInput.type = 'month';
+                            fromDateInput.setAttribute('max', currentMonth);
+                            toDateInput.setAttribute('max', currentMonth);
+                            fromDateInput.removeAttribute('min');
+                        } else if (type === 'year') {
+                            fromDateInput.type = 'number';
+                            toDateInput.type = 'number';
+                            fromDateInput.setAttribute('min', '2000');
+                            fromDateInput.setAttribute('max', currentYear);
+                            toDateInput.setAttribute('max', currentYear);
+                            fromDateInput.placeholder = "Năm (VD: 2024)";
+                            toDateInput.placeholder = "Năm (VD: 2026)";
                         }
+                    }
 
-                        fromDateInput.addEventListener('change', updateToDateState);
-
-                        // Initial state on load
+                    statType.addEventListener('change', function() {
+                        fromDateInput.value = '';
+                        toDateInput.value = '';
+                        updateInputTypes();
                         updateToDateState();
-                        
-                        if (form) {
-                            form.addEventListener('submit', function(e) {
-                                const fromVal = fromDateInput.value;
-                                const toVal = toDateInput.value;
-                                
-                                if (!fromVal) {
+                    });
+
+                    function updateToDateState() {
+                        if (fromDateInput.value) {
+                            toDateInput.disabled = false;
+                            toDateInput.setAttribute('min', fromDateInput.value);
+                        } else {
+                            toDateInput.disabled = true;
+                            if(!toDateInput.value) toDateInput.value = '';
+                        }
+                    }
+
+                    fromDateInput.addEventListener('change', updateToDateState);
+
+                    // Initial state on load
+                    updateInputTypes();
+                    // Set values if passed back from server
+                    const paramFrom = '${param.fromDate}';
+                    const paramTo = '${param.toDate}';
+                    if (paramFrom) fromDateInput.value = paramFrom;
+                    if (paramTo) toDateInput.value = paramTo;
+                    updateToDateState();
+                    
+                    if (form) {
+                        form.addEventListener('submit', function(e) {
+                            const fromVal = fromDateInput.value;
+                            const toVal = toDateInput.value;
+                            const type = statType.value;
+                            
+                            if (!fromVal) {
+                                e.preventDefault();
+                                alert('Vui lòng chọn giá trị Từ!');
+                                fromDateInput.focus();
+                                return;
+                            }
+                            if (!toVal) {
+                                e.preventDefault();
+                                alert('Vui lòng chọn giá trị Đến!');
+                                toDateInput.focus();
+                                return;
+                            }
+                            
+                            if (fromVal > toVal) {
+                                e.preventDefault();
+                                alert('Giá trị Từ không được lớn hơn Đến!');
+                                return;
+                            }
+
+                            if (type === 'year') {
+                                if (fromVal > currentYear || toVal > currentYear) {
                                     e.preventDefault();
-                                    alert('Vui lòng nhập đúng định dạng Từ ngày!');
-                                    fromDateInput.focus();
+                                    alert('Năm không được vượt quá năm hiện tại!');
                                     return;
                                 }
-                                
-                                if (!toVal) {
+                            } else if (type === 'month') {
+                                if (fromVal > currentMonth || toVal > currentMonth) {
                                     e.preventDefault();
-                                    alert('Vui lòng nhập đúng định dạng Đến ngày!');
-                                    toDateInput.focus();
+                                    alert('Tháng không được vượt quá tháng hiện tại!');
                                     return;
                                 }
-                                
+                            } else {
                                 if (fromVal > todayFormatted || toVal > todayFormatted) {
                                     e.preventDefault();
                                     alert('Ngày được chọn không được vượt quá ngày hiện tại!');
                                     return;
                                 }
-                                
-                                if (fromVal > toVal) {
-                                    e.preventDefault();
-                                    alert('Từ ngày không được lớn hơn Đến ngày!');
-                                    return;
-                                }
-                            });
-                        }
+                            }
+                        });
                     }
                 });
             </script>
@@ -222,45 +271,8 @@
             </script>
 
             <script>
-                const fromInput = document.getElementById('fromDate');
-                const toInput = document.getElementById('toDate');
-                const dateError = document.getElementById('dateError');
-                const chartFilter = document.getElementById('adminChartFilter');
-                const dateRegex = /^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\d{4}$/;
-
-                function validateInput(e) {
-                    const val = e.target.value.trim();
-                    if (val && !dateRegex.test(val)) {
-                        e.target.style.borderColor = '#e11d2e';
-                        dateError.style.display = 'block';
-                    } else {
-                        e.target.style.borderColor = '';
-                        dateError.style.display = 'none';
-                    }
-                }
-
-                fromInput.addEventListener('blur', validateInput);
-                toInput.addEventListener('blur', validateInput);
-
-                chartFilter.addEventListener('submit', function (e) {
-                    const fromVal = fromInput.value.trim();
-                    const toVal = toInput.value.trim();
-                    let valid = true;
-
-                    if (fromVal && !dateRegex.test(fromVal)) {
-                        fromInput.style.borderColor = '#e11d2e';
-                        valid = false;
-                    }
-                    if (toVal && !dateRegex.test(toVal)) {
-                        toInput.style.borderColor = '#e11d2e';
-                        valid = false;
-                    }
-
-                    if (!valid) {
-                        e.preventDefault();
-                        dateError.style.display = 'block';
-                    }
-                });
+                // Xóa phần dateRegex check thủ công do ta đã dùng type date/month/number tự nhiên của browser, 
+                // việc validate format sẽ do browser đảm nhận.
             </script>
 
         </body>

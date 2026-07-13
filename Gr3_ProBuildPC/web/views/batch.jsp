@@ -65,9 +65,7 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px;">
-                    <a href="${pageContext.request.contextPath}/BatchServlet" class="brand-secondary-button" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 18px;">
-                        Làm mới
-                    </a>
+                   
                     <a href="#add-batch-modal" class="brand-add-button" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
                         + Thêm lô hàng
                     </a>

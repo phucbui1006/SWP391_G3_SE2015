@@ -193,7 +193,7 @@ body.admin-product-body {
 .admin-product-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 1000px;
+    min-width: 1120px;
     color: #30333a;
     font-size: 14px;
 }
@@ -223,6 +223,8 @@ body.admin-product-body {
 .admin-product-table td:nth-child(8),
 .admin-product-table th:nth-child(9),
 .admin-product-table td:nth-child(9),
+.admin-product-table th:nth-child(10),
+.admin-product-table td:nth-child(10),
 .admin-product-table th:last-child,
 .admin-product-table td:last-child {
     text-align: center;

@@ -74,11 +74,7 @@ public class CategoryDAO extends DBContext {
 
         String orderBy;
 
-        if ("name_asc".equalsIgnoreCase(sort)) {
-            orderBy = "c.category_name ASC";
-        } else if ("name_desc".equalsIgnoreCase(sort)) {
-            orderBy = "c.category_name DESC";
-        } else if ("oldest".equalsIgnoreCase(sort)) {
+        if ("oldest".equalsIgnoreCase(sort)) {
             orderBy = "c.category_id ASC";
         } else {
             orderBy = "c.category_id DESC";

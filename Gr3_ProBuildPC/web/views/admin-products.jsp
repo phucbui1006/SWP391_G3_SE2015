@@ -121,7 +121,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Quản lý sản phẩm - ProBuild PC</title>
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
-        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css?v=1.0.2">
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css?v=1.0.3">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     </head>
     <body class="admin-product-body" data-ctx="<%= contextPath %>">
@@ -186,8 +186,8 @@
                             <label for="statusFilter">Trạng thái:</label>
                             <select name="status" id="statusFilter">
                                 <option value="ALL" <%= "ALL".equals(status) ? "selected" : "" %>>Tất cả</option>
-                                <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>Đang hoạt động</option>
-                                <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>Đã vô hiệu hóa</option>
+                                <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>ACTIVE</option>
+                                <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>INACTIVE</option>
                             </select>
                         </div>
 
@@ -227,6 +227,7 @@
                                 <th>Giá bán</th>
                                 <th>Số lượng nhập</th>
                                 <th>Số lượng tồn</th>
+                                <th>Số lượng bán</th>
                                 <th>Trạng thái</th>
                                 <th>Thao tác</th>
                             </tr>
@@ -234,7 +235,7 @@
                         <tbody>
                             <% if (products.isEmpty()) { %>
                             <tr>
-                                <td colspan="10" style="text-align:center; padding: 40px; color: #9ca3af;">
+                                <td colspan="11" style="text-align:center; padding: 40px; color: #9ca3af;">
                                     Không tìm thấy sản phẩm nào khớp với bộ lọc
                                 </td>
                             </tr>
@@ -269,6 +270,7 @@
                                     <span style="color: #ef4444; font-weight: 500;">0</span>
                                     <% } %>
                                 </td>
+                                <td><%= p.getSoldQuantity() %></td>
                                 <td>
                                     <span class="<%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "active" : "inactive" %>">
                                         <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "ACTIVE" : "INACTIVE" %>

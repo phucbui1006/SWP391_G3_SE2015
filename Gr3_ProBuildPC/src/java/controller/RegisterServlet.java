@@ -30,9 +30,24 @@ public class RegisterServlet extends HttpServlet {
 
         UserDAO dao = new UserDAO();
         if (dao.checkEmailExist(email)) {
-            request.setAttribute("error", "Email da ton tai!");
+            request.setAttribute("error", "Email đã tồn tại!");
             request.getRequestDispatcher("/views/register.jsp").forward(request, response);
             return;
+        }
+
+        jakarta.servlet.http.HttpSession session = request.getSession();
+        Long expiredTime = (Long) session.getAttribute("regOtpExpiredTime");
+        String currentEmail = (String) session.getAttribute("regEmail");
+
+        if (expiredTime != null && currentEmail != null && currentEmail.equals(email)) {
+            long remainingTime = expiredTime - System.currentTimeMillis();
+            if (remainingTime > 0) {
+                long minutes = remainingTime / 60000;
+                long seconds = (remainingTime % 60000) / 1000;
+                request.setAttribute("error", String.format("Mã OTP đã được gửi. Vui lòng kiểm tra hòm thư hoặc thử lại sau %d phút %d giây.", minutes, seconds));
+                request.getRequestDispatcher("/views/register.jsp").forward(request, response);
+                return;
+            }
         }
 
         // Generate OTP
@@ -42,12 +57,11 @@ public class RegisterServlet extends HttpServlet {
         com.mifmif.common.regex.Generex generex = new com.mifmif.common.regex.Generex("[0-9]{6}");
         String otp = generex.random();
 
-        jakarta.servlet.http.HttpSession session = request.getSession();
         session.setAttribute("regFullName", fullName);
         session.setAttribute("regEmail", email);
         session.setAttribute("regPassword", password);
         session.setAttribute("regOtp", otp);
-        session.setAttribute("regOtpExpiredTime", System.currentTimeMillis() + 5 * 60 * 1000);
+        session.setAttribute("regOtpExpiredTime", System.currentTimeMillis() + 2 * 60 * 1000);
 
         System.out.println("Register OTP tạo ra là: " + otp);
 

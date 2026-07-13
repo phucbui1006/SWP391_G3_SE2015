@@ -5,7 +5,10 @@
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
+.headerBuild {
+    text-align: center;   /* Chiều cao toàn màn hình */
+    margin-left: 180px;
+}
 /* Local icon fallback: keeps icons available without a CDN/webfont connection. */
 .fa-solid,
 .fa-regular {
@@ -1111,7 +1114,7 @@ select {
 
 /* ==================== LOGIN / REGISTER / FORGOT PASSWORD ==================== */
 
-body:not(.home-page):not(.dashboard-body):not(.profile-body):not(.cart-page):not(.categories-page):not(.brands-page):not(.product-detail-body):not(.admin-brand-body):not(.shipping-address-page):not(.checkout-page):not(.account-management-body):not(.warranty-lookup-page):not(.order-history-body):not(.batch-page-body):not(.profile-page-body):not(.warranty-history-page) {
+body:not(.home-page):not(.dashboard-body):not(.profile-body):not(.cart-page):not(.categories-page):not(.brands-page):not(.product-detail-body):not(.admin-brand-body):not(.shipping-address-page):not(.checkout-page):not(.account-management-body):not(.warranty-lookup-page):not(.order-history-body):not(.batch-page-body):not(.profile-page-body):not(.warranty-history-page):not(.revenue-body) {
     background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
         url('../images/background.jpg') no-repeat center center fixed;
     background-size: cover;
@@ -8662,6 +8665,7 @@ body.admin-brand-body .site-footer {
     font-weight: 800;
     color: #475467;
     cursor: pointer;
+    margin-top: 20px;
 }
 
 .build-clear-btn {
@@ -9055,46 +9059,32 @@ body.admin-brand-body .site-footer {
 }
 
 .build-quantity {
-    display: grid;
-    grid-template-columns: 34px 52px 34px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
     padding: 0;
 }
 
-.build-qty-btn,
 .build-qty-input {
-    height: 34px;
-    border: 1px solid #dbe1ea;
-    border-radius: 6px;
-    background: #fff;
-    color: #0046ff;
+    width: 74px;
+    height: 40px;
+    padding: 0 14px;
+    border: 1px solid #cfd6e3;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #000000;
     font-family: inherit;
-    font-size: 16px;
-    font-weight: 900;
+    font-size: 20px;
+    font-weight: 400;
     text-align: center;
-}
-
-.build-qty-btn {
-    cursor: pointer;
-}
-
-.build-qty-btn:hover {
-    border-color: #ed1c24;
-    color: #ed1c24;
-}
-
-.build-qty-input {
-    width: 52px;
-    padding: 0 4px;
     outline: none;
-    color: #1f2937;
 }
 
 .build-qty-input:focus {
-    border-color: #ed1c24;
-    box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.12);
+    border-color: #9fb0c8;
+    box-shadow: 0 0 0 3px rgba(159, 176, 200, 0.18);
 }
 
 .build-part-actions {
@@ -9313,8 +9303,9 @@ body.admin-brand-body .site-footer {
     }
 
     .build-quantity {
-        padding: 0 16px 14px;
-        justify-content: start;
+        margin: 0 16px 14px;
+        padding: 0;
+        justify-content: center;
     }
 
     .build-part-actions {
@@ -9940,44 +9931,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     word-break: normal;
 }
 
-.admin-best-selling-table th:nth-child(1),
-.admin-best-selling-table td:nth-child(1) {
-    width: 82px;
-}
-
-.admin-best-selling-table th:nth-child(3),
-.admin-best-selling-table td:nth-child(3),
-.admin-low-stock-table th:nth-child(2),
-.admin-low-stock-table td:nth-child(2) {
-    width: 76px;
-    text-align: center;
-}
-
-.admin-low-stock-table th:nth-child(3),
-.admin-low-stock-table td:nth-child(3) {
-    width: 112px;
-}
-
-.admin-latest-orders-table th:nth-child(1),
-.admin-latest-orders-table td:nth-child(1) {
-    width: 82px;
-}
-
-.admin-latest-orders-table th:nth-child(3),
-.admin-latest-orders-table td:nth-child(3) {
-    width: 112px;
-}
-
-.admin-latest-orders-table th:nth-child(4),
-.admin-latest-orders-table td:nth-child(4) {
-    width: 124px;
-}
-
-.admin-latest-orders-table th:nth-child(5),
-.admin-latest-orders-table td:nth-child(5) {
-    width: 118px;
-}
-
 .admin-dashboard-table th,
 .employee-request-table th {
     background: #fafbfe;
@@ -10007,8 +9960,9 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-weight: 400;
 }
 
-.admin-dashboard-table .admin-status,
-.employee-request-table .request-status {
+.admin-dashboard-table .shipment-status,
+.employee-request-table .request-status,
+.shipment-order-table .shipment-status {
     color: black !important;
     min-height: 0;
     padding: 0;
@@ -10019,11 +9973,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-size: 14px;
     line-height: 1.45;
     font-weight: 400;
-}
-
-.admin-dashboard-table .admin-placeholder-row td {
-    height: 50px;
-    color: transparent;
 }
 
 .admin-panel-footer {
@@ -10049,52 +9998,18 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-weight: 900;
 }
 
-.admin-count-list,
-.admin-account-grid {
-    display: grid;
-    gap: 0;
-    padding: 0;
+.admin-account-chart-wrap {
+    min-height: 320px;
+    padding: 20px;
 }
 
-.admin-count-list p,
-.admin-account-grid div {
-    min-height: 49px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin: 0;
-    padding: 14px 16px;
-    border: 0;
-    border-bottom: 1px solid #eceff4;
-    background: transparent;
-    color: black;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 14px;
-    font-weight: 400;
+.admin-account-chart {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    justify-self: center;
 }
 
-.admin-count-list p:last-child,
-.admin-account-grid div:last-child {
-    border-bottom: 0;
-}
-
-.admin-count-list span,
-.admin-account-grid span {
-    color: black;
-    font-size: 14px;
-    font-weight: 400;
-}
-
-.admin-count-list strong,
-.admin-account-grid strong {
-    color: black;
-    font-size: 14px;
-    font-weight: 400;
-}
-
-.admin-count-list .admin-empty-message,
-.admin-account-grid .admin-empty-message,
 .admin-dashboard-table .admin-empty-message {
     color: black !important;
     font-size: 14px !important;
@@ -10102,7 +10017,8 @@ body.dashboard-body .dashboard-card.shipment-shell {
 }
 
 .admin-status,
-.request-status {
+.request-status,
+.shipment-status {
     min-height: 28px;
     display: inline-flex;
     align-items: center;
@@ -10116,7 +10032,9 @@ body.dashboard-body .dashboard-card.shipment-shell {
 }
 
 .admin-dashboard-table .admin-status,
-.employee-request-table .request-status {
+.admin-dashboard-table .shipment-status,
+.employee-request-table .request-status,
+.shipment-order-table .shipment-status {
     color: black !important;
     min-height: 0;
     padding: 0;
@@ -10129,7 +10047,8 @@ body.dashboard-body .dashboard-card.shipment-shell {
 }
 
 .admin-status.active,
-.request-status.received {
+.request-status.received,
+.shipment-status.confirmed {
     color: black !important;
 }
 
@@ -10137,7 +10056,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     color: black !important;
 }
 
-.admin-status.inactive,
 .request-status.rejected {
     background: #fff1f2;
     color: #dc2626;
@@ -10230,9 +10148,144 @@ body.dashboard-body .dashboard-card.shipment-shell {
     .admin-dashboard-table {
         min-width: 0;
     }
+
+    .admin-account-chart-wrap {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        padding: 16px;
+    }
+
+    .admin-account-chart {
+        height: 220px;
+    }
 }
 
 /* ==================== PRODUCT RATING STARS ==================== */
+.build-part-row.is-empty {
+    min-height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 18px 12px 18px 14px;
+    border: 0;
+    border-radius: 6px;
+    background: #f1f3f6;
+    box-shadow: none;
+}
+
+.build-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 24px;
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.build-breadcrumb a {
+    color: #4b5563;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.18s ease;
+}
+
+.build-breadcrumb a:hover {
+    color: #111827;
+}
+
+.build-breadcrumb span {
+    color: #9ca3af;
+}
+
+.build-breadcrumb strong {
+    color: #111827;
+    font-weight: 800;
+}
+
+.build-empty-slot-main {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.build-slot-placeholder {
+    width: 66px;
+    height: 66px;
+    flex: 0 0 66px;
+    object-fit: contain;
+}
+
+.build-empty-slot-main strong {
+    color: #16202c;
+    font-size: 24px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.build-empty-choose {
+    min-width: 110px;
+    height: 40px;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 7px;
+    background: #e9141d;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.build-empty-choose:hover {
+    background: #c91627;
+    box-shadow: 0 10px 20px rgba(201, 22, 39, 0.18);
+    transform: translateY(-1px);
+}
+
+.build-cart-btn.is-adding {
+    cursor: wait;
+    opacity: 0.78;
+}
+
+.build-cart-btn.is-added {
+    background: #16a34a;
+    box-shadow: 0 16px 30px rgba(22, 163, 74, 0.18);
+}
+
+@media (max-width: 760px) {
+    .build-part-row.is-empty {
+        min-height: 92px;
+        flex-direction: row;
+        padding: 14px;
+    }
+
+    .build-empty-slot-main {
+        gap: 14px;
+    }
+
+    .build-slot-placeholder {
+        width: 54px;
+        height: 54px;
+        flex-basis: 54px;
+    }
+
+    .build-empty-slot-main strong {
+        font-size: 20px;
+    }
+
+    .build-empty-choose {
+        min-width: 88px;
+        height: 38px;
+        font-size: 16px;
+    }
+}
+
 .product-rating {
     display: flex;
     align-items: center;

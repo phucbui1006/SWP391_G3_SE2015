@@ -174,26 +174,26 @@ public class AccountManagementServlet extends HttpServlet {
         }
 
         if (userDAO.createStaff(fullName, email, initialPassword, roleId)) {
-            session.setAttribute("accountSuccess", "Tao tai khoan nhan vien thanh cong. Mat khau da duoc gui vao email.");
+            session.setAttribute("accountSuccess", "Tạo tài khoản nhân viên thành công. Mật khẩu đã được gửi vào email.");
         } else {
-            session.setAttribute("accountError", "Khong the tao tai khoan nhan vien (Loi Database).");
+            session.setAttribute("accountError", "Không thể tạo nhân viên.");
         }
     }
 
     private void resetPassword(HttpServletRequest request, HttpSession session, User currentAdmin, int targetUserId) {
         if (currentAdmin.getUserId() == targetUserId) {
-            session.setAttribute("accountError", "Ban khong the tu reset mat khau cua chinh minh tai day.");
+            session.setAttribute("accountError", "Bạn không thể tự reset mật khẩu của chính mình.");
             return;
         }
 
         User targetUser = userDAO.getUserById(targetUserId);
         if (targetUser == null) {
-            session.setAttribute("accountError", "Tai khoan khong ton tai.");
+            session.setAttribute("accountError", "Tài khoản không tồn tại.");
             return;
         }
 
         if (!targetUser.isStaff()) {
-            session.setAttribute("accountError", "Chi co the reset mat khau cho nhan vien (Staff).");
+            session.setAttribute("accountError", "Chỉ có thể reset mật khẩu của nhân viên (Staff).");
             return;
         }
 
@@ -208,14 +208,14 @@ public class AccountManagementServlet extends HttpServlet {
         boolean emailSent = util.EmailService.sendAdminResetPasswordEmail(targetUser.getEmail(), randomPassword);
         
         if (!emailSent) {
-            session.setAttribute("accountError", "Khong the gui email reset mat khau den email cua nhan vien.");
+            session.setAttribute("accountError", "Không thể gửi email reset mật khẩu đến email của nhân viên.");
             return;
         }
 
         if (userDAO.updatePassword(targetUser.getEmail(), initialPassword)) {
-            session.setAttribute("accountSuccess", "Reset mat khau thanh cong. Mat khau moi cua nhan vien da duoc gui den email cua ho.");
+            session.setAttribute("accountSuccess", "Reset mật khẩu thành công. Mật khẩu mới của nhân viên đã được gửi đến email của họ.");
         } else {
-            session.setAttribute("accountError", "Reset mat khau that bai do loi Database.");
+            session.setAttribute("accountError", "Reset mật khẩu thất bại do lỗi Database.");
         }
     }
 

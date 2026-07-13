@@ -9,18 +9,14 @@ public class AdminDashboardView {
     private String formAction;
     private List<StatCard> statCards = new ArrayList<>();
     private List<ProductRow> bestSellingProducts = new ArrayList<>();
-    private List<ProductRow> lowStockProducts = new ArrayList<>();
-    private List<OrderSummaryRow> orderSummaries = new ArrayList<>();
     private List<CountRow> accountSummaries = new ArrayList<>();
     private List<ChartPoint> revenueTimeline = new ArrayList<>();
-    private List<ChartPoint> categoryRevenue = new ArrayList<>();
+    private List<ChartPoint> categorySoldProducts = new ArrayList<>();
     private List<ChartPoint> orderStatusCounts = new ArrayList<>();
     private List<ChartPoint> lowStockProductsChart = new ArrayList<>();
     private LocalDate chartStartDate;
     private LocalDate chartEndDate;
     private String chartPeriodLabel;
-    private String bestSellingFooterMessage;
-    private String lowStockFooterMessage;
 
     public String getFormAction() {
         return formAction;
@@ -46,22 +42,6 @@ public class AdminDashboardView {
         this.bestSellingProducts = bestSellingProducts == null ? new ArrayList<>() : bestSellingProducts;
     }
 
-    public List<ProductRow> getLowStockProducts() {
-        return lowStockProducts;
-    }
-
-    public void setLowStockProducts(List<ProductRow> lowStockProducts) {
-        this.lowStockProducts = lowStockProducts == null ? new ArrayList<>() : lowStockProducts;
-    }
-
-    public List<OrderSummaryRow> getOrderSummaries() {
-        return orderSummaries;
-    }
-
-    public void setOrderSummaries(List<OrderSummaryRow> orderSummaries) {
-        this.orderSummaries = orderSummaries == null ? new ArrayList<>() : orderSummaries;
-    }
-
     public List<CountRow> getAccountSummaries() {
         return accountSummaries;
     }
@@ -78,12 +58,12 @@ public class AdminDashboardView {
         this.revenueTimeline = revenueTimeline == null ? new ArrayList<>() : revenueTimeline;
     }
 
-    public List<ChartPoint> getCategoryRevenue() {
-        return categoryRevenue;
+    public List<ChartPoint> getCategorySoldProducts() {
+        return categorySoldProducts;
     }
 
-    public void setCategoryRevenue(List<ChartPoint> categoryRevenue) {
-        this.categoryRevenue = categoryRevenue == null ? new ArrayList<>() : categoryRevenue;
+    public void setCategorySoldProducts(List<ChartPoint> categorySoldProducts) {
+        this.categorySoldProducts = categorySoldProducts == null ? new ArrayList<>() : categorySoldProducts;
     }
 
     public List<ChartPoint> getOrderStatusCounts() {
@@ -126,22 +106,6 @@ public class AdminDashboardView {
         this.chartPeriodLabel = chartPeriodLabel;
     }
 
-    public String getBestSellingFooterMessage() {
-        return bestSellingFooterMessage;
-    }
-
-    public void setBestSellingFooterMessage(String bestSellingFooterMessage) {
-        this.bestSellingFooterMessage = bestSellingFooterMessage;
-    }
-
-    public String getLowStockFooterMessage() {
-        return lowStockFooterMessage;
-    }
-
-    public void setLowStockFooterMessage(String lowStockFooterMessage) {
-        this.lowStockFooterMessage = lowStockFooterMessage;
-    }
-
     public static class StatCard {
         private final String iconClass;
         private final String icon;
@@ -179,25 +143,12 @@ public class AdminDashboardView {
     }
 
     public static class ProductRow {
-        private final String productCode;
         private final String productName;
         private final int soldQuantity;
-        private final int stockQuantity;
-        private final String status;
-        private final String statusClass;
 
-        public ProductRow(String productCode, String productName, int soldQuantity, int stockQuantity,
-                String status, String statusClass) {
-            this.productCode = productCode;
+        public ProductRow(String productName, int soldQuantity) {
             this.productName = productName;
             this.soldQuantity = soldQuantity;
-            this.stockQuantity = stockQuantity;
-            this.status = status;
-            this.statusClass = statusClass;
-        }
-
-        public String getProductCode() {
-            return productCode;
         }
 
         public String getProductName() {
@@ -206,48 +157,6 @@ public class AdminDashboardView {
 
         public int getSoldQuantity() {
             return soldQuantity;
-        }
-
-        public int getStockQuantity() {
-            return stockQuantity;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public String getStatusClass() {
-            return statusClass;
-        }
-    }
-
-    public static class OrderSummaryRow {
-        private final String label;
-        private final String value;
-        private final String note;
-        private final String statusClass;
-
-        public OrderSummaryRow(String label, String value, String note, String statusClass) {
-            this.label = label;
-            this.value = value;
-            this.note = note;
-            this.statusClass = statusClass;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public String getNote() {
-            return note;
-        }
-
-        public String getStatusClass() {
-            return statusClass;
         }
     }
 

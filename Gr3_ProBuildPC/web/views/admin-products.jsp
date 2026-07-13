@@ -320,8 +320,29 @@
                         <span class="page-btn disabled"><</span>
                         <% } %>
 
-                        <% for (int i = 1; i <= totalPages; i++) { %>
+                        <%
+                            int fromPage = Math.max(2, currentPage - 2);
+                            int toPage = Math.min(totalPages - 1, currentPage + 2);
+                            if (currentPage <= 4) {
+                                fromPage = 2;
+                                toPage = Math.min(totalPages - 1, 5);
+                            } else if (currentPage >= totalPages - 3) {
+                                fromPage = Math.max(2, totalPages - 4);
+                                toPage = totalPages - 1;
+                            }
+                        %>
+                        <a class="page-btn <%= currentPage == 1 ? "active" : "" %>" href="<%= contextPath %>/admin/products?page=1<%= listQuery %>">1</a>
+                        <% if (fromPage > 2) { %>
+                        <span class="page-btn disabled">...</span>
+                        <% } %>
+                        <% for (int i = fromPage; i <= toPage; i++) { %>
                         <a class="page-btn <%= currentPage == i ? "active" : "" %>" href="<%= contextPath %>/admin/products?page=<%= i %><%= listQuery %>"><%= i %></a>
+                        <% } %>
+                        <% if (toPage < totalPages - 1) { %>
+                        <span class="page-btn disabled">...</span>
+                        <% } %>
+                        <% if (totalPages > 1) { %>
+                        <a class="page-btn <%= currentPage == totalPages ? "active" : "" %>" href="<%= contextPath %>/admin/products?page=<%= totalPages %><%= listQuery %>"><%= totalPages %></a>
                         <% } %>
 
                         <% if (currentPage < totalPages) { %>

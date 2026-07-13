@@ -71,10 +71,12 @@ public class ReviewDAO extends DBContext {
         List<Review> list = new ArrayList<>();
 
         String sql = """
-            SELECT review_id, customer_id, rating, product_id, comment, date
-            FROM reviews
-            WHERE product_id = ?
-            ORDER BY date DESC
+            SELECT r.review_id, r.customer_id, r.rating, r.product_id, r.comment, r.date, u.full_name
+            FROM reviews r
+            JOIN customers c ON r.customer_id = c.customer_id
+            JOIN users u ON c.user_id = u.user_id
+            WHERE r.product_id = ?
+            ORDER BY r.date DESC
         """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -84,6 +86,7 @@ public class ReviewDAO extends DBContext {
                     Review r = new Review();
                     r.setReviewId(rs.getInt("review_id"));
                     r.setCustomerId(rs.getInt("customer_id"));
+                    r.setReviewerName(rs.getString("full_name"));
                     r.setRating(rs.getInt("rating"));
                     r.setProductId(rs.getInt("product_id"));
                     r.setComment(rs.getString("comment"));
@@ -103,11 +106,13 @@ public class ReviewDAO extends DBContext {
         List<Review> list = new ArrayList<>();
 
         String sql = """
-            SELECT review_id, customer_id, product_id, rating, comment, date
-            FROM reviews
-            WHERE product_id = ?
-              AND rating = ?
-            ORDER BY date DESC
+            SELECT r.review_id, r.customer_id, r.product_id, r.rating, r.comment, r.date, u.full_name
+            FROM reviews r
+            JOIN customers c ON r.customer_id = c.customer_id
+            JOIN users u ON c.user_id = u.user_id
+            WHERE r.product_id = ?
+              AND r.rating = ?
+            ORDER BY r.date DESC
         """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -118,6 +123,7 @@ public class ReviewDAO extends DBContext {
                     Review r = new Review();
                     r.setReviewId(rs.getInt("review_id"));
                     r.setUserId(rs.getInt("customer_id"));
+                    r.setReviewerName(rs.getString("full_name"));
                     r.setProductId(rs.getInt("product_id"));
                     r.setRating(rs.getInt("rating"));
                     r.setComment(rs.getString("comment"));
@@ -135,9 +141,11 @@ public class ReviewDAO extends DBContext {
 
     public Review getReviewByCustomerAndProduct(int customerId, int productId) {
         String sql = """
-            SELECT review_id, customer_id, rating, product_id, comment, date
-            FROM reviews
-            WHERE customer_id = ? AND product_id = ?
+            SELECT r.review_id, r.customer_id, r.rating, r.product_id, r.comment, r.date, u.full_name
+            FROM reviews r
+            JOIN customers c ON r.customer_id = c.customer_id
+            JOIN users u ON c.user_id = u.user_id
+            WHERE r.customer_id = ? AND r.product_id = ?
         """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, customerId);
@@ -147,6 +155,7 @@ public class ReviewDAO extends DBContext {
                     Review r = new Review();
                     r.setReviewId(rs.getInt("review_id"));
                     r.setCustomerId(rs.getInt("customer_id"));
+                    r.setReviewerName(rs.getString("full_name"));
                     r.setRating(rs.getInt("rating"));
                     r.setProductId(rs.getInt("product_id"));
                     r.setComment(rs.getString("comment"));

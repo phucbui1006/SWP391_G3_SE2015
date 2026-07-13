@@ -279,18 +279,40 @@
                                     <% } %>
                                 </li>
                                 <%
-                                    int fromPage = Math.max(1, pageNumber - 2);
-                                    int toPage = Math.min(totalPages, pageNumber + 2);
-                                    for (int p = fromPage; p <= toPage; p++) {
+                                    int fromPage = Math.max(2, pageNumber - 2);
+                                    int toPage = Math.min(totalPages - 1, pageNumber + 2);
+                                    if (pageNumber <= 4) {
+                                        fromPage = 2;
+                                        toPage = Math.min(totalPages - 1, 5);
+                                    } else if (pageNumber >= totalPages - 3) {
+                                        fromPage = Math.max(2, totalPages - 4);
+                                        toPage = totalPages - 1;
+                                    }
                                 %>
+                                    <li>
+                                        <a href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, 1) %>" style="padding: 5px 10px; border: 1px solid #ced4da; text-decoration: none; border-radius: 4px; <%= pageNumber == 1 ? "background-color: #0d6efd; color: white;" : "color: #0d6efd;" %>">
+                                            1
+                                        </a>
+                                    </li>
+                                <% if (fromPage > 2) { %>
+                                    <li><span style="padding: 5px 10px; color: #6c757d;">...</span></li>
+                                <% } %>
+                                <% for (int p = fromPage; p <= toPage; p++) { %>
                                     <li>
                                         <a href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, p) %>" style="padding: 5px 10px; border: 1px solid #ced4da; text-decoration: none; border-radius: 4px; <%= p == pageNumber ? "background-color: #0d6efd; color: white;" : "color: #0d6efd;" %>">
                                             <%= p %>
                                         </a>
                                     </li>
                                 <% } %>
-                                <% if (toPage < totalPages) { %>
+                                <% if (toPage < totalPages - 1) { %>
                                     <li><span style="padding: 5px 10px; color: #6c757d;">...</span></li>
+                                <% } %>
+                                <% if (totalPages > 1) { %>
+                                    <li>
+                                        <a href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, totalPages) %>" style="padding: 5px 10px; border: 1px solid #ced4da; text-decoration: none; border-radius: 4px; <%= pageNumber == totalPages ? "background-color: #0d6efd; color: white;" : "color: #0d6efd;" %>">
+                                            <%= totalPages %>
+                                        </a>
+                                    </li>
                                 <% } %>
                                 <li>
                                     <% if (pageNumber < totalPages) { %>

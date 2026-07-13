@@ -248,61 +248,34 @@
 
                     <div class="category-pagination">
 
-                        <c:url var="prevPageUrl" value="/categories">
-                            <c:if test="${selectedCategory != null}">
-                                <c:param name="id" value="${selectedCategory.categoryId}" />
-                            </c:if>
-                            <c:if test="${not empty keyword}">
-                                <c:param name="keyword" value="${keyword}" />
-                            </c:if>
-                            <c:if test="${not empty contentKeyword}">
-                                <c:param name="contentKeyword" value="${contentKeyword}" />
-                            </c:if>
-                            <c:param name="sort" value="${selectedSort}" />
-                            <c:param name="page" value="${currentPage - 1}" />
-                        </c:url>
-
-                        <c:if test="${currentPage > 1}">
-                            <a href="${prevPageUrl}">Trước</a>
-                        </c:if>
-
-                        <c:forEach begin="1" end="${totalPages}" var="i">
-                            <c:url var="pageUrl" value="/categories">
-                                <c:if test="${selectedCategory != null}">
-                                    <c:param name="id" value="${selectedCategory.categoryId}" />
-                                </c:if>
-                                <c:if test="${not empty keyword}">
-                                    <c:param name="keyword" value="${keyword}" />
-                                </c:if>
-                                <c:if test="${not empty contentKeyword}">
-                                    <c:param name="contentKeyword" value="${contentKeyword}" />
-                                </c:if>
-                                <c:param name="sort" value="${selectedSort}" />
-                                <c:param name="page" value="${i}" />
-                            </c:url>
-
-                            <a class="${currentPage == i ? 'active' : ''}" href="${pageUrl}">
-                                ${i}
-                            </a>
-                        </c:forEach>
-
-                        <c:url var="nextPageUrl" value="/categories">
-                            <c:if test="${selectedCategory != null}">
-                                <c:param name="id" value="${selectedCategory.categoryId}" />
-                            </c:if>
-                            <c:if test="${not empty keyword}">
-                                <c:param name="keyword" value="${keyword}" />
-                            </c:if>
-                            <c:if test="${not empty contentKeyword}">
-                                <c:param name="contentKeyword" value="${contentKeyword}" />
-                            </c:if>
-                            <c:param name="sort" value="${selectedSort}" />
-                            <c:param name="page" value="${currentPage + 1}" />
-                        </c:url>
-
-                        <c:if test="${currentPage < totalPages}">
-                            <a href="${nextPageUrl}">Sau</a>
-                        </c:if>
+                        <%
+                            int fromPage = Math.max(2, currentPage - 2);
+                            int toPage = Math.min(totalPages - 1, currentPage + 2);
+                            if (currentPage <= 4) {
+                                fromPage = 2;
+                                toPage = Math.min(totalPages - 1, 5);
+                            } else if (currentPage >= totalPages - 3) {
+                                fromPage = Math.max(2, totalPages - 4);
+                                toPage = totalPages - 1;
+                            }
+                        %>
+                        <a class="<%= currentPage == 1 ? "active" : "" %>" href="<%= pagingUrl + 1 %>">1</a>
+                        <% if (fromPage > 2) { %>
+                        <span>...</span>
+                        <% } %>
+                        <% for (int i = fromPage; i <= toPage; i++) { %>
+                        <a class="<%= currentPage == i ? "active" : "" %>" href="<%= pagingUrl + i %>">
+                            <%= i %>
+                        </a>
+                        <% } %>
+                        <% if (toPage < totalPages - 1) { %>
+                        <span>...</span>
+                        <% } %>
+                        <% if (totalPages > 1) { %>
+                        <a class="<%= currentPage == totalPages ? "active" : "" %>" href="<%= pagingUrl + totalPages %>">
+                            <%= totalPages %>
+                        </a>
+                        <% } %>
 
                     </div>
                 </section>

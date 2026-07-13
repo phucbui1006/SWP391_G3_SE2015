@@ -284,8 +284,7 @@ public class DashboardServlet extends HttpServlet {
         return cards;
     }
 
-    
-    //Ship menent dashboard
+    // Shipment dashboard
     private void prepareShipmentDashboard(HttpServletRequest request) {
         LocalDate referenceDate = LocalDate.now();
         LocalDate weekStart = referenceDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));

@@ -252,7 +252,7 @@
         <main class="order-history-page">
             <nav class="order-history-breadcrumb" aria-label="Breadcrumb">
                 <a href="<%= isCustomerView ? ctx + "/home" : ctx + "/Dashboard" %>">Trang chủ</a>
-                <span>/</span>
+                <span>&gt;</span>
                 <span><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý giao hàng") %></span>
             </nav>
 

@@ -51,17 +51,17 @@ public class ValidatorUtil {
 
     public static String getCategoryNameError(String categoryName) {
         if (categoryName == null || categoryName.trim().isEmpty()) {
-            return "TÃªn danh má»¥c khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.";
+            return "Tên danh mục không được để trống.";
         }
 
         String trimmed = categoryName.trim();
 
         if (trimmed.length() < 2 || trimmed.length() > 100) {
-            return "TÃªn danh má»¥c pháº£i tá»« 2 Ä‘áº¿n 100 kÃ½ tá»±.";
+            return "Tên danh mục phải từ 2 đến 100 ký tự.";
         }
 
         if (trimmed.matches(".*\\s{2,}.*")) {
-            return "TÃªn danh má»¥c khÃ´ng Ä‘Æ°á»£c chá»©a nhiá»u dáº¥u cÃ¡ch liÃªn tiáº¿p.";
+            return "Tên danh mục không được chứa nhiều dấu cách liên tiếp.";
         }
 
         return null;
@@ -155,16 +155,16 @@ public class ValidatorUtil {
     public static String getPurchaseQuantityError(String quantityRaw) {
         if (quantityRaw == null || quantityRaw.trim().isEmpty()
                 || !quantityRaw.trim().matches("^\\d+$")) {
-            return "Vui lÃ²ng chá»‰ nháº­p sá»‘ nguyÃªn cho sá»‘ lÆ°á»£ng.";
+            return "Vui lòng chỉ nhập số nguyên cho số lượng.";
         }
 
         try {
             int quantity = Integer.parseInt(quantityRaw.trim());
             if (quantity < 1) {
-                return "Sá»‘ lÆ°á»£ng pháº£i lá»›n hÆ¡n hoáº·c báº±ng 1.";
+                return "Số lượng phải lớn hơn hoặc bằng 1.";
             }
         } catch (NumberFormatException e) {
-            return "Sá»‘ lÆ°á»£ng khÃ´ng há»£p lá»‡.";
+            return "Số lượng không hợp lệ.";
         }
 
         return null;
@@ -194,7 +194,7 @@ public class ValidatorUtil {
 
     public static String getPurchaseStockError(int requestedQuantity, int stockQuantity) {
         if (requestedQuantity > stockQuantity) {
-            return "Sá»‘ lÆ°á»£ng khÃ´ng Ä‘Æ°á»£c lá»›n hÆ¡n sá»‘ lÆ°á»£ng trong kho (" + stockQuantity + ").";
+            return "Số lượng không được lớn hơn số lượng trong kho (" + stockQuantity + ").";
         }
 
         return null;

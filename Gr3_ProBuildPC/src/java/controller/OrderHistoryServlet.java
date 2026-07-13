@@ -170,10 +170,10 @@ public class OrderHistoryServlet extends HttpServlet {
 
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
         if (orderHistoryDAO.updateShipmentStatus(orderId, shipmentStatusId, shipmentNote, isShipment(account))) {
-            session.setAttribute(SUCCESS_FLASH, "Cap nhat trang thai giao hang thanh cong.");
+            session.setAttribute(SUCCESS_FLASH, "Cập nhật trạng thái giao hàng thành công.");
             session.setAttribute("lastDeliveryPhone", deliveryPhone);
         } else {
-            session.setAttribute(ERROR_FLASH, "Khong the cap nhat trang thai giao hang hoac trang thai da bi khoa.");
+            session.setAttribute(ERROR_FLASH, "Không thể cập nhật trạng thái giao hàng hoặc trạng thái đã bị khóa.");
         }
 
         response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
@@ -186,13 +186,13 @@ public class OrderHistoryServlet extends HttpServlet {
             User account,
             Integer orderId) throws IOException {
         if (!account.isCustomer()) {
-            session.setAttribute(ERROR_FLASH, "Chi khach hang moi co the huy don hang cua minh.");
+            session.setAttribute(ERROR_FLASH, "Chỉ khách hàng mới có thể hủy đơn hàng của mình.");
             response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
             return;
         }
 
         if (orderId == null) {
-            session.setAttribute(ERROR_FLASH, "Don hang can huy khong hop le.");
+            session.setAttribute(ERROR_FLASH, "Đơn hàng cần hủy không hợp lệ.");
             response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, null));
             return;
         }
@@ -200,7 +200,7 @@ public class OrderHistoryServlet extends HttpServlet {
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
         boolean cancelled = orderHistoryDAO.cancelWaitingOrder(orderId, account.getCustomerId());
         if (cancelled) {
-            session.setAttribute(SUCCESS_FLASH, "Da huy don hang thanh cong.");
+            session.setAttribute(SUCCESS_FLASH, "Đã hủy đơn hàng thành công.");
         } else {
             session.setAttribute(ERROR_FLASH, "Chỉ có thể hủy đơn hàng đang ở trạng thái Chờ xác nhận hoặc Đã xác nhận.");
         }

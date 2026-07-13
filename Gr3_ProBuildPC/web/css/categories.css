@@ -477,7 +477,8 @@ body.categories-page {
     margin-top: 30px;
 }
 
-.category-pagination a {
+.category-pagination a,
+.category-pagination span {
     min-width: 38px;
     height: 38px;
     display: inline-flex;

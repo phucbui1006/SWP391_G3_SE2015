@@ -471,9 +471,11 @@ body.order-history-body * {
     margin-top: 28px;
 }
 
-.order-history-pagination a {
-    width: 34px;
+.order-history-pagination a,
+.order-history-pagination span {
+    min-width: 34px;
     height: 34px;
+    padding: 0 12px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -483,6 +485,25 @@ body.order-history-body * {
     text-decoration: none;
     font-size: 14px;
     font-weight: 800;
+}
+
+.order-history-pagination a.prev,
+.order-history-pagination a.next {
+    font-size: 0;
+}
+
+.order-history-pagination a.prev::after,
+.order-history-pagination a.next::after {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.order-history-pagination a.prev::after {
+    content: "Tr\01B0\1EDBc";
+}
+
+.order-history-pagination a.next::after {
+    content: "Sau";
 }
 
 .order-history-pagination a.active {
@@ -10119,7 +10140,8 @@ body.dashboard-body .dashboard-card.shipment-shell {
     border-top: 1px solid #edf0f5;
 }
 
-.shipment-pagination a {
+.shipment-pagination a,
+.shipment-pagination span {
     min-width: 34px;
     height: 34px;
     display: inline-flex;
@@ -10139,7 +10161,8 @@ body.dashboard-body .dashboard-card.shipment-shell {
     color: #c91627;
 }
 
-.shipment-pagination a.disabled {
+.shipment-pagination a.disabled,
+.shipment-pagination span.disabled {
     opacity: 0.45;
     pointer-events: none;
 }

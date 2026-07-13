@@ -364,8 +364,12 @@
                             <a class="<%= shipmentDashboard.getPage() <= 1 ? "disabled" : "" %>"
                                href="<%= shipmentDashboard.getPreviousPageUrl() %>">‹</a>
                             <% for (ShipmentDashboardView.PageLink pageLink : shipmentDashboard.getPageLinks()) { %>
+                            <% if (pageLink.isClickable()) { %>
                             <a class="<%= pageLink.isActive() ? "active" : "" %>"
-                               href="<%= pageLink.getUrl() %>"><%= pageLink.getPageNumber() %></a>
+                               href="<%= pageLink.getUrl() %>"><%= pageLink.getLabel() %></a>
+                            <% } else { %>
+                            <span class="disabled"><%= pageLink.getLabel() %></span>
+                            <% } %>
                             <% } %>
                             <a class="<%= shipmentDashboard.getPage() >= shipmentDashboard.getTotalPages() ? "disabled" : "" %>"
                                href="<%= shipmentDashboard.getNextPageUrl() %>">›</a>

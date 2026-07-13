@@ -39,7 +39,7 @@ public class OrderHistoryServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
-        String keyword = normalizeText(request.getParameter("keyword"));
+        String keyword = normalizeOrderKeyword(request.getParameter("keyword"));
         Integer selectedStatusId = parsePositiveInteger(request.getParameter("statusId"));
         int page = parsePositiveInt(request.getParameter("page"), 1);
         Integer customerUserId = account.isCustomer() ? account.getUserId() : null;
@@ -96,6 +96,18 @@ public class OrderHistoryServlet extends HttpServlet {
         request.setAttribute("deliveryHistoryMode", deliveryHistoryMode);
 
         request.getRequestDispatcher(VIEW_PATH).forward(request, response);
+    }
+
+    private String normalizeOrderKeyword(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        String digitsOnly = value.replaceAll("\\D", "").trim();
+        if (digitsOnly.length() > 20) {
+            digitsOnly = digitsOnly.substring(0, 20);
+        }
+        return digitsOnly;
     }
 
     private List<OrderStatus> filterStatusOptions(List<OrderStatus> statuses) {

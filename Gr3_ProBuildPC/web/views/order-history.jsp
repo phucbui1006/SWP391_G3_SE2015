@@ -736,7 +736,8 @@
                 window.validateOrderSearch = function() {
                     const searchInput = document.getElementById('searchKeyword');
                     if (searchInput && searchInput.value.trim() !== '') {
-                        if (!Validator.validateSearchQuery(searchInput.value)) {
+                        searchInput.value = searchInput.value.replace(/\D/g, '').slice(0, 20);
+                        if (!/^\d{1,20}$/.test(searchInput.value)) {
                             alert('Từ khóa tìm kiếm không hợp lệ hoặc chứa ký tự đặc biệt.');
                             searchInput.focus();
                             return false;
@@ -744,6 +745,16 @@
                     }
                     return true;
                 };
+
+                const orderSearchInput = document.getElementById('searchKeyword');
+                if (orderSearchInput) {
+                    orderSearchInput.setAttribute('maxlength', '20');
+                    orderSearchInput.setAttribute('inputmode', 'numeric');
+                    orderSearchInput.setAttribute('pattern', '[0-9]{0,20}');
+                    orderSearchInput.addEventListener('input', function () {
+                        this.value = this.value.replace(/\D/g, '').slice(0, 20);
+                    });
+                }
 
                 // --- LOGIC ĐÁNH GIÁ SẢN PHẨM ---
                 const starRatingPicker = document.querySelector(".star-rating-picker");

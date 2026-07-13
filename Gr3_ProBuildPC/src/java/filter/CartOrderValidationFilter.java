@@ -225,7 +225,7 @@ public class CartOrderValidationFilter implements Filter {
         // Validate Search in GET
         if ("GET".equalsIgnoreCase(req.getMethod())) {
             String keyword = req.getParameter("keyword");
-            if (keyword != null && !keyword.trim().isEmpty() && !util.ValidatorUtil.isValidSearchQuery(keyword)) {
+            if (keyword != null && !keyword.trim().isEmpty() && !util.ValidatorUtil.isValidOrderSearchQuery(keyword)) {
                 HttpSession session = req.getSession(false);
                 if (session != null) {
                     session.setAttribute("orderHistoryError", "Từ khóa tìm kiếm không hợp lệ (quá dài hoặc chứa ký tự đặc biệt).");

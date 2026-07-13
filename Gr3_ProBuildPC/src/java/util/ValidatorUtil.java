@@ -122,6 +122,12 @@ public class ValidatorUtil {
         return trimmed.length() <= 100;
     }
 
+    public static boolean isValidOrderSearchQuery(String query) {
+        if (query == null || query.trim().isEmpty()) return false;
+        String trimmed = query.trim();
+        return trimmed.length() <= 20 && trimmed.matches("\\d+");
+    }
+
     public static String safeTrimAndClean(String value) {
         if (value == null) return "";
         return value.trim().replaceAll("[<>='\"%]", "");

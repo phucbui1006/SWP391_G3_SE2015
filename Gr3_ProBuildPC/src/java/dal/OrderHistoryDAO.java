@@ -384,28 +384,8 @@ public class OrderHistoryDAO extends DBContext {
 
         OrderSearchCriteria searchCriteria = OrderSearchCriteria.fromKeyword(trackingKeyword);
         if (searchCriteria.hasKeyword()) {
-            String likeKeyword = "%" + searchCriteria.getKeyword() + "%";
-            String compactLikeKeyword = "%" + searchCriteria.getCompactKeyword() + "%";
-            sql.append(" AND (");
-
-            if (searchCriteria.getOrderId() != null) {
-                sql.append(" o.order_id = ? OR");
-                params.add(searchCriteria.getOrderId());
-            }
-
-            sql.append("""
-                        LOWER(CONCAT('PB', o.order_id)) LIKE ?
-                        OR LOWER(CAST(o.order_id AS CHAR)) LIKE ?
-                        OR LOWER(COALESCE(sh.tracking_code, '')) LIKE ?
-                        OR LOWER(CONCAT('TRK', o.order_id)) LIKE ?
-                        OR LOWER(REPLACE(REPLACE(REPLACE(COALESCE(sh.tracking_code, ''), '-', ''), ' ', ''), '#', '')) LIKE ?
-                       )
-                       """);
-            params.add(likeKeyword);
-            params.add(likeKeyword);
-            params.add(likeKeyword);
-            params.add(likeKeyword);
-            params.add(compactLikeKeyword);
+            sql.append(" AND CAST(o.order_id AS CHAR) = ?");
+            params.add(searchCriteria.getKeyword());
         }
 
         if (statusId != null) {

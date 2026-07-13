@@ -13,12 +13,14 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.Category;
 import model.Product;
 import model.User;
 
-@WebServlet(name = "CategoryServlet", urlPatterns = {"/categories"})
+@WebServlet(name = "CategoryServlet", urlPatterns = { "/categories" })
 public class CategoryServlet extends HttpServlet {
 
     private final CategoryDAO categoryDAO = new CategoryDAO();
@@ -48,6 +50,7 @@ public class CategoryServlet extends HttpServlet {
         }
 
         String contentKeyword = request.getParameter("contentKeyword");
+        boolean contentSearchSubmitted = contentKeyword != null;
         if (contentKeyword == null) {
             contentKeyword = "";
         } else {
@@ -55,7 +58,10 @@ public class CategoryServlet extends HttpServlet {
         }
 
         String activeKeyword = "";
-        if (!contentKeyword.isEmpty()) {
+        if (contentSearchSubmitted) {
+            // The category-page search overrides (and can explicitly clear) the header
+            // search.
+            keyword = "";
             activeKeyword = contentKeyword;
         } else if (!keyword.isEmpty()) {
             activeKeyword = keyword;
@@ -97,6 +103,8 @@ public class CategoryServlet extends HttpServlet {
 
         if (products == null) {
             products = new ArrayList<>();
+        } else {
+            products.removeIf(product -> product.getQuantity() <= 0);
         }
 
         int pageSize = 12;
@@ -138,6 +146,13 @@ public class CategoryServlet extends HttpServlet {
             pagingProducts = products.subList(fromIndex, toIndex);
         }
 
+        Map<Integer, Double> productRatings = new HashMap<>();
+        for (Product product : pagingProducts) {
+            productRatings.put(
+                    product.getProductId(),
+                    productDAO.getAverageRating(product.getProductId()));
+        }
+
         String title = "Tất cả sản phẩm";
         if (selectedCategory != null) {
             title = "Danh mục: " + selectedCategory.getCategoryName();
@@ -164,6 +179,7 @@ public class CategoryServlet extends HttpServlet {
         request.setAttribute("ctx", ctx);
         request.setAttribute("categories", categories);
         request.setAttribute("products", pagingProducts);
+        request.setAttribute("productRatings", productRatings);
         request.setAttribute("totalProducts", totalProducts);
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("totalPages", totalPages);

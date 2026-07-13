@@ -10,7 +10,7 @@
         <title>Danh mục sản phẩm - ProBuild PC</title>
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=2">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/categories.css?v=53">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/categories.css?v=54">
     </head>
 
     <body class="categories-page" data-context-path="${pageContext.request.contextPath}">
@@ -191,6 +191,14 @@
                                         <strong>
                                             <fmt:formatNumber value="${p.price}" pattern="#,###" />đ
                                         </strong>
+
+                                        <c:set var="rating" value="${productRatings[p.productId]}" />
+                                        <div class="product-rating" aria-label="Đánh giá ${rating} trên 5 sao">
+                                            <c:forEach begin="1" end="5" var="star">
+                                                <i class="${star <= rating ? 'fa-solid' : 'fa-regular'} fa-star" aria-hidden="true"></i>
+                                            </c:forEach>
+                                            <span><fmt:formatNumber value="${rating}" minFractionDigits="1" maxFractionDigits="1" /></span>
+                                        </div>
 
                                         <p class="product-stock ${p.quantity > 0 ? 'in-stock' : 'out-of-stock'}">
                                             <c:choose>

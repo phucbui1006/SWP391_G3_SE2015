@@ -83,7 +83,6 @@
                         <button type="submit">Tìm kiếm</button>
                     </form>
 
-                    <a href="${ctx}/ManageWarranty" class="brand-add-button" style="background-color: #ed1c24; text-decoration: none;">Làm mới</a>
                 </div>
 
                 <!-- Table Wrapper matching Brand style -->

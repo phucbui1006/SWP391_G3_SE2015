@@ -377,7 +377,8 @@ body.categories-page {
     width: 100%;
 }
 
-.category-product-card .product-rating {
+.category-product-card .product-rating,
+body.categories-page .product-card .product-rating {
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -388,11 +389,13 @@ body.categories-page {
     width: 100%;
 }
 
-.category-product-card .product-rating .fa-solid.fa-star {
+.category-product-card .product-rating .fa-solid.fa-star,
+body.categories-page .product-card .product-rating .fa-solid.fa-star {
     color: #facc15;
 }
 
-.category-product-card .product-rating .fa-regular.fa-star {
+.category-product-card .product-rating .fa-regular.fa-star,
+body.categories-page .product-card .product-rating .fa-regular.fa-star {
     color: #111827;
 }
 

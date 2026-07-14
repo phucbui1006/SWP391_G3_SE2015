@@ -44,8 +44,10 @@ public class AdminBrandServlet extends HttpServlet {
         String status = normalizeStatusFilter(request.getParameter("status"));
         String sort = normalizeSort(request.getParameter("sort"));
         List<Brand> brands = brandDAO.getBrands(keyword, status, sort);
+        List<Brand> allBrands = brandDAO.getBrands(null, "ALL", "newest");
 
         request.setAttribute("brands", brands);
+        request.setAttribute("allBrands", allBrands);
         request.setAttribute("keyword", keyword);
         request.setAttribute("selectedStatus", status);
         request.setAttribute("selectedSort", sort);

@@ -13,7 +13,9 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import model.OrderHistoryItem;
 import model.OrderStatus;
 import model.User;
@@ -37,7 +39,7 @@ public class OrderHistoryServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
-        String keyword = normalizeText(request.getParameter("keyword"));
+        String keyword = normalizeOrderKeyword(request.getParameter("keyword"));
         Integer selectedStatusId = parsePositiveInteger(request.getParameter("statusId"));
         int page = parsePositiveInt(request.getParameter("page"), 1);
         Integer customerUserId = account.isCustomer() ? account.getUserId() : null;
@@ -72,7 +74,7 @@ public class OrderHistoryServlet extends HttpServlet {
             }
         }
 
-        List<OrderStatus> statusOptions = orderHistoryDAO.getOrderStatuses();
+        List<OrderStatus> statusOptions = filterStatusOptions(orderHistoryDAO.getOrderStatuses());
         HttpSession session = request.getSession(false);
         moveFlashToRequest(session, request, SUCCESS_FLASH, "success");
         moveFlashToRequest(session, request, ERROR_FLASH, "error");
@@ -94,6 +96,53 @@ public class OrderHistoryServlet extends HttpServlet {
         request.setAttribute("deliveryHistoryMode", deliveryHistoryMode);
 
         request.getRequestDispatcher(VIEW_PATH).forward(request, response);
+    }
+
+    private String normalizeOrderKeyword(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        String digitsOnly = value.replaceAll("\\D", "").trim();
+        if (digitsOnly.length() > 20) {
+            digitsOnly = digitsOnly.substring(0, 20);
+        }
+        return digitsOnly;
+    }
+
+    private List<OrderStatus> filterStatusOptions(List<OrderStatus> statuses) {
+        List<OrderStatus> filtered = new ArrayList<>();
+        if (statuses == null) {
+            return filtered;
+        }
+
+        for (OrderStatus status : statuses) {
+            if (status == null || shouldHideStatus(status.getStatusName())) {
+                continue;
+            }
+            filtered.add(status);
+        }
+        return filtered;
+    }
+
+    private boolean shouldHideStatus(String statusName) {
+        String normalized = normalizeVietnameseText(statusName);
+        return normalized.contains("cho xac nhan")
+                || normalized.contains("dang chuan bi hang");
+    }
+
+    private String normalizeVietnameseText(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        String normalized = java.text.Normalizer.normalize(value, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .replace('đ', 'd')
+                .replace('Đ', 'D')
+                .toLowerCase(Locale.ROOT)
+                .trim();
+        return normalized;
     }
 
     @Override
@@ -121,10 +170,10 @@ public class OrderHistoryServlet extends HttpServlet {
 
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
         if (orderHistoryDAO.updateShipmentStatus(orderId, shipmentStatusId, shipmentNote, isShipment(account))) {
-            session.setAttribute(SUCCESS_FLASH, "Cap nhat trang thai giao hang thanh cong.");
+            session.setAttribute(SUCCESS_FLASH, "Cập nhật trạng thái giao hàng thành công.");
             session.setAttribute("lastDeliveryPhone", deliveryPhone);
         } else {
-            session.setAttribute(ERROR_FLASH, "Khong the cap nhat trang thai giao hang hoac trang thai da bi khoa.");
+            session.setAttribute(ERROR_FLASH, "Không thể cập nhật trạng thái giao hàng hoặc trạng thái đã bị khóa.");
         }
 
         response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
@@ -137,13 +186,13 @@ public class OrderHistoryServlet extends HttpServlet {
             User account,
             Integer orderId) throws IOException {
         if (!account.isCustomer()) {
-            session.setAttribute(ERROR_FLASH, "Chi khach hang moi co the huy don hang cua minh.");
+            session.setAttribute(ERROR_FLASH, "Chỉ khách hàng mới có thể hủy đơn hàng của mình.");
             response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
             return;
         }
 
         if (orderId == null) {
-            session.setAttribute(ERROR_FLASH, "Don hang can huy khong hop le.");
+            session.setAttribute(ERROR_FLASH, "Đơn hàng cần hủy không hợp lệ.");
             response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, null));
             return;
         }
@@ -151,7 +200,7 @@ public class OrderHistoryServlet extends HttpServlet {
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
         boolean cancelled = orderHistoryDAO.cancelWaitingOrder(orderId, account.getCustomerId());
         if (cancelled) {
-            session.setAttribute(SUCCESS_FLASH, "Da huy don hang thanh cong.");
+            session.setAttribute(SUCCESS_FLASH, "Đã hủy đơn hàng thành công.");
         } else {
             session.setAttribute(ERROR_FLASH, "Chỉ có thể hủy đơn hàng đang ở trạng thái Chờ xác nhận hoặc Đã xác nhận.");
         }

@@ -10,16 +10,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.Locale;
 import model.Brand;
 import model.Category;
 import model.Product;
@@ -29,7 +24,7 @@ import model.CategorySpecTemplate;
 @WebServlet(name = "AdminProductServlet", urlPatterns = {"/admin/products"})
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
-        maxFileSize = 2 * 1024 * 1024, 
+        maxFileSize = 2 * 1024 * 1024,
         maxRequestSize = 4 * 1024 * 1024
 )
 public class AdminProductServlet extends HttpServlet {
@@ -52,8 +47,35 @@ public class AdminProductServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
+        String action = request.getParameter("action");
+        if ("checkName".equalsIgnoreCase(action)) {
+            handleProductNameCheck(request, response);
+            return;
+        }
+
         populatePageData(request);
 
+        Integer editId = parseId(request.getParameter("productId"));
+
+        if ("edit".equalsIgnoreCase(action) && editId != null) {
+            Product editProduct = productDAO.getProductByIdForAdmin(editId);
+
+            if (editProduct != null) {
+                request.setAttribute("failedAction", "update");
+                request.setAttribute("enteredProductId", editProduct.getProductId());
+                request.setAttribute("enteredProductName", editProduct.getProductName());
+                request.setAttribute("enteredCategoryId", editProduct.getCategoryId());
+                request.setAttribute("enteredBrandId", editProduct.getBrandId());
+                request.setAttribute("enteredPrice", String.valueOf(editProduct.getPrice()));
+                request.setAttribute("enteredWarrantyMonths", String.valueOf(editProduct.getWarrantyMonths()));
+                request.setAttribute("enteredDescription", editProduct.getDescription());
+                request.setAttribute("enteredCurrentImg", editProduct.getImageUrl());
+
+                List<CategorySpecTemplate> specTemplates
+                        = categoryDAO.getTemplatesWithValues(editProduct.getCategoryId(), editProduct.getProductId());
+                request.setAttribute("specTemplates", specTemplates);
+            }
+        }
         // Flash messages
         String successMsg = (String) session.getAttribute("productSuccess");
         String errorMsg = (String) session.getAttribute("productError");
@@ -237,119 +259,33 @@ public class AdminProductServlet extends HttpServlet {
 
     //Thêm sản phẩm
     private boolean handleAdd(HttpServletRequest request, HttpSession session) throws IOException, ServletException {
+        if (!Boolean.TRUE.equals(request.getAttribute("productValidationPassed"))) {
+            request.setAttribute("error", "Dữ liệu sản phẩm chưa được kiểm tra hợp lệ.");
+            return false;
+        }
+
         String productName = normalizeText(request.getParameter("productName"));
-        String categoryIdRaw = request.getParameter("categoryId");
-        String brandIdRaw = request.getParameter("brandId");
+        Integer categoryId = parseId(request.getParameter("categoryId"));
+        Integer brandId = parseId(request.getParameter("brandId"));
         String priceRaw = request.getParameter("price");
         String warrantyMonthsRaw = request.getParameter("warrantyMonths");
         String description = normalizeText(request.getParameter("description"));
-        String currentImg = normalizeText(request.getParameter("currentImg"));
-
-        Integer categoryId = parseId(categoryIdRaw);
-        Integer brandId = parseId(brandIdRaw);
-        BigDecimal price = null;
-        Integer warrantyMonths = null;
-        
-        // Process and save the image immediately
         String imageUrl = (String) request.getAttribute("savedProductImg");
-        if (imageUrl == null) {
-            Part filePart = request.getPart("imgFile");
-            if (filePart != null && filePart.getSize() > 0) {
-                imageUrl = saveUploadedProductImage(filePart);
-            }
-        }
-        if (imageUrl == null) {
-            imageUrl = normalizeProductImagePath(currentImg);
-        }
-
-        // Save entered data for re-rendering on error
-        request.setAttribute("failedAction", "add");
-        request.setAttribute("enteredProductName", productName != null ? productName : "");
-        request.setAttribute("enteredCategoryId", categoryId);
-        request.setAttribute("enteredBrandId", brandId);
-        request.setAttribute("enteredPrice", priceRaw != null ? priceRaw.trim() : "");
-        request.setAttribute("enteredDescription", description != null ? description : "");
-        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw != null ? warrantyMonthsRaw.trim() : "");
-        request.setAttribute("enteredCurrentImg", imageUrl);
-
+        BigDecimal price = new BigDecimal(priceRaw.trim());
+        int warrantyMonths = Integer.parseInt(warrantyMonthsRaw.trim());
         String[] specNames = request.getParameterValues("spec_names[]");
         String[] specValues = request.getParameterValues("spec_values[]");
 
-        if (categoryId != null) {
-            List<CategorySpecTemplate> specTemplates = categoryDAO.getTemplatesByCategoryId(categoryId);
-            request.setAttribute("specTemplates", specTemplates != null ? specTemplates : new java.util.ArrayList<>());
-            request.setAttribute("enteredSpecNames", specNames);
-            request.setAttribute("enteredSpecValues", specValues);
-        }
-
-        // Validate product name
-        if (productName == null || productName.length() < 3 || productName.length() > 255) {
-            request.setAttribute("error", "Tên sản phẩm phải từ 3 đến 255 ký tự.");
-            return false;
-        }
-
-        // Validate category and brand
-        if (categoryId == null || brandId == null) {
-            request.setAttribute("error", "Danh mục hoặc thương hiệu không hợp lệ.");
-            return false;
-        }
-
-        // Validate price
-        if (priceRaw == null || priceRaw.trim().isEmpty()) {
-            request.setAttribute("error", "Giá bán không được để trống.");
-            return false;
-        }
-        
-        try {
-            price = new BigDecimal(priceRaw.trim());
-            if (price.compareTo(BigDecimal.ZERO) <= 0) {
-                request.setAttribute("error", "Giá bán phải lớn hơn 0.");
-                return false;
-            }
-            if (price.compareTo(new BigDecimal("1000000000")) >= 0) {
-                request.setAttribute("error", "Giá bán phải nhỏ hơn 1 tỉ.");
-                return false;
-            }
-            if (price.remainder(new BigDecimal("1000")).compareTo(BigDecimal.ZERO) != 0) {
-                request.setAttribute("error", "Giá bán phải chia hết cho 1000.");
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            request.setAttribute("error", "Giá bán phải là số hợp lệ.");
-            return false;
-        }
-
-        // Validate warranty months
-        if (warrantyMonthsRaw == null || warrantyMonthsRaw.trim().isEmpty()) {
-            request.setAttribute("error", "Bảo hành không được để trống.");
-            return false;
-        }
-        
-        try {
-            warrantyMonths = Integer.parseInt(warrantyMonthsRaw.trim());
-            if (warrantyMonths < 0) {
-                request.setAttribute("error", "Bảo hành phải lớn hơn hoặc bằng 0.");
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            request.setAttribute("error", "Bảo hành phải là số hợp lệ.");
-            return false;
-        }
-
-        // Validate description
-        if (description == null || description.trim().isEmpty()) {
-            request.setAttribute("error", "Mô tả chi tiết không được để trống.");
-            return false;
-        }
-
-        // Validate specifications for required fields
-        String specError = validateSpecifications(categoryId, specNames, specValues);
-        if (specError != null) {
-            request.setAttribute("error", specError);
-            return false;
-        }
-
-
+        request.setAttribute("failedAction", "add");
+        request.setAttribute("enteredProductName", productName);
+        request.setAttribute("enteredCategoryId", categoryId);
+        request.setAttribute("enteredBrandId", brandId);
+        request.setAttribute("enteredPrice", priceRaw.trim());
+        request.setAttribute("enteredDescription", description);
+        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw.trim());
+        request.setAttribute("enteredCurrentImg", imageUrl);
+        request.setAttribute("enteredSpecNames", specNames);
+        request.setAttribute("enteredSpecValues", specValues);
 
         if (productDAO.addProduct(productName, categoryId, brandId, price, description, imageUrl, warrantyMonths, specNames, specValues)) {
             session.setAttribute("productSuccess", "Thêm sản phẩm mới thành công.");
@@ -362,145 +298,35 @@ public class AdminProductServlet extends HttpServlet {
 
     //Cập nhật thông tin sản phẩm
     private boolean handleUpdate(HttpServletRequest request, HttpSession session) throws IOException, ServletException {
-        String productIdRaw = request.getParameter("productId");
+        if (!Boolean.TRUE.equals(request.getAttribute("productValidationPassed"))) {
+            request.setAttribute("error", "Dữ liệu sản phẩm chưa được kiểm tra hợp lệ.");
+            return false;
+        }
+
+        Integer productId = parseId(request.getParameter("productId"));
         String productName = normalizeText(request.getParameter("productName"));
-        String categoryIdRaw = request.getParameter("categoryId");
-        String brandIdRaw = request.getParameter("brandId");
+        Integer categoryId = parseId(request.getParameter("categoryId"));
+        Integer brandId = parseId(request.getParameter("brandId"));
         String priceRaw = request.getParameter("price");
         String warrantyMonthsRaw = request.getParameter("warrantyMonths");
         String description = normalizeText(request.getParameter("description"));
-        String currentImg = normalizeText(request.getParameter("currentImg"));
-
-        Integer productId = parseId(productIdRaw);
-        Integer categoryId = parseId(categoryIdRaw);
-        Integer brandId = parseId(brandIdRaw);
-        BigDecimal price = null;
-        Integer warrantyMonths = null;
-
-        // Process and save the image immediately
         String imageUrl = (String) request.getAttribute("savedProductImg");
-        if (imageUrl == null) {
-            Part filePart = request.getPart("imgFile");
-            if (filePart != null && filePart.getSize() > 0) {
-                imageUrl = saveUploadedProductImage(filePart);
-            }
-        }
-        if (imageUrl == null) {
-            imageUrl = normalizeProductImagePath(currentImg);
-        }
-
-        // Save entered data for re-rendering on error
-        request.setAttribute("failedAction", "update");
-        request.setAttribute("enteredProductId", productId);
-        request.setAttribute("enteredProductName", productName != null ? productName : "");
-        request.setAttribute("enteredCategoryId", categoryId);
-        request.setAttribute("enteredBrandId", brandId);
-        request.setAttribute("enteredPrice", priceRaw != null ? priceRaw.trim() : "");
-        request.setAttribute("enteredDescription", description != null ? description : "");
-        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw != null ? warrantyMonthsRaw.trim() : "");
-        request.setAttribute("enteredCurrentImg", imageUrl);
-
+        BigDecimal price = new BigDecimal(priceRaw.trim());
+        int warrantyMonths = Integer.parseInt(warrantyMonthsRaw.trim());
         String[] specNames = request.getParameterValues("spec_names[]");
         String[] specValues = request.getParameterValues("spec_values[]");
 
-        // If no specifications are submitted, reuse the existing specifications if the category did not change
-        if (productId != null && (specNames == null || specNames.length == 0)) {
-            Product originalProduct = productDAO.getProductById(productId);
-            if (originalProduct == null) {
-                originalProduct = productDAO.getProductByIdForAdmin(productId);
-            }
-            if (originalProduct != null && originalProduct.getCategoryId() == categoryId) {
-                List<model.ProductSpecification> existingSpecs = productDAO.getSpecificationsByProductId(productId);
-                if (existingSpecs != null && !existingSpecs.isEmpty()) {
-                    specNames = new String[existingSpecs.size()];
-                    specValues = new String[existingSpecs.size()];
-                    for (int i = 0; i < existingSpecs.size(); i++) {
-                        specNames[i] = existingSpecs.get(i).getSpecificationName();
-                        specValues[i] = existingSpecs.get(i).getSpecificationValue();
-                    }
-                }
-            }
-        }
-
-        if (categoryId != null) {
-            List<CategorySpecTemplate> specTemplates = categoryDAO.getTemplatesByCategoryId(categoryId);
-            request.setAttribute("specTemplates", specTemplates != null ? specTemplates : new java.util.ArrayList<>());
-            request.setAttribute("enteredSpecNames", specNames);
-            request.setAttribute("enteredSpecValues", specValues);
-        }
-
-        // Validate product ID
-        if (productId == null) {
-            request.setAttribute("error", "Sản phẩm không hợp lệ.");
-            return false;
-        }
-
-        // Validate product name
-        if (productName == null || productName.length() < 3 || productName.length() > 255) {
-            request.setAttribute("error", "Tên sản phẩm phải từ 3 đến 255 ký tự.");
-            return false;
-        }
-
-        // Validate category and brand
-        if (categoryId == null || brandId == null) {
-            request.setAttribute("error", "Danh mục hoặc thương hiệu không hợp lệ.");
-            return false;
-        }
-
-        // Validate price
-        if (priceRaw == null || priceRaw.trim().isEmpty()) {
-            request.setAttribute("error", "Giá bán không được để trống.");
-            return false;
-        }
-        
-        try {
-            price = new BigDecimal(priceRaw.trim());
-            if (price.compareTo(BigDecimal.ZERO) <= 0) {
-                request.setAttribute("error", "Giá bán phải lớn hơn 0.");
-                return false;
-            }
-            if (price.compareTo(new BigDecimal("1000000000")) >= 0) {
-                request.setAttribute("error", "Giá bán phải nhỏ hơn 1 tỉ.");
-                return false;
-            }
-            if (price.remainder(new BigDecimal("1000")).compareTo(BigDecimal.ZERO) != 0) {
-                request.setAttribute("error", "Giá bán phải chia hết cho 1000.");
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            request.setAttribute("error", "Giá bán phải là số hợp lệ.");
-            return false;
-        }
-
-        // Validate warranty months
-        if (warrantyMonthsRaw == null || warrantyMonthsRaw.trim().isEmpty()) {
-            request.setAttribute("error", "Bảo hành không được để trống.");
-            return false;
-        }
-        
-        try {
-            warrantyMonths = Integer.parseInt(warrantyMonthsRaw.trim());
-            if (warrantyMonths < 0) {
-                request.setAttribute("error", "Bảo hành phải lớn hơn hoặc bằng 0.");
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            request.setAttribute("error", "Bảo hành phải là số hợp lệ.");
-            return false;
-        }
-
-        // Validate description
-        if (description == null || description.trim().isEmpty()) {
-            request.setAttribute("error", "Mô tả chi tiết không được để trống.");
-            return false;
-        }
-
-        // Validate specifications for required fields
-        String specError = validateSpecifications(categoryId, specNames, specValues);
-        if (specError != null) {
-            request.setAttribute("error", specError);
-            return false;
-        }
+        request.setAttribute("failedAction", "update");
+        request.setAttribute("enteredProductId", productId);
+        request.setAttribute("enteredProductName", productName);
+        request.setAttribute("enteredCategoryId", categoryId);
+        request.setAttribute("enteredBrandId", brandId);
+        request.setAttribute("enteredPrice", priceRaw.trim());
+        request.setAttribute("enteredDescription", description);
+        request.setAttribute("enteredWarrantyMonths", warrantyMonthsRaw.trim());
+        request.setAttribute("enteredCurrentImg", imageUrl);
+        request.setAttribute("enteredSpecNames", specNames);
+        request.setAttribute("enteredSpecValues", specValues);
 
         if (productDAO.updateProduct(productId, productName, categoryId, brandId, price, description, imageUrl, warrantyMonths, specNames, specValues)) {
             session.setAttribute("productSuccess", "Cập nhật sản phẩm thành công.");
@@ -537,72 +363,6 @@ public class AdminProductServlet extends HttpServlet {
         }
     }
 
-    //Lưu ảnh sản phẩm
-    private String saveUploadedProductImage(Part filePart) throws IOException {
-        if (filePart == null || filePart.getSize() == 0) {
-            return null;
-        }
-
-        String submittedName = filePart.getSubmittedFileName();
-        if (submittedName == null || submittedName.trim().isEmpty()) {
-            return null;
-        }
-
-        String submittedFileName = Paths.get(submittedName).getFileName().toString();
-        String extension = getFileExtension(submittedFileName);
-        if (extension.isEmpty()) {
-            return null;
-        }
-
-        String uploadPath = getServletContext().getRealPath("/images/products");
-        if (uploadPath == null) {
-            return null;
-        }
-
-        Files.createDirectories(Path.of(uploadPath));
-
-        String baseName = submittedFileName.substring(0, submittedFileName.length() - extension.length());
-        baseName = baseName.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-");
-        baseName = baseName.replaceAll("^-|-$", "");
-
-        if (baseName.isEmpty()) {
-            baseName = "product";
-        }
-
-        String fileName = baseName + "-" + System.currentTimeMillis() + extension;
-        Path targetPath = Path.of(uploadPath, fileName);
-        filePart.write(targetPath.toString());
-
-        return "images/products/" + fileName;
-    }
-
-    private String getFileExtension(String fileName) {
-        int dotIndex = fileName.lastIndexOf(".");
-        if (dotIndex < 0) {
-            return "";
-        }
-        return fileName.substring(dotIndex).toLowerCase(Locale.ROOT);
-    }
-
-    private String normalizeProductImagePath(String value) {
-        String img = normalizeText(value);
-        if (img == null) {
-            return null;
-        }
-
-        img = img.replace("\\", "/");
-
-        while (img.startsWith("/")) {
-            img = img.substring(1);
-        }
-
-        if (!img.contains("/")) {
-            img = "images/products/" + img;
-        }
-
-        return img;
-    }
-
     private HttpSession requireAdmin(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("account") == null) {
@@ -633,38 +393,20 @@ public class AdminProductServlet extends HttpServlet {
         return value.trim();
     }
 
-    private String validateSpecifications(Integer categoryId, String[] specNames, String[] specValues) {
-        if (categoryId == null) {
-            return null;
+    private void handleProductNameCheck(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String productName = normalizeText(request.getParameter("productName"));
+        Integer productId = parseId(request.getParameter("productId"));
+        boolean duplicate = false;
+
+        if (util.ProductValidator.validateProductName(productName) == null) {
+            duplicate = productId == null
+                    ? productDAO.existsByProductName(productName)
+                    : productDAO.existsByProductNameExceptId(productName, productId);
         }
 
-        List<CategorySpecTemplate> specTemplates = categoryDAO.getTemplatesByCategoryId(categoryId);
-        if (specTemplates == null || specTemplates.isEmpty()) {
-            return null;
-        }
-
-        // Check for required specifications
-        for (CategorySpecTemplate template : specTemplates) {
-            if (template.isRequired()) {
-                boolean found = false;
-                if (specNames != null && specValues != null) {
-                    for (int i = 0; i < specNames.length && i < specValues.length; i++) {
-                        if (template.getSpecName().equalsIgnoreCase(specNames[i])) {
-                            String value = specValues[i];
-                            if (value != null && !value.trim().isEmpty()) {
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (!found) {
-                    return "Thông số kỹ thuật '" + template.getSpecName() + "' là bắt buộc.";
-                }
-            }
-        }
-
-        return null;
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"duplicate\":" + duplicate + "}");
     }
 
     private String normalizeStatusFilter(String value) {

@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import model.Category;
+import util.ValidatorUtil;
 
 @WebServlet(name = "AdminCategoryServlet", urlPatterns = {"/admin/categories"})
 public class AdminCategoryServlet extends HttpServlet {
@@ -25,23 +26,19 @@ public class AdminCategoryServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
         String keyword = request.getParameter("keyword");
         String status = normalizeStatusFilter(request.getParameter("status"));
-        String sort = request.getParameter("sort");
+        String sort = normalizeSort(request.getParameter("sort"));
         String pageRaw = request.getParameter("page");
 
         if (keyword == null) {
             keyword = "";
         } else {
             keyword = keyword.trim();
-        }
-
-        if (sort == null || sort.trim().isEmpty()) {
-            sort = "newest";
         }
 
         int currentPage = 1;
@@ -97,18 +94,13 @@ public class AdminCategoryServlet extends HttpServlet {
         // Flash messages from session (after redirect from POST)
         HttpSession session = request.getSession(false);
         if (session != null) {
-            String successMsg = (String) session.getAttribute("categorySuccess");
-            String errorMsg = (String) session.getAttribute("categoryError");
-
-            if (successMsg != null) {
-                request.setAttribute("success", successMsg);
-                session.removeAttribute("categorySuccess");
-            }
-
-            if (errorMsg != null) {
-                request.setAttribute("error", errorMsg);
-                session.removeAttribute("categoryError");
-            }
+            moveFlashAttribute(session, request, "categorySuccess", "success");
+            moveFlashAttribute(session, request, "categoryError", "error");
+            moveFlashAttribute(session, request, "addCategoryNameError", "addCategoryNameError");
+            moveFlashAttribute(session, request, "addCategoryOldName", "addCategoryOldName");
+            moveFlashAttribute(session, request, "editCategoryNameError", "editCategoryNameError");
+            moveFlashAttribute(session, request, "editCategoryOldName", "editCategoryOldName");
+            moveFlashAttribute(session, request, "editCategoryOldId", "editCategoryOldId");
         }
 
         request.getRequestDispatcher("/views/category-management.jsp").forward(request, response);
@@ -117,7 +109,7 @@ public class AdminCategoryServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
 
         String action = request.getParameter("action");
@@ -125,110 +117,140 @@ public class AdminCategoryServlet extends HttpServlet {
 
         if ("add".equalsIgnoreCase(action)) {
             handleAdd(request, session);
+            redirectAfterCategoryForm(request, response, session, "addCategoryNameError", "addCategoryModal");
         } else if ("update".equalsIgnoreCase(action)) {
             handleUpdate(request, session);
+            redirectAfterCategoryForm(request, response, session, "editCategoryNameError", "editCategoryModal");
         } else {
-            boolean isSuccess = handleStatusChange(request, session);
-            if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write("{\"success\": " + isSuccess + "}");
-                return;
-            }
-            // Redirect back preserving filters
+            handleStatusChange(request, session);
             String keyword = request.getParameter("keyword");
             String status = normalizeStatusFilter(request.getParameter("status"));
-            String sort = request.getParameter("sort");
+            String sort = normalizeSort(request.getParameter("sort"));
             String page = request.getParameter("page");
             response.sendRedirect(request.getContextPath() + "/admin/categories" + buildQuery(keyword, status, sort, page));
-            return;
         }
-
-        response.sendRedirect(request.getContextPath() + "/admin/categories");
     }
 
     private void handleAdd(HttpServletRequest request, HttpSession session) {
-        String categoryName = normalizeText(request.getParameter("categoryName"));
+        String rawCategoryName = request.getParameter("categoryName");
+        String nameError = ValidatorUtil.getCategoryNameError(rawCategoryName);
+
+        if (nameError != null) {
+            setAddCategoryError(session, nameError, rawCategoryName);
+            return;
+        }
+
+        String categoryName = normalizeText(rawCategoryName);
+
+        if (categoryDAO.categoryNameExists(categoryName, null)) {
+            setAddCategoryError(session, "Tên danh mục đã tồn tại.", categoryName);
+            return;
+        }
 
         if (categoryDAO.addCategory(categoryName)) {
             session.setAttribute("categorySuccess", "Thêm danh mục thành công.");
         } else {
-            session.setAttribute("categoryError", "Không thể thêm danh mục. Tên có thể đã tồn tại.");
+            session.setAttribute("categoryError", "Không thể thêm danh mục. Vui lòng thử lại.");
         }
     }
 
     private void handleUpdate(HttpServletRequest request, HttpSession session) {
         Integer categoryId = parseId(request.getParameter("categoryId"));
-        String categoryName = normalizeText(request.getParameter("categoryName"));
-        String newStatus = normalizeText(request.getParameter("status"));
 
         if (categoryId == null) {
             session.setAttribute("categoryError", "Danh mục không hợp lệ.");
             return;
         }
 
-        // Update category name
-        if (categoryName != null) {
-            if (!categoryDAO.updateCategoryName(categoryId, categoryName)) {
-                session.setAttribute("categoryError", "Không thể cập nhật danh mục. Tên có thể đã tồn tại.");
-                return;
-            }
+        String rawCategoryName = request.getParameter("categoryName");
+        String nameError = ValidatorUtil.getCategoryNameError(rawCategoryName);
+
+        if (nameError != null) {
+            setEditCategoryError(session, nameError, rawCategoryName, categoryId);
+            return;
         }
 
-        // Update category status if provided
-        if (newStatus != null) {
-            categoryDAO.updateCategoryStatus(categoryId, newStatus.toUpperCase());
+        String categoryName = normalizeText(rawCategoryName);
+
+        if (categoryDAO.categoryNameExists(categoryName, categoryId)) {
+            setEditCategoryError(session, "Tên danh mục đã tồn tại.", categoryName, categoryId);
+            return;
+        }
+
+        if (!categoryDAO.updateCategoryName(categoryId, categoryName)) {
+            session.setAttribute("categoryError", "Không thể cập nhật danh mục. Vui lòng thử lại.");
+            return;
         }
 
         session.setAttribute("categorySuccess", "Cập nhật danh mục thành công.");
     }
 
-    private boolean handleStatusChange(HttpServletRequest request, HttpSession session) {
+    private void handleStatusChange(HttpServletRequest request, HttpSession session) {
         String categoryIdRaw = request.getParameter("categoryId");
         String action = request.getParameter("action");
-        boolean isAjax = "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
 
         try {
             int categoryId = Integer.parseInt(categoryIdRaw);
 
             if ("delete".equalsIgnoreCase(action)) {
                 if (categoryDAO.updateCategoryStatus(categoryId, "INACTIVE")) {
-                    if (!isAjax) {
-                        session.setAttribute("categorySuccess", "Vô hiệu hóa danh mục thành công.");
-                    }
-                    return true;
+                    session.setAttribute("categorySuccess", "Vô hiệu hóa danh mục thành công.");
                 } else {
-                    if (!isAjax) {
-                        session.setAttribute("categoryError", "Không thể vô hiệu hóa danh mục.");
-                    }
-                    return false;
+                    session.setAttribute("categoryError", "Không thể vô hiệu hóa danh mục.");
                 }
             } else if ("activate".equalsIgnoreCase(action)) {
                 if (categoryDAO.updateCategoryStatus(categoryId, "ACTIVE")) {
-                    if (!isAjax) {
-                        session.setAttribute("categorySuccess", "Kích hoạt danh mục thành công.");
-                    }
-                    return true;
+                    session.setAttribute("categorySuccess", "Kích hoạt danh mục thành công.");
                 } else {
-                    if (!isAjax) {
-                        session.setAttribute("categoryError", "Không thể kích hoạt danh mục.");
-                    }
-                    return false;
+                    session.setAttribute("categoryError", "Không thể kích hoạt danh mục.");
                 }
+            } else {
+                session.setAttribute("categoryError", "Thao tác danh mục không hợp lệ.");
             }
-
-        } catch (Exception e) {
-            if (!isAjax) {
-                session.setAttribute("categoryError", "Lỗi thao tác trên danh mục.");
-            }
-            return false;
+        } catch (NumberFormatException e) {
+            session.setAttribute("categoryError", "Danh mục không hợp lệ.");
         }
-        return false;
+    }
+
+    private void moveFlashAttribute(HttpSession session, HttpServletRequest request,
+            String sessionAttribute, String requestAttribute) {
+        Object value = session.getAttribute(sessionAttribute);
+
+        if (value != null) {
+            request.setAttribute(requestAttribute, value);
+            session.removeAttribute(sessionAttribute);
+        }
+    }
+
+    private void redirectAfterCategoryForm(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, String errorAttribute, String modalId) throws IOException {
+        String redirect = request.getContextPath() + "/admin/categories";
+
+        if (session.getAttribute(errorAttribute) != null) {
+            redirect += "#" + modalId;
+        }
+
+        response.sendRedirect(redirect);
+    }
+
+    private void setAddCategoryError(HttpSession session, String error, String categoryName) {
+        session.setAttribute("addCategoryNameError", error);
+        session.setAttribute("addCategoryOldName", categoryName == null ? "" : categoryName);
+    }
+
+    private void setEditCategoryError(HttpSession session, String error, String categoryName, int categoryId) {
+        session.setAttribute("editCategoryNameError", error);
+        session.setAttribute("editCategoryOldName", categoryName == null ? "" : categoryName);
+        session.setAttribute("editCategoryOldId", String.valueOf(categoryId));
     }
 
     private Integer parseId(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+
         try {
-            return Integer.parseInt(value);
+            return Integer.parseInt(value.trim());
         } catch (NumberFormatException e) {
             return null;
         }
@@ -239,7 +261,7 @@ public class AdminCategoryServlet extends HttpServlet {
             return null;
         }
 
-        return value.trim();
+        return value.trim().replaceAll("\\s+", " ");
     }
 
     private String normalizeStatusFilter(String value) {
@@ -255,11 +277,19 @@ public class AdminCategoryServlet extends HttpServlet {
         return "ALL";
     }
 
+    private String normalizeSort(String value) {
+        if (value != null && "oldest".equalsIgnoreCase(value.trim())) {
+            return "oldest";
+        }
+
+        return "newest";
+    }
+
     private String buildQuery(String keyword, String status, String sort, String page) {
         StringBuilder query = new StringBuilder("?");
         appendQueryParam(query, "keyword", keyword == null ? "" : keyword.trim());
         appendQueryParam(query, "status", normalizeStatusFilter(status));
-        appendQueryParam(query, "sort", sort == null || sort.trim().isEmpty() ? "newest" : sort.trim());
+        appendQueryParam(query, "sort", normalizeSort(sort));
         appendQueryParam(query, "page", page == null || page.trim().isEmpty() ? "1" : page.trim());
         return query.toString();
     }

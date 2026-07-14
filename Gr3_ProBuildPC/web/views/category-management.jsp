@@ -5,88 +5,122 @@
 <%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ page import="model.Category" %>
 
-<%! private String h(String value) { if (value==null) { return "" ; } return value
-    .replace("&", "&amp;" ) .replace("<", "&lt;" ) .replace(">", "&gt;")
-    .replace("\"", "&quot;")
-    .replace("'", "&#39;");
+<%!
+    private String h(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 
     private String enc(String value) {
-    if (value == null) {
-    return "";
-    }
+        if (value == null) {
+            return "";
+        }
 
-    return URLEncoder.encode(value, StandardCharsets.UTF_8);
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 %>
 
-<% List<Category> categories = (List<Category>) request.getAttribute("categories");
+<%
+    List<Category> categories = (List<Category>) request.getAttribute("categories");
 
-        String keyword = (String) request.getAttribute("keyword");
-        String status = (String) request.getAttribute("status");
-        String sort = (String) request.getAttribute("sort");
+    String keyword = (String) request.getAttribute("keyword");
+    String status = (String) request.getAttribute("status");
+    String sort = (String) request.getAttribute("sort");
 
-        Integer currentPage = (Integer) request.getAttribute("currentPage");
-        Integer totalPages = (Integer) request.getAttribute("totalPages");
-        Integer totalCategories = (Integer) request.getAttribute("totalCategories");
-        Integer startItem = (Integer) request.getAttribute("startItem");
-        Integer endItem = (Integer) request.getAttribute("endItem");
+    Integer currentPage = (Integer) request.getAttribute("currentPage");
+    Integer totalPages = (Integer) request.getAttribute("totalPages");
+    Integer totalCategories = (Integer) request.getAttribute("totalCategories");
+    Integer startItem = (Integer) request.getAttribute("startItem");
+    Integer endItem = (Integer) request.getAttribute("endItem");
 
-        String success = (String) request.getAttribute("success");
-        String error = (String) request.getAttribute("error");
+    String success = (String) request.getAttribute("success");
+    String error = (String) request.getAttribute("error");
 
-        if (categories == null) {
+    String addCategoryNameError = (String) request.getAttribute("addCategoryNameError");
+    String addCategoryOldName = (String) request.getAttribute("addCategoryOldName");
+
+    String editCategoryNameError = (String) request.getAttribute("editCategoryNameError");
+    String editCategoryOldName = (String) request.getAttribute("editCategoryOldName");
+    String editCategoryOldId = (String) request.getAttribute("editCategoryOldId");
+
+    if (categories == null) {
         categories = Collections.emptyList();
-        }
+    }
 
-        if (keyword == null) {
+    if (keyword == null) {
         keyword = "";
-        }
+    }
 
-        if (status == null || status.trim().isEmpty()) {
+    if (status == null || status.trim().isEmpty()) {
         status = "ALL";
-        }
+    }
 
-        if (sort == null) {
+    if (sort == null || sort.trim().isEmpty()) {
         sort = "newest";
-        }
+    }
 
-        if (currentPage == null) {
+    if (currentPage == null) {
         currentPage = 1;
-        }
+    }
 
-        if (totalPages == null) {
+    if (totalPages == null) {
         totalPages = 1;
-        }
+    }
 
-        if (totalCategories == null) {
+    if (totalCategories == null) {
         totalCategories = 0;
-        }
+    }
 
-        if (startItem == null) {
+    if (startItem == null) {
         startItem = 0;
-        }
+    }
 
-        if (endItem == null) {
+    if (endItem == null) {
         endItem = 0;
-        }
+    }
 
-        String contextPath = request.getContextPath();
-        String listQuery = "&keyword=" + enc(keyword) + "&status=" + enc(status) + "&sort="
-        + enc(sort);
+    if (addCategoryNameError == null) {
+        addCategoryNameError = "";
+    }
+
+    if (addCategoryOldName == null) {
+        addCategoryOldName = "";
+    }
+
+    if (editCategoryNameError == null) {
+        editCategoryNameError = "";
+    }
+
+    if (editCategoryOldName == null) {
+        editCategoryOldName = "";
+    }
+
+    if (editCategoryOldId == null) {
+        editCategoryOldId = "";
+    }
+
+    String contextPath = request.getContextPath();
+    String listQuery = "&keyword=" + enc(keyword)
+            + "&status=" + enc(status)
+            + "&sort=" + enc(sort);
 %>
 
 <!DOCTYPE html>
 <html lang="vi">
-
     <head>
         <meta charset="UTF-8">
         <title>Quản lý danh mục sản phẩm</title>
 
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
-        <link rel="stylesheet" type="text/css"
-              href="<%= contextPath %>/css/admin-categories.css?v=1.0.1"">
-
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-categories.css?v=1.0.2">
     </head>
 
     <body class="admin-category-body">
@@ -107,13 +141,13 @@
                 </div>
             </div>
 
-            <% if (success !=null && !success.isEmpty()) { %>
+            <% if (success != null && !success.isEmpty()) { %>
             <div class="category-alert success">
                 <%= h(success) %>
             </div>
             <% } %>
 
-            <% if (error !=null && !error.isEmpty()) { %>
+            <% if (error != null && !error.isEmpty()) { %>
             <div class="category-alert error">
                 <%= h(error) %>
             </div>
@@ -121,21 +155,37 @@
 
             <section class="admin-category-card">
 
-                <form action="<%= contextPath %>/admin/categories" method="get" class="admin-category-toolbar" id="adminCategorySearchForm">
+                <form action="<%= contextPath %>/admin/categories"
+                      method="get"
+                      class="admin-category-toolbar"
+                      id="adminCategorySearchForm">
+
                     <div class="category-search-form">
-                        <input type="text" id="categorySearchInput" name="keyword" value="<%= h(keyword) %>" placeholder="Tìm kiếm danh mục theo tên...">
+                        <input type="text"
+                               id="categorySearchInput"
+                               name="keyword"
+                               value="<%= h(keyword) %>"
+                               placeholder="Tìm kiếm danh mục theo tên...">
 
                         <select name="status" id="statusFilter">
-                            <option value="ALL" <%= "ALL".equals(status) ? "selected" : "" %>>Tất cả trạng thái</option>
-                            <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>ACTIVE</option>
-                            <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>INACTIVE</option>
+                            <option value="ALL" <%= "ALL".equals(status) ? "selected" : "" %>>
+                                Tất cả trạng thái
+                            </option>
+                            <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>
+                                ACTIVE
+                            </option>
+                            <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>
+                                INACTIVE
+                            </option>
                         </select>
 
                         <select name="sort" id="sortFilter">
-                            <option value="newest" <%= "newest".equals(sort) ? "selected" : "" %>>Mới nhất</option>
-                            <option value="oldest" <%= "oldest".equals(sort) ? "selected" : "" %>>Cũ nhất</option>
-                            <option value="name_asc" <%= "name_asc".equals(sort) ? "selected" : "" %>>Tên A-Z</option>
-                            <option value="name_desc" <%= "name_desc".equals(sort) ? "selected" : "" %>>Tên Z-A</option>
+                            <option value="newest" <%= "newest".equals(sort) ? "selected" : "" %>>
+                                Mới nhất
+                            </option>
+                            <option value="oldest" <%= "oldest".equals(sort) ? "selected" : "" %>>
+                                Cũ nhất
+                            </option>
                         </select>
 
                         <button type="submit">Tìm kiếm</button>
@@ -159,82 +209,82 @@
                         <tbody>
                             <% if (categories.isEmpty()) { %>
                             <tr>
-                                <td colspan="5"
-                                    style="text-align:center; padding: 30px;">
+                                <td colspan="5" style="text-align:center; padding: 30px;">
                                     Không có danh mục nào.
                                 </td>
                             </tr>
                             <% } else { %>
 
-                            <% for (Category c : categories) {
+                            <% for (Category c : categories) { %>
+                            <%
+                                String categoryStatus = c.getStatus();
+
+                                if (categoryStatus == null || categoryStatus.trim().isEmpty()) {
+                                    categoryStatus = "INACTIVE";
+                                }
+
+                                boolean isActive = "ACTIVE".equalsIgnoreCase(categoryStatus);
                             %>
+
                             <tr>
                                 <td>
                                     <%= c.getCategoryId() %>
                                 </td>
+
                                 <td>
-                                    <%= h(c.getCategoryName())
-                                    %>
+                                    <%= h(c.getCategoryName()) %>
                                 </td>
+
                                 <td>
-                                    <span
-                                        class="status-badge status-<%= c.getStatus().toLowerCase() %>">
-                                        <%= "ACTIVE"
-                                            .equalsIgnoreCase(c.getStatus())
-                                            ? "ACTIVE"
-                                            : "INACTIVE"
-                                        %>
+                                    <span class="status-badge status-<%= categoryStatus.toLowerCase() %>">
+                                        <%= isActive ? "ACTIVE" : "INACTIVE" %>
                                     </span>
                                 </td>
+
                                 <td>
-                                    <%= c.getProductCount()
-                                    %>
+                                    <%= c.getProductCount() %>
                                 </td>
+
                                 <td>
-                                    <div
-                                        class="category-actions">
+                                    <div class="category-actions">
 
                                         <a href="#editCategoryModal"
                                            class="btn-edit"
                                            data-id="<%= c.getCategoryId() %>"
-                                           data-name="<%= h(c.getCategoryName()) %>">Sửa</a>
+                                           data-name="<%= h(c.getCategoryName()) %>">
+                                            Sửa
+                                        </a>
 
-                                        <form
-                                            action="<%= contextPath %>/admin/categories"
-                                            method="post"
-                                            style="display:inline;">
-                                            <input
-                                                type="hidden"
-                                                name="categoryId"
-                                                value="<%= c.getCategoryId() %>">
-                                            <input
-                                                type="hidden"
-                                                name="action"
-                                                value="<%= "ACTIVE".equalsIgnoreCase(c.getStatus()) ? "delete" : "activate" %>">
-                                            <input
-                                                type="hidden"
-                                                name="keyword"
-                                                value="<%= h(keyword) %>">
-                                            <input
-                                                type="hidden"
-                                                name="status"
-                                                value="<%= h(status) %>">
-                                            <input
-                                                type="hidden"
-                                                name="sort"
-                                                value="<%= h(sort) %>">
-                                            <input
-                                                type="hidden"
-                                                name="page"
-                                                value="<%= currentPage %>">
-                                            <button
-                                                type="submit"
-                                                class="btn-delete">
-                                                <%= "ACTIVE"
-                                                    .equalsIgnoreCase(c.getStatus())
-                                                    ? "Vô hiệu hóa"
-                                                    : "Kích hoạt"
-                                                %>
+                                        <form action="<%= contextPath %>/admin/categories"
+                                              method="post"
+                                              style="display:inline;">
+
+                                            <input type="hidden"
+                                                   name="categoryId"
+                                                   value="<%= c.getCategoryId() %>">
+
+                                            <input type="hidden"
+                                                   name="action"
+                                                   value="<%= isActive ? "delete" : "activate" %>">
+
+                                            <input type="hidden"
+                                                   name="keyword"
+                                                   value="<%= h(keyword) %>">
+
+                                            <input type="hidden"
+                                                   name="status"
+                                                   value="<%= h(status) %>">
+
+                                            <input type="hidden"
+                                                   name="sort"
+                                                   value="<%= h(sort) %>">
+
+                                            <input type="hidden"
+                                                   name="page"
+                                                   value="<%= currentPage %>">
+
+                                            <button type="submit" class="btn-delete">
+                                                <%= isActive ? "Vô hiệu hóa" : "Kích hoạt" %>
                                             </button>
                                         </form>
 
@@ -251,19 +301,19 @@
                 <div class="admin-category-footer">
                     <p>
                         Hiển thị <%= startItem %>
-                        đến <%= endItem %> của <%=totalCategories %> danh mục.
+                        đến <%= endItem %>
+                        của <%= totalCategories %> danh mục.
                     </p>
 
                     <div class="admin-pagination">
 
-                        <% if (currentPage> 1) { %>
+                        <% if (currentPage > 1) { %>
                         <a class="page-btn"
                            href="<%= contextPath %>/admin/categories?page=<%= currentPage - 1 %><%= listQuery %>">
                             ‹
                         </a>
                         <% } else { %>
-                        <span
-                            class="page-btn disabled">‹</span>
+                        <span class="page-btn disabled">‹</span>
                         <% } %>
 
                         <%
@@ -303,12 +353,12 @@
                         <% if (currentPage < totalPages) { %>
                         <a class="page-btn"
                            href="<%= contextPath %>/admin/categories?page=<%= currentPage + 1 %><%= listQuery %>">
-                           ›
+                            ›
                         </a>
                         <% } else { %>
-                        <span
-                            class="page-btn disabled">›</span>
+                        <span class="page-btn disabled">›</span>
                         <% } %>
+
                     </div>
                 </div>
             </section>
@@ -316,17 +366,41 @@
 
         <!-- Add Category Modal Overlay -->
         <div class="brand-modal-overlay" id="addCategoryModal">
-            <section class="brand-modal" role="dialog" aria-modal="true" aria-labelledby="addCategoryTitle">
+            <section class="brand-modal"
+                     role="dialog"
+                     aria-modal="true"
+                     aria-labelledby="addCategoryTitle">
+
                 <div class="brand-form-header">
                     <h2 id="addCategoryTitle">Thêm danh mục mới</h2>
                     <a href="#" aria-label="Đóng" class="btn-close-modal">×</a>
                 </div>
 
-                <form action="<%= contextPath %>/admin/categories" method="post" class="brand-modal-form" id="addCategoryForm" novalidate>
+                <form action="<%= contextPath %>/admin/categories"
+                      method="post"
+                      class="brand-modal-form"
+                      id="addCategoryForm"
+                      novalidate>
+
                     <input type="hidden" name="action" value="add">
 
                     <label for="addCategoryName">Tên danh mục <span>*</span></label>
-                    <input id="addCategoryName" name="categoryName" type="text" placeholder="VD: Card đồ họa, Bo mạch chủ, Nguồn máy tính..." minlength="2" maxlength="100" required>
+
+                    <input id="addCategoryName"
+                           name="categoryName"
+                           type="text"
+                           value="<%= h(addCategoryOldName) %>"
+                           placeholder="VD: Card đồ họa, Bo mạch chủ, Nguồn máy tính..."
+                           minlength="2"
+                           maxlength="100"
+                           class="<%= !addCategoryNameError.isEmpty() ? "is-invalid" : "" %>"
+                           required>
+
+                    <% if (!addCategoryNameError.isEmpty()) { %>
+                    <small class="error-feedback">
+                        <%= h(addCategoryNameError) %>
+                    </small>
+                    <% } %>
 
                     <div class="brand-form-actions">
                         <a class="brand-secondary-button btn-close-modal" href="#">Hủy</a>
@@ -338,18 +412,46 @@
 
         <!-- Edit Category Modal Overlay -->
         <div class="brand-modal-overlay" id="editCategoryModal">
-            <section class="brand-modal" role="dialog" aria-modal="true" aria-labelledby="editCategoryTitle">
+            <section class="brand-modal"
+                     role="dialog"
+                     aria-modal="true"
+                     aria-labelledby="editCategoryTitle">
+
                 <div class="brand-form-header">
                     <h2 id="editCategoryTitle">Sửa danh mục</h2>
                     <a href="#" aria-label="Đóng" class="btn-close-modal">×</a>
                 </div>
 
-                <form action="<%= contextPath %>/admin/categories" method="post" class="brand-modal-form" id="editCategoryForm" novalidate>
+                <form action="<%= contextPath %>/admin/categories"
+                      method="post"
+                      class="brand-modal-form"
+                      id="editCategoryForm"
+                      novalidate>
+
                     <input type="hidden" name="action" value="update">
-                    <input type="hidden" name="categoryId" id="editCategoryId">
+
+                    <input type="hidden"
+                           name="categoryId"
+                           id="editCategoryId"
+                           value="<%= h(editCategoryOldId) %>">
 
                     <label for="editCategoryName">Tên danh mục <span>*</span></label>
-                    <input id="editCategoryName" name="categoryName" type="text" placeholder="VD: Card đồ họa" minlength="2" maxlength="100" required>
+
+                    <input id="editCategoryName"
+                           name="categoryName"
+                           type="text"
+                           value="<%= h(editCategoryOldName) %>"
+                           placeholder="VD: Card đồ họa"
+                           minlength="2"
+                           maxlength="100"
+                           class="<%= !editCategoryNameError.isEmpty() ? "is-invalid" : "" %>"
+                           required>
+
+                    <% if (!editCategoryNameError.isEmpty()) { %>
+                    <small class="error-feedback">
+                        <%= h(editCategoryNameError) %>
+                    </small>
+                    <% } %>
 
                     <div class="brand-form-actions">
                         <a class="brand-secondary-button btn-close-modal" href="#">Hủy</a>
@@ -360,7 +462,8 @@
         </div>
 
         <jsp:include page="/includes/footer.jsp" />
-        <script src="<%= contextPath %>/js/validator.js"></script>
-        <script src="<%= contextPath %>/js/admin-categories.js"></script>
+
+        <script src="<%= contextPath %>/js/admin-categories.js?v=1.0.5"></script>
+
     </body>
 </html>

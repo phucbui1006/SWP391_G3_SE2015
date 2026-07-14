@@ -98,7 +98,6 @@ public class ManageWarrantyServlet extends HttpServlet {
                         request.setAttribute("condHistory", condHistory);
                     }
                 } catch (NumberFormatException e) {
-                    // ignore
                 }
             }
         } else if ("edit".equalsIgnoreCase(action) && "EMPLOYEE".equals(roleName)) {

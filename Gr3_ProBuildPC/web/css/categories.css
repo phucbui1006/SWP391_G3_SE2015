@@ -136,20 +136,62 @@ body.categories-page {
     accent-color: #ed1c24;
 }
 
-.filter-panel button {
-    width: 100%;
-    height: 38px;
-    border: 0;
-    border-radius: 5px;
-    background: #ed1c24;
-    color: #fff;
-    font-weight: 800;
-    cursor: pointer;
-    transition: background 0.2s ease;
+.filter-actions {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
 }
 
-.filter-panel button:hover {
-    background: #111827;
+.filter-actions .apply-filter-btn,
+.filter-actions .clear-search-btn {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease,
+        color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.filter-actions .apply-filter-btn {
+    border: 1px solid #ed1c24;
+    background: #ed1c24;
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(237, 28, 36, 0.2);
+}
+
+.filter-actions .apply-filter-btn:hover {
+    border-color: #c9151c;
+    background: #c9151c;
+    transform: translateY(-1px);
+}
+
+.filter-actions .clear-search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #fecaca;
+    background: #fff;
+    color: #dc2626;
+}
+
+.filter-actions .clear-search-btn:hover {
+    border-color: #ed1c24;
+    background: #fff1f2;
+    color: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.filter-actions .apply-filter-btn:focus-visible,
+.filter-actions .clear-search-btn:focus-visible {
+    outline: 3px solid rgba(237, 28, 36, 0.2);
+    outline-offset: 2px;
 }
 
 .category-content {
@@ -335,7 +377,8 @@ body.categories-page {
     width: 100%;
 }
 
-.category-product-card .product-rating {
+.category-product-card .product-rating,
+body.categories-page .product-card .product-rating {
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -346,11 +389,13 @@ body.categories-page {
     width: 100%;
 }
 
-.category-product-card .product-rating .fa-solid.fa-star {
+.category-product-card .product-rating .fa-solid.fa-star,
+body.categories-page .product-card .product-rating .fa-solid.fa-star {
     color: #facc15;
 }
 
-.category-product-card .product-rating .fa-regular.fa-star {
+.category-product-card .product-rating .fa-regular.fa-star,
+body.categories-page .product-card .product-rating .fa-regular.fa-star {
     color: #111827;
 }
 

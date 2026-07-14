@@ -24,7 +24,8 @@ public class AdminValidationFilter implements Filter {
     private static final String BRAND_IMAGE_UPDATE_ERROR = "Logo chỉ chấp nhận PNG, JPG, JPEG hoặc WEBP và tối đa 2MB.";
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {}
+    public void init(FilterConfig filterConfig) throws ServletException {
+    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -58,7 +59,8 @@ public class AdminValidationFilter implements Filter {
     }
 
     @Override
-    public void destroy() {}
+    public void destroy() {
+    }
 
     private boolean validateBrand(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         String action = req.getParameter("action");
@@ -94,26 +96,37 @@ public class AdminValidationFilter implements Filter {
         return imageRequired ? BRAND_IMAGE_ADD_ERROR : BRAND_IMAGE_UPDATE_ERROR;
     }
 
-
-
-    private boolean validateCategory(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    private boolean validateCategory(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String action = req.getParameter("action");
-        if (!"add".equalsIgnoreCase(action) && !"update".equalsIgnoreCase(action)) {
-            return true;
-        }
-
-        String categoryName = req.getParameter("categoryName");
         String error = null;
 
-        if (categoryName == null || categoryName.trim().length() < 2 || categoryName.trim().length() > 100) {
-            error = "Tên danh mục phải từ 2 đến 100 ký tự.";
-        }
+        if ("add".equalsIgnoreCase(action)) {
+            String categoryName = req.getParameter("categoryName");
+            String nameError = ValidatorUtil.getCategoryNameError(categoryName);
 
-        if ("update".equalsIgnoreCase(action) && error == null) {
-            String newStatus = req.getParameter("status");
-            if (newStatus == null || (!"ACTIVE".equalsIgnoreCase(newStatus.trim()) && !"INACTIVE".equalsIgnoreCase(newStatus.trim()))) {
-                error = "Trạng thái không hợp lệ.";
+            if (nameError != null) {
+                return redirectCategoryNameError(req, res, "add", nameError, categoryName, null);
             }
+
+        } else if ("update".equalsIgnoreCase(action)) {
+            String categoryId = req.getParameter("categoryId");
+
+            if (!ValidatorUtil.isValidCategoryId(categoryId)) {
+                error = "Danh mục không hợp lệ.";
+            } else {
+                String categoryName = req.getParameter("categoryName");
+                String nameError = ValidatorUtil.getCategoryNameError(categoryName);
+
+                if (nameError != null) {
+                    return redirectCategoryNameError(req, res, "edit", nameError, categoryName, categoryId);
+                }
+            }
+        } else if ("delete".equalsIgnoreCase(action) || "activate".equalsIgnoreCase(action)) {
+            if (!ValidatorUtil.isValidCategoryId(req.getParameter("categoryId"))) {
+                error = "Danh mục không hợp lệ.";
+            }
+        } else {
+            error = "Thao tác danh mục không hợp lệ.";
         }
 
         if (error != null) {
@@ -123,6 +136,22 @@ public class AdminValidationFilter implements Filter {
         }
 
         return true;
+    }
+
+    private boolean redirectCategoryNameError(HttpServletRequest req, HttpServletResponse res,
+            String modal, String error, String categoryName, String categoryId) throws IOException {
+        if ("add".equals(modal)) {
+            req.getSession().setAttribute("addCategoryNameError", error);
+            req.getSession().setAttribute("addCategoryOldName", categoryName);
+            res.sendRedirect(req.getContextPath() + "/admin/categories#addCategoryModal");
+        } else {
+            req.getSession().setAttribute("editCategoryNameError", error);
+            req.getSession().setAttribute("editCategoryOldName", categoryName);
+            req.getSession().setAttribute("editCategoryOldId", categoryId);
+            res.sendRedirect(req.getContextPath() + "/admin/categories#editCategoryModal");
+        }
+
+        return false;
     }
 
     private boolean validateBatch(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {

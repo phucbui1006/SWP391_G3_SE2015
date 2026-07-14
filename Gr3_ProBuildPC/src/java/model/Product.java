@@ -7,6 +7,7 @@ public class Product {
     private BigDecimal price;
     private int quantity;
     private int importQuantity;
+    private int soldQuantity;
     private int batchId;
     private int brandId;
     private int categoryId;
@@ -65,6 +66,14 @@ public class Product {
 
     public void setImportQuantity(int importQuantity) {
         this.importQuantity = importQuantity;
+    }
+
+    public int getSoldQuantity() {
+        return soldQuantity;
+    }
+
+    public void setSoldQuantity(int soldQuantity) {
+        this.soldQuantity = soldQuantity;
     }
     
     public int getBatchId() {

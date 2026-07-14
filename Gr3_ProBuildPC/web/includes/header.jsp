@@ -114,11 +114,11 @@
 
         <div class="menu-dropdown">
             <button class="menu-item menu-dropdown-toggle" type="button">
-                <i class="fa-solid fa-layer-group"></i> Danh mục sản phẩm
+                <i class="fa-solid fa-layer-group"></i> Sản phẩm
                 <span class="menu-dropdown-arrow">▾</span>
             </button>
             <div class="menu-dropdown-list">
-                <a href="<%= ctx %>/categories">Sản phẩm</a>
+                <a href="<%= ctx %>/categories">Các danh mục sản phẩm</a>
                 <a href="<%= ctx %>/brands">Các thương hiệu sản phẩm</a>
             </div>
         </div>

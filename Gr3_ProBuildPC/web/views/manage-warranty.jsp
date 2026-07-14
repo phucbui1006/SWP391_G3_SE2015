@@ -83,7 +83,6 @@
                         <button type="submit">Tìm kiếm</button>
                     </form>
 
-                    <a href="${ctx}/ManageWarranty" class="brand-add-button" style="background-color: #ed1c24; text-decoration: none;">Làm mới</a>
                 </div>
 
                 <!-- Table Wrapper matching Brand style -->
@@ -272,7 +271,7 @@
         <c:if test="${sessionScope.account.roleName == 'EMPLOYEE'}">
             <div id="editModal" class="modal-overlay ${not empty editWarranty ? 'active' : ''}">
                 <div class="modal-card">
-                    <form id="edit-warranty-form" action="${ctx}/ManageWarranty" method="post">
+                    <form id="edit-warranty-form" action="${ctx}/ManageWarranty" method="post" novalidate>
                         <input type="hidden" name="search" value="<c:out value="${searchQuery}"/>">
                         <input type="hidden" name="statusFilter" value="<c:out value="${statusFilterId}"/>">
                         
@@ -307,7 +306,7 @@
                             <!-- Response Textarea -->
                             <div class="form-group" style="margin-top: 15px;">
                                 <label for="editResponse">Phản hồi của cửa hàng</label>
-                                <textarea id="editResponse" name="response" class="filter-select" style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; resize: vertical;" required><c:out value="${editWarranty.response}"/></textarea>
+                                <textarea id="editResponse" name="response" class="filter-select" style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; resize: vertical;" minlength="5" maxlength="1000" required><c:out value="${editWarranty.response}"/></textarea>
                             </div>
 
                         </div>

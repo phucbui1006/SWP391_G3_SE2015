@@ -8,6 +8,11 @@ body.admin-product-body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
+.product-modal-overlay.server-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
 .admin-product-container {
     width: min(1440px, calc(100% - 56px));
     margin: 0 auto;
@@ -188,7 +193,7 @@ body.admin-product-body {
 .admin-product-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 1000px;
+    min-width: 1120px;
     color: #30333a;
     font-size: 14px;
 }
@@ -218,6 +223,8 @@ body.admin-product-body {
 .admin-product-table td:nth-child(8),
 .admin-product-table th:nth-child(9),
 .admin-product-table td:nth-child(9),
+.admin-product-table th:nth-child(10),
+.admin-product-table td:nth-child(10),
 .admin-product-table th:last-child,
 .admin-product-table td:last-child {
     text-align: center;
@@ -430,6 +437,16 @@ body.admin-product-body {
     border: 1px solid #f2b8bd;
     background: #fff0f1;
     color: #b4232c;
+}
+
+.validation-error-list {
+    margin: 8px 0 0 22px;
+    padding: 0;
+    font-weight: 600;
+}
+
+.validation-error-list li + li {
+    margin-top: 4px;
 }
 
 .product-alert.warning {

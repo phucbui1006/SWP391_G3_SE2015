@@ -22,6 +22,7 @@ import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import util.ValidatorUtil;
 
 @WebFilter(filterName = "CartOrderValidationFilter", urlPatterns = {
     "/submit-review",
@@ -91,27 +92,41 @@ public class CartOrderValidationFilter implements Filter {
             String productIdRaw = req.getParameter("productId");
             String quantityRaw = req.getParameter("quantity");
             Integer productId = null;
-            Integer quantity = null;
-            if (productIdRaw != null && quantityRaw != null) {
+            if (productIdRaw != null) {
                 try {
                     productId = Integer.parseInt(productIdRaw);
-                    quantity = Integer.parseInt(quantityRaw);
                 } catch (NumberFormatException e) {}
             }
 
-            if (productId != null && quantity != null && productId > 0 && quantity > 0) {
+            if (productId != null && productId > 0) {
+                String quantityError = ValidatorUtil.getPurchaseQuantityError(quantityRaw);
+                if (quantityError != null) {
+                    redirectToProductDetailWithQuantityError(
+                            req, res, productId, quantityRaw, quantityError
+                    );
+                    return false;
+                }
+
+                int quantity = ValidatorUtil.parsePurchaseQuantity(quantityRaw);
                 ProductDAO productDAO = new ProductDAO();
                 Product product = productDAO.getProductById(productId);
 
                 if (product != null && product.getQuantity() > 0) {
-                    int appliedQuantity = Math.min(quantity, product.getQuantity());
-                    if (appliedQuantity > 0) {
-                        CartItem directItem = new CartItem();
-                        directItem.setProductId(productId);
-                        directItem.setQuantity(appliedQuantity);
-                        directItem.setProduct(product);
-                        checkoutItems.add(directItem);
+                    String stockError = ValidatorUtil.getPurchaseStockError(
+                            quantity, product.getQuantity()
+                    );
+                    if (stockError != null) {
+                        redirectToProductDetailWithQuantityError(
+                                req, res, productId, quantityRaw, stockError
+                        );
+                        return false;
                     }
+
+                    CartItem directItem = new CartItem();
+                    directItem.setProductId(productId);
+                    directItem.setQuantity(quantity);
+                    directItem.setProduct(product);
+                    checkoutItems.add(directItem);
                 }
             }
         }
@@ -132,6 +147,25 @@ public class CartOrderValidationFilter implements Filter {
         }
 
         return true;
+    }
+
+    private void redirectToProductDetailWithQuantityError(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            int productId,
+            String quantityRaw,
+            String message) throws IOException {
+        HttpSession session = request.getSession();
+        session.setAttribute("productDetailQuantityError", message);
+
+        Integer quantity = ValidatorUtil.parsePurchaseQuantity(quantityRaw);
+        if (quantity != null) {
+            session.setAttribute("productDetailQuantityValue", String.valueOf(quantity));
+        }
+
+        response.sendRedirect(
+                request.getContextPath() + "/product-detail?id=" + productId
+        );
     }
 
     private boolean validateCheckout(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
@@ -191,7 +225,7 @@ public class CartOrderValidationFilter implements Filter {
         // Validate Search in GET
         if ("GET".equalsIgnoreCase(req.getMethod())) {
             String keyword = req.getParameter("keyword");
-            if (keyword != null && !keyword.trim().isEmpty() && !util.ValidatorUtil.isValidSearchQuery(keyword)) {
+            if (keyword != null && !keyword.trim().isEmpty() && !util.ValidatorUtil.isValidOrderSearchQuery(keyword)) {
                 HttpSession session = req.getSession(false);
                 if (session != null) {
                     session.setAttribute("orderHistoryError", "Từ khóa tìm kiếm không hợp lệ (quá dài hoặc chứa ký tự đặc biệt).");

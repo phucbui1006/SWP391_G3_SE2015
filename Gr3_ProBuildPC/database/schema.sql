@@ -111,7 +111,7 @@ CREATE TABLE PRODUCTS (
     product_id      INT AUTO_INCREMENT PRIMARY KEY,
     category_id     INT NOT NULL,
     brand_id        INT NOT NULL,
-    product_name    VARCHAR(255) NOT NULL,
+    product_name    VARCHAR(255) NOT NULL UNIQUE,
     description     TEXT,
     image_url       VARCHAR(255),
     price           DECIMAL(18, 2) NOT NULL,
@@ -293,6 +293,33 @@ CREATE TABLE ORDER_DETAILS (
 
     CONSTRAINT FK_ORDER_DETAILS_PRODUCTS
         FOREIGN KEY (product_id) REFERENCES PRODUCTS(product_id)
+);
+
+-- =========================
+-- GIỮ KHO CHO ĐƠN HÀNG
+-- Lưu chi tiết batch đã bị trừ để có thể hoàn kho chính xác khi đơn bị hủy/timeout
+-- =========================
+CREATE TABLE ORDER_STOCK_RESERVATIONS (
+    reservation_id     INT AUTO_INCREMENT PRIMARY KEY,
+    order_id           INT NOT NULL,
+    order_detail_id    INT NOT NULL,
+    product_id         INT NOT NULL,
+    batch_item_id      INT NOT NULL,
+    reserved_quantity  INT NOT NULL,
+    released_at        DATETIME NULL,
+    created_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT FK_OSR_ORDERS
+        FOREIGN KEY (order_id) REFERENCES ORDERS(order_id),
+
+    CONSTRAINT FK_OSR_ORDER_DETAILS
+        FOREIGN KEY (order_detail_id) REFERENCES ORDER_DETAILS(order_detail_id),
+
+    CONSTRAINT FK_OSR_PRODUCTS
+        FOREIGN KEY (product_id) REFERENCES PRODUCTS(product_id),
+
+    CONSTRAINT FK_OSR_BATCH_ITEMS
+        FOREIGN KEY (batch_item_id) REFERENCES BATCH_ITEMS(batch_item_id)
 );
 
 -- =========================

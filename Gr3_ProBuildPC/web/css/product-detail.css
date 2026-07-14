@@ -289,8 +289,11 @@ body.product-detail-body {
     letter-spacing: 0.5px;
 }
 
-.quantity-box {
+.quantity-field {
     margin-bottom: 24px;
+}
+
+.quantity-box {
     display: inline-flex;
     align-items: center;
     border: 1px solid var(--card-border);
@@ -298,33 +301,12 @@ body.product-detail-body {
     overflow: hidden;
 }
 
-.qty-btn {
-    width: 42px;
-    height: 42px;
-    background: #ffffff;
-    border: none;
-    color: #374151;
-    font-size: 18px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s ease;
-}
-
-.qty-btn:hover {
-    background: #f3f4f6;
-}
-
 .quantity-input {
-    width: 60px;
+    width: 76px;
     height: 42px;
-    padding: 0;
+    padding: 0 8px;
     border: none;
-    border-left: 1px solid var(--card-border);
-    border-right: 1px solid var(--card-border);
-    border-radius: 0;
+    border-radius: var(--radius-sm);
     background: #ffffff;
     color: var(--text-main);
     text-align: center;
@@ -337,10 +319,23 @@ body.product-detail-body {
     box-shadow: none;
 }
 
+.quantity-error {
+    margin: 7px 0 0;
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.quantity-error[hidden] {
+    display: none;
+}
+
 .action-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
+    margin-top: 12px;
 }
 
 .add-cart-btn,
@@ -1057,4 +1052,41 @@ body.product-detail-body {
         font-size: 14px;
         padding-top: 6px;
     }
+}
+.out-of-stock-panel {
+    text-align: center;
+    padding: 35px 20px;
+}
+
+.out-stock-icon {
+    font-size: 46px;
+    color: #dc2626;
+    margin-bottom: 18px;
+}
+
+.out-of-stock-panel h3 {
+    font-size: 22px;
+    color: #dc2626;
+    margin-bottom: 12px;
+}
+
+.out-of-stock-panel p {
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 24px;
+}
+
+.continue-shopping-btn {
+    display: inline-block;
+    background: #ed1c24;
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 28px;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: .25s;
+}
+
+.continue-shopping-btn:hover {
+    background: #111827;
 }

@@ -59,7 +59,7 @@
 
         <div class="cart-container">
             <div class="breadcrumb">
-                <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a> / <span class="active">gi&#7887; h&#224;ng</span>
+                <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a> &gt; <span class="active">gi&#7887; h&#224;ng</span>
             </div>
 
             <% if (request.getAttribute("cartSuccessMsg") != null) { %>
@@ -166,6 +166,7 @@
                             class="cart-item"
                             data-cart-item-id="<%= item.getCartItemId() %>"
                             data-unit-price="<%= unitPrice.toPlainString() %>"
+                            data-stock-quantity="<%= stockQuantity %>"
                             data-brand-name="<%= escapeHtmlAttribute(brandName) %>"
                             data-category-name="<%= escapeHtmlAttribute(categoryName) %>">
                             <div class="col-select">
@@ -207,8 +208,10 @@
                                         type="number"
                                         value="<%= item.getQuantity() %>"
                                         min="1"
+                                        max="<%= Math.max(stockQuantity, 1) %>"
                                         step="1"
                                         inputmode="numeric"
+                                        autocomplete="off"
                                         <%= availableForSale ? "" : "disabled" %>
                                         name="quantity_<%= item.getCartItemId() %>">
                                 </div>
@@ -357,14 +360,27 @@
                     return currencyFormatter.format(amount) + '\u0111';
                 };
 
-                const normalizeQuantity = function (input) {
-                    let quantity = parseInt(input.value, 10);
+                const getRowMaxQuantity = function (input) {
+                    const row = input ? input.closest('.cart-item') : null;
+                    const stockQuantity = row ? Number(row.dataset.stockQuantity) : 0;
 
-                    if (Number.isNaN(quantity) || quantity < 1) {
+                    return stockQuantity > 0 ? stockQuantity : 1;
+                };
+
+                const normalizeQuantity = function (input) {
+                    const maxQuantity = getRowMaxQuantity(input);
+                    const digitsOnly = String(input.value || '').replace(/\D+/g, '');
+                    let quantity = digitsOnly ? parseInt(digitsOnly, 10) : 1;
+
+                    if (!Number.isFinite(quantity) || quantity < 1) {
                         quantity = 1;
-                        input.value = quantity;
                     }
 
+                    if (quantity > maxQuantity) {
+                        quantity = maxQuantity;
+                    }
+
+                    input.value = String(quantity);
                     return quantity;
                 };
 
@@ -609,6 +625,10 @@
                 cartRows.forEach(function (row) {
                     const quantityInput = row.querySelector('.cart-qty-input');
                     const selectCheckbox = row.querySelector('.cart-select-checkbox');
+
+                    if (!quantityInput || !selectCheckbox) {
+                        return;
+                    }
 
                     quantityInput.addEventListener('input', function () {
                         updateCartTotals();

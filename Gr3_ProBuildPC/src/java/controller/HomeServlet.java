@@ -15,7 +15,7 @@ import model.Category;
 import model.Product;
 import model.User;
 
-@WebServlet(name = "HomeServlet", urlPatterns = {"/home", "/Home"})
+@WebServlet(name = "HomeServlet", urlPatterns = { "/home", "/Home" })
 public class HomeServlet extends HttpServlet {
 
     private final CategoryDAO categoryDAO = new CategoryDAO();
@@ -39,6 +39,10 @@ public class HomeServlet extends HttpServlet {
         List<Product> products = normalizedKeyword.isEmpty()
                 ? productDAO.getAllProducts("newest")
                 : productDAO.searchProducts(normalizedKeyword, "newest");
+
+        if (products != null) {
+            products.removeIf(product -> product.getQuantity() <= 0);
+        }
 
         int pageSize = 12;
         String pageRaw = request.getParameter("page");

@@ -68,12 +68,6 @@ const Validator = {
         return trimmed.length >= 3 && trimmed.length <= 255;
     },
 
-    validatePrice(price) {
-        if (price === null || price === undefined || price === '') return false;
-        const val = parseFloat(price);
-        return !isNaN(val) && val >= 0;
-    },
-
     validateFileSize(file, maxBytes = 2 * 1024 * 1024) {
         if (!file) return true; // Optional file is considered valid
         return file.size <= maxBytes;

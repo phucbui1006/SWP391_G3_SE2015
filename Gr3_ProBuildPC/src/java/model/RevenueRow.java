@@ -9,16 +9,30 @@ public class RevenueRow {
     private int orderCount;
     private BigDecimal revenue;
     private BigDecimal average;
+    private int productsSold;
 
     public RevenueRow(String label, int orderCount, BigDecimal revenue) {
+        this(label, orderCount, revenue, 0);
+    }
+
+    public RevenueRow(String label, int orderCount, BigDecimal revenue, int productsSold) {
         this.label = label;
         this.orderCount = orderCount;
         this.revenue = revenue == null ? BigDecimal.ZERO : revenue;
+        this.productsSold = productsSold;
         if (this.orderCount > 0) {
             this.average = this.revenue.divide(new BigDecimal(this.orderCount), 0, RoundingMode.HALF_UP);
         } else {
             this.average = BigDecimal.ZERO;
         }
+    }
+
+    public int getProductsSold() {
+        return productsSold;
+    }
+
+    public void setProductsSold(int productsSold) {
+        this.productsSold = productsSold;
     }
 
     public String getLabel() {

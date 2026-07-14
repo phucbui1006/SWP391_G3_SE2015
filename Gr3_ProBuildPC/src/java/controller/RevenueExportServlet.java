@@ -18,10 +18,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.RevenueRow;
 import model.User;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.io.PrintWriter;
 import util.DashboardViewHelper;
-
 @WebServlet(name = "RevenueExportServlet", urlPatterns = {"/RevenueExportServlet"})
 public class RevenueExportServlet extends HttpServlet {
 
@@ -65,115 +63,59 @@ public class RevenueExportServlet extends HttpServlet {
         List<RevenueRow> revenueList = dao.getRevenueStatistics(startDate, endDate, type);
 
         // Định dạng Tên File
-        String suffix = "TheoNgay";
-        if ("month".equalsIgnoreCase(type)) {
-            suffix = "TheoThang";
-        } else if ("year".equalsIgnoreCase(type)) {
-            suffix = "TheoNam";
-        }
         String currentDateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"));
-        String fileName = "DoanhThu" + suffix + "_" + currentDateStr + ".xlsx";
+        String fileName = "ProBuildPC_DoanhThu_" + currentDateStr + ".xls";
 
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setContentType("application/vnd.ms-excel; charset=UTF-8");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
 
-        try (Workbook workbook = new XSSFWorkbook(); OutputStream out = response.getOutputStream()) {
-            Sheet sheet = workbook.createSheet("Thống kê doanh thu");
-
-            // Header Font & Style
-            Font headerFont = workbook.createFont();
-            headerFont.setBold(true);
-            headerFont.setColor(IndexedColors.BLACK.getIndex());
-
-            CellStyle headerCellStyle = workbook.createCellStyle();
-            headerCellStyle.setFont(headerFont);
-            headerCellStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-            headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-            headerCellStyle.setBorderBottom(BorderStyle.THIN);
-            headerCellStyle.setBorderTop(BorderStyle.THIN);
-            headerCellStyle.setBorderLeft(BorderStyle.THIN);
-            headerCellStyle.setBorderRight(BorderStyle.THIN);
-
-            // Data Style
-            CellStyle dataStyle = workbook.createCellStyle();
-            dataStyle.setBorderBottom(BorderStyle.THIN);
-            dataStyle.setBorderTop(BorderStyle.THIN);
-            dataStyle.setBorderLeft(BorderStyle.THIN);
-            dataStyle.setBorderRight(BorderStyle.THIN);
+        try (PrintWriter out = response.getWriter()) {
+            out.println("<html><head><meta charset=\"UTF-8\"></head><body>");
+            out.println("<table border='1'>");
             
-            // Currency Data Style
-            CellStyle currencyStyle = workbook.createCellStyle();
-            currencyStyle.cloneStyleFrom(dataStyle);
-            // Optionally could use a data format, but we'll use string format to match dashboard view
-
-            // Create Header Row
-            Row headerRow = sheet.createRow(0);
-            String[] columns = {"STT", "Thời gian", "Số đơn", "Doanh thu", "Trung bình/Đơn"};
-            for (int i = 0; i < columns.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(columns[i]);
-                cell.setCellStyle(headerCellStyle);
-            }
+            // Header
+            out.println("<tr style=\"background-color: #d1d5db;\">");
+            out.println("<th>STT</th><th>Thời gian</th><th>Số đơn</th><th>Tổng SP bán ra</th><th>Doanh thu</th><th>Trung bình/Đơn</th>");
+            out.println("</tr>");
 
             long totalOrders = 0;
             BigDecimal totalRevenue = BigDecimal.ZERO;
+            long totalProducts = 0;
 
-            // Create Data Rows
+            // Data Rows
             int rowNum = 1;
             for (RevenueRow r : revenueList) {
-                Row row = sheet.createRow(rowNum++);
+                // Bỏ qua những ngày không có đơn hàng / không có doanh thu
+                if (r.getOrderCount() == 0 && r.getRevenue().compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
+                }
                 
-                Cell cell0 = row.createCell(0);
-                cell0.setCellValue(rowNum - 1);
-                cell0.setCellStyle(dataStyle);
-
-                Cell cell1 = row.createCell(1);
-                cell1.setCellValue(r.getLabel());
-                cell1.setCellStyle(dataStyle);
-
-                Cell cell2 = row.createCell(2);
-                cell2.setCellValue(r.getOrderCount());
-                cell2.setCellStyle(dataStyle);
-
-                Cell cell3 = row.createCell(3);
-                cell3.setCellValue(r.getFormattedRevenue());
-                cell3.setCellStyle(currencyStyle);
-                
-                Cell cell4 = row.createCell(4);
-                cell4.setCellValue(r.getFormattedAverage());
-                cell4.setCellStyle(currencyStyle);
+                out.println("<tr>");
+                out.printf("<td style=\"text-align: center;\">%d</td>", rowNum++);
+                out.printf("<td>%s</td>", r.getLabel() != null ? r.getLabel() : "");
+                out.printf("<td style=\"text-align: center;\">%d</td>", r.getOrderCount());
+                out.printf("<td style=\"text-align: center;\">%d</td>", r.getProductsSold());
+                out.printf("<td>%s</td>", r.getFormattedRevenue() != null ? r.getFormattedRevenue() : "0");
+                out.printf("<td>%s</td>", r.getFormattedAverage() != null ? r.getFormattedAverage() : "0");
+                out.println("</tr>");
 
                 totalOrders += r.getOrderCount();
                 totalRevenue = totalRevenue.add(r.getRevenue());
+                totalProducts += r.getProductsSold();
             }
 
-            // Create Total Row
-            Row totalRow = sheet.createRow(rowNum);
-            
-            Cell totalCell0 = totalRow.createCell(0);
-            totalCell0.setCellStyle(headerCellStyle);
-            
-            Cell totalCell1 = totalRow.createCell(1);
-            totalCell1.setCellValue("Tổng Cộng");
-            totalCell1.setCellStyle(headerCellStyle);
-            
-            Cell totalCell2 = totalRow.createCell(2);
-            totalCell2.setCellValue(totalOrders);
-            totalCell2.setCellStyle(headerCellStyle);
-            
-            Cell totalCell3 = totalRow.createCell(3);
-            totalCell3.setCellValue(DashboardViewHelper.formatCurrency(totalRevenue));
-            totalCell3.setCellStyle(headerCellStyle);
-            
-            Cell totalCell4 = totalRow.createCell(4);
-            totalCell4.setCellStyle(headerCellStyle); // Trống hoặc ghi chú thêm
+            // Total Row
+            out.println("<tr>");
+            out.println("<td></td>");
+            out.println("<td><b>Tổng Cộng</b></td>");
+            out.printf("<td style=\"text-align: center;\"><b>%d</b></td>", totalOrders);
+            out.printf("<td style=\"text-align: center;\"><b>%d</b></td>", totalProducts);
+            out.printf("<td><b>%s</b></td>", DashboardViewHelper.formatCurrency(totalRevenue));
+            out.println("<td></td>");
+            out.println("</tr>");
 
-            // Tự động giãn cột (Auto-size)
-            for (int i = 0; i < columns.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-
-            workbook.write(out);
+            out.println("</table>");
+            out.println("</body></html>");
         }
     }
 

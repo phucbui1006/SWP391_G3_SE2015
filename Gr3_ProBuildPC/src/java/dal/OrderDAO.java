@@ -7,7 +7,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import model.Address;
 import model.CartItem;
 import model.Product;
@@ -21,11 +23,6 @@ public class OrderDAO extends DBContext {
     private static final String PAYMENT_STATUS_PENDING = "Chờ thanh toán";
     private static final String PAYMENT_STATUS_PAID = "Đã thanh toán";
     private static final String PAYMENT_STATUS_FAILED = "Thất bại";
-
-    public OrderDAO() {
-        super();
-        ensureStockReservationTable();
-    }
 
     public int createOrder(
             int customerId,
@@ -80,34 +77,43 @@ public class OrderDAO extends DBContext {
                         connection.rollback();
                         return -1;
                     }
-
                     orderId = rs.getInt(1);
                 }
             }
 
-            for (CartItem item : items) {
-                Product product = item.getProduct();
-                if (product == null || product.getPrice() == null) {
-                    connection.rollback();
-                    return -1;
+            String insertOrderDetailSql = """
+                                          INSERT INTO order_details (
+                                              order_id,
+                                              product_id,
+                                              quantity,
+                                              unit_price,
+                                              subtotal
+                                          )
+                                          VALUES (?, ?, ?, ?, ?)
+                                          """;
+
+            try (PreparedStatement ps = connection.prepareStatement(insertOrderDetailSql)) {
+                for (CartItem item : items) {
+                    Product product = item.getProduct();
+                    if (product == null || product.getPrice() == null) {
+                        connection.rollback();
+                        return -1;
+                    }
+
+                    if (!reserveStock(item.getProductId(), item.getQuantity())) {
+                        connection.rollback();
+                        return -1;
+                    }
+
+                    ps.setInt(1, orderId);
+                    ps.setInt(2, item.getProductId());
+                    ps.setInt(3, item.getQuantity());
+                    ps.setBigDecimal(4, product.getPrice());
+                    ps.setBigDecimal(5, item.getLineTotal());
+                    ps.addBatch();
                 }
 
-                List<BatchReservation> reservations = reserveStock(item.getProductId(), item.getQuantity());
-                if (reservations == null || reservations.isEmpty()) {
-                    connection.rollback();
-                    return -1;
-                }
-
-                int orderDetailId = insertOrderDetail(orderId, item);
-                if (orderDetailId <= 0) {
-                    connection.rollback();
-                    return -1;
-                }
-
-                if (!insertStockReservations(orderId, orderDetailId, item.getProductId(), reservations)) {
-                    connection.rollback();
-                    return -1;
-                }
+                ps.executeBatch();
             }
 
             if (!cartItemIdsToRemove.isEmpty()) {
@@ -166,8 +172,7 @@ public class OrderDAO extends DBContext {
     public boolean releaseStock(int orderId) {
         try {
             connection.setAutoCommit(false);
-            boolean released = releaseStockInternal(orderId);
-            if (!released) {
+            if (!releaseStockInternal(orderId)) {
                 connection.rollback();
                 return false;
             }
@@ -371,52 +376,24 @@ public class OrderDAO extends DBContext {
                              AND payment_method = ?
                              AND vnpay_expires_at IS NOT NULL
                              AND vnpay_expires_at <= NOW()
-                           FOR UPDATE
-                           """;
-        String updateSql = """
-                           UPDATE orders
-                           SET status_id = ?, payment_status = ?, vnpay_expires_at = NULL
-                           WHERE order_id = ?
                            """;
 
-        try {
-            connection.setAutoCommit(false);
+        try (PreparedStatement psSelect = connection.prepareStatement(selectSql)) {
+            psSelect.setInt(1, STATUS_WAITING_CONFIRMATION);
+            psSelect.setString(2, PAYMENT_STATUS_PENDING);
+            psSelect.setString(3, PAYMENT_METHOD_VNPAY);
 
-            List<Integer> expiredOrderIds = new ArrayList<>();
-            try (PreparedStatement psSelect = connection.prepareStatement(selectSql)) {
-                psSelect.setInt(1, STATUS_WAITING_CONFIRMATION);
-                psSelect.setString(2, PAYMENT_STATUS_PENDING);
-                psSelect.setString(3, PAYMENT_METHOD_VNPAY);
-
-                try (ResultSet rs = psSelect.executeQuery()) {
-                    while (rs.next()) {
-                        expiredOrderIds.add(rs.getInt("order_id"));
-                    }
-                }
-            }
-
-            try (PreparedStatement psUpdate = connection.prepareStatement(updateSql)) {
-                for (Integer orderId : expiredOrderIds) {
-                    psUpdate.setInt(1, STATUS_CANCELLED);
-                    psUpdate.setString(2, PAYMENT_STATUS_FAILED);
-                    psUpdate.setInt(3, orderId);
-
-                    if (psUpdate.executeUpdate() == 1 && releaseStockInternal(orderId)) {
+            try (ResultSet rs = psSelect.executeQuery()) {
+                while (rs.next()) {
+                    int orderId = rs.getInt("order_id");
+                    if (cancelPendingVnpayOrder(orderId, PAYMENT_STATUS_FAILED)) {
                         cancelledIds.add(orderId);
-                    } else {
-                        connection.rollback();
-                        return Collections.emptyList();
                     }
                 }
             }
-
-            connection.commit();
         } catch (SQLException e) {
-            rollbackQuietly();
             e.printStackTrace();
             return Collections.emptyList();
-        } finally {
-            resetAutoCommit();
         }
 
         return cancelledIds;
@@ -432,9 +409,9 @@ public class OrderDAO extends DBContext {
         return total;
     }
 
-    private List<BatchReservation> reserveStock(int productId, int requestedQuantity) throws SQLException {
+    private boolean reserveStock(int productId, int requestedQuantity) throws SQLException {
         if (requestedQuantity <= 0) {
-            return null;
+            return false;
         }
 
         String selectSql = """
@@ -444,7 +421,6 @@ public class OrderDAO extends DBContext {
                            WHERE bi.product_id = ?
                              AND bi.quantity > 0
                            ORDER BY b.date ASC, bi.batch_item_id ASC
-                           FOR UPDATE
                            """;
 
         List<BatchStock> availableBatches = new ArrayList<>();
@@ -463,7 +439,7 @@ public class OrderDAO extends DBContext {
         }
 
         if (remainingQuantity > 0) {
-            return null;
+            return false;
         }
 
         String updateSql = """
@@ -473,7 +449,6 @@ public class OrderDAO extends DBContext {
                              AND quantity >= ?
                            """;
 
-        List<BatchReservation> reservations = new ArrayList<>();
         int quantityToReserve = requestedQuantity;
         try (PreparedStatement ps = connection.prepareStatement(updateSql)) {
             for (BatchStock batchStock : availableBatches) {
@@ -487,133 +462,14 @@ public class OrderDAO extends DBContext {
                 ps.setInt(3, deductedQuantity);
 
                 if (ps.executeUpdate() != 1) {
-                    return null;
+                    return false;
                 }
 
-                reservations.add(new BatchReservation(batchStock.batchItemId, deductedQuantity));
                 quantityToReserve -= deductedQuantity;
             }
         }
 
-        return quantityToReserve == 0 ? reservations : null;
-    }
-
-    private int insertOrderDetail(int orderId, CartItem item) throws SQLException {
-        String sql = """
-                     INSERT INTO order_details (
-                         order_id,
-                         product_id,
-                         quantity,
-                         unit_price,
-                         subtotal
-                     )
-                     VALUES (?, ?, ?, ?, ?)
-                     """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, orderId);
-            ps.setInt(2, item.getProductId());
-            ps.setInt(3, item.getQuantity());
-            ps.setBigDecimal(4, item.getProduct().getPrice());
-            ps.setBigDecimal(5, item.getLineTotal());
-            ps.executeUpdate();
-
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-        }
-
-        return -1;
-    }
-
-    private boolean insertStockReservations(int orderId, int orderDetailId, int productId, List<BatchReservation> reservations)
-            throws SQLException {
-        String sql = """
-                     INSERT INTO order_stock_reservations (
-                         order_id,
-                         order_detail_id,
-                         product_id,
-                         batch_item_id,
-                         reserved_quantity
-                     )
-                     VALUES (?, ?, ?, ?, ?)
-                     """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            for (BatchReservation reservation : reservations) {
-                ps.setInt(1, orderId);
-                ps.setInt(2, orderDetailId);
-                ps.setInt(3, productId);
-                ps.setInt(4, reservation.batchItemId);
-                ps.setInt(5, reservation.quantity);
-                ps.addBatch();
-            }
-
-            int[] results = ps.executeBatch();
-            for (int result : results) {
-                if (result == Statement.EXECUTE_FAILED) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-
-    private boolean releaseStockInternal(int orderId) throws SQLException {
-        String selectSql = """
-                           SELECT reservation_id, batch_item_id, reserved_quantity
-                           FROM order_stock_reservations
-                           WHERE order_id = ?
-                             AND released_at IS NULL
-                           FOR UPDATE
-                           """;
-        String updateBatchSql = """
-                                UPDATE batch_items
-                                SET quantity = quantity + ?
-                                WHERE batch_item_id = ?
-                                """;
-        String updateReservationSql = """
-                                      UPDATE order_stock_reservations
-                                      SET released_at = NOW()
-                                      WHERE reservation_id = ?
-                                      """;
-
-        List<BatchReservationRow> reservations = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(selectSql)) {
-            ps.setInt(1, orderId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    reservations.add(new BatchReservationRow(
-                            rs.getInt("reservation_id"),
-                            rs.getInt("batch_item_id"),
-                            rs.getInt("reserved_quantity")));
-                }
-            }
-        }
-
-        if (reservations.isEmpty()) {
-            return true;
-        }
-
-        try (PreparedStatement psBatch = connection.prepareStatement(updateBatchSql);
-             PreparedStatement psReservation = connection.prepareStatement(updateReservationSql)) {
-            for (BatchReservationRow reservation : reservations) {
-                psBatch.setInt(1, reservation.quantity);
-                psBatch.setInt(2, reservation.batchItemId);
-                if (psBatch.executeUpdate() != 1) {
-                    return false;
-                }
-
-                psReservation.setInt(1, reservation.reservationId);
-                if (psReservation.executeUpdate() != 1) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        return quantityToReserve == 0;
     }
 
     private void removeSelectedCartItems(int customerId, List<Integer> cartItemIds) throws SQLException {
@@ -680,33 +536,60 @@ public class OrderDAO extends DBContext {
         return value == null ? "" : value.trim();
     }
 
-    private void ensureStockReservationTable() {
-        String sql = """
-                     CREATE TABLE IF NOT EXISTS order_stock_reservations (
-                         reservation_id INT AUTO_INCREMENT PRIMARY KEY,
-                         order_id INT NOT NULL,
-                         order_detail_id INT NOT NULL,
-                         product_id INT NOT NULL,
-                         batch_item_id INT NOT NULL,
-                         reserved_quantity INT NOT NULL,
-                         released_at DATETIME NULL,
-                         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         CONSTRAINT fk_osr_orders
-                             FOREIGN KEY (order_id) REFERENCES orders(order_id),
-                         CONSTRAINT fk_osr_order_details
-                             FOREIGN KEY (order_detail_id) REFERENCES order_details(order_detail_id),
-                         CONSTRAINT fk_osr_products
-                             FOREIGN KEY (product_id) REFERENCES products(product_id),
-                         CONSTRAINT fk_osr_batch_items
-                             FOREIGN KEY (batch_item_id) REFERENCES batch_items(batch_item_id)
-                     )
-                     """;
+    private boolean releaseStockInternal(int orderId) throws SQLException {
+        String selectDetailsSql = """
+                                  SELECT product_id, SUM(quantity) AS total_quantity
+                                  FROM order_details
+                                  WHERE order_id = ?
+                                  GROUP BY product_id
+                                  """;
+        String findBatchSql = """
+                              SELECT batch_item_id
+                              FROM batch_items
+                              WHERE product_id = ?
+                              ORDER BY batch_item_id ASC
+                              LIMIT 1
+                              """;
+        String updateBatchSql = """
+                                UPDATE batch_items
+                                SET quantity = quantity + ?
+                                WHERE batch_item_id = ?
+                                """;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        Map<Integer, Integer> quantitiesByProduct = new LinkedHashMap<>();
+        try (PreparedStatement psSelect = connection.prepareStatement(selectDetailsSql)) {
+            psSelect.setInt(1, orderId);
+            try (ResultSet rs = psSelect.executeQuery()) {
+                while (rs.next()) {
+                    quantitiesByProduct.put(rs.getInt("product_id"), rs.getInt("total_quantity"));
+                }
+            }
         }
+
+        if (quantitiesByProduct.isEmpty()) {
+            return true;
+        }
+
+        try (PreparedStatement psFindBatch = connection.prepareStatement(findBatchSql);
+             PreparedStatement psUpdateBatch = connection.prepareStatement(updateBatchSql)) {
+            for (Map.Entry<Integer, Integer> entry : quantitiesByProduct.entrySet()) {
+                psFindBatch.setInt(1, entry.getKey());
+                try (ResultSet rs = psFindBatch.executeQuery()) {
+                    if (!rs.next()) {
+                        return false;
+                    }
+
+                    int batchItemId = rs.getInt("batch_item_id");
+                    psUpdateBatch.setInt(1, entry.getValue());
+                    psUpdateBatch.setInt(2, batchItemId);
+                    if (psUpdateBatch.executeUpdate() != 1) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     private void rollbackQuietly() {
@@ -735,30 +618,6 @@ public class OrderDAO extends DBContext {
         private final int quantity;
 
         private BatchStock(int batchItemId, int quantity) {
-            this.batchItemId = batchItemId;
-            this.quantity = quantity;
-        }
-    }
-
-    private static class BatchReservation {
-
-        private final int batchItemId;
-        private final int quantity;
-
-        private BatchReservation(int batchItemId, int quantity) {
-            this.batchItemId = batchItemId;
-            this.quantity = quantity;
-        }
-    }
-
-    private static class BatchReservationRow {
-
-        private final int reservationId;
-        private final int batchItemId;
-        private final int quantity;
-
-        private BatchReservationRow(int reservationId, int batchItemId, int quantity) {
-            this.reservationId = reservationId;
             this.batchItemId = batchItemId;
             this.quantity = quantity;
         }

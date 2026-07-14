@@ -318,7 +318,7 @@
                            href="<%= buildOrderLink(ctx, keyword, selectedStatusIdValue, currentPage, order.getOrderId(), deliveryHistoryMode) %>">
                             <span class="order-card-icon" aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></span>
                             <span class="order-card-main">
-                                <strong>PB<%= order.getOrderId() %></strong>
+                                <strong><%= order.getOrderId() %></strong>
                                 <small><%= formatDate(order.getOrderDate(), dateFormatter) %> · <%= formatTime(order.getOrderDate(), timeFormatter) %></small>
                                 <% if (!isCustomerView) { %>
                                 <em><%= h(defaultText(order.getCustomerName(), "Khách hàng")) %></em>
@@ -378,7 +378,7 @@
                     </div>
                     <% } else { %>
                     <div class="order-detail-header">
-                        <h2>Đơn hàng PB<%= selectedOrder.getOrderId() %></h2>
+                        <h2>Đơn hàng <%= selectedOrder.getOrderId() %></h2>
                         <div class="order-detail-actions">
                             <% if (selectedCanCancel) { %>
                             <form class="order-cancel-form" action="<%= ctx %>/order-history" method="post" onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?');">
@@ -402,7 +402,7 @@
                     <article class="order-summary-card">
                         <div class="order-summary-icon" aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></div>
                         <div>
-                            <strong>Mã đơn hàng: PB<%= selectedOrder.getOrderId() %></strong>
+                            <strong>Mã đơn hàng: <%= selectedOrder.getOrderId() %></strong>
                             <span>Đặt hàng: <%= formatDate(selectedOrder.getOrderDate(), dateFormatter) %> · <%= formatTime(selectedOrder.getOrderDate(), timeFormatter) %></span>
                             <span>Hình thức thanh toán: <%= h(defaultText(selectedOrder.getPaymentMethod(), "Chưa cập nhật")) %></span>
                         </div>
@@ -577,7 +577,7 @@
             <div class="order-modal" role="dialog" aria-modal="true" aria-labelledby="detailQuickViewTitle">
                 <div class="order-modal-header">
                     <div>
-                        <h2 id="detailQuickViewTitle">Chi tiết đơn hàng PB<%= selectedOrder.getOrderId() %></h2>
+                        <h2 id="detailQuickViewTitle">Chi tiết đơn hàng <%= selectedOrder.getOrderId() %></h2>
                         <p><%= h(defaultText(selectedOrder.getCustomerName(), "Khách hàng")) %> · <%= h(defaultText(selectedOrder.getCustomerEmail(), "Chưa cập nhật email")) %></p>
                     </div>
                     <button type="button" data-close-modal aria-label="Đóng">×</button>

@@ -16,6 +16,21 @@
                 .replace("\"", "&quot;")
                 .replace("'", "&#39;");
     }
+
+    private String js(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n")
+                .replace("<", "\\u003C")
+                .replace(">", "\\u003E")
+                .replace("&", "\\u0026");
+    }
 %>
 
 <%
@@ -45,6 +60,7 @@
     String selectedSort = (String) request.getAttribute("selectedSort");
     String success = (String) request.getAttribute("success");
     String error = (String) request.getAttribute("error");
+    List<Brand> allBrands = (List<Brand>) request.getAttribute("allBrands");
 
     if (selectedStatus == null || selectedStatus.isEmpty()) {
         selectedStatus = "ALL";
@@ -199,7 +215,7 @@
                     <a href="#" aria-label="Đóng">×</a>
                 </div>
 
-                <form action="<%= ctx %>/AdminBrands" method="post" enctype="multipart/form-data" class="brand-modal-form">
+                <form action="<%= ctx %>/AdminBrands" method="post" enctype="multipart/form-data" class="brand-modal-form" data-brand-id="<%= brand.getBrandId() %>">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="brandId" value="<%= brand.getBrandId() %>">
                     <input type="hidden" name="currentImg" value="<%= h(brand.getImg()) %>">
@@ -222,6 +238,20 @@
         <% } %>
 
         <jsp:include page="/includes/footer.jsp" />
-        <script src="<%= ctx %>/js/admin-brands.js"></script>
+        <script>
+            window.existingBrands = [
+                <% if (allBrands != null) { %>
+                <% for (int i = 0; i < allBrands.size(); i++) {
+                    Brand brand = allBrands.get(i);
+                %>
+                {
+                    id: <%= brand.getBrandId() %>,
+                    name: "<%= js(brand.getBrandName()) %>"
+                }<%= i + 1 < allBrands.size() ? "," : "" %>
+                <% } %>
+                <% } %>
+            ];
+        </script>
+        <script src="<%= ctx %>/js/admin-brands.js?v=4"></script>
     </body>
 </html>

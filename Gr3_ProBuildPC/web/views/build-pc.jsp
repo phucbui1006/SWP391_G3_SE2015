@@ -186,7 +186,16 @@
                             <form class="build-quantity" action="<%= ctx %>/build-pc" method="post">
                                 <input type="hidden" name="action" value="updateQuantity">
                                 <input type="hidden" name="slot" value="<%= escapeHtml(slot.getKey()) %>">
-                                <input class="build-qty-input" type="number" name="quantity" value="<%= slot.getQuantity() %>" min="1" max="<%= selectedProduct.getQuantity() %>" step="1" inputmode="numeric" data-max-quantity="<%= selectedProduct.getQuantity() %>">
+                                <input class="build-qty-input"
+                                       type="number"
+                                       name="quantity"
+                                       value="<%= slot.getQuantity() %>"
+                                       min="1"
+                                       max="<%= selectedProduct.getQuantity() %>"
+                                       step="1"
+                                       inputmode="numeric"
+                                       autocomplete="off"
+                                       data-max-quantity="<%= selectedProduct.getQuantity() %>">
                             </form>
                             <small><%= slot.getAvailableProducts().size() %> sản phẩm phù hợp</small>
                         </div>
@@ -345,6 +354,29 @@
                 }
             });
 
+            function sanitizeBuildQuantityInput(input) {
+                var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || "1", 10);
+                var digits = String(input.value || "").replace(/\D/g, "");
+
+                if (digits === "") {
+                    input.value = "";
+                    return;
+                }
+
+                var numericValue = parseInt(digits, 10);
+                if (!Number.isFinite(numericValue)) {
+                    input.value = "";
+                    return;
+                }
+
+                if (maxQuantity > 0 && numericValue > maxQuantity) {
+                    input.value = String(maxQuantity);
+                    return;
+                }
+
+                input.value = String(numericValue);
+            }
+
             document.querySelectorAll(".build-qty-input").forEach(function (input) {
                 var baseWidth = 114;
                 var digitWidth = 14;
@@ -362,6 +394,7 @@
                 }
 
                 input.addEventListener("input", function () {
+                    sanitizeBuildQuantityInput(input);
                     resizeQuantityInput();
                     if (input.classList.contains("is-invalid")) {
                         validateQuantityInput();
@@ -369,14 +402,27 @@
                 });
 
                 input.addEventListener("blur", function () {
+                    sanitizeBuildQuantityInput(input);
                     if (validateQuantityInput()) {
                         input.form.submit();
                     }
                 });
 
                 input.addEventListener("keydown", function (event) {
+                    var allowedKeys = ["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Home", "End", "Enter", "Escape"];
+                    if (allowedKeys.indexOf(event.key) !== -1 || event.ctrlKey || event.metaKey) {
+                        return;
+                    }
+
+                    if (!/^\d$/.test(event.key)) {
+                        event.preventDefault();
+                    }
+                });
+
+                input.addEventListener("keydown", function (event) {
                     if (event.key === "Enter") {
                         event.preventDefault();
+                        sanitizeBuildQuantityInput(input);
                         if (validateQuantityInput()) {
                             input.form.submit();
                         }
@@ -384,6 +430,7 @@
                 });
 
                 input.form.addEventListener("submit", function (event) {
+                    sanitizeBuildQuantityInput(input);
                     if (!validateQuantityInput()) {
                         event.preventDefault();
                     }

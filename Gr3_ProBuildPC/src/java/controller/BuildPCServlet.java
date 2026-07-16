@@ -208,7 +208,11 @@ public class BuildPCServlet extends HttpServlet {
             return;
         }
 
-        int appliedQuantity = Math.min(quantity, availableQuantity);
+        if (quantity > availableQuantity) {
+            quantity = availableQuantity;
+        }
+
+        int appliedQuantity = quantity;
         selectedQuantities.put(slot, appliedQuantity);
         session.setAttribute(SESSION_SELECTED_BUILD_QUANTITIES, selectedQuantities);
 
@@ -478,12 +482,13 @@ public class BuildPCServlet extends HttpServlet {
         }
 
         String trimmed = value.trim();
-        if (!trimmed.matches("^[1-9][0-9]*$") || trimmed.length() > MAX_BUILD_QUANTITY_DIGITS) {
+        if (trimmed.isEmpty() || !trimmed.matches("^\\d+$") || trimmed.length() > MAX_BUILD_QUANTITY_DIGITS) {
             return null;
         }
 
         try {
-            return Integer.parseInt(trimmed);
+            int parsedValue = Integer.parseInt(trimmed);
+            return parsedValue >= 1 ? parsedValue : null;
         } catch (NumberFormatException e) {
             return null;
         }

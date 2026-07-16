@@ -1,4 +1,4 @@
-// Build PC page interactions: modal, quantity validation, and cart submission guard.
+// Tương tác trên trang Build PC: modal, kiểm tra số lượng và chặn thêm vào giỏ hàng.
 (function () {
     function validateQuantity(form, showFeedback) {
         var firstInvalidInput = null;
@@ -21,7 +21,7 @@
         return true;
     }
 
-    // Open the quick-select modal for a Build PC slot.
+    // Mở modal chọn linh kiện cho một slot Build PC.
     document.querySelectorAll('.build-open-quick-view').forEach(function (button) {
         button.addEventListener('click', function () {
             var modal = document.getElementById(button.getAttribute('data-build-modal'));
@@ -33,7 +33,7 @@
         });
     });
 
-    // Close the quick-select modal.
+    // Đóng modal chọn linh kiện.
     document.querySelectorAll('[data-build-close]').forEach(function (button) {
         button.addEventListener('click', function () {
             var modal = button.closest('.build-quick-view');
@@ -45,7 +45,7 @@
         });
     });
 
-    // Allow closing the modal with the Escape key.
+    // Cho phép đóng modal bằng phím Escape.
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
             document.querySelectorAll('.build-quick-view.is-open').forEach(function (modal) {
@@ -56,7 +56,7 @@
         }
     });
 
-    // Keep the input numeric-only and clamp it to the available stock limit.
+    // Giữ ô nhập ở dạng số và giới hạn theo số lượng tồn kho có sẵn.
     function sanitizeBuildQuantityInput(input) {
         var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || '1', 10);
         var digits = String(input.value || '').replace(/\D/g, '');
@@ -80,7 +80,7 @@
         input.value = String(numericValue);
     }
 
-    // Bind validation and auto-submit behavior for each Build PC quantity input.
+    // Gắn logic kiểm tra và tự submit cho từng ô nhập số lượng Build PC.
     document.querySelectorAll('.build-qty-input').forEach(function (input) {
         var baseWidth = 114;
         var digitWidth = 14;
@@ -143,7 +143,7 @@
         resizeQuantityInput();
     });
 
-    // Prevent adding the Build PC configuration to cart when a quantity is invalid.
+    // Ngăn thêm cấu hình Build PC vào giỏ hàng khi số lượng không hợp lệ.
     document.querySelectorAll('.build-add-cart-form').forEach(function (form) {
         form.addEventListener('submit', function (event) {
             if (!validateQuantity(form, true)) {

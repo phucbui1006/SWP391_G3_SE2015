@@ -11,10 +11,10 @@ import model.Product;
 
 public class BuildPCDAO extends DBContext {
 
-    private static final int CPU_CATEGORY_ID = 1;
-    private static final int MAINBOARD_CATEGORY_ID = 2;
-    private static final int RAM_CATEGORY_ID = 3;
-    private static final int GPU_CATEGORY_ID = 4;
+//    private static final int CPU_CATEGORY_ID = 1;
+//    private static final int MAINBOARD_CATEGORY_ID = 2;
+//    private static final int RAM_CATEGORY_ID = 3;
+//    private static final int GPU_CATEGORY_ID = 4;
 
     private static final String PRODUCT_SELECT
             = "SELECT p.product_id, p.price, COALESCE(stock.quantity, 0) AS quantity, "
@@ -59,7 +59,7 @@ public class BuildPCDAO extends DBContext {
     }
 
     /**
-     * Get products for a slot that are currently available and compatible with the selected Build PC parts.
+     * Lấy các sản phẩm cho một slot hiện đang có sẵn và tương thích với các linh kiện Build PC đã chọn.
      */
     public List<Product> getProductsByCategoryCompatibleWithBuild(int categoryId,
             Map<String, Integer> selectedBuild, String currentSlot) {
@@ -76,7 +76,7 @@ public class BuildPCDAO extends DBContext {
     }
 
     /**
-     * Check whether a candidate product is compatible with the products already selected in the Build PC configuration.
+     * Kiểm tra xem một sản phẩm đề cử có tương thích với các sản phẩm đã được chọn trong cấu hình Build PC hay không.
      */
     public boolean isProductCompatibleWithSelectedBuild(int productId,
             Map<String, Integer> selectedBuild, String currentSlot) {
@@ -112,7 +112,7 @@ public class BuildPCDAO extends DBContext {
     }
 
     /**
-     * Convert the selected slot-to-product id map into a slot-to-product object map.
+     * Chuyển bản đồ slot -> id sản phẩm đã chọn thành bản đồ slot -> object sản phẩm.
      */
     public Map<String, Product> getSelectedBuild(Map<String, Integer> selectedBuild) {
         Map<String, Product> selectedProducts = new LinkedHashMap<>();
@@ -132,7 +132,7 @@ public class BuildPCDAO extends DBContext {
     }
 
     /**
-     * Get the total available stock for a product from batch items.
+     * Lấy tổng tồn kho có sẵn của một sản phẩm từ batch_items.
      */
     public int getAvailableQuantity(int productId) {
         String sql = "SELECT COALESCE(SUM(bi.quantity), 0) AS available_quantity "
@@ -159,7 +159,7 @@ public class BuildPCDAO extends DBContext {
     }
 
     /**
-     * Get an active product by id when it is still in stock and available for sale.
+     * Lấy sản phẩm đang hoạt động theo id khi sản phẩm vẫn còn hàng và có thể bán.
      */
     public Product getProductById(int productId) {
         String sql = PRODUCT_SELECT
@@ -181,7 +181,7 @@ public class BuildPCDAO extends DBContext {
     }
 
     /**
-     * Apply the compatibility rules between two products using the product specification table.
+     * Áp dụng các quy tắc tương thích giữa hai sản phẩm bằng bảng product_specifications.
      */
     private boolean areProductsCompatible(int sourceProductId, int targetProductId) {
         String sql = "SELECT COUNT(*) AS invalid_rules "
@@ -219,70 +219,70 @@ public class BuildPCDAO extends DBContext {
     }
 
     /**
-     * Internal helper used by the list filtering logic to retrieve compatible products for a slot.
+     * Helper nội bộ dùng cho logic lọc danh sách để lấy các sản phẩm tương thích cho một slot.
      */
-    private List<Product> getCompatibleProducts(int sourceProductId, int sourceCategoryId, int targetCategoryId) {
-        List<Product> products = new ArrayList<>();
-
-        // Truy vấn tương thích dùng COMPATIBILITY_RULES làm cấu hình động:
-        // với mỗi rule source_spec -> target_spec, target chỉ hợp lệ khi giá trị spec bằng nhau.
-        // NOT EXISTS đảm bảo target bị loại nếu thiếu bất kỳ rule nào.
-        String sql = PRODUCT_SELECT
-                + "WHERE p.category_id = ? AND " + ACTIVE_IN_STOCK_CONDITION
-                + "AND EXISTS ( "
-                + "    SELECT 1 FROM products source_product "
-                + "    JOIN categories source_category ON source_category.category_id = source_product.category_id "
-                + "    JOIN brands source_brand ON source_brand.brand_id = source_product.brand_id "
-                + "    JOIN ( "
-                + "        SELECT product_id, SUM(quantity) AS quantity "
-                + "        FROM batch_items "
-                + "        GROUP BY product_id "
-                + "    ) source_stock ON source_stock.product_id = source_product.product_id "
-                + "    WHERE source_product.product_id = ? "
-                + "      AND source_product.category_id = ? "
-                + "      AND source_product.status = 'ACTIVE' "
-                + "      AND source_category.status = 'ACTIVE' "
-                + "      AND source_brand.status = 'ACTIVE' "
-                + "      AND source_stock.quantity > 0 "
-                + ") "
-                + "AND NOT EXISTS ( "
-                + "    SELECT 1 "
-                + "    FROM compatibility_rules cr "
-                + "    JOIN product_specifications source_spec "
-                + "      ON source_spec.product_id = ? "
-                + "     AND source_spec.specification_name = cr.source_spec_name "
-                + "    WHERE cr.source_category_id = ? "
-                + "      AND cr.target_category_id = ? "
-                + "      AND cr.comparison_operator = '=' "
-                + "      AND NOT EXISTS ( "
-                + "          SELECT 1 "
-                + "          FROM product_specifications target_spec "
-                + "          WHERE target_spec.product_id = p.product_id "
-                + "            AND target_spec.specification_name = cr.target_spec_name "
-                + "            AND LOWER(TRIM(target_spec.specification_value)) = LOWER(TRIM(source_spec.specification_value)) "
-                + "      ) "
-                + ") "
-                + "ORDER BY p.product_name";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, targetCategoryId);
-            ps.setInt(2, sourceProductId);
-            ps.setInt(3, sourceCategoryId);
-            ps.setInt(4, sourceProductId);
-            ps.setInt(5, sourceCategoryId);
-            ps.setInt(6, targetCategoryId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    products.add(mapProduct(rs));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return products;
-    }
+//    private List<Product> getCompatibleProducts(int sourceProductId, int sourceCategoryId, int targetCategoryId) {
+//        List<Product> products = new ArrayList<>();
+//
+//        // Truy vấn tương thích dùng COMPATIBILITY_RULES làm cấu hình động:
+//        // với mỗi rule source_spec -> target_spec, target chỉ hợp lệ khi giá trị spec bằng nhau.
+//        // NOT EXISTS đảm bảo target bị loại nếu thiếu bất kỳ rule nào.
+//        String sql = PRODUCT_SELECT
+//                + "WHERE p.category_id = ? AND " + ACTIVE_IN_STOCK_CONDITION
+//                + "AND EXISTS ( "
+//                + "    SELECT 1 FROM products source_product "
+//                + "    JOIN categories source_category ON source_category.category_id = source_product.category_id "
+//                + "    JOIN brands source_brand ON source_brand.brand_id = source_product.brand_id "
+//                + "    JOIN ( "
+//                + "        SELECT product_id, SUM(quantity) AS quantity "
+//                + "        FROM batch_items "
+//                + "        GROUP BY product_id "
+//                + "    ) source_stock ON source_stock.product_id = source_product.product_id "
+//                + "    WHERE source_product.product_id = ? "
+//                + "      AND source_product.category_id = ? "
+//                + "      AND source_product.status = 'ACTIVE' "
+//                + "      AND source_category.status = 'ACTIVE' "
+//                + "      AND source_brand.status = 'ACTIVE' "
+//                + "      AND source_stock.quantity > 0 "
+//                + ") "
+//                + "AND NOT EXISTS ( "
+//                + "    SELECT 1 "
+//                + "    FROM compatibility_rules cr "
+//                + "    JOIN product_specifications source_spec "
+//                + "      ON source_spec.product_id = ? "
+//                + "     AND source_spec.specification_name = cr.source_spec_name "
+//                + "    WHERE cr.source_category_id = ? "
+//                + "      AND cr.target_category_id = ? "
+//                + "      AND cr.comparison_operator = '=' "
+//                + "      AND NOT EXISTS ( "
+//                + "          SELECT 1 "
+//                + "          FROM product_specifications target_spec "
+//                + "          WHERE target_spec.product_id = p.product_id "
+//                + "            AND target_spec.specification_name = cr.target_spec_name "
+//                + "            AND LOWER(TRIM(target_spec.specification_value)) = LOWER(TRIM(source_spec.specification_value)) "
+//                + "      ) "
+//                + ") "
+//                + "ORDER BY p.product_name";
+//
+//        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+//            ps.setInt(1, targetCategoryId);
+//            ps.setInt(2, sourceProductId);
+//            ps.setInt(3, sourceCategoryId);
+//            ps.setInt(4, sourceProductId);
+//            ps.setInt(5, sourceCategoryId);
+//            ps.setInt(6, targetCategoryId);
+//
+//            try (ResultSet rs = ps.executeQuery()) {
+//                while (rs.next()) {
+//                    products.add(mapProduct(rs));
+//                }
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return products;
+//    }
 
     private Product mapProduct(ResultSet rs) throws SQLException {
         Product product = new Product();

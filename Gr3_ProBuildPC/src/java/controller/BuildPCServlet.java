@@ -446,6 +446,14 @@ public class BuildPCServlet extends HttpServlet {
         return quantity == null || quantity < 1 ? 1 : quantity;
     }
 
+    private boolean isValidSelectedQuantity(Map<String, Integer> selectedQuantities, String slot, int availableQuantity) {
+        Integer quantity = selectedQuantities.get(slot);
+        if (quantity == null) {
+            quantity = 1;
+        }
+        return quantity >= 1 && quantity <= availableQuantity;
+    }
+
     /**
      * Xác nhận rằng số lượng đã lưu là dương và không vượt quá tồn kho.
      */
@@ -516,6 +524,24 @@ public class BuildPCServlet extends HttpServlet {
         try {
             int parsedValue = Integer.parseInt(value);
             return parsedValue > 0 ? parsedValue : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Integer parseBuildQuantity(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        if (trimmed.isEmpty() || !trimmed.matches("^\\d+$") || trimmed.length() > MAX_BUILD_QUANTITY_DIGITS) {
+            return null;
+        }
+
+        try {
+            int parsedValue = Integer.parseInt(trimmed);
+            return parsedValue >= 1 ? parsedValue : null;
         } catch (NumberFormatException e) {
             return null;
         }
@@ -618,49 +644,5 @@ public class BuildPCServlet extends HttpServlet {
     private void setFlash(HttpSession session, String message, String type) {
         session.setAttribute(BUILD_MESSAGE, message);
         session.setAttribute(BUILD_MESSAGE_TYPE, type);
-    }
-
-    /**
-     * Xử lý lỗi thêm vào giỏ hàng thống nhất cho cả request thường và AJAX.
-     */
-    private void respondAddToCartError(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, boolean ajaxRequest, String message) throws IOException {
-        if (ajaxRequest) {
-            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false, message, getCartItemCount(session));
-            return;
-        }
-
-        setFlash(session, message, "error");
-        response.sendRedirect(request.getContextPath() + "/build-pc");
-    }
-
-    /**
-     * Kiểm tra xem request có phải là AJAX hay không.
-     */
-    private boolean isAjaxRequest(HttpServletRequest request) {
-        return "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
-    }
-
-    /**
-     * Ghi một phản hồi JSON đơn giản cho hành động thêm vào giỏ hàng bằng AJAX.
-     */
-    private void writeJson(HttpServletResponse response, int status, boolean success, String message, int cartItemCount)
-            throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"success\":" + success
-                + ",\"message\":\"" + escapeJson(message)
-                + "\",\"cartItemCount\":" + cartItemCount + "}");
-    }
-
-    private String escapeJson(String value) {
-        if (value == null) {
-            return "";
-        }
-
-        return value.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\r", "\\r")
-                .replace("\n", "\\n");
     }
 }

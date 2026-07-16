@@ -58,18 +58,9 @@ public class BuildPCDAO extends DBContext {
         return products;
     }
 
-    public List<Product> getCompatibleMainboards(int cpuProductId) {
-        return getCompatibleProducts(cpuProductId, CPU_CATEGORY_ID, MAINBOARD_CATEGORY_ID);
-    }
-
-    public List<Product> getCompatibleRAMs(int mainboardProductId) {
-        return getCompatibleProducts(mainboardProductId, MAINBOARD_CATEGORY_ID, RAM_CATEGORY_ID);
-    }
-
-    public List<Product> getCompatibleGPUs(int mainboardProductId) {
-        return getCompatibleProducts(mainboardProductId, MAINBOARD_CATEGORY_ID, GPU_CATEGORY_ID);
-    }
-
+    /**
+     * Get products for a slot that are currently available and compatible with the selected Build PC parts.
+     */
     public List<Product> getProductsByCategoryCompatibleWithBuild(int categoryId,
             Map<String, Integer> selectedBuild, String currentSlot) {
         List<Product> compatibleProducts = new ArrayList<>();
@@ -84,6 +75,9 @@ public class BuildPCDAO extends DBContext {
         return compatibleProducts;
     }
 
+    /**
+     * Check whether a candidate product is compatible with the products already selected in the Build PC configuration.
+     */
     public boolean isProductCompatibleWithSelectedBuild(int productId,
             Map<String, Integer> selectedBuild, String currentSlot) {
         Product candidate = getProductById(productId);
@@ -117,6 +111,9 @@ public class BuildPCDAO extends DBContext {
         return true;
     }
 
+    /**
+     * Convert the selected slot-to-product id map into a slot-to-product object map.
+     */
     public Map<String, Product> getSelectedBuild(Map<String, Integer> selectedBuild) {
         Map<String, Product> selectedProducts = new LinkedHashMap<>();
 
@@ -134,6 +131,9 @@ public class BuildPCDAO extends DBContext {
         return selectedProducts;
     }
 
+    /**
+     * Get the total available stock for a product from batch items.
+     */
     public int getAvailableQuantity(int productId) {
         String sql = "SELECT COALESCE(SUM(bi.quantity), 0) AS available_quantity "
                 + "FROM batch_items bi "
@@ -158,6 +158,9 @@ public class BuildPCDAO extends DBContext {
         return 0;
     }
 
+    /**
+     * Get an active product by id when it is still in stock and available for sale.
+     */
     public Product getProductById(int productId) {
         String sql = PRODUCT_SELECT
                 + "WHERE p.product_id = ? AND " + ACTIVE_IN_STOCK_CONDITION;
@@ -177,6 +180,9 @@ public class BuildPCDAO extends DBContext {
         return null;
     }
 
+    /**
+     * Apply the compatibility rules between two products using the product specification table.
+     */
     private boolean areProductsCompatible(int sourceProductId, int targetProductId) {
         String sql = "SELECT COUNT(*) AS invalid_rules "
                 + "FROM compatibility_rules cr "
@@ -212,6 +218,9 @@ public class BuildPCDAO extends DBContext {
         return false;
     }
 
+    /**
+     * Internal helper used by the list filtering logic to retrieve compatible products for a slot.
+     */
     private List<Product> getCompatibleProducts(int sourceProductId, int sourceCategoryId, int targetCategoryId) {
         List<Product> products = new ArrayList<>();
 

@@ -85,6 +85,9 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Render the Build PC page with the current selected components and quantities.
+     */
     private void showBuildPC(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
@@ -95,9 +98,6 @@ public class BuildPCServlet extends HttpServlet {
         List<BuildPCSlot> buildSlots = createBuildSlots(buildPCDAO, selectedBuild, selectedProducts, selectedQuantities);
 
         request.setAttribute("buildSlots", buildSlots);
-        request.setAttribute("selectedProducts", selectedProducts);
-        request.setAttribute("selectedBuild", selectedBuild);
-        request.setAttribute("selectedQuantities", selectedQuantities);
         request.setAttribute("buildTotal", calculateBuildTotal(selectedProducts, selectedQuantities));
         request.setAttribute("cartItemCount", getCartItemCount(session));
         moveFlash(session, request, BUILD_MESSAGE, "buildPcMessage");
@@ -106,6 +106,9 @@ public class BuildPCServlet extends HttpServlet {
         request.getRequestDispatcher("/views/build-pc.jsp").forward(request, response);
     }
 
+    /**
+     * Save a selected component into the current Build PC configuration.
+     */
     private void handleSelect(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession();
@@ -149,6 +152,9 @@ public class BuildPCServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
+    /**
+     * Remove a selected component slot from the current Build PC configuration.
+     */
     private void handleRemove(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession();
@@ -169,6 +175,9 @@ public class BuildPCServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
+    /**
+     * Update the quantity for a selected component, capped by available stock.
+     */
     private void handleUpdateQuantity(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession();
@@ -223,6 +232,9 @@ public class BuildPCServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
+    /**
+     * Reset the current Build PC configuration and quantity selections.
+     */
     private void handleClear(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession();
@@ -232,6 +244,9 @@ public class BuildPCServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
+    /**
+     * Add the current Build PC configuration into the customer's cart after validating stock and compatibility.
+     */
     private void handleAddToCart(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession();
@@ -332,6 +347,9 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Build the slot list shown on the page, including compatibility-based product suggestions.
+     */
     private List<BuildPCSlot> createBuildSlots(BuildPCDAO dao, Map<String, Integer> selectedBuild,
             Map<String, Product> selectedProducts, Map<String, Integer> selectedQuantities) {
         List<BuildPCSlot> slots = new ArrayList<>();
@@ -366,6 +384,9 @@ public class BuildPCServlet extends HttpServlet {
         return slots;
     }
 
+    /**
+     * Create a non-compatibility slot such as SSD, case, monitor, keyboard, or mouse.
+     */
     private BuildPCSlot createAccessorySlot(BuildPCDAO dao, String key, String displayName, int categoryId) {
         BuildPCSlot slot = new BuildPCSlot(key, displayName, categoryId, false);
         // Phụ kiện không kiểm tra tương thích, chỉ cần ACTIVE và còn hàng.
@@ -373,6 +394,9 @@ public class BuildPCServlet extends HttpServlet {
         return slot;
     }
 
+    /**
+     * Read the selected component IDs from the session.
+     */
     @SuppressWarnings("unchecked")
     private Map<String, Integer> getSelectedBuild(HttpSession session) {
         Object value = session.getAttribute(SESSION_SELECTED_BUILD);
@@ -384,6 +408,9 @@ public class BuildPCServlet extends HttpServlet {
         return new LinkedHashMap<>();
     }
 
+    /**
+     * Read the selected quantities from the session.
+     */
     @SuppressWarnings("unchecked")
     private Map<String, Integer> getSelectedQuantities(HttpSession session) {
         Object value = session.getAttribute(SESSION_SELECTED_BUILD_QUANTITIES);
@@ -395,6 +422,9 @@ public class BuildPCServlet extends HttpServlet {
         return new LinkedHashMap<>();
     }
 
+    /**
+     * Calculate the total price of the current Build PC configuration.
+     */
     private BigDecimal calculateBuildTotal(Map<String, Product> selectedProducts, Map<String, Integer> selectedQuantities) {
         BigDecimal total = BigDecimal.ZERO;
 
@@ -408,11 +438,17 @@ public class BuildPCServlet extends HttpServlet {
         return total;
     }
 
+    /**
+     * Return a safe quantity value, defaulting to 1 when missing or invalid.
+     */
     private int getSelectedQuantity(Map<String, Integer> selectedQuantities, String slot) {
         Integer quantity = selectedQuantities.get(slot);
         return quantity == null || quantity < 1 ? 1 : quantity;
     }
 
+    /**
+     * Verify that a stored quantity is positive and does not exceed stock.
+     */
     private boolean isValidSelectedQuantity(Map<String, Integer> selectedQuantities, String slot, int availableQuantity) {
         Integer quantity = selectedQuantities.get(slot);
         if (quantity == null) {
@@ -421,6 +457,9 @@ public class BuildPCServlet extends HttpServlet {
         return quantity >= 1 && quantity <= availableQuantity;
     }
 
+    /**
+     * Map the UI slot key to the corresponding category id.
+     */
     private int getCategoryIdBySlot(String slot) {
         switch (slot) {
             case "CPU":
@@ -446,6 +485,9 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Validate and normalize the incoming slot name from the request.
+     */
     private String normalizeSlot(String slot) {
         if (slot == null) {
             return null;
@@ -467,6 +509,9 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Parse a positive integer from request parameters.
+     */
     private Integer parsePositiveInteger(String value) {
         try {
             int parsedValue = Integer.parseInt(value);
@@ -476,6 +521,9 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Parse a Build PC quantity value that only accepts digits and a positive range.
+     */
     private Integer parseBuildQuantity(String value) {
         if (value == null) {
             return null;
@@ -494,6 +542,9 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Parse a generic integer for delta-based updates.
+     */
     private Integer parseInteger(String value) {
         try {
             return Integer.parseInt(value);
@@ -502,6 +553,9 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Find the cart item for a product in the current customer cart.
+     */
     private CartItem findCartItemByProductId(List<CartItem> cartItems, int productId) {
         for (CartItem item : cartItems) {
             if (item.getProductId() == productId) {
@@ -512,11 +566,17 @@ public class BuildPCServlet extends HttpServlet {
         return null;
     }
 
+    /**
+     * Get the quantity already in cart for a product.
+     */
     private int getCurrentCartQuantity(List<CartItem> cartItems, int productId) {
         CartItem item = findCartItemByProductId(cartItems, productId);
         return item == null ? 0 : item.getQuantity();
     }
 
+    /**
+     * Sum the cart quantities to calculate the cart item count.
+     */
     private int calculateCartItemCount(List<CartItem> cartItems) {
         int count = 0;
 
@@ -527,6 +587,9 @@ public class BuildPCServlet extends HttpServlet {
         return count;
     }
 
+    /**
+     * Fetch the cart count for the currently logged in customer.
+     */
     private int getCartItemCount(HttpSession session) {
         User account = (User) session.getAttribute("account");
 
@@ -538,6 +601,9 @@ public class BuildPCServlet extends HttpServlet {
         return cartDAO.getCartItemCountByCustomerId(account.getCustomerId());
     }
 
+    /**
+     * Move one-time flash messages from session to request attributes.
+     */
     private void moveFlash(HttpSession session, HttpServletRequest request, String sessionKey, String requestKey) {
         Object value = session.getAttribute(sessionKey);
         if (value != null) {
@@ -546,11 +612,17 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Store a flash message for the next page render.
+     */
     private void setFlash(HttpSession session, String message, String type) {
         session.setAttribute(BUILD_MESSAGE, message);
         session.setAttribute(BUILD_MESSAGE_TYPE, type);
     }
 
+    /**
+     * Handle cart add failures consistently for both normal and AJAX requests.
+     */
     private void respondAddToCartError(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, boolean ajaxRequest, String message) throws IOException {
         if (ajaxRequest) {
@@ -562,10 +634,16 @@ public class BuildPCServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
+    /**
+     * Detect whether the request is an AJAX call.
+     */
     private boolean isAjaxRequest(HttpServletRequest request) {
         return "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
     }
 
+    /**
+     * Write a simple JSON response for AJAX add-to-cart actions.
+     */
     private void writeJson(HttpServletResponse response, int status, boolean success, String message, int cartItemCount)
             throws IOException {
         response.setStatus(status);

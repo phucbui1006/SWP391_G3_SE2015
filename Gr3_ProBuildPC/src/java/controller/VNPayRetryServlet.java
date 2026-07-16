@@ -12,10 +12,6 @@ import java.math.BigDecimal;
 import model.User;
 import util.VNPayUtil;
 
-/**
- * Servlet cho phép khách hàng tiếp tục thanh toán VNPAY
- * với một đơn hàng đang ở trạng thái "Chờ thanh toán".
- */
 @WebServlet(name = "VNPayRetryServlet", urlPatterns = {"/vnpay-retry"})
 public class VNPayRetryServlet extends HttpServlet {
 
@@ -42,14 +38,24 @@ public class VNPayRetryServlet extends HttpServlet {
         }
 
         OrderDAO orderDAO = new OrderDAO();
+        boolean extended = orderDAO.extendVnpayExpiresAtForCustomer(orderId, account.getCustomerId(), 5);
 
-        // Gia hạn thêm 5 phút từ thời điểm hiện tại
-        orderDAO.setVnpayExpiresAt(orderId, 5);
+        if (!extended) {
+            if (orderDAO.isVnpayOrderExpiredOrCancelled(orderId)) {
+                orderDAO.cancelPendingVnpayOrder(orderId, "Thất bại");
+            }
+            session.setAttribute("orderHistoryError", "Đơn hàng không còn ở trạng thái chờ thanh toán hoặc đã hết hạn.");
+            response.sendRedirect(request.getContextPath() + "/order-history?selectedOrderId=" + orderId);
+            return;
+        }
 
-        // Lấy lại tổng tiền của đơn hàng
-        BigDecimal totalAmount = orderDAO.getOrderTotalAmount(orderId);
+        BigDecimal totalAmount = orderDAO.getOrderTotalAmountForCustomer(orderId, account.getCustomerId());
+        if (totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            session.setAttribute("orderHistoryError", "Không thể lấy thông tin thanh toán của đơn hàng này.");
+            response.sendRedirect(request.getContextPath() + "/order-history?selectedOrderId=" + orderId);
+            return;
+        }
 
-        // Tạo URL thanh toán mới (cùng orderId)
         String paymentUrl = VNPayUtil.buildPaymentUrl(request, orderId, totalAmount.doubleValue());
         response.sendRedirect(paymentUrl);
     }

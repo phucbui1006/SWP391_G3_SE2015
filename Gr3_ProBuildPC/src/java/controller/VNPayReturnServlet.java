@@ -10,7 +10,13 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import util.VNPayUtil;
 
 @WebServlet(name = "VNPayReturnServlet", urlPatterns = {"/vnpay-return"})
@@ -24,7 +30,6 @@ public class VNPayReturnServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
-        // Collect parameters for signature verification
         Map<String, String> fields = new HashMap<>();
         for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements();) {
             String fieldName = params.nextElement();
@@ -34,7 +39,7 @@ public class VNPayReturnServlet extends HttpServlet {
             }
         }
 
-        String vnp_SecureHash = request.getParameter("vnp_SecureHash");
+        String secureHash = request.getParameter("vnp_SecureHash");
         fields.remove("vnp_SecureHashType");
         fields.remove("vnp_SecureHash");
 
@@ -54,7 +59,7 @@ public class VNPayReturnServlet extends HttpServlet {
         }
 
         String checkSign = VNPayUtil.hmacSHA512(VNPayUtil.VNP_HASHSECRET, signData.toString());
-        boolean isSignatureValid = checkSign.equalsIgnoreCase(vnp_SecureHash);
+        boolean isSignatureValid = checkSign.equalsIgnoreCase(secureHash);
 
         String responseCode = request.getParameter("vnp_ResponseCode");
         String txnRef = request.getParameter("vnp_TxnRef");
@@ -62,46 +67,37 @@ public class VNPayReturnServlet extends HttpServlet {
         String bankCode = request.getParameter("vnp_BankCode");
         String transactionNo = request.getParameter("vnp_TransactionNo");
 
-        int orderId = -1;
-        try {
-            orderId = Integer.parseInt(txnRef);
-        } catch (Exception e) {
-            // Ignore
-        }
-
-        BigDecimal amount = BigDecimal.ZERO;
-        if (rawAmount != null) {
-            try {
-                // VNPay amount is sent as amount * 100
-                amount = new BigDecimal(rawAmount).divide(new BigDecimal(100));
-            } catch (Exception e) {
-                // Ignore
-            }
-        }
+        int orderId = parseOrderId(txnRef);
+        BigDecimal amount = parseAmount(rawAmount);
 
         OrderDAO orderDAO = new OrderDAO();
         boolean isSuccess = false;
-        String message = "";
+        String message;
 
-        if (isSignatureValid) {
-            if ("00".equals(responseCode)) {
-                // Payment Success: Update order status to 2 (Đã xác nhận), payment_status to 'Đã thanh toán'
-                boolean updated = orderDAO.updateOrderStatusAndPaymentStatus(orderId, 2, "Đã thanh toán");
-                if (updated) {
-                    orderDAO.createPaymentRecord(orderId, "Đã thanh toán", "VNPAY", amount);
-                    isSuccess = true;
-                    message = "Thanh toán đơn hàng #" + orderId + " thành công qua VNPAY!";
-                } else {
-                    message = "Thanh toán thành công nhưng không thể cập nhật trạng thái đơn hàng. Vui lòng liên hệ bộ phận hỗ trợ.";
-                }
+        if (!isSignatureValid) {
+            message = "Chữ ký giao dịch không hợp lệ. Vui lòng không thay đổi dữ liệu đường dẫn.";
+        } else if (orderId <= 0) {
+            message = "Không xác định được đơn hàng cần thanh toán.";
+        } else if ("00".equals(responseCode)) {
+            if (orderDAO.confirmVnpayPayment(orderId, amount)) {
+                isSuccess = true;
+                message = "Thanh toán đơn hàng #" + orderId + " thành công qua VNPAY.";
+            } else if (orderDAO.isVnpayOrderExpiredOrCancelled(orderId)) {
+                orderDAO.cancelPendingVnpayOrder(orderId, "Thất bại");
+                message = "Đơn hàng #" + orderId + " đã hết thời gian thanh toán hoặc đã bị hủy. Số lượng sản phẩm đã được hoàn lại kho.";
             } else {
-                // Payment Failed / Cancelled: Update order status to 6 (Đã hủy), payment_status to 'Thất bại'
-                orderDAO.updateOrderStatusAndPaymentStatus(orderId, 6, "Thất bại");
-                orderDAO.releaseStock(orderId);
-                message = "Giao dịch thanh toán đơn hàng #" + orderId + " đã bị hủy hoặc thất bại.";
+                message = "Thanh toán thành công nhưng không thể cập nhật trạng thái đơn hàng. Vui lòng liên hệ bộ phận hỗ trợ.";
             }
         } else {
-            message = "Chữ ký giao dịch không hợp lệ. Vui lòng không thay đổi dữ liệu đường dẫn.";
+            boolean cancelled = orderDAO.cancelPendingVnpayOrder(orderId, "Thất bại");
+            if (cancelled) {
+                message = "Giao dịch thanh toán đơn hàng #" + orderId + " đã bị hủy hoặc thất bại. Số lượng sản phẩm đã được hoàn lại kho.";
+            } else if (orderDAO.isVnpayOrderExpiredOrCancelled(orderId)) {
+                orderDAO.cancelPendingVnpayOrder(orderId, "Thất bại");
+                message = "Đơn hàng #" + orderId + " đã hết thời gian thanh toán hoặc đã bị hủy trước đó.";
+            } else {
+                message = "Giao dịch thanh toán của đơn hàng #" + orderId + " không thành công.";
+            }
         }
 
         request.setAttribute("isSuccess", isSuccess);
@@ -112,6 +108,26 @@ public class VNPayReturnServlet extends HttpServlet {
         request.setAttribute("transactionNo", transactionNo);
 
         request.getRequestDispatcher(VIEW_PATH).forward(request, response);
+    }
+
+    private int parseOrderId(String txnRef) {
+        try {
+            return Integer.parseInt(txnRef);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private BigDecimal parseAmount(String rawAmount) {
+        if (rawAmount == null) {
+            return BigDecimal.ZERO;
+        }
+
+        try {
+            return new BigDecimal(rawAmount).divide(new BigDecimal(100));
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
     }
 
     private String encode(String value) {

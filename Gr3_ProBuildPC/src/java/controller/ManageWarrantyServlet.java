@@ -56,9 +56,12 @@ public class ManageWarrantyServlet extends HttpServlet {
             search = "";
         }
 
-        String statusRaw = request.getParameter("status");
+        String statusRaw = request.getParameter("statusId");
         if (statusRaw == null) {
             statusRaw = request.getParameter("statusFilter");
+        }
+        if (statusRaw == null) {
+            statusRaw = request.getParameter("status");
         }
         Integer statusId = null;
         if (statusRaw != null && !statusRaw.trim().isEmpty()) {
@@ -95,7 +98,6 @@ public class ManageWarrantyServlet extends HttpServlet {
                         request.setAttribute("condHistory", condHistory);
                     }
                 } catch (NumberFormatException e) {
-                    // ignore
                 }
             }
         } else if ("edit".equalsIgnoreCase(action) && "EMPLOYEE".equals(roleName)) {
@@ -152,6 +154,7 @@ public class ManageWarrantyServlet extends HttpServlet {
 
         String warrantyIdRaw = request.getParameter("warrantyId");
         String statusIdRaw = request.getParameter("statusId");
+        String responseText = request.getParameter("response");
         String search = request.getParameter("search");
         String statusFilter = request.getParameter("statusFilter");
         if (search == null) {
@@ -170,8 +173,11 @@ public class ManageWarrantyServlet extends HttpServlet {
         try {
             int warrantyId = Integer.parseInt(warrantyIdRaw);
             int statusId = Integer.parseInt(statusIdRaw);
+            if (responseText == null) {
+                responseText = "";
+            }
             
-            boolean success = warrantyDAO.updateWarrantyStatus(warrantyId, statusId);
+            boolean success = warrantyDAO.updateWarrantyStatus(warrantyId, statusId, responseText.trim());
             if (success) {
                 session.setAttribute("successMsg", "Cập nhật yêu cầu bảo hành #" + warrantyId + " thành công!");
             } else {

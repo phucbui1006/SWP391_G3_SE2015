@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Collections" %>
+<%@ page import="java.util.Map" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ page import="model.Product" %>
@@ -48,6 +49,8 @@
 
     String success = (String) request.getAttribute("success");
     String error = (String) request.getAttribute("error");
+    Map<String, String> validationErrors = (Map<String, String>) request.getAttribute("errors");
+    if (validationErrors == null) validationErrors = Collections.emptyMap();
 
     // Preserve backend entered data on validation errors
     String enteredProductName = (String) request.getAttribute("enteredProductName");
@@ -115,10 +118,11 @@
 <html lang="vi">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Quản lý sản phẩm - ProBuild PC</title>
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
-        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css">
-        <script src="${pageContext.request.contextPath}/js/validator.js"></script>
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css?v=1.0.3">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     </head>
     <body class="admin-product-body" data-ctx="<%= contextPath %>">
 
@@ -129,7 +133,7 @@
                 <h2>Quản lý sản phẩm</h2>
                 <div class="admin-breadcrumb">
                     <a href="<%= contextPath %>/Dashboard">Dashboard</a>
-                    
+
                     <span>›</span>
                     <span>Sản phẩm</span>
                     <span>›</span>
@@ -148,7 +152,7 @@
             <section class="admin-product-card">
                 <!-- Search & Filters Toolbar -->
                 <form action="<%= contextPath %>/admin/products" method="get" class="admin-product-toolbar" id="adminProductSearchForm">
-                    
+
                     <div class="product-toolbar-left">
                         <div class="filter-group keyword-search">
                             <input type="text"
@@ -182,8 +186,8 @@
                             <label for="statusFilter">Trạng thái:</label>
                             <select name="status" id="statusFilter">
                                 <option value="ALL" <%= "ALL".equals(status) ? "selected" : "" %>>Tất cả</option>
-                                <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>Đang hoạt động</option>
-                                <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>Đã vô hiệu hóa</option>
+                                <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>ACTIVE</option>
+                                <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>INACTIVE</option>
                             </select>
                         </div>
 
@@ -196,6 +200,7 @@
                                 <option value="price_desc" <%= "price_desc".equals(sort) ? "selected" : "" %>>Giá giảm dần</option>
                                 <option value="qty_asc" <%= "qty_asc".equals(sort) ? "selected" : "" %>>Số lượng tăng dần</option>
                                 <option value="qty_desc" <%= "qty_desc".equals(sort) ? "selected" : "" %>>Số lượng giảm dần</option>
+                                <option value="bestSeller" <%= "bestSeller".equals(sort) ? "selected" : "" %>>Bán chạy nhất</option>
                             </select>
                         </div>
 
@@ -214,12 +219,15 @@
                     <table class="admin-product-table">
                         <thead>
                             <tr>
+                                <th>#</th>
                                 <th>Ảnh</th>
                                 <th>Tên sản phẩm</th>
                                 <th>Danh mục</th>
                                 <th>Thương hiệu</th>
                                 <th>Giá bán</th>
-                                <th>Kho hàng</th>
+                                <th>Số lượng nhập</th>
+                                <th>Số lượng tồn</th>
+                                <th>Số lượng bán</th>
                                 <th>Trạng thái</th>
                                 <th>Thao tác</th>
                             </tr>
@@ -227,72 +235,76 @@
                         <tbody>
                             <% if (products.isEmpty()) { %>
                             <tr>
-                                <td colspan="8" style="text-align:center; padding: 40px; color: #9ca3af;">
+                                <td colspan="11" style="text-align:center; padding: 40px; color: #9ca3af;">
                                     Không tìm thấy sản phẩm nào khớp với bộ lọc
                                 </td>
                             </tr>
                             <% } else { %>
-                                <% for (Product p : products) { 
-                                    String imgUrl = p.getImageUrl();
-                                    if (imgUrl == null || imgUrl.trim().isEmpty()) {
-                                        imgUrl = "images/no-image.png";
-                                    }
-                                %>
-                                <tr>
-                                    <td>
-                                        <img src="<%= contextPath %>/<%= imgUrl %>" alt="<%= h(p.getProductName()) %>" class="table-product-img">
-                                    </td>
-                                    <td class="product-name-cell">
-                                        <strong><%= h(p.getProductName()) %></strong>
-                                    </td>
-                                    <td><%= h(p.getCategoryName()) %></td>
-                                    <td><%= h(p.getBrandName()) %></td>
-                                    <td class="price-cell">
-                                        <%= String.format("%,d", p.getPrice().longValue()) %>đ
-                                    </td>
-                                    <td>
-                                        <% if (p.getQuantity() > 0) { %>
-                                        <span class="stock-badge in-stock"><%= p.getQuantity() %> sản phẩm</span>
-                                        <% } else { %>
-                                        <span class="stock-badge out-stock">Hết hàng</span>
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "active" : "inactive" %>">
-                                            <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "Đang hoạt động" : "Vô hiệu hóa" %>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="product-actions">
-                                            <!-- Edit Details -->
-                                            <a href="#edit-product-modal" class="action-btn btn-edit" title="Sửa thông tin sản phẩm"
-                                               onclick="openEditModal(<%= p.getProductId() %>, '<%= h(p.getProductName()) %>', <%= p.getCategoryId() %>, <%= p.getBrandId() %>, <%= p.getPrice() %>, <%= p.getWarrantyMonths() %>, '<%= h(p.getDescription()) %>', '<%= p.getImageUrl() %>')">
-                                                <i class="fa-solid fa-pen"></i> Sửa
-                                            </a>
+                            <% for (Product p : products) { 
+                                String imgUrl = p.getImageUrl();
+                                if (imgUrl == null || imgUrl.trim().isEmpty()) {
+                                    imgUrl = "images/no-image.png";
+                                }
+                            %>
+                            <tr>
+                                <td><%= p.getProductId() %></td>
+                                <td>
+                                    <img src="<%= contextPath %>/<%= imgUrl %>" alt="<%= h(p.getProductName()) %>" class="table-product-img">
+                                </td>
+                                <td class="product-name-cell">
+                                    <strong><%= h(p.getProductName()) %></strong>
+                                </td>
+                                <td><%= h(p.getCategoryName()) %></td>
+                                <td><%= h(p.getBrandName()) %></td>
+                                <td>
+                                    <%= String.format("%,d", p.getPrice().longValue()) %>đ
+                                </td>
+                                <td>
+                                    <%= p.getImportQuantity() %>
+                                </td>
+                                <td style="
+                                    padding-left: 30px;">
+                                    <% if (p.getQuantity() > 0) { %>
+                                    <span><%= p.getQuantity() %></span>
+                                    <% } else { %>
+                                    <span style="color: #ef4444; font-weight: 500;">0</span>
+                                    <% } %>
+                                </td>
+                                <td><%= p.getSoldQuantity() %></td>
+                                <td>
+                                    <span class="<%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "active" : "inactive" %>">
+                                        <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "ACTIVE" : "INACTIVE" %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="product-actions">
+                                        <!-- Edit Details -->
+                                        <a class="action-btn btn-edit"
+                                           href="<%= contextPath %>/admin/products?action=edit&productId=<%= p.getProductId() %>#edit-product-modal">
+                                            Sửa
+                                        </a>
 
-                                            <!-- Toggle Status -->
-                                            <form action="<%= contextPath %>/admin/products" method="post" style="display:inline;">
-                                                <input type="hidden" name="productId" value="<%= p.getProductId() %>">
-                                                <input type="hidden" name="action" value="<%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "delete" : "activate" %>">
-                                                
-                                                <input type="hidden" name="keyword" value="<%= h(keyword) %>">
-                                                <input type="hidden" name="categoryId" value="<%= selectedCategoryId != null ? selectedCategoryId : "" %>">
-                                                <input type="hidden" name="brandId" value="<%= selectedBrandId != null ? selectedBrandId : "" %>">
-                                                <input type="hidden" name="status" value="<%= h(status) %>">
-                                                <input type="hidden" name="sort" value="<%= h(sort) %>">
-                                                <input type="hidden" name="page" value="<%= currentPage %>">
-                                                
-                                                <button type="submit"
-                                                        class="action-btn <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "btn-status-deactivate" : "btn-status-activate" %>"
-                                                        onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái hoạt động của sản phẩm này?')">
-                                                    <i class="fa-solid fa-power-off"></i>
-                                                    <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "Vô hiệu hóa" : "Kích hoạt" %>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <% } %>
+                                        <!-- Toggle Status -->
+                                        <form action="<%= contextPath %>/admin/products" method="post" style="display:inline;">
+                                            <input type="hidden" name="productId" value="<%= p.getProductId() %>">
+                                            <input type="hidden" name="action" value="<%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "delete" : "activate" %>">
+
+                                            <input type="hidden" name="keyword" value="<%= h(keyword) %>">
+                                            <input type="hidden" name="categoryId" value="<%= selectedCategoryId != null ? selectedCategoryId : "" %>">
+                                            <input type="hidden" name="brandId" value="<%= selectedBrandId != null ? selectedBrandId : "" %>">
+                                            <input type="hidden" name="status" value="<%= h(status) %>">
+                                            <input type="hidden" name="sort" value="<%= h(sort) %>">
+                                            <input type="hidden" name="page" value="<%= currentPage %>">
+
+                                            <button type="submit"
+                                                    class="action-btn <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "btn-status-deactivate" : "btn-status-activate" %>">
+                                                <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "Vô hiệu hóa" : "Kích hoạt" %>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% } %>
                             <% } %>
                         </tbody>
                     </table>
@@ -307,17 +319,38 @@
                         <% if (currentPage > 1) { %>
                         <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage - 1 %><%= listQuery %>">&lsaquo;</a>
                         <% } else { %>
-                        <span class="page-btn disabled">&lsaquo;</span>
+                        <span class="page-btn disabled"><</span>
                         <% } %>
 
-                        <% for (int i = 1; i <= totalPages; i++) { %>
+                        <%
+                            int fromPage = Math.max(2, currentPage - 2);
+                            int toPage = Math.min(totalPages - 1, currentPage + 2);
+                            if (currentPage <= 4) {
+                                fromPage = 2;
+                                toPage = Math.min(totalPages - 1, 5);
+                            } else if (currentPage >= totalPages - 3) {
+                                fromPage = Math.max(2, totalPages - 4);
+                                toPage = totalPages - 1;
+                            }
+                        %>
+                        <a class="page-btn <%= currentPage == 1 ? "active" : "" %>" href="<%= contextPath %>/admin/products?page=1<%= listQuery %>">1</a>
+                        <% if (fromPage > 2) { %>
+                        <span class="page-btn disabled">...</span>
+                        <% } %>
+                        <% for (int i = fromPage; i <= toPage; i++) { %>
                         <a class="page-btn <%= currentPage == i ? "active" : "" %>" href="<%= contextPath %>/admin/products?page=<%= i %><%= listQuery %>"><%= i %></a>
+                        <% } %>
+                        <% if (toPage < totalPages - 1) { %>
+                        <span class="page-btn disabled">...</span>
+                        <% } %>
+                        <% if (totalPages > 1) { %>
+                        <a class="page-btn <%= currentPage == totalPages ? "active" : "" %>" href="<%= contextPath %>/admin/products?page=<%= totalPages %><%= listQuery %>"><%= totalPages %></a>
                         <% } %>
 
                         <% if (currentPage < totalPages) { %>
                         <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage + 1 %><%= listQuery %>">&rsaquo;</a>
                         <% } else { %>
-                        <span class="page-btn disabled">&rsaquo;</span>
+                        <span class="page-btn disabled">></span>
                         <% } %>
                     </div>
                 </div>
@@ -325,25 +358,35 @@
         </main>
 
         <!-- ADD PRODUCT MODAL -->
-        <div class="product-modal-overlay" id="add-product-modal">
-            <section class="product-modal" role="dialog" aria-modal="true" aria-labelledby="addProductTitle">
+        <div class="product-modal-overlay <%= "add".equals(failedAction) ? "server-open" : "" %>" id="add-product-modal">            <section class="product-modal" role="dialog" aria-modal="true" aria-labelledby="addProductTitle">
                 <div class="product-modal-header">
                     <h2 id="addProductTitle"><i class="fa-solid fa-plus-circle"></i> Thêm sản phẩm mới</h2>
                     <a href="#" class="close-btn" aria-label="Đóng">&times;</a>
                 </div>
 
-                <form action="<%= contextPath %>/admin/products" method="post" enctype="multipart/form-data" class="product-modal-form" id="addProductForm" novalidate>
+                <form action="<%= contextPath %>/admin/products" method="post" enctype="multipart/form-data" class="product-modal-form" id="addProductForm" data-specs-loaded="<%= "add".equals(failedAction) && enteredCategoryId != null ? "true" : "false" %>" novalidate>
                     <input type="hidden" name="action" value="add">
-                    
+
                     <% if ("add".equals(failedAction) && error != null && !error.isEmpty()) { %>
-                    <div class="product-alert error" style="margin: 0 0 12px 0;"><%= h(error) %></div>
+                    <div class="product-alert error" style="margin: 0 0 12px 0;">
+                        <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
+                        <% if (!validationErrors.isEmpty()) { %>
+                        <ul class="validation-error-list">
+                            <% for (String validationMessage : validationErrors.values()) { %>
+                            <li><%= h(validationMessage) %></li>
+                                <% } %>
+                        </ul>
+                        <% } else { %>
+                        <%= h(error) %>
+                        <% } %>
+                    </div>
                     <% } %>
 
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="addProductName">Tên sản phẩm <span>*</span></label>
-                            <input id="addProductName" name="productName" type="text" placeholder="Ví dụ: Card màn hình ASUS RTX 4060..." value="<%= "add".equals(failedAction) ? h(enteredProductName) : "" %>" required>
-                            <small class="form-error-text" id="addProductNameError"></small>
+                            <input id="addProductName" name="productName" type="text" minlength="3" maxlength="255" placeholder="Ví dụ: Card màn hình ASUS RTX 4060..." value="<%= "add".equals(failedAction) ? h(enteredProductName) : "" %>" required>
+                            <small class="form-error-text" id="addProductNameError" style="<%= "add".equals(failedAction) && validationErrors.containsKey("productName") ? "display:block" : "" %>"><%= "add".equals(failedAction) ? h(validationErrors.get("productName")) : "" %></small>
                         </div>
 
                         <div class="form-group">
@@ -370,29 +413,35 @@
 
                         <div class="form-group">
                             <label for="addPrice">Giá bán (VND) <span>*</span></label>
-                            <input id="addPrice" name="price" type="number" min="0" step="1000" placeholder="VD: 5500000" value="<%= "add".equals(failedAction) ? h(enteredPrice) : "" %>" required>
+                            <input id="addPrice" name="price" type="number" min="1000" max="1000000000" step="1000" placeholder="VD: 5500000" value="<%= "add".equals(failedAction) ? h(enteredPrice) : "" %>" required>
                             <small class="form-error-text" id="addPriceError"></small>
                         </div>
 
                         <div class="form-group">
                             <label for="addWarrantyMonths">Bảo hành (tháng) <span>*</span></label>
-                            <input id="addWarrantyMonths" name="warrantyMonths" type="number" min="0" placeholder="VD: 12" value="<%= "add".equals(failedAction) && request.getAttribute("enteredWarrantyMonths") != null ? h((String)request.getAttribute("enteredWarrantyMonths")) : "" %>" required>
+                            <input id="addWarrantyMonths" name="warrantyMonths" type="number" min="1" max="120" step="1" placeholder="VD: 12" value="<%= "add".equals(failedAction) && request.getAttribute("enteredWarrantyMonths") != null ? h((String)request.getAttribute("enteredWarrantyMonths")) : "" %>" required>
                             <small class="form-error-text" id="addWarrantyMonthsError"></small>
                         </div>
 
                         <div class="form-group">
                             <label for="addImageFile">Hình ảnh sản phẩm</label>
                             <input id="addImageFile" name="imgFile" type="file" accept=".jpg,.jpeg,.png,.webp">
+                            <input type="hidden" name="currentImg" id="addCurrentImg" value="<%= "add".equals(failedAction) && request.getAttribute("enteredCurrentImg") != null ? h((String)request.getAttribute("enteredCurrentImg")) : "" %>">
                             <small class="image-hint">Tối đa 2MB | Hỗ trợ .png, .jpg, .jpeg, .webp</small>
                             <small class="form-error-text" id="addImageFileError"></small>
 
+                            <div class="current-image-preview" id="addImgPreviewContainer" style="margin-top:8px; <%= ("add".equals(failedAction) && request.getAttribute("enteredCurrentImg") != null) ? "display:block;" : "display:none;" %>">
+                                <small>Ảnh đã tải lên:</small><br>
+                                <img id="addImgPreview" src="<%= contextPath %>/<%= ("add".equals(failedAction) && request.getAttribute("enteredCurrentImg") != null) ? h((String)request.getAttribute("enteredCurrentImg")) : "" %>" alt="Thumbnail" style="height: 50px; border-radius: 4px; border: 1px solid #4b5563; margin-top:4px;">
+                            </div>
                         </div>
 
                         <!-- Button to load technical specifications -->
                         <div class="form-group full-width">
                             <button type="button" id="addSpecBtn" class="btn-load-specs" style="display: <%= ("add".equals(failedAction) && enteredCategoryId != null) ? "inline-flex" : "none" %>;">
-                                <i class="fa-solid fa-gear"></i> Lựa chọn thông số kĩ thuật
+                                <i class="fa-solid fa-gear"></i> Tải thông số kĩ thuật
                             </button>
+                            <small class="form-error-text" style="<%= "add".equals(failedAction) && validationErrors.containsKey("specifications") ? "display:block" : "" %>"><%= "add".equals(failedAction) ? h(validationErrors.get("specifications")) : "" %></small>
                         </div>
 
                         <!-- Dynamic Category Specific specifications container -->
@@ -427,18 +476,20 @@
                                         <% } %>
                                     </select>
                                     <% } else if ("NUMBER".equalsIgnoreCase(t.getSpecType())) { %>
-                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="0" <%= t.isRequired() ? "required" : "" %>>
+                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="0.000001" step="any" <%= t.isRequired() ? "required" : "" %>>
                                     <% } else { %>
                                     <input type="text" name="spec_values[]" placeholder="Nhập thông tin..." value="<%= h(enteredVal) %>" <%= t.isRequired() ? "required" : "" %>>
                                     <% } %>
+                                    <small class="form-error-text" style="<%= validationErrors.containsKey("spec_" + t.getTemplateId()) ? "display:block" : "" %>"><%= h(validationErrors.get("spec_" + t.getTemplateId())) %></small>
                                 </div>
                                 <% } } %>
                             </div>
                         </div>
 
                         <div class="form-group full-width">
-                            <label for="addDescription">Mô tả chi tiết</label>
-                            <textarea id="addDescription" name="description" rows="4" placeholder="Nhập mô tả sản phẩm, thông số kỹ thuật..."><%= "add".equals(failedAction) ? h(enteredDescription) : "" %></textarea>
+                            <label for="addDescription">Mô tả chi tiết <span>*</span></label>
+                            <textarea id="addDescription" name="description" rows="4" maxlength="10000" placeholder="Nhập mô tả sản phẩm, thông số kỹ thuật..." required><%= "add".equals(failedAction) ? h(enteredDescription) : "" %></textarea>
+                            <small class="form-error-text" style="<%= "add".equals(failedAction) && validationErrors.containsKey("description") ? "display:block" : "" %>"><%= "add".equals(failedAction) ? h(validationErrors.get("description")) : "" %></small>
                         </div>
                     </div>
 
@@ -451,27 +502,37 @@
         </div>
 
         <!-- EDIT PRODUCT DETAILS MODAL -->
-        <div class="product-modal-overlay" id="edit-product-modal">
-            <section class="product-modal" role="dialog" aria-modal="true" aria-labelledby="editProductTitle">
+        <div class="product-modal-overlay <%= "update".equals(failedAction) ? "server-open" : "" %>" id="edit-product-modal">            <section class="product-modal" role="dialog" aria-modal="true" aria-labelledby="editProductTitle">
                 <div class="product-modal-header">
                     <h2 id="editProductTitle"><i class="fa-solid fa-pen-to-square"></i> Cập nhật thông tin sản phẩm</h2>
                     <a href="#" class="close-btn" aria-label="Đóng">&times;</a>
                 </div>
 
-                <form action="<%= contextPath %>/admin/products" method="post" enctype="multipart/form-data" class="product-modal-form" id="editProductForm" novalidate>
+                <form action="<%= contextPath %>/admin/products" method="post" enctype="multipart/form-data" class="product-modal-form" id="editProductForm" data-specs-loaded="<%= "update".equals(failedAction) && enteredCategoryId != null ? "true" : "false" %>" novalidate>
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="productId" id="editProductId" value="<%= "update".equals(failedAction) && enteredProductId != null ? enteredProductId : "" %>">
                     <input type="hidden" name="currentImg" id="editCurrentImg" value="<%= "update".equals(failedAction) && enteredCurrentImg != null ? h(enteredCurrentImg) : "" %>">
-                    
+
                     <% if ("update".equals(failedAction) && error != null && !error.isEmpty()) { %>
-                    <div class="product-alert error" style="margin: 0 0 12px 0;"><%= h(error) %></div>
+                    <div class="product-alert error" style="margin: 0 0 12px 0;">
+                        <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
+                        <% if (!validationErrors.isEmpty()) { %>
+                        <ul class="validation-error-list">
+                            <% for (String validationMessage : validationErrors.values()) { %>
+                            <li><%= h(validationMessage) %></li>
+                                <% } %>
+                        </ul>
+                        <% } else { %>
+                        <%= h(error) %>
+                        <% } %>
+                    </div>
                     <% } %>
 
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="editProductName">Tên sản phẩm <span>*</span></label>
-                            <input id="editProductName" name="productName" type="text" value="<%= "update".equals(failedAction) ? h(enteredProductName) : "" %>" required>
-                            <small class="form-error-text" id="editProductNameError"></small>
+                            <input id="editProductName" name="productName" type="text" minlength="3" maxlength="255" value="<%= "update".equals(failedAction) ? h(enteredProductName) : "" %>" required>
+                            <small class="form-error-text" id="editProductNameError" style="<%= "update".equals(failedAction) && validationErrors.containsKey("productName") ? "display:block" : "" %>"><%= "update".equals(failedAction) ? h(validationErrors.get("productName")) : "" %></small>
                         </div>
 
                         <div class="form-group">
@@ -496,13 +557,13 @@
 
                         <div class="form-group">
                             <label for="editPrice">Giá bán (VND) <span>*</span></label>
-                            <input id="editPrice" name="price" type="number" min="0" step="1000" value="<%= "update".equals(failedAction) ? h(enteredPrice) : "" %>" required>
+                            <input id="editPrice" name="price" type="number" min="1000" max="1000000000" step="1000" value="<%= "update".equals(failedAction) ? h(enteredPrice) : "" %>" required>
                             <small class="form-error-text" id="editPriceError"></small>
                         </div>
 
                         <div class="form-group">
                             <label for="editWarrantyMonths">Bảo hành (tháng) <span>*</span></label>
-                            <input id="editWarrantyMonths" name="warrantyMonths" type="number" min="0" value="<%= "update".equals(failedAction) && request.getAttribute("enteredWarrantyMonths") != null ? h((String)request.getAttribute("enteredWarrantyMonths")) : "" %>" required>
+                            <input id="editWarrantyMonths" name="warrantyMonths" type="number" min="1" max="120" step="1" value="<%= "update".equals(failedAction) && request.getAttribute("enteredWarrantyMonths") != null ? h((String)request.getAttribute("enteredWarrantyMonths")) : "" %>" required>
                             <small class="form-error-text" id="editWarrantyMonthsError"></small>
                         </div>
 
@@ -512,22 +573,24 @@
                             <small class="image-hint">Tối đa 2MB | Bỏ trống nếu giữ ảnh cũ</small>
                             <small class="form-error-text" id="editImageFileError"></small>
 
-                            <div class="current-image-preview" id="editImgPreviewContainer" style="margin-top:8px; display:none;">
+                            <div class="current-image-preview" id="editImgPreviewContainer" style="margin-top:8px; <%= "update".equals(failedAction) && enteredCurrentImg != null ? "display:block" : "display:none" %>;">
                                 <small>Ảnh hiện tại:</small><br>
-                                <img id="editImgPreview" src="" alt="Thumbnail" style="height: 50px; border-radius: 4px; border: 1px solid #4b5563; margin-top:4px;">
+                                <img id="editImgPreview" src="<%= "update".equals(failedAction) && enteredCurrentImg != null ? contextPath + "/" + h(enteredCurrentImg) : "" %>" alt="Thumbnail" style="height: 50px; border-radius: 4px; border: 1px solid #4b5563; margin-top:4px;">
                             </div>
                         </div>
 
                         <div class="form-group full-width">
-                            <label for="editDescription">Mô tả chi tiết</label>
-                            <textarea id="editDescription" name="description" rows="4"><%= "update".equals(failedAction) ? h(enteredDescription) : "" %></textarea>
+                            <label for="editDescription">Mô tả chi tiết <span>*</span></label>
+                            <textarea id="editDescription" name="description" rows="4" maxlength="10000" required><%= "update".equals(failedAction) ? h(enteredDescription) : "" %></textarea>
+                            <small class="form-error-text" style="<%= "update".equals(failedAction) && validationErrors.containsKey("description") ? "display:block" : "" %>"><%= "update".equals(failedAction) ? h(validationErrors.get("description")) : "" %></small>
                         </div>
 
                         <!-- Button to load technical specifications for edit -->
                         <div class="form-group full-width">
                             <button type="button" id="editSpecBtn" class="btn-load-specs" style="display: inline-flex;">
-                                <i class="fa-solid fa-gear"></i> Lựa chọn thông số kĩ thuật
+                                <i class="fa-solid fa-gear"></i> Tải thông số kĩ thuật
                             </button>
+                            <small class="form-error-text" style="<%= "update".equals(failedAction) && validationErrors.containsKey("specifications") ? "display:block" : "" %>"><%= "update".equals(failedAction) ? h(validationErrors.get("specifications")) : "" %></small>
                         </div>
 
                         <!-- Dynamic specifications container for edit -->
@@ -536,7 +599,7 @@
                             <div id="editDynamicSpecsFields" class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 15px; display: grid;">
                                 <% if ("update".equals(failedAction) && !specTemplates.isEmpty()) {
                                     for (CategorySpecTemplate t : specTemplates) {
-                                        String enteredVal = "";
+                                        String enteredVal = t.getSpecValue() != null ? t.getSpecValue() : "";
                                         if (enteredSpecNames != null && enteredSpecValues != null) {
                                             for (int si = 0; si < enteredSpecNames.length && si < enteredSpecValues.length; si++) {
                                                 if (t.getSpecName().equalsIgnoreCase(enteredSpecNames[si])) {
@@ -561,10 +624,11 @@
                                         <% } %>
                                     </select>
                                     <% } else if ("NUMBER".equalsIgnoreCase(t.getSpecType())) { %>
-                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="0" <%= t.isRequired() ? "required" : "" %>>
+                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="0.000001" step="any" <%= t.isRequired() ? "required" : "" %>>
                                     <% } else { %>
                                     <input type="text" name="spec_values[]" placeholder="Nhập thông tin..." value="<%= h(enteredVal) %>" <%= t.isRequired() ? "required" : "" %>>
                                     <% } %>
+                                    <small class="form-error-text" style="<%= validationErrors.containsKey("spec_" + t.getTemplateId()) ? "display:block" : "" %>"><%= h(validationErrors.get("spec_" + t.getTemplateId())) %></small>
                                 </div>
                                 <% } } %>
                             </div>
@@ -579,62 +643,11 @@
             </section>
         </div>
 
-        <!-- QUICK EDIT PRICE MODAL -->
-        <div class="product-modal-overlay" id="price-product-modal">
-            <section class="product-modal price-modal-size" role="dialog" aria-modal="true" aria-labelledby="priceTitle">
-                <div class="product-modal-header">
-                    <h2 id="priceTitle"><i class="fa-solid fa-coins"></i> Cập nhật giá bán</h2>
-                    <a href="#" class="close-btn" aria-label="Đóng">&times;</a>
-                </div>
-
-                <form action="<%= contextPath %>/admin/products" method="post" class="product-modal-form" id="priceProductForm" novalidate>
-                    <input type="hidden" name="action" value="updatePrice">
-                    <input type="hidden" name="productId" id="priceProductId">
-
-                    <!-- Preserving filters to return back to exact state -->
-                    <input type="hidden" name="keyword" value="<%= h(keyword) %>">
-                    <input type="hidden" name="categoryId" value="<%= selectedCategoryId != null ? selectedCategoryId : "" %>">
-                    <input type="hidden" name="brandId" value="<%= selectedBrandId != null ? selectedBrandId : "" %>">
-                    <input type="hidden" name="status" value="<%= h(status) %>">
-                    <input type="hidden" name="sort" value="<%= h(sort) %>">
-                    <input type="hidden" name="page" value="<%= currentPage %>">
-
-                    <div class="form-group">
-                        <label>Sản phẩm:</label>
-                        <strong id="priceProductName" style="display:block; margin: 6px 0 15px 0; color: #f3f4f6; font-size:1.1rem;"></strong>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="quickPriceVal">Giá bán mới (VND) <span>*</span></label>
-                        <input id="quickPriceVal" name="price" type="number" min="0" step="1000" placeholder="Nhập giá mới..." required>
-                        <small class="form-error-text" id="quickPriceError"></small>
-                    </div>
-
-                    <div class="product-modal-actions">
-                        <a class="btn-secondary" href="#">Hủy</a>
-                        <button class="btn-primary" type="submit"><i class="fa-solid fa-check"></i> Cập nhật giá</button>
-                    </div>
-                </form>
-            </section>
-        </div>
 
         <jsp:include page="/includes/footer.jsp" />
 
-        <script src="<%= contextPath %>/js/admin-products.js"></script>
-
-        <% if (failedAction != null && !failedAction.isEmpty()) { %>
-        <script>
-            // Auto-open the correct modal when the servlet forwards back on validation failure
-            (function() {
-                var action = "<%= h(failedAction) %>";
-                if (action === "add") {
-                    window.location.hash = "add-product-modal";
-                } else if (action === "update") {
-                    window.location.hash = "edit-product-modal";
-                }
-            })();
-        </script>
-        <% } %>
+        <script src="<%= contextPath %>/js/validator.js?v=2"></script>
+        <script src="<%= contextPath %>/js/admin-products.js?v=6"></script>
 
     </body>
 </html>

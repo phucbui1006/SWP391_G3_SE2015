@@ -21,7 +21,6 @@
     }
 
     String ctx = request.getContextPath();
-    final int ADMIN_TABLE_ROWS = 5;
 %>
 
 <!DOCTYPE html>
@@ -54,6 +53,15 @@
 
                     <div class="admin-stat-grid" >
                         <% for (AdminDashboardView.StatCard stat : adminDashboard.getStatCards()) { %>
+                        <% if (stat.getUrl() == null || stat.getUrl().trim().isEmpty()) { %>
+                        <div class="admin-stat-card">
+                            <span class="admin-stat-icon <%= stat.getIconClass() %>"><i class="<%= stat.getIcon() %>"></i></span>
+                            <span>
+                                <small><%= stat.getLabel() %></small>
+                                <strong><%= stat.getValue() %></strong>
+                            </span>
+                        </div>
+                        <% } else { %>
                         <a class="admin-stat-card" href="<%= stat.getUrl() %>">
                             <span class="admin-stat-icon <%= stat.getIconClass() %>"><i class="<%= stat.getIcon() %>"></i></span>
                             <span>
@@ -61,6 +69,7 @@
                                 <strong><%= stat.getValue() %></strong>
                             </span>
                         </a>
+                        <% } %>
                         <% } %>
                     </div>
 
@@ -80,158 +89,71 @@
                         <section class="admin-panel admin-chart-panel">
                             <div class="admin-panel-header">
                                 <div>
-                                    <h2>Cơ cấu doanh thu theo danh mục</h2>
+                                    <h2>Cơ cấu số sản phẩm bán ra theo danh mục</h2>
                                     <p class="admin-chart-period"><%= adminDashboard.getChartPeriodLabel() %></p>
                                 </div>
                             </div>
                             <div class="admin-chart-body admin-pie-chart-body">
-                                <% if (adminDashboard.getCategoryRevenue().isEmpty()) { %>
-                                <p class="admin-empty-message">Chưa có doanh thu theo danh mục trong khoảng thời gian này.</p>
-                                <% } else { %>
-                                <canvas id="categoryRevenueChart" aria-label="Biểu đồ tròn doanh thu theo danh mục"></canvas>
-                                <% } %>
+                                <canvas id="categorySoldProductsChart" aria-label="Biểu đồ tròn số sản phẩm bán ra theo danh mục"></canvas>
                             </div>
                         </section>
                     </div>
 
                     <div class="admin-dashboard-grid admin-products-grid">
-                        <section class="admin-panel admin-module-panel">
+                        <section class="admin-panel admin-module-panel admin-chart-panel">
                             <div class="admin-panel-header">
                                 <h2>Top 5 sản phẩm bán chạy nhất</h2>
                             </div>
 
-                            <table class="admin-dashboard-table admin-best-selling-table">
-                                <thead>
-                                    <tr>
-                                        <th>Mã SP</th>
-                                        <th>Tên sản phẩm</th>
-                                        <th>Đã bán</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% for (int rowIndex = 0; rowIndex < ADMIN_TABLE_ROWS; rowIndex++) {
-                                        if (rowIndex < adminDashboard.getBestSellingProducts().size()) {
-                                            AdminDashboardView.ProductRow product = adminDashboard.getBestSellingProducts().get(rowIndex);
-                                    %>
-                                    <tr>
-                                        <td><%= product.getProductCode() %></td>
-                                        <td><%= product.getProductName() %></td>
-                                        <td><%= product.getSoldQuantity() %></td>
-                                    </tr>
-                                    <% } else { %>
-                                    <tr class="admin-placeholder-row">
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                    </tr>
-                                    <% }
-                                    } %>
-                                </tbody>
-                            </table>
+                            <div class="admin-chart-body">
+                                <canvas id="bestSellingProductsChart" aria-label="Biểu đồ thanh ngang top 5 sản phẩm bán chạy nhất"></canvas>
+                            </div>
                             <div class="admin-panel-footer">
-                                <span><%= adminDashboard.getBestSellingFooterMessage() != null
-                                        ? adminDashboard.getBestSellingFooterMessage()
-                                        : "Mở trang quản lý toàn bộ sản phẩm." %></span>
                                 <a href="<%= ctx %>/admin/products">Xem tất cả</a>
                             </div>
                         </section>
 
-                        <aside class="admin-panel admin-quick-panel">
+                        <aside class="admin-panel admin-quick-panel admin-chart-panel">
                             <div class="admin-panel-header">
-                                <h2>Sản phẩm mức tồn kho thấp (< 5)</h2>
+                                <h2>Sản phẩm mức tồn kho thấp (&le;5)</h2>
                             </div>
-
-                            <table class="admin-dashboard-table admin-low-stock-table compact">
-                                <thead>
-                                    <tr>
-                                        <th>Sản phẩm</th>
-                                        <th>SL</th>
-                                        <th>Trạng thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% for (int rowIndex = 0; rowIndex < ADMIN_TABLE_ROWS; rowIndex++) {
-                                        if (rowIndex < adminDashboard.getLowStockProducts().size()) {
-                                            AdminDashboardView.ProductRow product = adminDashboard.getLowStockProducts().get(rowIndex);
-                                    %>
-                                    <tr>
-                                        <td><%= product.getProductName() %></td>
-                                        <td><%= product.getStockQuantity() %></td>
-                                        <td><span class="admin-status <%= product.getStatusClass() %>"><%= product.getStatus() %></span></td>
-                                    </tr>
-                                    <% } else { %>
-                                    <tr class="admin-placeholder-row">
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                    </tr>
-                                    <% }
-                                    } %>
-                                </tbody>
-                            </table>
+                            <div class="admin-chart-body">
+                                <canvas id="lowStockProductsChart" aria-label="Biểu đồ sản phẩm tồn kho thấp"></canvas>
+                            </div>
                             <div class="admin-panel-footer">
-                                <span><%= adminDashboard.getLowStockFooterMessage() != null
-                                        ? adminDashboard.getLowStockFooterMessage()
-                                        : "Danh sách sản phẩm theo tồn kho tăng dần." %></span>
                                 <a href="<%= ctx %>/admin/products?sort=qty_asc">Xem tất cả</a>
                             </div>
                         </aside>
                     </div>
 
                     <div class="admin-dashboard-grid admin-bottom-grid">
-                        <section class="admin-panel">
+                        <section class="admin-panel admin-chart-panel">
                             <div class="admin-panel-header">
-                                <h2>Thống kê về đơn hàng</h2>
+                                <div>
+                                    <h2>Thống kê về đơn hàng</h2>
+                                    <p class="admin-chart-period"><%= adminDashboard.getChartPeriodLabel() %></p>
+                                </div>
                             </div>
 
-                            <table class="admin-dashboard-table admin-order-summary-table">
-                                <thead>
-                                    <tr>
-                                        <th>Thông tin</th>
-                                        <th>Giá trị</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% if (adminDashboard.getOrderSummaries().isEmpty()) { %>
-                                    <tr>
-                                        <td colspan="2">
-                                            <p class="admin-empty-message">Không có đơn hàng trong khoảng thời gian đã chọn.</p>
-                                        </td>
-                                    </tr>
-                                    <% } else {
-                                        for (AdminDashboardView.OrderSummaryRow orderSummary : adminDashboard.getOrderSummaries()) {
-                                            String orderSummaryStatusClass = orderSummary.getStatusClass();
-                                            boolean hasStatusClass = orderSummaryStatusClass != null && !orderSummaryStatusClass.trim().isEmpty();
-                                    %>
-                                    <tr>
-                                        <td><%= orderSummary.getLabel() %></td>
-                                        <td>
-                                            <% if (hasStatusClass) { %>
-                                            <span class="shipment-status <%= orderSummaryStatusClass %>"><%= orderSummary.getValue() %></span>
-                                            <% } else { %>
-                                            <strong><%= orderSummary.getValue() %></strong>
-                                            <% } %>
-                                        </td>
-                                    </tr>
-                                    <% }
-                                    } %>
-                                </tbody>
-                            </table>
+                            <div class="admin-chart-body admin-order-status-chart-body">
+                                <canvas id="orderStatusChart" aria-label="Biểu đồ số lượng đơn hàng theo trạng thái"></canvas>
+                            </div>
                             <div class="admin-panel-footer">
-                                <span>Quản lý và theo dõi toàn bộ đơn hàng.</span>
                                 <a href="<%= ctx %>/order-history">Xem tất cả</a>
                             </div>
                         </section>
 
-                        <section class="admin-panel">
+                        <section class="admin-panel admin-chart-panel admin-account-panel">
                             <div class="admin-panel-header">
-                                <h2>Tổng quan tài khoản</h2>
+                                <div>
+                                    <h2>Tổng quan tài khoản</h2>
+                                </div>
                             </div>
 
-                            <div class="admin-account-grid">
-                                <% for (AdminDashboardView.CountRow accountRow : adminDashboard.getAccountSummaries()) { %>
-                                <div><span><%= accountRow.getLabel() %></span><strong><%= accountRow.getValue() %></strong></div>
-                                <% } %>
+                            <div class="admin-account-chart-wrap">
+                                <div class="admin-account-chart">
+                                    <canvas id="accountOverviewChart" aria-label="Biểu đồ tổng quan tài khoản"></canvas>
+                                </div>
                             </div>
                             <div class="admin-panel-footer">
                                 <span><a href="<%= ctx %>/AccountManagement?type=user">Quản lý khách hàng</a></span>
@@ -240,112 +162,24 @@
                         </section>
                     </div>
 
-                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
                     <script>
-                        (() => {
-                            const timelineLabels = [
-                                <% for (int i = 0; i < adminDashboard.getRevenueTimeline().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getRevenueTimeline().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
-                            ];
-                            const timelineValues = [
-                                <% for (int i = 0; i < adminDashboard.getRevenueTimeline().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getRevenueTimeline().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
-                                <% } %>
-                            ];
-                            const categoryLabels = [
-                                <% for (int i = 0; i < adminDashboard.getCategoryRevenue().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getCategoryRevenue().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
-                            ];
-                            const categoryValues = [
-                                <% for (int i = 0; i < adminDashboard.getCategoryRevenue().size(); i++) {
-                                    AdminDashboardView.ChartPoint point = adminDashboard.getCategoryRevenue().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue().toPlainString() %>
-                                <% } %>
-                            ];
-
-                            const formatCurrency = value =>
-                                new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
-                            const commonTooltip = {
-                                callbacks: {
-                                    label: context => context.dataset.label
-                                        ? context.dataset.label + ': ' + formatCurrency(context.parsed.y)
-                                        : context.label + ': ' + formatCurrency(context.parsed)
-                                }
-                            };
-
-                            new Chart(document.getElementById('revenueTimelineChart'), {
-                                type: 'line',
-                                data: {
-                                    labels: timelineLabels,
-                                    datasets: [{
-                                        label: 'Doanh thu',
-                                        data: timelineValues,
-                                        borderColor: '#dc2626',
-                                        backgroundColor: 'rgba(220, 38, 38, 0.12)',
-                                        pointBackgroundColor: '#dc2626',
-                                        pointRadius: 4,
-                                        pointHoverRadius: 6,
-                                        borderWidth: 3,
-                                        tension: 0.35,
-                                        fill: true
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: {display: false},
-                                        tooltip: commonTooltip
-                                    },
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            ticks: {callback: value => formatCurrency(value)},
-                                            grid: {color: '#eef2f7'}
-                                        },
-                                        x: {grid: {display: false}}
-                                    }
-                                }
-                            });
-
-                            const categoryCanvas = document.getElementById('categoryRevenueChart');
-                            if (categoryCanvas) {
-                                const colors = [
-                                    '#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#7c3aed',
-                                    '#0891b2', '#db2777', '#65a30d', '#ea580c', '#475569'
-                                ];
-                                new Chart(categoryCanvas, {
-                                    type: 'pie',
-                                    data: {
-                                        labels: categoryLabels,
-                                        datasets: [{
-                                            data: categoryValues,
-                                            backgroundColor: categoryLabels.map((_, index) =>
-                                                colors[index % colors.length]),
-                                            borderColor: '#ffffff',
-                                            borderWidth: 2
-                                        }]
-                                    },
-                                    options: {
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {
-                                                position: 'bottom',
-                                                labels: {usePointStyle: true, padding: 16}
-                                            },
-                                            tooltip: commonTooltip
-                                        }
-                                    }
-                                });
-                            }
-                        })();
+                        window.adminDashboardData = {
+                            timelineLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getRevenueTimeline()) %>,
+                            timelineValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getRevenueTimeline()) %>,
+                            categoryLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getCategorySoldProducts()) %>,
+                            categoryValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getCategorySoldProducts()) %>,
+                            bestSellingLabels: <%= DashboardViewHelper.productNamesToJson(adminDashboard.getBestSellingProducts()) %>,
+                            bestSellingValues: <%= DashboardViewHelper.productSoldQuantitiesToJson(adminDashboard.getBestSellingProducts()) %>,
+                            lowStockLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getLowStockProductsChart()) %>,
+                            lowStockValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getLowStockProductsChart()) %>,
+                            orderStatusLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getOrderStatusCounts()) %>,
+                            orderStatusValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getOrderStatusCounts()) %>,
+                            accountLabels: <%= DashboardViewHelper.countRowLabelsToJson(adminDashboard.getAccountSummaries()) %>,
+                            accountValues: <%= DashboardViewHelper.countRowValuesToJson(adminDashboard.getAccountSummaries()) %>
+                        };
                     </script>
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+                    <script src="<%= ctx %>/js/admin-dashboard.js"></script>
                 </div>
 
 
@@ -379,81 +213,147 @@
                         <% } %>
                     </div>
 
-                    <section class="employee-request-panel">
-                        <div class="employee-panel-title-row">
-                            <h2 class="employee-request-title">Đơn bảo hành cần xử lý (<%= employeeDashboard.getWarrantyRows().size() %>)</h2>
-                            <a href="<%= ctx %>/ManageWarranty">Xem dịch vụ bảo hành</a>
-                        </div>
+                    <div id="employeeCharts" class="admin-dashboard-grid admin-bottom-grid" style="margin-top: 20px; margin-bottom: 20px;">
+                        <section class="admin-panel admin-chart-panel">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Biểu đồ xử lý bảo hành</h2>
+                                    <p class="admin-chart-period">
+                                        <%= employeeDashboard.getStartDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) %> - <%= employeeDashboard.getEndDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) %>
+                                        | <strong>Tổng cộng: <%= employeeDashboard.getWarrantyStatusCounts().stream().mapToInt(p -> p.getValue()).sum() %> đơn</strong>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="admin-chart-body" style="display: flex; align-items: center; justify-content: center;">
+                                <% if (employeeDashboard.getWarrantyStatusCounts().stream().mapToInt(p -> p.getValue()).sum() == 0) { %>
+                                <p class="admin-empty-message">Không có đơn bảo hành trong khoảng thời gian này.</p>
+                                <% } else { %>
+                                <canvas id="employeeWarrantyChart" aria-label="Biểu đồ xử lý bảo hành"></canvas>
+                                <% } %>
+                            </div>
+                        </section>
 
-                        <table class="employee-request-table">
-                            <thead>
-                                <tr>
-                                    <th>Mã yêu cầu</th>
-                                    <th>Khách hàng</th>
-                                    <th>Sản phẩm</th>
-                                    <th>Ngày tạo</th>
-                                    <th>Trạng thái</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% if (employeeDashboard.getWarrantyRows().isEmpty()) { %>
-                                <tr>
-                                    <td colspan="6" class="employee-empty-row">Không có yêu cầu bảo hành chờ tiếp nhận trong khoảng thời gian này.</td>
-                                </tr>
+                        <section class="admin-panel admin-chart-panel">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Biểu đồ quản lý đơn hàng</h2>
+                                    <p class="admin-chart-period">
+                                        <%= employeeDashboard.getStartDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) %> - <%= employeeDashboard.getEndDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) %>
+                                        | <strong>Tổng cộng: <%= employeeDashboard.getOrderStatusCounts().stream().mapToInt(p -> p.getValue()).sum() %> đơn</strong>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="admin-chart-body" style="display: flex; align-items: center; justify-content: center;">
+                                <% if (employeeDashboard.getOrderStatusCounts().stream().mapToInt(p -> p.getValue()).sum() == 0) { %>
+                                <p class="admin-empty-message">Không có đơn hàng trong khoảng thời gian này.</p>
+                                <% } else { %>
+                                <canvas id="employeeOrderChart" aria-label="Biểu đồ quản lý đơn hàng"></canvas>
                                 <% } %>
-                                <% for (EmployeeDashboardView.WarrantyRow warranty : employeeDashboard.getWarrantyRows()) { %>
-                                <tr>
-                                    <td><a href="<%= warranty.getDetailUrl() %>">#<%= warranty.getWarrantyId() %></a></td>
-                                    <td><%= warranty.getCustomerName() %></td>
-                                    <td><%= warranty.getProductName() %></td>
-                                    <td><%= warranty.getRequestDate() %></td>
-                                    <td><span class="request-status <%= warranty.getStatusClass() %>"><%= warranty.getStatus() %></span></td>
-                                    <td><a class="employee-row-action" href="<%= warranty.getDetailUrl() %>">Xem chi tiết</a></td>
-                                </tr>
-                                <% } %>
-                            </tbody>
-                        </table>
-                    </section>
+                            </div>
+                        </section>
+                    </div>
 
-                    <section class="employee-request-panel">
-                        <div class="employee-panel-title-row">
-                            <h2 class="employee-request-title">Đơn hàng cần xử lý (<%= employeeDashboard.getOrderRows().size() %>)</h2>
-                            <a href="<%= ctx %>/order-history">Xem tất cả đơn hàng</a>
-                        </div>
 
-                        <table class="employee-request-table employee-order-request-table">
-                            <thead>
-                                <tr>
-                                    <th>Mã đơn</th>
-                                    <th>Khách hàng</th>
-                                    <th>Ngày đặt</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Trạng thái</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% if (employeeDashboard.getOrderRows().isEmpty()) { %>
-                                <tr>
-                                    <td colspan="6" class="employee-empty-row">Không có đơn giao hàng thất bại trong khoảng thời gian này.</td>
-                                </tr>
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+                    <script>
+                        (() => {
+                            const warrantyLabels = [
+                                <% for (int i = 0; i < employeeDashboard.getWarrantyStatusCounts().size(); i++) {
+                                    EmployeeDashboardView.ChartPoint point = employeeDashboard.getWarrantyStatusCounts().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
                                 <% } %>
-                                <% for (EmployeeDashboardView.OrderRow order : employeeDashboard.getOrderRows()) { %>
-                                <tr>
-                                    <td>#<%= order.getOrderId() %></td>
-                                    <td><%= order.getCustomerName() %></td>
-                                    <td><%= order.getOrderDate() %></td>
-                                    <td><%= order.getTotalAmount() %></td>
-                                    <td><span class="request-status <%= order.getStatusClass() %>"><%= order.getStatus() %></span></td>
-                                    <td><a class="employee-row-action" href="<%= order.getDetailUrl() %>">Xem chi tiết</a></td>
-                                </tr>
+                            ];
+                            const warrantyValues = [
+                                <% for (int i = 0; i < employeeDashboard.getWarrantyStatusCounts().size(); i++) {
+                                    EmployeeDashboardView.ChartPoint point = employeeDashboard.getWarrantyStatusCounts().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= point.getValue() %>
                                 <% } %>
-                            </tbody>
-                        </table>
-                    </section>
+                            ];
+
+                            const orderLabels = [
+                                <% for (int i = 0; i < employeeDashboard.getOrderStatusCounts().size(); i++) {
+                                    EmployeeDashboardView.ChartPoint point = employeeDashboard.getOrderStatusCounts().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
+                                <% } %>
+                            ];
+                            const orderValues = [
+                                <% for (int i = 0; i < employeeDashboard.getOrderStatusCounts().size(); i++) {
+                                    EmployeeDashboardView.ChartPoint point = employeeDashboard.getOrderStatusCounts().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= point.getValue() %>
+                                <% } %>
+                            ];
+
+                            const formatCount = value =>
+                                new Intl.NumberFormat('vi-VN').format(value) + ' đơn';
+
+                            const warrantyColors = ['#f59e0b', '#16a34a', '#dc2626']; 
+                            const orderColors = ['#16a34a', '#dc2626', '#f59e0b']; 
+
+                            const warrantyCanvas = document.getElementById('employeeWarrantyChart');
+                            if (warrantyCanvas) {
+                                new Chart(warrantyCanvas, {
+                                    type: 'pie',
+                                    data: {
+                                        labels: warrantyLabels,
+                                        datasets: [{
+                                            data: warrantyValues,
+                                            backgroundColor: warrantyColors,
+                                            borderColor: '#ffffff',
+                                            borderWidth: 2
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                position: 'bottom',
+                                                labels: {usePointStyle: true, padding: 16},
+                                                onClick: null
+                                            },
+                                            tooltip: {
+                                                enabled: false
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
+                            const orderCanvas = document.getElementById('employeeOrderChart');
+                            if (orderCanvas) {
+                                new Chart(orderCanvas, {
+                                    type: 'pie',
+                                    data: {
+                                        labels: orderLabels,
+                                        datasets: [{
+                                            data: orderValues,
+                                            backgroundColor: orderColors,
+                                            borderColor: '#ffffff',
+                                            borderWidth: 2
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                position: 'bottom',
+                                                labels: {usePointStyle: true, padding: 16},
+                                                onClick: null
+                                            },
+                                            tooltip: {
+                                                enabled: false
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        })();
+                    </script>
                 </div>
 
+                            
+       
                 <% } else if ("SHIPMENT".equals(roleName)) { %>
 
                 <%
@@ -461,9 +361,13 @@
                 %>
 
                 <div class="shipment-dashboard">
-                    <div class="dashboard-page-heading">
-                     
-                    </div>
+                    <form class="admin-chart-filter" action="<%= shipmentDashboard.getFormAction() %>" method="get">
+                        <label>
+                            <input type="date" name="chartFrom" value="<%= shipmentDashboard.getStartDate() %>" required> -
+                            <input type="date" name="chartTo" value="<%= shipmentDashboard.getEndDate() %>" required>
+                        </label>
+                        <button type="submit">Xem</button>
+                    </form>
 
                     <div class="shipment-summary-grid" aria-label="Thống kê đơn hàng vận chuyển">
                         <% for (ShipmentDashboardView.SummaryCard card : shipmentDashboard.getSummaryCards()) { %>
@@ -480,64 +384,76 @@
                         <% } %>
                     </div>
 
-                    <section class="shipment-order-panel">
-                        <div class="shipment-order-header">
-                            <div class="shipment-order-title-row">
-                                <h2 class="shipment-order-title">Danh sách đơn hàng vận chuyển</h2>
-                                <span style="background: none;"><%= shipmentDashboard.getTotalOrders() %> đơn phù hợp</span>
+                    <div id="shipmentCharts" class="admin-dashboard-grid" style="margin-top: 20px; margin-bottom: 20px;">
+                        <section class="admin-panel admin-chart-panel">
+                            <div class="admin-panel-header">
+                                <div>
+                                    <h2>Biểu đồ trạng thái vận chuyển</h2>
+                                    <p class="admin-chart-period">
+                                        <%= shipmentDashboard.getStartDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) %> - <%= shipmentDashboard.getEndDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) %>
+                                        | <strong>Tổng cộng: <%= shipmentDashboard.getTotalOrderCount() %> đơn</strong>
+                                    </p>
+                                </div>
                             </div>
-
-                            <div class="shipment-filter-tabs" aria-label="Lọc đơn hàng theo trạng thái">
-                                <% for (ShipmentDashboardView.FilterTab tab : shipmentDashboard.getFilterTabs()) { %>
-                                <a class="shipment-filter-tab <%= tab.isActive() ? "active" : "" %>"
-                                   href="<%= tab.getUrl() %>"><%= tab.getLabel() %></a>
+                            <div class="admin-chart-body" style="display: flex; align-items: center; justify-content: center;">
+                                <% if (shipmentDashboard.getTotalOrderCount() == 0) { %>
+                                <p class="admin-empty-message">Không có đơn vận chuyển trong khoảng thời gian này.</p>
+                                <% } else { %>
+                                <canvas id="shipmentStatusChart" aria-label="Biểu đồ trạng thái vận chuyển"></canvas>
                                 <% } %>
                             </div>
-                        </div>
+                        </section>
 
-                        <table class="shipment-order-table">
-                            <thead>
-                                <tr>
-                                    <th>Mã đơn hàng</th>
-                                    <th>Khách hàng</th>
-                                    <th>Địa chỉ giao hàng</th>
-                                    <th>Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% if (shipmentDashboard.getOrderRows().isEmpty()) { %>
-                                <tr>
-                                    <td colspan="4">
-                                        <p class="shipment-empty-message">Không có đơn hàng nào ở bộ lọc hiện tại.</p>
-                                    </td>
-                                </tr>
+                    </div>
+                            
+                     
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+                    <script>
+                        (() => {
+                            const statusLabels = [
+                                <% for (int i = 0; i < shipmentDashboard.getOrderStatusCounts().size(); i++) {
+                                    ShipmentDashboardView.ChartPoint point = shipmentDashboard.getOrderStatusCounts().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
                                 <% } %>
-                                <% for (ShipmentDashboardView.OrderRow order : shipmentDashboard.getOrderRows()) { %>
-                                <tr>
-                                    <td><%= order.getOrderCode() %></td>
-                                    <td><%= order.getCustomerName() %></td>
-                                    <td><%= order.getShippingAddress() %></td>
-                                    <td>
-                                        <span class="shipment-status <%= order.getStatusClass() %>"><%= order.getStatus() %></span>
-                                    </td>
-                                </tr>
+                            ];
+                            const statusValues = [
+                                <% for (int i = 0; i < shipmentDashboard.getOrderStatusCounts().size(); i++) {
+                                    ShipmentDashboardView.ChartPoint point = shipmentDashboard.getOrderStatusCounts().get(i); %>
+                                <%= i > 0 ? "," : "" %><%= point.getValue() %>
                                 <% } %>
-                            </tbody>
-                        </table>
+                            ];
+                            const statusCanvas = document.getElementById('shipmentStatusChart');
+                            if (statusCanvas) {
+                                new Chart(statusCanvas, {
+                                    type: 'pie',
+                                    data: {
+                                        labels: statusLabels,
+                                        datasets: [{
+                                            data: statusValues,
+                                            backgroundColor: ['#f59e0b', '#16a34a', '#dc2626'],
+                                            borderColor: '#ffffff',
+                                            borderWidth: 2
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                position: 'bottom',
+                                                labels: {usePointStyle: true, padding: 16},
+                                                onClick: null
+                                            },
+                                            tooltip: {
+                                                enabled: false
+                                            }
+                                        }
+                                    }
+                                });
+                            }
 
-                        <% if (shipmentDashboard.getTotalPages() > 1) { %>
-                        <div class="shipment-pagination">
-                            <a class="<%= shipmentDashboard.getPage() <= 1 ? "disabled" : "" %>"
-                               href="<%= shipmentDashboard.getPreviousPageUrl() %>">‹</a>
-                            <% for (ShipmentDashboardView.PageLink pageLink : shipmentDashboard.getPageLinks()) { %>
-                            <a class="<%= pageLink.isActive() ? "active" : "" %>"
-                               href="<%= pageLink.getUrl() %>"><%= pageLink.getPageNumber() %></a>
-                            <% } %>
-                            <a class="<%= shipmentDashboard.getPage() >= shipmentDashboard.getTotalPages() ? "disabled" : "" %>"
-                               href="<%= shipmentDashboard.getNextPageUrl() %>">›</a>
-                        </div>
-                        <% } %>
-                    </section>
+                        })();
+                    </script>
                 </div>
 
                 <% } else { %>

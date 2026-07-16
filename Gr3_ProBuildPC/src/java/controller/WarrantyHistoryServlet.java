@@ -26,7 +26,6 @@ public class WarrantyHistoryServlet extends HttpServlet {
 
         HttpSession session = request.getSession();
         
-        // Securely parse the logged-in customer's ID from session.
         Integer customerId = (Integer) session.getAttribute("userId");
         if (customerId == null) {
             User account = (User) session.getAttribute("account");
@@ -35,25 +34,36 @@ public class WarrantyHistoryServlet extends HttpServlet {
             }
         }
 
-        // If null, handle clean fallback redirect.
         if (customerId == null) {
             response.sendRedirect(request.getContextPath() + "/Login");
             return;
         }
 
-        // Load cart count for header compatibility
         CartDAO cartDAO = new CartDAO();
         int cartItemCount = cartDAO.getCartItemCountByCustomerId(customerId);
         request.setAttribute("cartItemCount", cartItemCount);
         session.setAttribute("sessionCartItemCount", cartItemCount);
 
-        // Read search and status query parameters
         String search = request.getParameter("search");
         if (search == null) {
             search = request.getParameter("searchProduct");
         }
         
-        String statusRaw = request.getParameter("status");
+        String parsedSearchKeyword = "";
+        if (search != null && !search.trim().isEmpty()) {
+            String clean = search.trim();
+            // Match pattern like #WR3, WR3, #3, or 3 (case-insensitive)
+            if (clean.matches("^(?i)#?(?:WR)?\\d+$")) {
+                parsedSearchKeyword = clean.replaceAll("^(?i)#?(?:WR)?", "");
+            } else {
+                parsedSearchKeyword = clean;
+            }
+        }
+
+        String statusRaw = request.getParameter("statusId");
+        if (statusRaw == null) {
+            statusRaw = request.getParameter("status");
+        }
         if (statusRaw == null) {
             statusRaw = request.getParameter("filterStatusId");
         }
@@ -67,20 +77,17 @@ public class WarrantyHistoryServlet extends HttpServlet {
             }
         }
 
-        // Call the active DAL method
         List<WarrantyRequest> list = warrantyDAO.getWarrantyRequestsByCustomerId(
                 customerId, 
-                search, 
+                parsedSearchKeyword, 
                 statusId
         );
 
-        // Bind the output list using request-scope binding explicitly
         request.setAttribute("clientWarrantyList", list);
-        request.setAttribute("warrantyList", list); // keep original name for JSP compat
+        request.setAttribute("warrantyList", list); 
         request.setAttribute("searchProduct", search != null ? search.trim() : "");
         request.setAttribute("filterStatusId", statusId);
 
-        // Forward smoothly to the client history view page
         request.getRequestDispatcher("/views/warranty-history.jsp").forward(request, response);
     }
 

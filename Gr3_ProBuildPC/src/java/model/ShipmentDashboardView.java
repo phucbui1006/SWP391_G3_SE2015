@@ -1,106 +1,83 @@
 package model;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ShipmentDashboardView {
-    private List<OrderHistoryItem> orders = new ArrayList<>();
-    private List<OrderStatus> statusOptions = new ArrayList<>();
-    private Map<Integer, Integer> statusCounts = new LinkedHashMap<>();
-    private Integer selectedStatusId;
-    private boolean todayOnly;
-    private int allActiveCount;
-    private int todayCount;
-    private int page = 1;
-    private int totalPages = 1;
-    private int totalOrders;
+
+    private String formAction;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private int totalOrderCount;
+    private int shippingOrderCount;
+    private int deliveredOrderCount;
+    private int failedOrderCount;
+    private List<ChartPoint> orderStatusCounts = new ArrayList<>();
     private List<SummaryCard> summaryCards = new ArrayList<>();
-    private List<FilterTab> filterTabs = new ArrayList<>();
-    private List<OrderRow> orderRows = new ArrayList<>();
-    private List<PageLink> pageLinks = new ArrayList<>();
-    private String previousPageUrl;
-    private String nextPageUrl;
 
-    public List<OrderHistoryItem> getOrders() {
-        return orders;
+    public String getFormAction() {
+        return formAction;
     }
 
-    public void setOrders(List<OrderHistoryItem> orders) {
-        this.orders = orders == null ? new ArrayList<>() : orders;
+    public void setFormAction(String formAction) {
+        this.formAction = formAction;
     }
 
-    public List<OrderStatus> getStatusOptions() {
-        return statusOptions;
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
-    public void setStatusOptions(List<OrderStatus> statusOptions) {
-        this.statusOptions = statusOptions == null ? new ArrayList<>() : statusOptions;
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
     }
 
-    public Map<Integer, Integer> getStatusCounts() {
-        return statusCounts;
+    public LocalDate getEndDate() {
+        return endDate;
     }
 
-    public void setStatusCounts(Map<Integer, Integer> statusCounts) {
-        this.statusCounts = statusCounts == null ? new LinkedHashMap<>() : statusCounts;
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
     }
 
-    public Integer getSelectedStatusId() {
-        return selectedStatusId;
+    public int getTotalOrderCount() {
+        return totalOrderCount;
     }
 
-    public void setSelectedStatusId(Integer selectedStatusId) {
-        this.selectedStatusId = selectedStatusId;
+    public void setTotalOrderCount(int totalOrderCount) {
+        this.totalOrderCount = totalOrderCount;
     }
 
-    public boolean isTodayOnly() {
-        return todayOnly;
+    public int getShippingOrderCount() {
+        return shippingOrderCount;
     }
 
-    public void setTodayOnly(boolean todayOnly) {
-        this.todayOnly = todayOnly;
+    public void setShippingOrderCount(int shippingOrderCount) {
+        this.shippingOrderCount = shippingOrderCount;
     }
 
-    public int getAllActiveCount() {
-        return allActiveCount;
+    public int getDeliveredOrderCount() {
+        return deliveredOrderCount;
     }
 
-    public void setAllActiveCount(int allActiveCount) {
-        this.allActiveCount = allActiveCount;
+    public void setDeliveredOrderCount(int deliveredOrderCount) {
+        this.deliveredOrderCount = deliveredOrderCount;
     }
 
-    public int getTodayCount() {
-        return todayCount;
+    public int getFailedOrderCount() {
+        return failedOrderCount;
     }
 
-    public void setTodayCount(int todayCount) {
-        this.todayCount = todayCount;
+    public void setFailedOrderCount(int failedOrderCount) {
+        this.failedOrderCount = failedOrderCount;
     }
 
-    public int getPage() {
-        return page;
+    public List<ChartPoint> getOrderStatusCounts() {
+        return orderStatusCounts;
     }
 
-    public void setPage(int page) {
-        this.page = page;
-    }
-
-    public int getTotalPages() {
-        return totalPages;
-    }
-
-    public void setTotalPages(int totalPages) {
-        this.totalPages = totalPages;
-    }
-
-    public int getTotalOrders() {
-        return totalOrders;
-    }
-
-    public void setTotalOrders(int totalOrders) {
-        this.totalOrders = totalOrders;
+    public void setOrderStatusCounts(List<ChartPoint> orderStatusCounts) {
+        this.orderStatusCounts = orderStatusCounts == null ? new ArrayList<>() : orderStatusCounts;
     }
 
     public List<SummaryCard> getSummaryCards() {
@@ -111,47 +88,29 @@ public class ShipmentDashboardView {
         this.summaryCards = summaryCards == null ? new ArrayList<>() : summaryCards;
     }
 
-    public List<FilterTab> getFilterTabs() {
-        return filterTabs;
+    //Biểu đồ
+    public static class ChartPoint {
+
+        private final String label;
+        private final int value;
+
+        public ChartPoint(String label, int value) {
+            this.label = label;
+            this.value = value;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public int getValue() {
+            return value;
+        }
     }
 
-    public void setFilterTabs(List<FilterTab> filterTabs) {
-        this.filterTabs = filterTabs == null ? new ArrayList<>() : filterTabs;
-    }
-
-    public List<OrderRow> getOrderRows() {
-        return orderRows;
-    }
-
-    public void setOrderRows(List<OrderRow> orderRows) {
-        this.orderRows = orderRows == null ? new ArrayList<>() : orderRows;
-    }
-
-    public List<PageLink> getPageLinks() {
-        return pageLinks;
-    }
-
-    public void setPageLinks(List<PageLink> pageLinks) {
-        this.pageLinks = pageLinks == null ? new ArrayList<>() : pageLinks;
-    }
-
-    public String getPreviousPageUrl() {
-        return previousPageUrl;
-    }
-
-    public void setPreviousPageUrl(String previousPageUrl) {
-        this.previousPageUrl = previousPageUrl;
-    }
-
-    public String getNextPageUrl() {
-        return nextPageUrl;
-    }
-
-    public void setNextPageUrl(String nextPageUrl) {
-        this.nextPageUrl = nextPageUrl;
-    }
-
+    //Ô thống kê
     public static class SummaryCard {
+
         private final String iconClass;
         private final String icon;
         private final String label;
@@ -243,18 +202,20 @@ public class ShipmentDashboardView {
     }
 
     public static class PageLink {
-        private final int pageNumber;
+        private final String label;
         private final String url;
         private final boolean active;
+        private final boolean clickable;
 
-        public PageLink(int pageNumber, String url, boolean active) {
-            this.pageNumber = pageNumber;
+        public PageLink(String label, String url, boolean active, boolean clickable) {
+            this.label = label;
             this.url = url;
             this.active = active;
+            this.clickable = clickable;
         }
 
-        public int getPageNumber() {
-            return pageNumber;
+        public String getLabel() {
+            return label;
         }
 
         public String getUrl() {
@@ -263,6 +224,10 @@ public class ShipmentDashboardView {
 
         public boolean isActive() {
             return active;
+        }
+
+        public boolean isClickable() {
+            return clickable;
         }
     }
 }

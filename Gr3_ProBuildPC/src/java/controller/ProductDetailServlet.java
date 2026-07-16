@@ -5,10 +5,7 @@ import dal.ProductDAO;
 import dal.ReviewDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.util.List;
 import model.Product;
@@ -25,23 +22,9 @@ public class ProductDetailServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
-
-        int selectedRating = 0;
-
-        String ratingRaw = request.getParameter("rating");
-        if (ratingRaw != null && !ratingRaw.trim().isEmpty()) {
-            try {
-                selectedRating = Integer.parseInt(ratingRaw);
-            } catch (NumberFormatException e) {
-                selectedRating = 0;
-            }
-        }
-
-        if (selectedRating < 0 || selectedRating > 5) {
-            selectedRating = 0;
-        }
 
         String idRaw = request.getParameter("id");
 
@@ -53,6 +36,8 @@ public class ProductDetailServlet extends HttpServlet {
         try {
             int productId = Integer.parseInt(idRaw);
 
+            int selectedRating = parseRating(request.getParameter("rating"));
+
             Product product = productDAO.getProductById(productId);
 
             if (product == null) {
@@ -61,26 +46,133 @@ public class ProductDetailServlet extends HttpServlet {
             }
 
             List<Review> allReviews = reviewDAO.getReviewsByProductId(productId);
-            List<Review> reviews;
 
+            List<Review> reviews;
             if (selectedRating == 0) {
                 reviews = allReviews;
             } else {
                 reviews = reviewDAO.getReviewsByProductIdAndRating(productId, selectedRating);
             }
 
+            boolean hasImage = "true".equals(request.getParameter("hasImage"));
+            if (hasImage) {
+                List<Review> filteredReviews = new java.util.ArrayList<>();
+                for (Review r : reviews) {
+                    if (r.getImages() != null && !r.getImages().isEmpty()) {
+                        filteredReviews.add(r);
+                    }
+                }
+                reviews = filteredReviews;
+            }
+
+            int page = 1;
+            String pageRaw = request.getParameter("page");
+            if (pageRaw != null && !pageRaw.trim().isEmpty()) {
+                try {
+                    page = Integer.parseInt(pageRaw);
+                } catch (NumberFormatException e) {
+                    page = 1;
+                }
+            }
+
+            int pageSize = 5;
+            int totalReviewsCount = reviews.size();
+            int totalPages = (int) Math.ceil((double) totalReviewsCount / pageSize);
+
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            int startIndex = (page - 1) * pageSize;
+            int endIndex = Math.min(startIndex + pageSize, totalReviewsCount);
+            
+            List<Review> pagedReviews = new java.util.ArrayList<>();
+            if (totalReviewsCount > 0) {
+                pagedReviews = reviews.subList(startIndex, endIndex);
+            }
+
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
             request.setAttribute("selectedRating", selectedRating);
+            request.setAttribute("hasImage", hasImage);
             double avgRating = productDAO.getAverageRating(productId);
+            int fullStars = (int) avgRating;
 
             List<Product> similarProducts = productDAO.getSimilarProducts(productId);
-            List<ProductSpecification> specList = productDAO.getSpecificationsByProductId(productId);
+            List<ProductSpecification> specList =
+                    productDAO.getSpecificationsByProductId(productId);
+
+            int count1 = 0;
+            int count2 = 0;
+            int count3 = 0;
+            int count4 = 0;
+            int count5 = 0;
+
+            if (allReviews != null) {
+                for (Review r : allReviews) {
+                    switch (r.getRating()) {
+                        case 5:
+                            count5++;
+                            break;
+                        case 4:
+                            count4++;
+                            break;
+                        case 3:
+                            count3++;
+                            break;
+                        case 2:
+                            count2++;
+                            break;
+                        case 1:
+                            count1++;
+                            break;
+                    }
+                }
+            }
+
+            int totalAllReviews = allReviews == null ? 0 : allReviews.size();
+
+            int pct1 = calculatePercent(count1, totalAllReviews);
+            int pct2 = calculatePercent(count2, totalAllReviews);
+            int pct3 = calculatePercent(count3, totalAllReviews);
+            int pct4 = calculatePercent(count4, totalAllReviews);
+            int pct5 = calculatePercent(count5, totalAllReviews);
+
+            int maxQuantity = product.getQuantity() > 0 ? product.getQuantity() : 1;
+
+            String currentUrl = request.getContextPath()
+                    + "/product-detail?id=" + productId;
+
+            if (selectedRating > 0) {
+                currentUrl += "&rating=" + selectedRating;
+            }
 
             request.setAttribute("product", product);
             request.setAttribute("specifications", specList);
-            request.setAttribute("reviews", reviews);
+            request.setAttribute("reviews", pagedReviews);
             request.setAttribute("allReviews", allReviews);
             request.setAttribute("avgRating", avgRating);
+            request.setAttribute("fullStars", fullStars);
             request.setAttribute("similarProducts", similarProducts);
+
+            request.setAttribute("selectedRating", selectedRating);
+            request.setAttribute("totalAllReviews", totalAllReviews);
+
+            request.setAttribute("count1", count1);
+            request.setAttribute("count2", count2);
+            request.setAttribute("count3", count3);
+            request.setAttribute("count4", count4);
+            request.setAttribute("count5", count5);
+
+            request.setAttribute("pct1", pct1);
+            request.setAttribute("pct2", pct2);
+            request.setAttribute("pct3", pct3);
+            request.setAttribute("pct4", pct4);
+            request.setAttribute("pct5", pct5);
+
+            request.setAttribute("maxQuantity", maxQuantity);
+            request.setAttribute("currentUrl", currentUrl);
+
+            handleSessionMessage(request);
 
             HttpSession session = request.getSession(false);
             if (session != null) {
@@ -88,6 +180,7 @@ public class ProductDetailServlet extends HttpServlet {
 
                 if (account != null && account.isCustomer()) {
                     CartDAO cartDAO = new CartDAO();
+
                     request.setAttribute(
                             "cartItemCount",
                             cartDAO.getCartItemCountByCustomerId(account.getCustomerId())
@@ -95,10 +188,64 @@ public class ProductDetailServlet extends HttpServlet {
                 }
             }
 
-            request.getRequestDispatcher("/views/product-detail.jsp").forward(request, response);
+            request.getRequestDispatcher("/views/product-detail.jsp")
+                    .forward(request, response);
 
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/home");
         }
+    }
+
+    private int parseRating(String ratingRaw) {
+        if (ratingRaw == null || ratingRaw.trim().isEmpty()) {
+            return 0;
+        }
+
+        try {
+            int rating = Integer.parseInt(ratingRaw);
+
+            if (rating < 1 || rating > 5) {
+                return 0;
+            }
+
+            return rating;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private int calculatePercent(int count, int total) {
+        if (total == 0) {
+            return 0;
+        }
+
+        return count * 100 / total;
+    }
+
+    private void handleSessionMessage(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            return;
+        }
+
+        String cartMessage = (String) session.getAttribute("cartMessage");
+        String cartMessageType = (String) session.getAttribute("cartMessageType");
+        String quantityError = (String) session.getAttribute("productDetailQuantityError");
+        String quantityValue = (String) session.getAttribute("productDetailQuantityValue");
+
+        if (cartMessageType == null) {
+            cartMessageType = "success";
+        }
+
+        request.setAttribute("cartMessage", cartMessage);
+        request.setAttribute("cartMessageType", cartMessageType);
+        request.setAttribute("quantityError", quantityError);
+        request.setAttribute("quantityValue", quantityValue);
+
+        session.removeAttribute("cartMessage");
+        session.removeAttribute("cartMessageType");
+        session.removeAttribute("productDetailQuantityError");
+        session.removeAttribute("productDetailQuantityValue");
     }
 }

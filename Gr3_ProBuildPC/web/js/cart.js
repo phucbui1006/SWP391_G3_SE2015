@@ -56,8 +56,11 @@
             return;
         }
 
-        const productCard = form.closest('.product-card, .category-product-card, .detail-card');
-        let productImage = productCard ? productCard.querySelector('figure img, .main-image img') : null;
+        const productCard = form.closest('.product-card, .category-product-card, .detail-card, .build-pc-shell');
+        let productImage = productCard ? productCard.querySelector('figure img, .main-image img, .build-part-product img') : null;
+        if (!productImage && productCard) {
+            productImage = productCard.querySelector('.build-slot-placeholder');
+        }
 
         if (!productImage) {
             cartIconElement.classList.add('is-bumping');
@@ -134,6 +137,11 @@
                 }
 
                 if (!response.ok || !data.success) {
+                    if (data.field === 'quantity' && typeof showQuantityError === 'function') {
+                        showQuantityError(data.message || 'Số lượng không hợp lệ.');
+                        return;
+                    }
+
                     showToast(data.message || 'Không thể thêm sản phẩm vào giỏ hàng lúc này.', false);
                     return;
                 }

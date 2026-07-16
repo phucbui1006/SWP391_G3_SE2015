@@ -7,14 +7,22 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import model.Address;
 import model.CartItem;
 import model.Product;
 
 public class OrderDAO extends DBContext {
 
-    private static final int DEFAULT_STATUS_ID = 1;
+    private static final int STATUS_WAITING_CONFIRMATION = 1;
+    private static final int STATUS_CONFIRMED = 2;
+    private static final int STATUS_CANCELLED = 6;
+    private static final String PAYMENT_METHOD_VNPAY = "VNPAY";
+    private static final String PAYMENT_STATUS_PENDING = "Chờ thanh toán";
+    private static final String PAYMENT_STATUS_PAID = "Đã thanh toán";
+    private static final String PAYMENT_STATUS_FAILED = "Thất bại";
 
     public int createOrder(
             int customerId,
@@ -48,17 +56,6 @@ public class OrderDAO extends DBContext {
                                 VALUES (?, ?, NOW(), ?, ?, ?, ?, ?)
                                 """;
 
-        String insertOrderDetailSql = """
-                                      INSERT INTO order_details (
-                                          order_id,
-                                          product_id,
-                                          quantity,
-                                          unit_price,
-                                          subtotal
-                                      )
-                                      VALUES (?, ?, ?, ?, ?)
-                                      """;
-
         try {
             connection.setAutoCommit(false);
 
@@ -80,10 +77,20 @@ public class OrderDAO extends DBContext {
                         connection.rollback();
                         return -1;
                     }
-
                     orderId = rs.getInt(1);
                 }
             }
+
+            String insertOrderDetailSql = """
+                                          INSERT INTO order_details (
+                                              order_id,
+                                              product_id,
+                                              quantity,
+                                              unit_price,
+                                              subtotal
+                                          )
+                                          VALUES (?, ?, ?, ?, ?)
+                                          """;
 
             try (PreparedStatement ps = connection.prepareStatement(insertOrderDetailSql)) {
                 for (CartItem item : items) {
@@ -116,25 +123,280 @@ public class OrderDAO extends DBContext {
             connection.commit();
             return orderId;
         } catch (SQLException e) {
-            try {
-                if (connection != null) {
-                    connection.rollback();
-                }
-            } catch (SQLException rollbackException) {
-                rollbackException.printStackTrace();
-            }
-
+            rollbackQuietly();
             e.printStackTrace();
             return -1;
         } finally {
-            try {
-                if (connection != null) {
-                    connection.setAutoCommit(true);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            resetAutoCommit();
         }
+    }
+
+    public boolean updateOrderStatusAndPaymentStatus(int orderId, int statusId, String paymentStatus) {
+        String sql = """
+                     UPDATE orders
+                     SET status_id = ?, payment_status = ?, vnpay_expires_at = NULL
+                     WHERE order_id = ?
+                     """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, statusId);
+            ps.setString(2, paymentStatus);
+            ps.setInt(3, orderId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean createPaymentRecord(int orderId, String paymentStatus, String provider, BigDecimal amount) {
+        String sql = """
+                     INSERT INTO payments (order_id, payment_status, payment_provider, amount)
+                     VALUES (?, ?, ?, ?)
+                     ON DUPLICATE KEY UPDATE
+                         payment_status = VALUES(payment_status),
+                         payment_provider = VALUES(payment_provider),
+                         amount = VALUES(amount)
+                     """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.setString(2, paymentStatus);
+            ps.setString(3, provider);
+            ps.setBigDecimal(4, amount);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean releaseStock(int orderId) {
+        try {
+            connection.setAutoCommit(false);
+            if (!releaseStockInternal(orderId)) {
+                connection.rollback();
+                return false;
+            }
+
+            connection.commit();
+            return true;
+        } catch (SQLException e) {
+            rollbackQuietly();
+            e.printStackTrace();
+            return false;
+        } finally {
+            resetAutoCommit();
+        }
+    }
+
+    public boolean setVnpayExpiresAt(int orderId, int minutes) {
+        String sql = "UPDATE orders SET vnpay_expires_at = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE order_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, minutes);
+            ps.setInt(2, orderId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean extendVnpayExpiresAtForCustomer(int orderId, int customerId, int minutes) {
+        String sql = """
+                     UPDATE orders
+                     SET vnpay_expires_at = DATE_ADD(NOW(), INTERVAL ? MINUTE)
+                     WHERE order_id = ?
+                       AND customer_id = ?
+                       AND payment_method = ?
+                       AND status_id = ?
+                       AND payment_status = ?
+                       AND (vnpay_expires_at IS NULL OR vnpay_expires_at >= NOW())
+                     """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, minutes);
+            ps.setInt(2, orderId);
+            ps.setInt(3, customerId);
+            ps.setString(4, PAYMENT_METHOD_VNPAY);
+            ps.setInt(5, STATUS_WAITING_CONFIRMATION);
+            ps.setString(6, PAYMENT_STATUS_PENDING);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public BigDecimal getOrderTotalAmount(int orderId) {
+        String sql = "SELECT total_amount FROM orders WHERE order_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBigDecimal("total_amount");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+
+    public BigDecimal getOrderTotalAmountForCustomer(int orderId, int customerId) {
+        String sql = "SELECT total_amount FROM orders WHERE order_id = ? AND customer_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.setInt(2, customerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBigDecimal("total_amount");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
+
+    public boolean confirmVnpayPayment(int orderId, BigDecimal amount) {
+        String updateOrderSql = """
+                                UPDATE orders
+                                SET status_id = ?, payment_status = ?, vnpay_expires_at = NULL
+                                WHERE order_id = ?
+                                  AND payment_method = ?
+                                  AND status_id = ?
+                                  AND payment_status = ?
+                                  AND (vnpay_expires_at IS NULL OR vnpay_expires_at >= NOW())
+                                """;
+
+        try {
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement ps = connection.prepareStatement(updateOrderSql)) {
+                ps.setInt(1, STATUS_CONFIRMED);
+                ps.setString(2, PAYMENT_STATUS_PAID);
+                ps.setInt(3, orderId);
+                ps.setString(4, PAYMENT_METHOD_VNPAY);
+                ps.setInt(5, STATUS_WAITING_CONFIRMATION);
+                ps.setString(6, PAYMENT_STATUS_PENDING);
+
+                if (ps.executeUpdate() != 1) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            if (!createPaymentRecord(orderId, PAYMENT_STATUS_PAID, PAYMENT_METHOD_VNPAY, amount)) {
+                connection.rollback();
+                return false;
+            }
+
+            connection.commit();
+            return true;
+        } catch (SQLException e) {
+            rollbackQuietly();
+            e.printStackTrace();
+            return false;
+        } finally {
+            resetAutoCommit();
+        }
+    }
+
+    public boolean cancelPendingVnpayOrder(int orderId, String paymentStatus) {
+        String updateOrderSql = """
+                                UPDATE orders
+                                SET status_id = ?, payment_status = ?, vnpay_expires_at = NULL
+                                WHERE order_id = ?
+                                  AND payment_method = ?
+                                  AND status_id = ?
+                                  AND payment_status = ?
+                                """;
+        try {
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement ps = connection.prepareStatement(updateOrderSql)) {
+                ps.setInt(1, STATUS_CANCELLED);
+                ps.setString(2, paymentStatus);
+                ps.setInt(3, orderId);
+                ps.setString(4, PAYMENT_METHOD_VNPAY);
+                ps.setInt(5, STATUS_WAITING_CONFIRMATION);
+                ps.setString(6, PAYMENT_STATUS_PENDING);
+
+                if (ps.executeUpdate() != 1) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            if (!releaseStockInternal(orderId)) {
+                connection.rollback();
+                return false;
+            }
+
+            connection.commit();
+            return true;
+        } catch (SQLException e) {
+            rollbackQuietly();
+            e.printStackTrace();
+            return false;
+        } finally {
+            resetAutoCommit();
+        }
+    }
+
+    public boolean isVnpayOrderExpiredOrCancelled(int orderId) {
+        String sql = """
+                     SELECT 1
+                     FROM orders
+                     WHERE order_id = ?
+                       AND payment_method = ?
+                       AND (
+                           status_id = ?
+                           OR (vnpay_expires_at IS NOT NULL AND vnpay_expires_at < NOW())
+                       )
+                     """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.setString(2, PAYMENT_METHOD_VNPAY);
+            ps.setInt(3, STATUS_CANCELLED);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<Integer> cancelExpiredVnpayOrders() {
+        List<Integer> cancelledIds = new ArrayList<>();
+        String selectSql = """
+                           SELECT order_id
+                           FROM orders
+                           WHERE status_id = ?
+                             AND payment_status = ?
+                             AND payment_method = ?
+                             AND vnpay_expires_at IS NOT NULL
+                             AND vnpay_expires_at <= NOW()
+                           """;
+
+        try (PreparedStatement psSelect = connection.prepareStatement(selectSql)) {
+            psSelect.setInt(1, STATUS_WAITING_CONFIRMATION);
+            psSelect.setString(2, PAYMENT_STATUS_PENDING);
+            psSelect.setString(3, PAYMENT_METHOD_VNPAY);
+
+            try (ResultSet rs = psSelect.executeQuery()) {
+                while (rs.next()) {
+                    int orderId = rs.getInt("order_id");
+                    if (cancelPendingVnpayOrder(orderId, PAYMENT_STATUS_FAILED)) {
+                        cancelledIds.add(orderId);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+
+        return cancelledIds;
     }
 
     private BigDecimal calculateTotalAmount(List<CartItem> items) {
@@ -159,7 +421,6 @@ public class OrderDAO extends DBContext {
                            WHERE bi.product_id = ?
                              AND bi.quantity > 0
                            ORDER BY b.date ASC, bi.batch_item_id ASC
-                           FOR UPDATE
                            """;
 
         List<BatchStock> availableBatches = new ArrayList<>();
@@ -275,118 +536,80 @@ public class OrderDAO extends DBContext {
         return value == null ? "" : value.trim();
     }
 
-    public boolean updateOrderStatusAndPaymentStatus(int orderId, int statusId, String paymentStatus) {
-        String sql = "UPDATE orders SET status_id = ?, payment_status = ? WHERE order_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, statusId);
-            ps.setString(2, paymentStatus);
-            ps.setInt(3, orderId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean createPaymentRecord(int orderId, String paymentStatus, String provider, BigDecimal amount) {
-        String sql = "INSERT INTO payments (order_id, payment_status, payment_provider, amount) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, orderId);
-            ps.setString(2, paymentStatus);
-            ps.setString(3, provider);
-            ps.setBigDecimal(4, amount);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean releaseStock(int orderId) {
-        String selectDetailsSql = "SELECT product_id, quantity FROM order_details WHERE order_id = ?";
+    private boolean releaseStockInternal(int orderId) throws SQLException {
+        String selectDetailsSql = """
+                                  SELECT product_id, SUM(quantity) AS total_quantity
+                                  FROM order_details
+                                  WHERE order_id = ?
+                                  GROUP BY product_id
+                                  """;
+        String findBatchSql = """
+                              SELECT batch_item_id
+                              FROM batch_items
+                              WHERE product_id = ?
+                              ORDER BY batch_item_id ASC
+                              LIMIT 1
+                              """;
         String updateBatchSql = """
-                                UPDATE batch_items 
-                                SET quantity = quantity + ? 
-                                WHERE product_id = ? 
-                                ORDER BY batch_item_id ASC 
-                                LIMIT 1
+                                UPDATE batch_items
+                                SET quantity = quantity + ?
+                                WHERE batch_item_id = ?
                                 """;
+
+        Map<Integer, Integer> quantitiesByProduct = new LinkedHashMap<>();
         try (PreparedStatement psSelect = connection.prepareStatement(selectDetailsSql)) {
             psSelect.setInt(1, orderId);
             try (ResultSet rs = psSelect.executeQuery()) {
-                try (PreparedStatement psUpdate = connection.prepareStatement(updateBatchSql)) {
-                    while (rs.next()) {
-                        int productId = rs.getInt("product_id");
-                        int quantity = rs.getInt("quantity");
-                        psUpdate.setInt(1, quantity);
-                        psUpdate.setInt(2, productId);
-                        psUpdate.executeUpdate();
-                    }
+                while (rs.next()) {
+                    quantitiesByProduct.put(rs.getInt("product_id"), rs.getInt("total_quantity"));
                 }
             }
+        }
+
+        if (quantitiesByProduct.isEmpty()) {
             return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
-    }
 
-    public boolean setVnpayExpiresAt(int orderId, int minutes) {
-        String sql = "UPDATE orders SET vnpay_expires_at = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE order_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, minutes);
-            ps.setInt(2, orderId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+        try (PreparedStatement psFindBatch = connection.prepareStatement(findBatchSql);
+             PreparedStatement psUpdateBatch = connection.prepareStatement(updateBatchSql)) {
+            for (Map.Entry<Integer, Integer> entry : quantitiesByProduct.entrySet()) {
+                psFindBatch.setInt(1, entry.getKey());
+                try (ResultSet rs = psFindBatch.executeQuery()) {
+                    if (!rs.next()) {
+                        return false;
+                    }
 
-    public java.math.BigDecimal getOrderTotalAmount(int orderId) {
-        String sql = "SELECT total_amount FROM orders WHERE order_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, orderId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getBigDecimal("total_amount");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return java.math.BigDecimal.ZERO;
-    }
-
-    /**
-     * Tìm và hủy tất cả đơn VNPAY đã hết hạn (status=1, payment_status='Chờ thanh toán', quá vnpay_expires_at).
-     * Trả về danh sách orderId đã hủy.
-     */
-    public java.util.List<Integer> cancelExpiredVnpayOrders() {
-        java.util.List<Integer> cancelledIds = new java.util.ArrayList<>();
-        String selectSql = """
-            SELECT order_id FROM orders
-            WHERE status_id = 1
-              AND payment_status = 'Chờ thanh toán'
-              AND payment_method = 'VNPAY'
-              AND vnpay_expires_at IS NOT NULL
-              AND vnpay_expires_at < NOW()
-            """;
-        String updateSql = "UPDATE orders SET status_id = 6, payment_status = 'Thất bại' WHERE order_id = ?";
-        try (PreparedStatement psSelect = connection.prepareStatement(selectSql);
-             ResultSet rs = psSelect.executeQuery()) {
-            while (rs.next()) {
-                int orderId = rs.getInt("order_id");
-                try (PreparedStatement psUpdate = connection.prepareStatement(updateSql)) {
-                    psUpdate.setInt(1, orderId);
-                    if (psUpdate.executeUpdate() > 0) {
-                        releaseStock(orderId);
-                        cancelledIds.add(orderId);
+                    int batchItemId = rs.getInt("batch_item_id");
+                    psUpdateBatch.setInt(1, entry.getValue());
+                    psUpdateBatch.setInt(2, batchItemId);
+                    if (psUpdateBatch.executeUpdate() != 1) {
+                        return false;
                     }
                 }
             }
+        }
+
+        return true;
+    }
+
+    private void rollbackQuietly() {
+        try {
+            if (connection != null) {
+                connection.rollback();
+            }
+        } catch (SQLException rollbackException) {
+            rollbackException.printStackTrace();
+        }
+    }
+
+    private void resetAutoCommit() {
+        try {
+            if (connection != null) {
+                connection.setAutoCommit(true);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return cancelledIds;
     }
 
     private static class BatchStock {

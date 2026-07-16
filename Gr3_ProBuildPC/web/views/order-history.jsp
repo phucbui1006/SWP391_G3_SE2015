@@ -252,7 +252,7 @@
         <main class="order-history-page">
             <nav class="order-history-breadcrumb" aria-label="Breadcrumb">
                 <a href="<%= isCustomerView ? ctx + "/home" : ctx + "/Dashboard" %>">Trang chủ</a>
-                <span>/</span>
+                <span>&gt;</span>
                 <span><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý giao hàng") %></span>
             </nav>
 
@@ -318,7 +318,7 @@
                            href="<%= buildOrderLink(ctx, keyword, selectedStatusIdValue, currentPage, order.getOrderId(), deliveryHistoryMode) %>">
                             <span class="order-card-icon" aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></span>
                             <span class="order-card-main">
-                                <strong>PB<%= order.getOrderId() %></strong>
+                                <strong><%= order.getOrderId() %></strong>
                                 <small><%= formatDate(order.getOrderDate(), dateFormatter) %> · <%= formatTime(order.getOrderDate(), timeFormatter) %></small>
                                 <% if (!isCustomerView) { %>
                                 <em><%= h(defaultText(order.getCustomerName(), "Khách hàng")) %></em>
@@ -333,14 +333,37 @@
 
                     <% if (totalPages > 1) { %>
                     <div class="order-history-pagination">
-                        <a class="<%= currentPage <= 1 ? "disabled" : "" %>"
+                        <a class="prev <%= currentPage <= 1 ? "disabled" : "" %>"
                            href="<%= currentPage <= 1 ? "#" : buildPageLink(ctx, keyword, selectedStatusIdValue, currentPage - 1, selectedOrderId, deliveryHistoryMode) %>"
                            aria-label="Trang trước">‹</a>
-                        <% for (int pageNumber = 1; pageNumber <= totalPages; pageNumber++) { %>
+                        <%
+                            int fromPage = Math.max(2, currentPage - 2);
+                            int toPage = Math.min(totalPages - 1, currentPage + 2);
+                            if (currentPage <= 4) {
+                                fromPage = 2;
+                                toPage = Math.min(totalPages - 1, 5);
+                            } else if (currentPage >= totalPages - 3) {
+                                fromPage = Math.max(2, totalPages - 4);
+                                toPage = totalPages - 1;
+                            }
+                        %>
+                        <a class="<%= currentPage == 1 ? "active" : "" %>"
+                           href="<%= buildPageLink(ctx, keyword, selectedStatusIdValue, 1, selectedOrderId, deliveryHistoryMode) %>">1</a>
+                        <% if (fromPage > 2) { %>
+                        <span>...</span>
+                        <% } %>
+                        <% for (int pageNumber = fromPage; pageNumber <= toPage; pageNumber++) { %>
                         <a class="<%= pageNumber == currentPage ? "active" : "" %>"
                            href="<%= buildPageLink(ctx, keyword, selectedStatusIdValue, pageNumber, selectedOrderId, deliveryHistoryMode) %>"><%= pageNumber %></a>
                         <% } %>
-                        <a class="<%= currentPage >= totalPages ? "disabled" : "" %>"
+                        <% if (toPage < totalPages - 1) { %>
+                        <span>...</span>
+                        <% } %>
+                        <% if (totalPages > 1) { %>
+                        <a class="<%= currentPage == totalPages ? "active" : "" %>"
+                           href="<%= buildPageLink(ctx, keyword, selectedStatusIdValue, totalPages, selectedOrderId, deliveryHistoryMode) %>"><%= totalPages %></a>
+                        <% } %>
+                        <a class="next <%= currentPage >= totalPages ? "disabled" : "" %>"
                            href="<%= currentPage >= totalPages ? "#" : buildPageLink(ctx, keyword, selectedStatusIdValue, currentPage + 1, selectedOrderId, deliveryHistoryMode) %>"
                            aria-label="Trang sau">›</a>
                     </div>
@@ -355,7 +378,7 @@
                     </div>
                     <% } else { %>
                     <div class="order-detail-header">
-                        <h2>Đơn hàng PB<%= selectedOrder.getOrderId() %></h2>
+                        <h2>Đơn hàng <%= selectedOrder.getOrderId() %></h2>
                         <div class="order-detail-actions">
                             <% if (selectedCanCancel) { %>
                             <form class="order-cancel-form" action="<%= ctx %>/order-history" method="post" onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?');">
@@ -379,7 +402,7 @@
                     <article class="order-summary-card">
                         <div class="order-summary-icon" aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></div>
                         <div>
-                            <strong>Mã đơn hàng: PB<%= selectedOrder.getOrderId() %></strong>
+                            <strong>Mã đơn hàng: <%= selectedOrder.getOrderId() %></strong>
                             <span>Đặt hàng: <%= formatDate(selectedOrder.getOrderDate(), dateFormatter) %> · <%= formatTime(selectedOrder.getOrderDate(), timeFormatter) %></span>
                             <span>Hình thức thanh toán: <%= h(defaultText(selectedOrder.getPaymentMethod(), "Chưa cập nhật")) %></span>
                         </div>
@@ -554,7 +577,7 @@
             <div class="order-modal" role="dialog" aria-modal="true" aria-labelledby="detailQuickViewTitle">
                 <div class="order-modal-header">
                     <div>
-                        <h2 id="detailQuickViewTitle">Chi tiết đơn hàng PB<%= selectedOrder.getOrderId() %></h2>
+                        <h2 id="detailQuickViewTitle">Chi tiết đơn hàng <%= selectedOrder.getOrderId() %></h2>
                         <p><%= h(defaultText(selectedOrder.getCustomerName(), "Khách hàng")) %> · <%= h(defaultText(selectedOrder.getCustomerEmail(), "Chưa cập nhật email")) %></p>
                     </div>
                     <button type="button" data-close-modal aria-label="Đóng">×</button>
@@ -634,19 +657,13 @@
                         <!-- Realistic Image Section -->
                         <div style="margin-bottom: 24px;">
                             <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Hình ảnh thực tế (tối đa 5 ảnh, định dạng ảnh, < 2MB)</label>
-                            <div class="review-image-upload-wrapper" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
-                                <label class="review-image-upload-box" style="width: 72px; height: 72px; border: 1px dashed #d1d5db; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: #fafafa; transition: border-color 0.15s ease; margin: 0;">
-                                    <input type="file" name="imgFiles" id="reviewImgFileInput" accept="image/*" multiple style="display: none;">
-                                    <!-- Camera SVG Icon -->
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px; color: #64748b;">
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
-                                    </svg>
-                                </label>
+                            <div class="review-image-upload-wrapper" style="display: flex; flex-direction: column; gap: 12px; align-items: stretch;">
+                                <input type="file" name="imgFiles" id="reviewImgFileInput" accept="image/*" multiple style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #111827; background: #ffffff; box-sizing: border-box;">
+                                <small style="margin-top: -4px; color: #7a808c; font-size: 12px;">PNG, JPG, JPEG, WEBP. Tối đa 2MB.</small>
                                 <input type="hidden" name="clearImages" id="reviewClearImagesInput" value="false">
                                 <input type="hidden" name="keepImages" id="reviewKeepImagesInput" value="">
                                 <!-- Preview list container -->
-                                <div id="reviewImgPreviewList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; width: 100%;"></div>
+                                <div id="reviewImgPreviewList" style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%;"></div>
                                 <div id="reviewValidationError" style="color: #ef1b24; font-size: 12px; display: none; font-weight: 500;"></div>
                             </div>
                         </div>
@@ -713,7 +730,8 @@
                 window.validateOrderSearch = function() {
                     const searchInput = document.getElementById('searchKeyword');
                     if (searchInput && searchInput.value.trim() !== '') {
-                        if (!Validator.validateSearchQuery(searchInput.value)) {
+                        searchInput.value = searchInput.value.replace(/\D/g, '').slice(0, 20);
+                        if (!/^\d{1,20}$/.test(searchInput.value)) {
                             alert('Từ khóa tìm kiếm không hợp lệ hoặc chứa ký tự đặc biệt.');
                             searchInput.focus();
                             return false;
@@ -721,6 +739,16 @@
                     }
                     return true;
                 };
+
+                const orderSearchInput = document.getElementById('searchKeyword');
+                if (orderSearchInput) {
+                    orderSearchInput.setAttribute('maxlength', '20');
+                    orderSearchInput.setAttribute('inputmode', 'numeric');
+                    orderSearchInput.setAttribute('pattern', '[0-9]{0,20}');
+                    orderSearchInput.addEventListener('input', function () {
+                        this.value = this.value.replace(/\D/g, '').slice(0, 20);
+                    });
+                }
 
                 // --- LOGIC ĐÁNH GIÁ SẢN PHẨM ---
                 const starRatingPicker = document.querySelector(".star-rating-picker");

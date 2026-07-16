@@ -26,6 +26,21 @@
                                             selectedRating = (Integer) request.getAttribute("selectedRating");
                                             }
 
+                                            boolean hasImage = false;
+                                            if (request.getAttribute("hasImage") != null) {
+                                                hasImage = (Boolean) request.getAttribute("hasImage");
+                                            }
+
+                                            int currentPage = 1;
+                                            if (request.getAttribute("currentPage") != null) {
+                                                currentPage = (Integer) request.getAttribute("currentPage");
+                                            }
+
+                                            int totalPages = 1;
+                                            if (request.getAttribute("totalPages") != null) {
+                                                totalPages = (Integer) request.getAttribute("totalPages");
+                                            }
+
                                             int fullStars = (int) avgRating;
                                             int maxQuantity = product.getQuantity() > 0 ? product.getQuantity() : 1;
 
@@ -37,6 +52,15 @@
                                             currentUrl += "?id=" + product.getProductId();
                                             }
 
+                                            String reviewPagingUrl = contextPath + "/product-detail?id=" + product.getProductId();
+                                            if (selectedRating > 0) {
+                                                reviewPagingUrl += "&rating=" + selectedRating;
+                                            }
+                                            if (hasImage) {
+                                                reviewPagingUrl += "&hasImage=true";
+                                            }
+                                            reviewPagingUrl += "&page=";
+
                                             int totalAllReviews = allReviews == null ? 0 : allReviews.size();
 
                                             int count5 = 0;
@@ -44,9 +68,13 @@
                                             int count3 = 0;
                                             int count2 = 0;
                                             int count1 = 0;
+                                            int countHasImage = 0;
 
                                             if (allReviews != null) {
                                             for (Review r : allReviews) {
+                                            if (r.getImages() != null && !r.getImages().isEmpty()) {
+                                                countHasImage++;
+                                            }
                                             if (r.getRating() == 5) {
                                             count5++;
                                             } else if (r.getRating() == 4) {
@@ -96,7 +124,7 @@
 
                                                 <link rel="stylesheet" href="<%= contextPath %>/css/style.css">
                                                 <link rel="stylesheet"
-                                                    href="<%= contextPath %>/css/product-detail.css?v=200">
+                                                    href="<%= contextPath %>/css/product-detail.css?v=202">
                                             </head>
 
                                             <body class="product-detail-body" data-context-path="<%= contextPath %>">
@@ -140,19 +168,11 @@
                                                                     </h1>
 
                                                                     <div class="product-meta-details">
-                                                                        <div class="meta-item">
-                                                                            <span class="meta-label">Thương hiệu:</span>
-                                                                            <span class="meta-value">
-                                                                                <%= product.getBrandName() %>
-                                                                            </span>
-                                                                        </div>
+                                                                        <span class="meta-label">Thương hiệu:</span>
+                                                                        <span class="meta-value"><%= product.getBrandName() %></span>
                                                                         <span class="meta-divider">|</span>
-                                                                        <div class="meta-item">
-                                                                            <span class="meta-label">Danh mục:</span>
-                                                                            <span class="meta-value">
-                                                                                <%= product.getCategoryName() %>
-                                                                            </span>
-                                                                        </div>
+                                                                        <span class="meta-label">Danh mục:</span>
+                                                                        <span class="meta-value"><%= product.getCategoryName() %></span>
                                                                     </div>
 
                                                                     <div class="rating-row">
@@ -160,143 +180,94 @@
                                                                             <%= String.format("%.1f", avgRating) %>
                                                                                 <i class="fa-solid fa-star"></i>
                                                                         </span>
-
                                                                         <span class="stars">
                                                                             <% for (int i=1; i <=5; i++) { %>
                                                                                 <% if (i <=fullStars) { %>
                                                                                     <i class="fa-solid fa-star"></i>
-                                                                                    <% } else if (i - 1 < avgRating &&
-                                                                                        avgRating < i) { %>
-                                                                                        <i
-                                                                                            class="fa-solid fa-star-half-stroke"></i>
+                                                                                    <% } else if (i - 1 < avgRating && avgRating < i) { %>
+                                                                                        <i class="fa-solid fa-star-half-stroke"></i>
                                                                                         <% } else { %>
-                                                                                            <i
-                                                                                                class="fa-regular fa-star"></i>
+                                                                                            <i class="fa-regular fa-star"></i>
                                                                                             <% } %>
                                                                                                 <% } %>
                                                                         </span>
+                                                                        <span class="review-count">| <%= totalAllReviews %> đánh giá</span>
+                                                                    </div>
 
-                                                                        <span class="review-count">| <%= totalAllReviews
-                                                                                %> đánh giá</span>
+                                                                    <div class="warranty-text">
+                                                                        Bảo hành: <%= product.getWarrantyMonths() %> tháng chính hãng
                                                                     </div>
 
                                                                     <div class="price">
-                                                                        <%= String.format("%,d",
-                                                                            product.getPrice().longValue()) %>đ
+                                                                        <%= String.format("%,d", product.getPrice().longValue()) %>đ
                                                                     </div>
 
-                                                                    <div class="stock-status">
+                                                                    <div class="stock-status-inline">
                                                                         <% if (product.getQuantity()> 0) { %>
-                                                                            <span class="badge-stock in-stock">Còn
-                                                                                hàng</span>
-                                                                            <span class="quantity-text">Số lượng trong
-                                                                                kho: <%= product.getQuantity() %></span>
-                                                                            <% } else { %>
-                                                                                <span class="badge-stock out-stock">Hết
-                                                                                    hàng</span>
-                                                                                <% } %>
-                                                                                    <span class="meta-divider"
-                                                                                        style="color: #cbd5e1; font-weight: 300; margin: 0 4px;">|</span>
-                                                                                    <span class="quantity-text">Bảo
-                                                                                        hành: <%=
-                                                                                            product.getWarrantyMonths()
-                                                                                            %> tháng</span>
+                                                                            <span class="stock-text in-stock">Còn hàng</span>
+                                                                            <span class="quantity-text">(Số lượng: <%= product.getQuantity() %>)</span>
+                                                                        <% } else { %>
+                                                                            <span class="stock-text out-stock">Hết hàng</span>
+                                                                        <% } %>
                                                                     </div>
 
-                                                                    <div class="purchase-panel">
+                                                                    <div class="purchase-panel-new">
+                                                                        <form class="purchase-form" method="post" novalidate>
+                                                                            <input type="hidden" name="action" value="addToCart">
+                                                                            <input type="hidden" name="productId" value="<%= product.getProductId() %>">
+                                                                            <input type="hidden" name="redirect" value="<%= currentUrl %>">
 
-                                                                        <form class="purchase-form" method="post">
-                                                                            <input type="hidden" name="action" value="addToCart"><input type="hidden" name="productId"
-                                                                                value="<%= product.getProductId() %>">
-                                                                            <input type="hidden" name="redirect"
-                                                                                value="<%= currentUrl %>">
-
+                                                                            <div class="info-label">SỐ LƯỢNG</div>
                                                                             <div class="quantity-box">
-                                                                                <span>Số lượng:</span>
-
-                                                                                <input class="quantity-input"
-                                                                                    type="number" name="quantity"
-                                                                                    value="1" inputmode="numeric"
-                                                                                    min="1" step="1"
-                                                                                    max="<%= maxQuantity %>"
-                                                                                    data-max-quantity="<%= maxQuantity %>"
-                                                                                    <%=product.getQuantity()> 0 ? "" :
-                                                                                "disabled" %>>
+                                                                                <input class="quantity-input" id="quantityInput" type="number" name="quantity" value="1" inputmode="numeric" min="1" step="1" max="<%= maxQuantity %>" data-max-quantity="<%= maxQuantity %>" aria-describedby="quantityError" aria-invalid="false" <%=product.getQuantity()> 0 ? "" : "disabled" %>>
                                                                             </div>
+                                                                            <p id="quantityError" class="quantity-error" role="alert" aria-live="polite" hidden></p>
 
                                                                             <div class="action-buttons">
-
-                                                                                <button type="button"
-                                                                                    onclick="handleAddToCartAjax(this, <%= product.getQuantity() > 0 %>)"
-                                                                                    class="add-cart-btn"
-                                                                                    data-add-to-cart-btn
-                                                                                    <%= product.getQuantity() > 0 ? "" : "style=\"opacity: 0.6; cursor: not-allowed; background: #e5e7eb; border-color: #e5e7eb; color: #9ca3af;\"" %>>
-                                                                                    <i class="fa-solid fa-cart-shopping"></i>
-                                                                                    Thêm vào giỏ
-                                                                                </button>
-
-                                                                                <button type="submit"
-                                                                                    formaction="<%= contextPath %>/checkout"
-                                                                                    class="buy-btn"
-                                                                                    <%=product.getQuantity()> 0 ? "" :
-                                                                                    "disabled" %>>
+                                                                                <button type="submit" formaction="<%= contextPath %>/checkout" class="buy-btn" <%=product.getQuantity()> 0 ? "" : "disabled" %>>
                                                                                     Mua ngay
                                                                                 </button>
-
+                                                                                <button type="button" onclick="handleAddToCartAjax(this, <%= product.getQuantity() > 0 %>)" class="add-cart-btn" data-add-to-cart-btn <%= product.getQuantity() > 0 ? "" : "disabled" %>>
+                                                                                    <i class="fa-solid fa-cart-shopping"></i> Giỏ hàng
+                                                                                </button>
                                                                             </div>
                                                                         </form>
-
                                                                     </div>
 
                                                                 </div>
 
                                                             </section>
 
-                                                            <section class="description-card">
-                                                                <div class="description-box">
-                                                                    <div class="description-title-row">
-                                                                        <div>
-                                                                            <h2>Mô tả sản phẩm</h2>
-                                                                            <span>Thông tin chi tiết về sản phẩm</span>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div class="description-content">
-                                                                        <% if (product.getDescription() !=null &&
-                                                                            !product.getDescription().trim().isEmpty())
-                                                                            { %>
-                                                                            <p>
-                                                                                <%= product.getDescription() %>
-                                                                            </p>
-                                                                            <% } else { %>
-                                                                                <p>Chưa có mô tả cho sản phẩm này.</p>
-                                                                                <% } %>
-                                                                    </div>
+                                                            <section class="info-specs-card">
+                                                                <div class="info-specs-header">
+                                                                    <h2>Thông Tin Chi Tiết & Kỹ Thuật <%= product.getProductName() %></h2>
+                                                                    <p>Thông tin chi tiết về sản phẩm</p>
                                                                 </div>
-                                                            </section>
 
-                                                            <c:if test="${not empty specifications}">
-                                                                <section class="probuild-specs-container">
-                                                                    <div class="probuild-specs-box">
-                                                                        <div class="probuild-specs-header">
-                                                                            <h2>Thông số kỹ thuật</h2>
-                                                                            <p>Thông số kỹ thuật chi tiết của sản phẩm</p>
-                                                                        </div>
-                                                                        <div class="probuild-specs-table-wrap">
-                                                                            <table class="probuild-specs-table">
-                                                                                <tbody>
-                                                                                    <c:forEach var="spec" items="${specifications}">
-                                                                                        <tr>
-                                                                                            <td class="probuild-item-name">${spec.specificationName}</td>
-                                                                                            <td class="probuild-item-value">${spec.specificationValue}</td>
-                                                                                        </tr>
-                                                                                    </c:forEach>
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </div>
+                                                                <div class="description-content-new">
+                                                                    <% if (product.getDescription() !=null && !product.getDescription().trim().isEmpty()) { %>
+                                                                        <p><%= product.getDescription() %></p>
+                                                                    <% } else { %>
+                                                                        <p>Chưa có mô tả cho sản phẩm này.</p>
+                                                                    <% } %>
+                                                                </div>
+
+                                                                <c:if test="${not empty specifications}">
+                                                                    <div class="specs-grid">
+                                                                        <c:forEach var="spec" items="${specifications}">
+                                                                            <div class="spec-card">
+                                                                                <div class="spec-icon">
+                                                                                    <i class="fa-solid fa-microchip"></i>
+                                                                                </div>
+                                                                                <div class="spec-info">
+                                                                                    <div class="spec-name">${spec.specificationName}</div>
+                                                                                    <div class="spec-value">${spec.specificationValue}</div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </c:forEach>
                                                                     </div>
-                                                                </section>
-                                                            </c:if>
+                                                                </c:if>
+                                                            </section>
 
                                                             <section class="similar-card">
                                                                 <div class="similar-header">
@@ -435,12 +406,13 @@
                                                                     </div>
 
                                                                     <div class="review-filter">
-                                                                        <a class="review-filter-btn <%= selectedRating == 0 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>">Tất cả (<%= totalAllReviews %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 5 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=5">5 sao (<%= count5 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 4 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=4">4 sao (<%= count4 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 3 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=3">3 sao (<%= count3 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 2 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=2">2 sao (<%= count2 %>)</a>
-                                                                        <a class="review-filter-btn <%= selectedRating == 1 ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=1">1 sao (<%= count1 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 0 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>">Tất cả (<%= totalAllReviews %>)</a>
+                                                                        <a class="review-filter-btn <%= hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %><%= selectedRating > 0 ? "&rating=" + selectedRating : "" %><%= hasImage ? "" : "&hasImage=true" %>">Có hình ảnh (<%= countHasImage %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 5 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=5<%= hasImage ? "&hasImage=true" : "" %>">5 sao (<%= count5 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 4 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=4<%= hasImage ? "&hasImage=true" : "" %>">4 sao (<%= count4 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 3 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=3<%= hasImage ? "&hasImage=true" : "" %>">3 sao (<%= count3 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 2 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=2<%= hasImage ? "&hasImage=true" : "" %>">2 sao (<%= count2 %>)</a>
+                                                                        <a class="review-filter-btn <%= selectedRating == 1 && !hasImage ? "active" : "" %>" href="<%= contextPath %>/product-detail?id=<%= product.getProductId() %>&rating=1<%= hasImage ? "&hasImage=true" : "" %>">1 sao (<%= count1 %>)</a>
                                                                     </div>
 
                                                                 </div>
@@ -449,22 +421,17 @@
 
                                                                     <% if (reviews !=null && !reviews.isEmpty()) { %>
 
-                                                                        <% for (Review review : reviews) { String
-                                                                            nameSeed=String.valueOf(review.getUserId());
-                                                                            String
-                                                                            initial=nameSeed.substring(Math.max(0,
-                                                                            nameSeed.length() - 2)); %>
+                                                                        <% for (Review review : reviews) { %>
 
                                                                             <article class="review-item">
-
-                                                                                <div class="avatar">
-                                                                                    U<%= initial %>
-                                                                                </div>
 
                                                                                 <div class="review-content">
 
                                                                                     <div class="review-content-header">
                                                                                         <div>
+                                                                                            <div class="reviewer-name"><%= review.getReviewerName() != null
+                                                                                                    ? review.getReviewerName()
+                                                                                                    : "User" %></div>
                                                                                             <h4>Người dùng #<%=
                                                                                                     review.getUserId()
                                                                                                     %>
@@ -524,39 +491,94 @@
 
                                                                                 <% } else { %>
 
-                                                                                    <div class="empty-review">
-                                                                                        <i
-                                                                                            class="fa-regular fa-comment-dots"></i>
+                                                                                        <div class="empty-review">
 
-                                                                                        <% if (selectedRating==0) { %>
-                                                                                            <p>Chưa có đánh giá nào cho
-                                                                                                sản phẩm này.</p>
-                                                                                            <% } else { %>
-                                                                                                <p>Không có đánh giá <%=
-                                                                                                        selectedRating
-                                                                                                        %> sao nào.</p>
-                                                                                                <% } %>
-                                                                                    </div>
+                                                                                            <% if (selectedRating==0 && !hasImage) { %>
+                                                                                                <p>Chưa có đánh giá nào cho
+                                                                                                    sản phẩm này.</p>
+                                                                                                <% } else if (hasImage) { %>
+                                                                                                    <p>Không có đánh giá có hình ảnh nào<%= selectedRating > 0 ? (" (" + selectedRating + " sao)") : "" %>.</p>
+                                                                                                <% } else { %>
+                                                                                                    <p>Không có đánh giá <%=
+                                                                                                            selectedRating
+                                                                                                            %> sao nào.</p>
+                                                                                                    <% } %>
+                                                                                        </div>
 
                                                                                     <% } %>
 
                                                                 </div>
+
+                                                                <% if (totalPages > 1 && (reviews != null && !reviews.isEmpty())) { %>
+                                                                    <div class="review-pagination">
+
+                                                                        <% if (currentPage > 1) { %>
+                                                                            <a href="<%= reviewPagingUrl + (currentPage - 1) %>">Trước</a>
+                                                                        <% } %>
+
+                                                                        <%
+                                                                            int fromPage = Math.max(2, currentPage - 2);
+                                                                            int toPage = Math.min(totalPages - 1, currentPage + 2);
+                                                                            if (currentPage <= 4) {
+                                                                                fromPage = 2;
+                                                                                toPage = Math.min(totalPages - 1, 5);
+                                                                            } else if (currentPage >= totalPages - 3) {
+                                                                                fromPage = Math.max(2, totalPages - 4);
+                                                                                toPage = totalPages - 1;
+                                                                            }
+                                                                        %>
+                                                                        <a class="<%= currentPage == 1 ? "active" : "" %>" href="<%= reviewPagingUrl + 1 %>">1</a>
+                                                                        <% if (fromPage > 2) { %>
+                                                                            <span>...</span>
+                                                                        <% } %>
+                                                                        <% for (int i = fromPage; i <= toPage; i++) { %>
+                                                                            <a class="<%= currentPage == i ? "active" : "" %>" href="<%= reviewPagingUrl + i %>">
+                                                                                <%= i %>
+                                                                            </a>
+                                                                        <% } %>
+                                                                        <% if (toPage < totalPages - 1) { %>
+                                                                            <span>...</span>
+                                                                        <% } %>
+                                                                        <% if (totalPages > 1) { %>
+                                                                            <a class="<%= currentPage == totalPages ? "active" : "" %>" href="<%= reviewPagingUrl + totalPages %>">
+                                                                                <%= totalPages %>
+                                                                            </a>
+                                                                        <% } %>
+
+                                                                        <% if (currentPage < totalPages) { %>
+                                                                            <a href="<%= reviewPagingUrl + (currentPage + 1) %>">Sau</a>
+                                                                        <% } %>
+                                                                    </div>
+                                                                <% } %>
+
                                                             </section>
 
-                                                            <script
-                                                                src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
                                                             <script src="<%= contextPath %>/js/cart.js"></script>
                                                             <script>
                                                                 function showQuantityError(message) {
-                                                                    Swal.fire({
-                                                                        title: 'Số lượng không hợp lệ!',
-                                                                        text: message,
-                                                                        icon: 'warning',
-                                                                        timer: 3000,
-                                                                        showConfirmButton: false,
-                                                                        toast: true,
-                                                                        position: 'bottom-end'
-                                                                    });
+                                                                    var quantityInput = document.getElementById('quantityInput');
+                                                                    var errorMessage = document.getElementById('quantityError');
+
+                                                                    if (!quantityInput || !errorMessage) {
+                                                                        return;
+                                                                    }
+
+                                                                    errorMessage.textContent = message;
+                                                                    errorMessage.hidden = false;
+                                                                    quantityInput.setAttribute('aria-invalid', 'true');
+                                                                }
+
+                                                                function clearQuantityError() {
+                                                                    var quantityInput = document.getElementById('quantityInput');
+                                                                    var errorMessage = document.getElementById('quantityError');
+
+                                                                    if (!quantityInput || !errorMessage) {
+                                                                        return;
+                                                                    }
+
+                                                                    errorMessage.textContent = '';
+                                                                    errorMessage.hidden = true;
+                                                                    quantityInput.setAttribute('aria-invalid', 'false');
                                                                 }
 
                                                                 function isTypingNumberKey(event) {
@@ -615,20 +637,13 @@
                                                                         return false;
                                                                     }
 
+                                                                    clearQuantityError();
                                                                     return true;
                                                                 }
 
                                                                 function handleAddToCartAjax(btn, inStock) {
                                                                     if (!inStock) {
-                                                                        Swal.fire({
-                                                                            title: 'Hết hàng!',
-                                                                            text: 'Sản phẩm này hiện tại đã hết hàng.',
-                                                                            icon: 'error',
-                                                                            timer: 3000,
-                                                                            showConfirmButton: false,
-                                                                            toast: true,
-                                                                            position: 'bottom-end'
-                                                                        });
+                                                                        showQuantityError('Sản phẩm này hiện tại đã hết hàng.');
                                                                         return;
                                                                     }
 
@@ -667,6 +682,15 @@
 
                                                                             event.preventDefault();
                                                                             showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+                                                                        });
+
+                                                                        quantityInput.addEventListener('input', function () {
+                                                                            if (quantityInput.value.trim() === '') {
+                                                                                clearQuantityError();
+                                                                                return;
+                                                                            }
+
+                                                                            validateQuantity(purchaseForm, true);
                                                                         });
 
                                                                         quantityInput.addEventListener('blur', function () {

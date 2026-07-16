@@ -7,6 +7,7 @@ import java.util.ArrayList;
 public class Review {
     private int reviewId;
     private int customerId;
+    private String reviewerName;
     private int rating;
     private int productId;
     private String comment;
@@ -51,6 +52,14 @@ public class Review {
 
     public int getRating() {
         return rating;
+    }
+
+    public String getReviewerName() {
+        return reviewerName;
+    }
+
+    public void setReviewerName(String reviewerName) {
+        this.reviewerName = reviewerName;
     }
 
     public void setRating(int rating) {

@@ -24,6 +24,7 @@
     String ctx = request.getContextPath();
     String placeholder = "Tìm kiếm linh kiện...";
     String searchAction = ctx + "/categories";
+    String searchParamName = "keyword";
     String searchKeyword = request.getParameter("keyword");
 
     if (searchKeyword == null) {
@@ -66,12 +67,20 @@
             if ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) {
                 placeholder = "Tìm kiếm mã đơn hàng...";
                 searchAction = ctx + "/order-history";
+                searchParamName = "keyword";
             } else {
                 placeholder = "Tìm kiếm yêu cầu bảo hành...";
+                searchAction = ctx + "/ManageWarranty";
+                searchParamName = "search";
+                searchKeyword = request.getParameter("search");
+                if (searchKeyword == null) {
+                    searchKeyword = "";
+                }
             }
         } else if ("SHIPMENT".equals(roleName)) {
             placeholder = "Tìm kiếm mã đơn hàng...";
             searchAction = ctx + "/order-history";
+            searchParamName = "keyword";
         }
     } else {
         roleName = "CUSTOMER";
@@ -105,11 +114,11 @@
 
         <div class="menu-dropdown">
             <button class="menu-item menu-dropdown-toggle" type="button">
-                <i class="fa-solid fa-layer-group"></i> Danh mục sản phẩm
+                <i class="fa-solid fa-layer-group"></i> Sản phẩm
                 <span class="menu-dropdown-arrow">▾</span>
             </button>
             <div class="menu-dropdown-list">
-                <a href="<%= ctx %>/categories">Sản phẩm</a>
+                <a href="<%= ctx %>/categories">Các danh mục sản phẩm</a>
                 <a href="<%= ctx %>/brands">Các thương hiệu sản phẩm</a>
             </div>
         </div>
@@ -158,11 +167,10 @@
         <a href="${pageContext.request.contextPath}/BatchServlet" class="menu-item <%= "/BatchServlet".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-warehouse"></i> Lô hàng</a>
         <span class="menu-divider"></span>
 
-        
         <a href="<%= ctx %>/ManageWarranty" class="menu-item"><i class="fa-solid fa-shield-halved"></i> Bảo hành</a>
         <span class="menu-divider"></span>
 
-        <a href="#" class="menu-item"><i class="fa-solid fa-chart-line"></i> Thống kê doanh thu</a>
+        <a href="<%= ctx %>/views/revenue.jsp" class="menu-item"><i class="fa-solid fa-chart-line"></i> Thống kê doanh thu</a>
         <% } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) { %>
 
 
@@ -204,7 +212,7 @@
             <% if ("SHIPMENT".equals(roleName) && deliveryHistoryMode) { %>
             <input type="hidden" name="deliveryHistory" value="1">
             <% } %>
-            <input class="search-input" type="text" name="keyword" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
+            <input class="search-input" type="text" name="<%= searchParamName %>" value="<%= h(searchKeyword) %>" placeholder="<%= h(placeholder) %>">
             <button class="search-submit" type="submit">Tìm kiếm</button>
         </form>
         <% } %>

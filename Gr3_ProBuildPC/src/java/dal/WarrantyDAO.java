@@ -3,24 +3,17 @@ package dal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import model.Warranty;
 import model.WarrantyRequest;
 
 public class WarrantyDAO extends DBContext {
 
-    /**
-     * Kiểm tra yêu cầu bảo hành có hiệu lực không.
-     * Traversal: PRODUCTS → ORDER_DETAILS → ORDERS
-     * Không dùng order_detail_id — tìm đơn hàng qua product_id + customer_id.
-     */
     public boolean isWarrantyRequestValid(int customerId, int productId) {
         String sql = """
-                    SELECT o.order_date,
+                    SELECT COALESCE(o.received_date, o.order_date) AS warranty_start,
                            p.warranty_months
                     FROM orders o
                     INNER JOIN order_details od ON o.order_id = od.order_id
@@ -52,14 +45,10 @@ public class WarrantyDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
 
-    /**
-     * Lấy trạng thái đơn hàng
-     */
     public String getOrderStatus(int orderId, int customerId) {
         String sql = """
                     SELECT os.status_name
@@ -76,14 +65,10 @@ public class WarrantyDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
 
-    /**
-     * Tạo yêu cầu bảo hành (decoupled — không có order_detail_id)
-     */
     public boolean createWarrantyRequest(Warranty warranty) {
         String sql = """
                     INSERT INTO warranties (customer_id, product_id, status_id, request_date, request)
@@ -98,133 +83,10 @@ public class WarrantyDAO extends DBContext {
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
 
-    /**
-     * Lấy danh sách warranty requests của khách hàng (Client History View).
-     * Traversal: WARRANTIES → PRODUCTS → ORDER_DETAILS → ORDERS
-     * Dùng subquery để resolve order_id thông qua product bridge.
-     */
-    public List<Warranty> getWarrantiesByProduct(int customerId, String searchProduct, Integer filterStatusId) {
-        List<Warranty> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("""
-                    SELECT w.warranty_id,
-                           w.customer_id,
-                           w.product_id,
-                           w.status_id,
-                           w.request_date,
-                           w.response_date,
-                           w.request,
-                           p.product_name,
-                           p.image_url,
-                           b.brand_name,
-                           c.category_name,
-                           ws.status_name,
-                           u.full_name AS customer_name,
-                           COALESCE((
-                               SELECT od.order_id
-                               FROM order_details od
-                               JOIN orders o ON od.order_id = o.order_id
-                               WHERE od.product_id = w.product_id AND o.customer_id = w.customer_id
-                               ORDER BY o.order_date DESC
-                               LIMIT 1
-                           ), 0) AS order_id
-                    FROM warranties w
-                    JOIN products p ON w.product_id = p.product_id
-                    LEFT JOIN brands b ON p.brand_id = b.brand_id
-                    LEFT JOIN categories c ON p.category_id = c.category_id
-                    LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
-                    LEFT JOIN customers cust ON w.customer_id = cust.customer_id
-                    LEFT JOIN users u ON cust.user_id = u.user_id
-                    WHERE w.customer_id = ?
-                """);
-
-        List<Object> params = new ArrayList<>();
-        params.add(customerId);
-
-        if (searchProduct != null && !searchProduct.trim().isEmpty()) {
-            String clean = searchProduct.trim();
-            if (clean.matches("\\d+")) {
-                sql.append(" AND w.product_id = ? ");
-                params.add(Integer.parseInt(clean));
-            } else {
-                sql.append(" AND LOWER(p.product_name) LIKE LOWER(?) ");
-                params.add("%" + clean + "%");
-            }
-        }
-
-        if (filterStatusId != null) {
-            sql.append(" AND w.status_id = ? ");
-            params.add(filterStatusId);
-        }
-        sql.append(" ORDER BY w.request_date DESC ");
-
-        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            int paramIndex = 1;
-            for (Object param : params) {
-                ps.setObject(paramIndex++, param);
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Warranty w = new Warranty();
-                    w.setWarrantyId(rs.getInt("warranty_id"));
-                    w.setCustomerId(rs.getInt("customer_id"));
-                    w.setProductId(rs.getInt("product_id"));
-                    w.setStatusId(rs.getInt("status_id"));
-                    w.setRequestDate(rs.getTimestamp("request_date"));
-                    w.setResponseDate(rs.getTimestamp("response_date"));
-                    w.setRequest(rs.getString("request"));
-                    w.setProductName(rs.getString("product_name"));
-                    w.setImageUrl(rs.getString("image_url"));
-                    w.setBrandName(rs.getString("brand_name"));
-                    w.setCategoryName(rs.getString("category_name"));
-                    w.setCustomerName(rs.getString("customer_name"));
-                    w.setOrderId(rs.getInt("order_id"));
-
-                    String statusName = rs.getString("status_name");
-                    if (statusName == null || statusName.trim().isEmpty()) {
-                        if (w.getStatusId() == 1)
-                            statusName = "Chờ tiếp nhận";
-                        else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
-                            statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
-                    }
-                    w.setStatusName(statusName);
-
-                    if (w.getStatusId() == 1) {
-                        w.setStoreResponse("Yêu cầu đang chờ cửa hàng duyệt và tiếp nhận.");
-                    } else if (w.getStatusId() == 2) {
-                        w.setStoreResponse("Cửa hàng đã tiếp nhận thiết bị bảo hành và đang xử lý kỹ thuật.");
-                    } else if (w.getStatusId() == 3) {
-                        w.setStoreResponse("Cửa hàng từ chối bảo hành (sản phẩm vi phạm chính sách hoặc rách tem).");
-                    } else if (w.getStatusId() == 4) {
-                        w.setStoreResponse(
-                                "Sản phẩm bảo hành xong. Vui lòng nhận lại tại quầy hoặc chờ shipper liên hệ.");
-                    } else {
-                        w.setStoreResponse("Yêu cầu của bạn đang được xem xét.");
-                    }
-
-                    list.add(w);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    /**
-     * Lấy tất cả warranties cho Admin view (decoupled — không dùng
-     * order_detail_id).
-     * Traversal: WARRANTIES → PRODUCTS → ORDER_DETAILS → ORDERS
-     */
     public List<Warranty> getAllWarranties(String search, Integer statusId) {
         List<Warranty> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("""
@@ -235,6 +97,7 @@ public class WarrantyDAO extends DBContext {
                            w.request_date,
                            w.response_date,
                            w.request,
+                           w.response,
                            p.product_name,
                            ws.status_name,
                            u.full_name AS customer_name,
@@ -295,70 +158,44 @@ public class WarrantyDAO extends DBContext {
                     w.setRequestDate(rs.getTimestamp("request_date"));
                     w.setResponseDate(rs.getTimestamp("response_date"));
                     w.setRequest(rs.getString("request"));
+                    w.setResponse(rs.getString("response"));
                     w.setProductName(rs.getString("product_name"));
                     w.setCustomerName(rs.getString("customer_name"));
                     w.setOrderId(rs.getInt("order_id"));
 
                     String statusName = rs.getString("status_name");
                     if (statusName == null || statusName.trim().isEmpty()) {
-                        if (w.getStatusId() == 1)
+                        if (w.getStatusId() == 1) {
                             statusName = "Chờ tiếp nhận";
-                        else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
+                        } else if (w.getStatusId() == 2) {
                             statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
+                        } else if (w.getStatusId() == 3) {
+                            statusName = "Chấp nhận";
+                        }
                     }
                     w.setStatusName(statusName);
-
-                    w.setStoreResponse("");
+                    w.setStoreResponse(w.getResponse() != null ? w.getResponse() : "");
 
                     list.add(w);
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return list;
     }
 
-    /**
-     * Cập nhật trạng thái và ngày phản hồi bảo hành
-     */
-    public boolean updateWarrantyStatusAndResponse(int warrantyId, int statusId, Date responseDate) {
-        String sql = "UPDATE warranties SET status_id = ?, response_date = ? WHERE warranty_id = ?";
+    public boolean updateWarrantyStatus(int warrantyId, int statusId, String response) {
+        String sql = "UPDATE warranties SET status_id = ?, response = ?, response_date = CURRENT_TIMESTAMP WHERE warranty_id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, statusId);
-            ps.setTimestamp(2, responseDate != null ? new Timestamp(responseDate.getTime()) : null);
+            ps.setString(2, response);
             ps.setInt(3, warrantyId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
 
-    /**
-     * Cập nhật trạng thái bảo hành (auto response_date = NOW)
-     */
-    public boolean updateWarrantyStatus(int warrantyId, int statusId) {
-        String sql = "UPDATE warranties SET status_id = ?, response_date = CURRENT_TIMESTAMP WHERE warranty_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, statusId);
-            ps.setInt(2, warrantyId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    /**
-     * Lấy chi tiết tình trạng bảo hành sản phẩm (cho Admin modal).
-     * Decoupled: dùng product_id + customer_id thay vì order_detail_id.
-     * Traversal: PRODUCTS → ORDER_DETAILS → ORDERS
-     */
     public Warranty getProductWarrantyCondition(int productId, int customerId) {
         String sql = """
                     SELECT od.product_id,
@@ -372,8 +209,8 @@ public class WarrantyDAO extends DBContext {
                            o.received_date,
                            u.full_name AS customer_name,
                            p.warranty_months AS warranty_months,
-                           DATE_ADD(o.order_date, INTERVAL p.warranty_months MONTH) AS warranty_end_date,
-                           DATEDIFF(DATE_ADD(o.order_date, INTERVAL p.warranty_months MONTH), CURDATE()) AS remaining_days
+                           DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH) AS warranty_end_date,
+                           DATEDIFF(DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH), CURDATE()) AS remaining_days
                     FROM order_details od
                     INNER JOIN orders o ON od.order_id = o.order_id
                     INNER JOIN customers cust ON o.customer_id = cust.customer_id
@@ -408,16 +245,10 @@ public class WarrantyDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
 
-    /**
-     * Tra cứu warranty theo Order ID (Customer Warranty Lookup page).
-     * Traversal: ORDERS → ORDER_DETAILS → PRODUCTS + LEFT JOIN WARRANTIES
-     * Không dùng order_detail_id trong JOIN với warranties.
-     */
     public List<Warranty> getWarrantyInfoByOrderId(int orderId, int customerId) {
         String sql = """
                     SELECT o.order_id,
@@ -434,12 +265,13 @@ public class WarrantyDAO extends DBContext {
                            p.image_url,
                            w.warranty_id,
                            w.status_id,
+                           w.response,
                            ws.status_name,
                            p.warranty_months AS warranty_months,
                            br.brand_name,
                            ca.category_name,
-                           DATE_ADD(o.order_date, INTERVAL p.warranty_months MONTH) AS warranty_end_date,
-                           DATEDIFF(DATE_ADD(o.order_date, INTERVAL p.warranty_months MONTH), CURDATE()) AS remaining_days
+                           DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH) AS warranty_end_date,
+                           DATEDIFF(DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH), CURDATE()) AS remaining_days
                     FROM orders o
                     INNER JOIN orders_status os ON o.status_id = os.status_id
                     INNER JOIN order_details od ON o.order_id = od.order_id
@@ -484,34 +316,29 @@ public class WarrantyDAO extends DBContext {
                     // Warranty request fields
                     w.setWarrantyId(rs.getInt("warranty_id"));
                     w.setStatusId(rs.getInt("status_id"));
+                    w.setResponse(rs.getString("response"));
 
                     String statusName = rs.getString("status_name");
                     if (statusName == null || statusName.trim().isEmpty()) {
-                        if (w.getStatusId() == 1)
+                        if (w.getStatusId() == 1) {
                             statusName = "Chờ tiếp nhận";
-                        else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
+                        } else if (w.getStatusId() == 2) {
                             statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
+                        } else if (w.getStatusId() == 3) {
+                            statusName = "Chấp nhận";
+                        }
                     }
                     w.setStatusName(statusName);
+                    w.setStoreResponse(w.getResponse() != null ? w.getResponse() : "");
 
                     list.add(w);
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return list.isEmpty() ? null : list;
     }
 
-    /**
-     * Lấy lịch sử bảo hành theo product_id + customer_id (thay thế
-     * getWarrantyHistoryByOrderDetailId).
-     * Decoupled: không dùng order_detail_id.
-     */
     public List<Warranty> getWarrantyHistoryByProductAndCustomer(int productId, int customerId) {
         List<Warranty> list = new ArrayList<>();
         String sql = """
@@ -522,6 +349,7 @@ public class WarrantyDAO extends DBContext {
                            w.request_date,
                            w.response_date,
                            w.request,
+                           w.response,
                            ws.status_name
                     FROM warranties w
                     LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
@@ -542,40 +370,36 @@ public class WarrantyDAO extends DBContext {
                     w.setRequestDate(rs.getTimestamp("request_date"));
                     w.setResponseDate(rs.getTimestamp("response_date"));
                     w.setRequest(rs.getString("request"));
+                    w.setResponse(rs.getString("response"));
 
                     String statusName = rs.getString("status_name");
                     if (statusName == null || statusName.trim().isEmpty()) {
-                        if (w.getStatusId() == 1)
+                        if (w.getStatusId() == 1) {
                             statusName = "Chờ tiếp nhận";
-                        else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
+                        } else if (w.getStatusId() == 2) {
                             statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
+                        } else if (w.getStatusId() == 3) {
+                            statusName = "Chấp nhận";
+                        }
                     }
                     w.setStatusName(statusName);
 
-                    w.setStoreResponse("");
+                    w.setStoreResponse(w.getResponse() != null ? w.getResponse() : "");
                     list.add(w);
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return list;
     }
 
-    /**
-     * Kiểm tra đã có warranty request pending/active cho product này chưa
-     */
     public boolean isWarrantyPendingOrActive(int customerId, int productId) {
         String sql = """
                     SELECT COUNT(*)
                     FROM warranties
                     WHERE customer_id = ?
                       AND product_id = ?
-                      AND status_id IN (1, 2)
+                      AND status_id = 1
                 """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, customerId);
@@ -586,16 +410,10 @@ public class WarrantyDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
 
-    /**
-     * Lấy danh sách warranty requests của khách hàng (Client History View).
-     * Decoupled: không có order_detail_id.
-     * Traversal: WARRANTIES → PRODUCTS → ORDER_DETAILS → ORDERS
-     */
     public List<WarrantyRequest> getWarrantyRequestsByCustomerId(int customerId, String searchKeyword,
             Integer statusId) {
         List<WarrantyRequest> list = new ArrayList<>();
@@ -607,6 +425,7 @@ public class WarrantyDAO extends DBContext {
                            w.request_date,
                            w.response_date,
                            w.request,
+                           w.response,
                            p.product_name,
                            p.image_url,
                            b.brand_name,
@@ -635,8 +454,18 @@ public class WarrantyDAO extends DBContext {
         params.add(customerId);
 
         if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-            sql.append(" AND p.product_name LIKE ? ");
-            params.add("%" + searchKeyword.trim() + "%");
+            String clean = searchKeyword.trim();
+            if (clean.matches("\\d+")) {
+                sql.append(" AND w.warranty_id = ? ");
+                params.add(Integer.parseInt(clean));
+            } else {
+                sql.append("""
+                     AND (
+                         p.product_name LIKE ?
+                     )
+                """);
+                params.add("%" + clean + "%");
+            }
         }
 
         if (statusId != null) {
@@ -661,6 +490,7 @@ public class WarrantyDAO extends DBContext {
                     w.setRequestDate(rs.getTimestamp("request_date"));
                     w.setResponseDate(rs.getTimestamp("response_date"));
                     w.setRequest(rs.getString("request"));
+                    w.setResponse(rs.getString("response"));
                     w.setProductName(rs.getString("product_name"));
                     w.setImageUrl(rs.getString("image_url"));
                     w.setBrandName(rs.getString("brand_name"));
@@ -668,14 +498,13 @@ public class WarrantyDAO extends DBContext {
 
                     String statusName = rs.getString("status_name");
                     if (statusName == null || statusName.trim().isEmpty()) {
-                        if (w.getStatusId() == 1)
+                        if (w.getStatusId() == 1) {
                             statusName = "Chờ tiếp nhận";
-                        else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
+                        } else if (w.getStatusId() == 2) {
                             statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
+                        } else if (w.getStatusId() == 3) {
+                            statusName = "Chấp nhận";
+                        }
                     }
                     w.setStatusName(statusName);
                     w.setCustomerName(rs.getString("customer_name"));
@@ -685,16 +514,10 @@ public class WarrantyDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return list;
     }
 
-    /**
-     * Lấy tất cả warranty requests cho Admin/Employee dashboard.
-     * Decoupled: không có order_detail_id.
-     * Traversal: WARRANTIES → PRODUCTS → ORDER_DETAILS → ORDERS
-     */
     public List<WarrantyRequest> getAllWarrantyRequestsForAdmin(String searchKeyword, Integer statusId) {
         List<WarrantyRequest> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("""
@@ -705,6 +528,7 @@ public class WarrantyDAO extends DBContext {
                            w.request_date,
                            w.response_date,
                            w.request,
+                           w.response,
                            p.product_name,
                            p.image_url,
                            ws.status_name,
@@ -761,19 +585,19 @@ public class WarrantyDAO extends DBContext {
                     w.setRequestDate(rs.getTimestamp("request_date"));
                     w.setResponseDate(rs.getTimestamp("response_date"));
                     w.setRequest(rs.getString("request"));
+                    w.setResponse(rs.getString("response"));
                     w.setProductName(rs.getString("product_name"));
                     w.setImageUrl(rs.getString("image_url"));
 
                     String statusName = rs.getString("status_name");
                     if (statusName == null || statusName.trim().isEmpty()) {
-                        if (w.getStatusId() == 1)
+                        if (w.getStatusId() == 1) {
                             statusName = "Chờ tiếp nhận";
-                        else if (w.getStatusId() == 2)
-                            statusName = "Đã tiếp nhận";
-                        else if (w.getStatusId() == 3)
+                        } else if (w.getStatusId() == 2) {
                             statusName = "Từ chối";
-                        else if (w.getStatusId() == 4)
-                            statusName = "Hoàn tất";
+                        } else if (w.getStatusId() == 3) {
+                            statusName = "Chấp nhận";
+                        }
                     }
                     w.setStatusName(statusName);
                     w.setCustomerName(rs.getString("customer_name"));
@@ -783,7 +607,6 @@ public class WarrantyDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return list;
     }

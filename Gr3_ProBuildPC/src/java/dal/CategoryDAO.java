@@ -74,11 +74,7 @@ public class CategoryDAO extends DBContext {
 
         String orderBy;
 
-        if ("name_asc".equalsIgnoreCase(sort)) {
-            orderBy = "c.category_name ASC";
-        } else if ("name_desc".equalsIgnoreCase(sort)) {
-            orderBy = "c.category_name DESC";
-        } else if ("oldest".equalsIgnoreCase(sort)) {
+        if ("oldest".equalsIgnoreCase(sort)) {
             orderBy = "c.category_id ASC";
         } else {
             orderBy = "c.category_id DESC";
@@ -179,36 +175,45 @@ public class CategoryDAO extends DBContext {
     }
 
     public boolean addCategory(String categoryName) {
-        int nextCategoryId = getnextCategoryId();
         String sql = """
-            INSERT INTO categories (category_id, category_name)
-            VALUES (?, ?)
+            INSERT INTO categories (category_name)
+            VALUES (?)
         """;
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, nextCategoryId);
-            ps.setString(2, categoryName);
+            ps.setString(1, categoryName);
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return false;
     }
 
-    private int getnextCategoryId() {
-        String sql = "SELECT MAX(category_id) + 1 AS next_id\n"
-                + "FROM Categories";
+    public boolean categoryNameExists(String categoryName, Integer excludedCategoryId) {
+        String sql = "SELECT 1 FROM categories WHERE category_name = ?";
+
+        if (excludedCategoryId != null) {
+            sql += " AND category_id <> ?";
+        }
+
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("next_id");
+            ps.setString(1, categoryName);
+
+            if (excludedCategoryId != null) {
+                ps.setInt(2, excludedCategoryId);
             }
+
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
         } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return 1;
+
+        return false;
     }
 
     public boolean updateCategoryName(int categoryId, String categoryName) {
@@ -255,7 +260,7 @@ public class CategoryDAO extends DBContext {
     public List<CategorySpecTemplate> getTemplatesByCategoryId(int categoryId) {
         List<CategorySpecTemplate> list = new ArrayList<>();
         String sql = """
-            SELECT template_id, category_id, spec_name, spec_type, allowed_values, is_required, display_order, status
+            SELECT template_id, category_id, spec_name, spec_type, allowed_values, is_required, display_order
             FROM CATEGORY_SPEC_TEMPLATES
             WHERE category_id = ?
             ORDER BY display_order ASC
@@ -273,7 +278,6 @@ public class CategoryDAO extends DBContext {
                 t.setAllowedValues(rs.getString("allowed_values"));
                 t.setRequired(rs.getBoolean("is_required"));
                 t.setDisplayOrder(rs.getInt("display_order"));
-                t.setStatus(rs.getString("status"));
                 list.add(t);
             }
         } catch (SQLException e) {
@@ -287,17 +291,17 @@ public class CategoryDAO extends DBContext {
         String sql;
         if (productId != null && productId > 0) {
             sql = """
-                SELECT t.template_id, t.category_id, t.spec_name, t.spec_type, t.allowed_values, t.is_required, t.display_order, t.status, s.specification_value AS spec_value
+                SELECT t.template_id, t.category_id, t.spec_name, t.spec_type, t.allowed_values, t.is_required, t.display_order, s.specification_value AS spec_value
                 FROM CATEGORY_SPEC_TEMPLATES t
                 LEFT JOIN PRODUCT_SPECIFICATIONS s ON t.spec_name = s.specification_name AND s.product_id = ?
-                WHERE t.category_id = ? AND t.status = 'ACTIVE'
+                WHERE t.category_id = ?
                 ORDER BY t.display_order ASC, t.template_id ASC
             """;
         } else {
             sql = """
-                SELECT t.template_id, t.category_id, t.spec_name, t.spec_type, t.allowed_values, t.is_required, t.display_order, t.status, NULL AS spec_value
+                SELECT t.template_id, t.category_id, t.spec_name, t.spec_type, t.allowed_values, t.is_required, t.display_order, NULL AS spec_value
                 FROM CATEGORY_SPEC_TEMPLATES t
-                WHERE t.category_id = ? AND t.status = 'ACTIVE'
+                WHERE t.category_id = ?
                 ORDER BY t.display_order ASC, t.template_id ASC
             """;
         }
@@ -321,7 +325,6 @@ public class CategoryDAO extends DBContext {
                 t.setRequired(rs.getBoolean("is_required"));
                 t.setDisplayOrder(rs.getInt("display_order"));
                 t.setSpecValue(rs.getString("spec_value"));
-                t.setStatus(rs.getString("status"));
                 list.add(t);
             }
         } catch (SQLException e) {
@@ -332,153 +335,11 @@ public class CategoryDAO extends DBContext {
 
 
     public boolean addCategoryWithTemplates(String categoryName, List<CategorySpecTemplate> templates) {
-        try {
-            connection.setAutoCommit(false);
-
-            // 1. Insert Category and get next ID
-            int nextCategoryId = getnextCategoryId();
-            String insertCatSql = "INSERT INTO categories (category_id, category_name, status) VALUES (?, ?, 'ACTIVE')";
-            try (PreparedStatement ps = connection.prepareStatement(insertCatSql)) {
-                ps.setInt(1, nextCategoryId);
-                ps.setString(2, categoryName);
-                ps.executeUpdate();
-            }
-
-            // 2. Insert spec templates
-            String insertTemplateSql = """
-                INSERT INTO CATEGORY_SPEC_TEMPLATES (category_id, spec_name, spec_type, allowed_values, is_required, display_order, status)
-                VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE')
-            """;
-            try (PreparedStatement ps = connection.prepareStatement(insertTemplateSql)) {
-                for (CategorySpecTemplate t : templates) {
-                    ps.setInt(1, nextCategoryId);
-                    ps.setString(2, t.getSpecName());
-                    ps.setString(3, t.getSpecType());
-                    ps.setString(4, t.getAllowedValues());
-                    ps.setBoolean(5, t.isRequired());
-                    ps.setInt(6, t.getDisplayOrder());
-                    ps.addBatch();
-                }
-                ps.executeBatch();
-            }
-
-            connection.commit();
-            return true;
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-            e.printStackTrace();
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return false;
+        return addCategory(categoryName);
     }
 
     public boolean updateCategoryWithTemplates(Category category, List<CategorySpecTemplate> templates) {
-        try {
-            connection.setAutoCommit(false);
-
-            // 1. Update Category Name and Status
-            String updateCatSql = "UPDATE categories SET category_name = ?, status = ? WHERE category_id = ?";
-            try (PreparedStatement ps = connection.prepareStatement(updateCatSql)) {
-                ps.setString(1, category.getCategoryName());
-                ps.setString(2, category.getStatus());
-                ps.setInt(3, category.getCategoryId());
-                ps.executeUpdate();
-            }
-
-            // 2. Smart Update and Insert instead of Hard Delete
-            String updateTemplateSql = """
-                UPDATE CATEGORY_SPEC_TEMPLATES
-                SET spec_name = ?, spec_type = ?, allowed_values = ?, is_required = ?, display_order = ?, status = ?
-                WHERE template_id = ?
-            """;
-            String insertTemplateSql = """
-                INSERT INTO CATEGORY_SPEC_TEMPLATES (category_id, spec_name, spec_type, allowed_values, is_required, display_order, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """;
-
-            try (PreparedStatement psUpdate = connection.prepareStatement(updateTemplateSql);
-                 PreparedStatement psInsert = connection.prepareStatement(insertTemplateSql)) {
-                
-                boolean hasUpdate = false;
-                boolean hasInsert = false;
-
-                for (CategorySpecTemplate t : templates) {
-                    if (t.getTemplateId() > 0) {
-                        psUpdate.setString(1, t.getSpecName());
-                        psUpdate.setString(2, t.getSpecType());
-                        psUpdate.setString(3, t.getAllowedValues());
-                        psUpdate.setBoolean(4, t.isRequired());
-                        psUpdate.setInt(5, t.getDisplayOrder());
-                        psUpdate.setString(6, t.getStatus() != null ? t.getStatus() : "ACTIVE");
-                        psUpdate.setInt(7, t.getTemplateId());
-                        psUpdate.addBatch();
-                        hasUpdate = true;
-                    } else {
-                        psInsert.setInt(1, category.getCategoryId());
-                        psInsert.setString(2, t.getSpecName());
-                        psInsert.setString(3, t.getSpecType());
-                        psInsert.setString(4, t.getAllowedValues());
-                        psInsert.setBoolean(5, t.isRequired());
-                        psInsert.setInt(6, t.getDisplayOrder());
-                        psInsert.setString(7, t.getStatus() != null ? t.getStatus() : "ACTIVE");
-                        psInsert.addBatch();
-                        hasInsert = true;
-                    }
-                }
-
-                if (hasUpdate) psUpdate.executeBatch();
-                if (hasInsert) psInsert.executeBatch();
-            }
-
-            connection.commit();
-            return true;
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-            e.printStackTrace();
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return false;
-    }
-
-    public boolean updateTemplateStatus(int templateId, String status) {
-        String sql = "UPDATE CATEGORY_SPEC_TEMPLATES SET status = ? WHERE template_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, status);
-            ps.setInt(2, templateId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean updateTemplateRequired(int templateId, boolean isRequired) {
-        String sql = "UPDATE CATEGORY_SPEC_TEMPLATES SET is_required = ? WHERE template_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setBoolean(1, isRequired);
-            ps.setInt(2, templateId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return updateCategoryName(category.getCategoryId(), category.getCategoryName())
+                && updateCategoryStatus(category.getCategoryId(), category.getStatus());
     }
 }

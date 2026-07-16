@@ -4,6 +4,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="model.CartItem" %>
+<%@ page import="model.ProductSpecification" %>
+<%@ page import="dal.ProductDAO" %>
 <%!
     private String escapeHtmlAttribute(String value) {
         if (value == null) {
@@ -41,6 +43,8 @@
     NumberFormat currencyFormatter = NumberFormat.getNumberInstance(vietnameseLocale);
     currencyFormatter.setMinimumFractionDigits(0);
     currencyFormatter.setMaximumFractionDigits(0);
+    
+    ProductDAO pdDao = new ProductDAO();
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -55,7 +59,7 @@
 
         <div class="cart-container">
             <div class="breadcrumb">
-                <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a> / <span class="active">gi&#7887; h&#224;ng</span>
+                <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a> &gt; <span class="active">gi&#7887; h&#224;ng</span>
             </div>
 
             <% if (request.getAttribute("cartSuccessMsg") != null) { %>
@@ -142,11 +146,27 @@
                             int stockQuantity = item.getProduct() != null ? item.getProduct().getQuantity() : 0;
                             int warrantyMonths = item.getProduct() != null ? item.getProduct().getWarrantyMonths() : 0;
                             boolean availableForSale = item.getProduct() != null && item.getProduct().isAvailableForSale();
+                            
+                            List<ProductSpecification> specs = item.getProduct() != null ? pdDao.getSpecificationsByProductId(item.getProduct().getProductId()) : java.util.Collections.emptyList();
+                            StringBuilder specsHtml = new StringBuilder();
+                            if (specs != null && !specs.isEmpty()) {
+                                specsHtml.append("<div class=\"cart-quick-view-specs-grid\">");
+                                for (ProductSpecification spec : specs) {
+                                    specsHtml.append("<div class=\"cart-quick-view-spec-card\">")
+                                             .append("<div class=\"cart-quick-view-spec-icon\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z\"></path><polyline points=\"3.27 6.96 12 12.01 20.73 6.96\"></polyline><line x1=\"12\" y1=\"22.08\" x2=\"12\" y2=\"12\"></line></svg></div>")
+                                             .append("<div class=\"cart-quick-view-spec-info\">")
+                                             .append("<span class=\"cart-quick-view-spec-name\">").append(escapeHtmlAttribute(spec.getSpecificationName())).append("</span>")
+                                             .append("<strong class=\"cart-quick-view-spec-value\">").append(escapeHtmlAttribute(spec.getSpecificationValue())).append("</strong>")
+                                             .append("</div></div>");
+                                }
+                                specsHtml.append("</div>");
+                            }
                         %>
                         <div
                             class="cart-item"
                             data-cart-item-id="<%= item.getCartItemId() %>"
                             data-unit-price="<%= unitPrice.toPlainString() %>"
+                            data-stock-quantity="<%= stockQuantity %>"
                             data-brand-name="<%= escapeHtmlAttribute(brandName) %>"
                             data-category-name="<%= escapeHtmlAttribute(categoryName) %>">
                             <div class="col-select">
@@ -172,7 +192,8 @@
                                     data-category-name="<%= escapeHtmlAttribute(categoryName) %>"
                                     data-stock-quantity="<%= stockQuantity %>"
                                     data-warranty-months="<%= warrantyMonths %>"
-                                    data-unit-price="<%= unitPrice.toPlainString() %>">
+                                    data-unit-price="<%= unitPrice.toPlainString() %>"
+                                    data-product-specs="<%= escapeHtmlAttribute(specsHtml.toString()) %>">
                                     <%= productName %>
                                 </button>
                                 <% if (!availableForSale) { %>
@@ -187,8 +208,10 @@
                                         type="number"
                                         value="<%= item.getQuantity() %>"
                                         min="1"
+                                        max="<%= Math.max(stockQuantity, 1) %>"
                                         step="1"
                                         inputmode="numeric"
+                                        autocomplete="off"
                                         <%= availableForSale ? "" : "disabled" %>
                                         name="quantity_<%= item.getCartItemId() %>">
                                 </div>
@@ -265,6 +288,10 @@
                                 alt="San pham">
                         </div>
 
+                        <div class="cart-quick-view-brand-category" style="font-size: 14px; color: #4b5563; margin-top: 4px;">
+                            Thương hiệu: <strong style="color: #111827;" data-quick-view-brand>Khac</strong> | Danh mục: <strong style="color: #111827;" data-quick-view-category>Khac</strong>
+                        </div>
+
                         <div class="cart-quick-view-stock-pill is-in-stock" data-quick-view-stock-pill>
                             C&#242;n h&#224;ng: 0
                         </div>
@@ -274,6 +301,9 @@
                         <div class="cart-quick-view-header">
                             <span class="cart-quick-view-eyebrow">Xem nhanh</span>
                             <h3 id="cartQuickViewTitle" data-quick-view-title>T&#234;n s&#7843;n ph&#7849;m</h3>
+                            <div style="font-size: 14px; color: #4b5563; margin-top: 4px;">
+                                B&#7843;o h&#224;nh: <strong style="color: #111827;" data-quick-view-warranty>0 th&#225;ng</strong> ch&#237;nh h&#227;ng
+                            </div>
                         </div>
 
                         <div class="cart-quick-view-price-panel">
@@ -281,31 +311,11 @@
                             <strong class="cart-quick-view-price" data-quick-view-price>0&#273;</strong>
                         </div>
 
-                        <div class="cart-quick-view-grid">
-                            <div class="cart-quick-view-item">
-                                <span class="cart-quick-view-label">Brand</span>
-                                <strong data-quick-view-brand>Khac</strong>
-                            </div>
-
-                            <div class="cart-quick-view-item">
-                                <span class="cart-quick-view-label">Category</span>
-                                <strong data-quick-view-category>Khac</strong>
-                            </div>
-
-                            <div class="cart-quick-view-item">
-                                <span class="cart-quick-view-label">S&#7889; l&#432;&#7907;ng c&#242;n l&#7841;i</span>
-                                <strong data-quick-view-stock>0</strong>
-                            </div>
-
-                            <div class="cart-quick-view-item">
-                                <span class="cart-quick-view-label">Th&#7901;i gian b&#7843;o h&#224;nh</span>
-                                <strong data-quick-view-warranty>0 th&#225;ng</strong>
-                            </div>
-                        </div>
-
                         <div class="cart-quick-view-section">
                             <div class="cart-quick-view-label">Chi ti&#7871;t s&#7843;n ph&#7849;m</div>
                             <p class="cart-quick-view-description" data-quick-view-description>Chua co chi tiet san pham.</p>
+                            
+                            <div class="cart-quick-view-specs-container" data-quick-view-specs></div>
                         </div>
                     </div>
                 </div>
@@ -324,6 +334,7 @@
                 const quickViewStockPill = document.querySelector('[data-quick-view-stock-pill]');
                 const quickViewTitle = document.querySelector('[data-quick-view-title]');
                 const quickViewDescription = document.querySelector('[data-quick-view-description]');
+                const quickViewSpecs = document.querySelector('[data-quick-view-specs]');
                 const quickViewBrand = document.querySelector('[data-quick-view-brand]');
                 const quickViewCategory = document.querySelector('[data-quick-view-category]');
                 const quickViewStock = document.querySelector('[data-quick-view-stock]');
@@ -349,14 +360,27 @@
                     return currencyFormatter.format(amount) + '\u0111';
                 };
 
-                const normalizeQuantity = function (input) {
-                    let quantity = parseInt(input.value, 10);
+                const getRowMaxQuantity = function (input) {
+                    const row = input ? input.closest('.cart-item') : null;
+                    const stockQuantity = row ? Number(row.dataset.stockQuantity) : 0;
 
-                    if (Number.isNaN(quantity) || quantity < 1) {
+                    return stockQuantity > 0 ? stockQuantity : 1;
+                };
+
+                const normalizeQuantity = function (input) {
+                    const maxQuantity = getRowMaxQuantity(input);
+                    const digitsOnly = String(input.value || '').replace(/\D+/g, '');
+                    let quantity = digitsOnly ? parseInt(digitsOnly, 10) : 1;
+
+                    if (!Number.isFinite(quantity) || quantity < 1) {
                         quantity = 1;
-                        input.value = quantity;
                     }
 
+                    if (quantity > maxQuantity) {
+                        quantity = maxQuantity;
+                    }
+
+                    input.value = String(quantity);
                     return quantity;
                 };
 
@@ -405,6 +429,10 @@
 
                     if (quickViewDescription) {
                         quickViewDescription.textContent = triggerButton.dataset.productDescription || 'Chua co chi tiet san pham.';
+                    }
+
+                    if (quickViewSpecs) {
+                        quickViewSpecs.innerHTML = triggerButton.dataset.productSpecs || '';
                     }
 
                     if (quickViewBrand) {
@@ -597,6 +625,10 @@
                 cartRows.forEach(function (row) {
                     const quantityInput = row.querySelector('.cart-qty-input');
                     const selectCheckbox = row.querySelector('.cart-select-checkbox');
+
+                    if (!quantityInput || !selectCheckbox) {
+                        return;
+                    }
 
                     quantityInput.addEventListener('input', function () {
                         updateCartTotals();

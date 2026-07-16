@@ -86,7 +86,7 @@ CREATE TABLE CATEGORY_SPEC_TEMPLATES (
     allowed_values VARCHAR(500) NULL,
     is_required    BOOLEAN DEFAULT TRUE,
     display_order  INT DEFAULT 0,
-
+	
     CONSTRAINT FK_TEMPLATE_CATEGORY
         FOREIGN KEY (category_id) REFERENCES CATEGORIES(category_id),
 
@@ -111,7 +111,7 @@ CREATE TABLE PRODUCTS (
     product_id      INT AUTO_INCREMENT PRIMARY KEY,
     category_id     INT NOT NULL,
     brand_id        INT NOT NULL,
-    product_name    VARCHAR(255) NOT NULL,
+    product_name    VARCHAR(255) NOT NULL UNIQUE,
     description     TEXT,
     image_url       VARCHAR(255),
     price           DECIMAL(18, 2) NOT NULL,
@@ -345,6 +345,7 @@ CREATE TABLE WARRANTIES (
     request_date    DATETIME NOT NULL,
     response_date   DATETIME NULL,
     request         TEXT,
+    response        TEXT,
 
     CONSTRAINT FK_WARRANTIES_CUSTOMERS
         FOREIGN KEY (customer_id) REFERENCES CUSTOMERS(customer_id),

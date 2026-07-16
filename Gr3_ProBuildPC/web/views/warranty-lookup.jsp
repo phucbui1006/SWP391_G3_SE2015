@@ -66,7 +66,7 @@
                     <div class="wl-main-col">
                         <!-- Search Box Card -->
                         <div class="wl-card wl-search-card">
-                            <form class="wl-search-form" id="warranty-search-form" action="${ctx}/warranty-lookup" method="get" autocomplete="off">
+                            <form class="wl-search-form" id="warranty-search-form" action="${ctx}/warranty-lookup" method="get" autocomplete="off" novalidate>
                                 <label for="orderId" class="wl-search-label">Nhập mã đơn hàng <span class="wl-required">*</span></label>
                                 <div class="wl-search-input-wrapper">
                                     <div class="wl-search-field-container">
@@ -77,13 +77,15 @@
                                             type="text"
                                             value="${fn:escapeXml(orderIdInput)}"
                                             placeholder="VD: 10006 hoặc PB10006"
+                                            maxlength="12"
+                                            aria-describedby="orderIdFeedback"
                                             required>
                                     </div>
                                     <button type="submit" id="warranty-search-btn">
                                         Kiểm tra
                                     </button>
                                 </div>
-                                <p class="wl-search-hint">Mã đơn hàng có trong email xác nhận hoặc trang chi tiết đơn hàng.</p>
+                                <small id="orderIdFeedback" class="wl-search-error" role="alert" hidden></small>
                             </form>
                         </div>
 
@@ -239,29 +241,29 @@
                                                     <c:choose>
                                                         <c:when test="${isDelivered && isWarrantyValid}">
                                                             <c:choose>
-                                                                <c:when test="${item.statusId == 1 || item.statusId == 2}">
+                                                                <c:when test="${item.statusId == 1}">
                                                                     <span class="wl-status-badge wl-status-badge--pending">
                                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                                                         <c:out value="${item.statusName}" />
                                                                     </span>
                                                                 </c:when>
-                                                                <c:when test="${item.statusId == 4}">
-                                                                    <span class="wl-status-badge wl-status-badge--completed">
-                                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                                                                        Đã bảo hành xong
-                                                                    </span>
-                                                                </c:when>
-                                                                <c:when test="${item.statusId == 3}">
+                                                                <c:when test="${item.statusId == 2}">
                                                                     <span class="wl-status-badge wl-status-badge--expired">
                                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                                                                         Từ chối bảo hành
+                                                                    </span>
+                                                                </c:when>
+                                                                <c:when test="${item.statusId == 3}">
+                                                                    <span class="wl-status-badge wl-status-badge--completed">
+                                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                                                        Chấp nhận bảo hành
                                                                     </span>
                                                                 </c:when>
                                                                 <c:otherwise>
                                                                     <form class="wl-claim-form"
                                                                           action="${ctx}/warranty-lookup"
                                                                           method="post"
-                                                                          onsubmit="submitInlineWarrantyRequest(event, this)">
+                                                                          novalidate>
 
                                                                         <input type="hidden" name="action" value="createRequest">
                                                                         <input type="hidden" name="orderId" value="${orderInfo.orderId}">
@@ -272,6 +274,8 @@
                                                                             class="wl-claim-textarea"
                                                                             rows="2"
                                                                             placeholder="Mô tả lỗi sản phẩm..."
+                                                                            minlength="10"
+                                                                            maxlength="1000"
                                                                             required></textarea>
 
                                                                         <button type="submit" class="wl-btn wl-btn--primary">
@@ -361,14 +365,7 @@
 
         <jsp:include page="/includes/footer.jsp" />
 
-        <script>
-            function submitInlineWarrantyRequest(event, form) {
-                var btn = form.querySelector('button[type="submit"]');
-                if (btn) {
-                    btn.disabled = true;
-                    btn.innerHTML = '<span class="wl-btn-spinner"></span> Đang gửi...';
-                }
-            }
-        </script>
+        <script src="${ctx}/js/validator.js"></script>
+        <script src="${ctx}/js/warranty.js"></script>
     </body>
 </html>

@@ -27,6 +27,7 @@ public class BuildPCServlet extends HttpServlet {
     private static final String SESSION_CART_ITEM_COUNT = "sessionCartItemCount";
     private static final String BUILD_MESSAGE = "buildPcMessage";
     private static final String BUILD_MESSAGE_TYPE = "buildPcMessageType";
+    private static final int MAX_BUILD_QUANTITY_DIGITS = 9;
 
     private static final int CPU_CATEGORY_ID = 1;
     private static final int MAINBOARD_CATEGORY_ID = 2;
@@ -84,6 +85,9 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Hiển thị trang Build PC với các linh kiện và số lượng đã chọn hiện tại.
+     */
     private void showBuildPC(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
@@ -94,9 +98,6 @@ public class BuildPCServlet extends HttpServlet {
         List<BuildPCSlot> buildSlots = createBuildSlots(buildPCDAO, selectedBuild, selectedProducts, selectedQuantities);
 
         request.setAttribute("buildSlots", buildSlots);
-        request.setAttribute("selectedProducts", selectedProducts);
-        request.setAttribute("selectedBuild", selectedBuild);
-        request.setAttribute("selectedQuantities", selectedQuantities);
         request.setAttribute("buildTotal", calculateBuildTotal(selectedProducts, selectedQuantities));
         request.setAttribute("cartItemCount", getCartItemCount(session));
         moveFlash(session, request, BUILD_MESSAGE, "buildPcMessage");
@@ -105,6 +106,9 @@ public class BuildPCServlet extends HttpServlet {
         request.getRequestDispatcher("/views/build-pc.jsp").forward(request, response);
     }
 
+    /**
+     * Lưu một linh kiện đã chọn vào cấu hình Build PC hiện tại.
+     */
     private void handleSelect(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession();
@@ -148,6 +152,9 @@ public class BuildPCServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
+    /**
+     * Xóa một slot linh kiện khỏi cấu hình Build PC hiện tại.
+     */
     private void handleRemove(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession();
@@ -168,11 +175,14 @@ public class BuildPCServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
+    /**
+     * Cập nhật số lượng cho linh kiện đã chọn, bị giới hạn bởi tồn kho có sẵn.
+     */
     private void handleUpdateQuantity(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession();
         String slot = normalizeSlot(request.getParameter("slot"));
-        Integer quantity = parsePositiveInteger(request.getParameter("quantity"));
+        Integer quantity = parseBuildQuantity(request.getParameter("quantity"));
         Integer delta = parseInteger(request.getParameter("delta"));
 
         if (slot == null || (quantity == null && delta == null)) {
@@ -207,7 +217,11 @@ public class BuildPCServlet extends HttpServlet {
             return;
         }
 
-        int appliedQuantity = Math.min(quantity, availableQuantity);
+        if (quantity > availableQuantity) {
+            quantity = availableQuantity;
+        }
+
+        int appliedQuantity = quantity;
         selectedQuantities.put(slot, appliedQuantity);
         session.setAttribute(SESSION_SELECTED_BUILD_QUANTITIES, selectedQuantities);
 
@@ -218,6 +232,9 @@ public class BuildPCServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
+    /**
+     * Reset cấu hình Build PC hiện tại và các số lượng đã chọn.
+     */
     private void handleClear(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession();
@@ -227,28 +244,37 @@ public class BuildPCServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
+    /**
+     * Thêm cấu hình Build PC hiện tại vào giỏ hàng của khách sau khi kiểm tra tồn kho và tính tương thích.
+     */
     private void handleAddToCart(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession();
         User account = (User) session.getAttribute("account");
+        boolean ajaxRequest = isAjaxRequest(request);
 
         if (account == null) {
-            setFlash(session, "Bạn cần đăng nhập để thêm cấu hình vào giỏ hàng.", "error");
-            response.sendRedirect(request.getContextPath() + "/Login");
+            String message = "Bạn cần đăng nhập để thêm cấu hình vào giỏ hàng.";
+            if (ajaxRequest) {
+                writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false, message, getCartItemCount(session));
+            } else {
+                setFlash(session, message, "error");
+                response.sendRedirect(request.getContextPath() + "/Login");
+            }
             return;
         }
 
         if (!account.isCustomer()) {
-            setFlash(session, "Tài khoản nhân viên không thể thêm sản phẩm vào giỏ hàng.", "error");
-            response.sendRedirect(request.getContextPath() + "/build-pc");
+            String message = "Tài khoản nhân viên không thể thêm sản phẩm vào giỏ hàng.";
+            respondAddToCartError(request, response, session, ajaxRequest, message);
             return;
         }
 
         Map<String, Integer> selectedBuild = getSelectedBuild(session);
         Map<String, Integer> selectedQuantities = getSelectedQuantities(session);
         if (selectedBuild.isEmpty()) {
-            setFlash(session, "Bạn chưa chọn linh kiện nào để thêm vào giỏ hàng.", "error");
-            response.sendRedirect(request.getContextPath() + "/build-pc");
+            String message = "Bạn chưa chọn linh kiện nào để thêm vào giỏ hàng.";
+            respondAddToCartError(request, response, session, ajaxRequest, message);
             return;
         }
 
@@ -264,20 +290,26 @@ public class BuildPCServlet extends HttpServlet {
             int requestedQuantity = getSelectedQuantity(selectedQuantities, entry.getKey());
 
             if (product == null || availableQuantity <= 0) {
-                setFlash(session, "Một linh kiện trong cấu hình đã hết hàng hoặc ngừng kinh doanh.", "error");
-                response.sendRedirect(request.getContextPath() + "/build-pc");
+                String message = "Một linh kiện trong cấu hình đã hết hàng hoặc ngừng kinh doanh.";
+                respondAddToCartError(request, response, session, ajaxRequest, message);
+                return;
+            }
+
+            if (!isValidSelectedQuantity(selectedQuantities, entry.getKey(), availableQuantity)) {
+                String message = "Số lượng linh kiện không hợp lệ. Vui lòng kiểm tra lại cấu hình.";
+                respondAddToCartError(request, response, session, ajaxRequest, message);
                 return;
             }
 
             if (!buildPCDAO.isProductCompatibleWithSelectedBuild(entry.getValue(), selectedBuild, entry.getKey())) {
-                setFlash(session, "Cấu hình hiện tại có linh kiện không tương thích. Vui lòng kiểm tra lại.", "error");
-                response.sendRedirect(request.getContextPath() + "/build-pc");
+                String message = "Cấu hình hiện tại có linh kiện không tương thích. Vui lòng kiểm tra lại.";
+                respondAddToCartError(request, response, session, ajaxRequest, message);
                 return;
             }
 
             if (currentQuantity + requestedQuantity > availableQuantity) {
-                setFlash(session, product.getProductName() + " đã đạt số lượng tối đa trong giỏ hàng.", "error");
-                response.sendRedirect(request.getContextPath() + "/build-pc");
+                String message = product.getProductName() + " đã đạt số lượng tối đa trong giỏ hàng.";
+                respondAddToCartError(request, response, session, ajaxRequest, message);
                 return;
             }
         }
@@ -296,18 +328,28 @@ public class BuildPCServlet extends HttpServlet {
             }
 
             if (!success) {
-                setFlash(session, "Không thể thêm cấu hình vào giỏ hàng lúc này.", "error");
-                response.sendRedirect(request.getContextPath() + "/build-pc");
+                String message = "Không thể thêm cấu hình vào giỏ hàng lúc này.";
+                respondAddToCartError(request, response, session, ajaxRequest, message);
                 return;
             }
         }
 
         List<CartItem> refreshedCartItems = cartDAO.getCartItemsByCustomerId(customerId);
-        session.setAttribute(SESSION_CART_ITEM_COUNT, calculateCartItemCount(refreshedCartItems));
-        setFlash(session, "Đã thêm cấu hình Build PC vào giỏ hàng.", "success");
-        response.sendRedirect(request.getContextPath() + "/cart");
+        int cartItemCount = calculateCartItemCount(refreshedCartItems);
+        session.setAttribute(SESSION_CART_ITEM_COUNT, cartItemCount);
+
+        String message = "Đã thêm cấu hình Build PC vào giỏ hàng.";
+        if (ajaxRequest) {
+            writeJson(response, HttpServletResponse.SC_OK, true, message, cartItemCount);
+        } else {
+            setFlash(session, message, "success");
+            response.sendRedirect(request.getContextPath() + "/cart");
+        }
     }
 
+    /**
+     * Xây dựng danh sách slot hiển thị trên trang, bao gồm các sản phẩm phù hợp theo tính tương thích.
+     */
     private List<BuildPCSlot> createBuildSlots(BuildPCDAO dao, Map<String, Integer> selectedBuild,
             Map<String, Product> selectedProducts, Map<String, Integer> selectedQuantities) {
         List<BuildPCSlot> slots = new ArrayList<>();
@@ -342,6 +384,9 @@ public class BuildPCServlet extends HttpServlet {
         return slots;
     }
 
+    /**
+     * Tạo slot không cần kiểm tra tương thích như SSD, case, màn hình, bàn phím hoặc chuột.
+     */
     private BuildPCSlot createAccessorySlot(BuildPCDAO dao, String key, String displayName, int categoryId) {
         BuildPCSlot slot = new BuildPCSlot(key, displayName, categoryId, false);
         // Phụ kiện không kiểm tra tương thích, chỉ cần ACTIVE và còn hàng.
@@ -349,6 +394,9 @@ public class BuildPCServlet extends HttpServlet {
         return slot;
     }
 
+    /**
+     * Đọc các ID linh kiện đã chọn từ session.
+     */
     @SuppressWarnings("unchecked")
     private Map<String, Integer> getSelectedBuild(HttpSession session) {
         Object value = session.getAttribute(SESSION_SELECTED_BUILD);
@@ -360,6 +408,9 @@ public class BuildPCServlet extends HttpServlet {
         return new LinkedHashMap<>();
     }
 
+    /**
+     * Đọc các số lượng đã chọn từ session.
+     */
     @SuppressWarnings("unchecked")
     private Map<String, Integer> getSelectedQuantities(HttpSession session) {
         Object value = session.getAttribute(SESSION_SELECTED_BUILD_QUANTITIES);
@@ -371,6 +422,9 @@ public class BuildPCServlet extends HttpServlet {
         return new LinkedHashMap<>();
     }
 
+    /**
+     * Tính tổng giá trị của cấu hình Build PC hiện tại.
+     */
     private BigDecimal calculateBuildTotal(Map<String, Product> selectedProducts, Map<String, Integer> selectedQuantities) {
         BigDecimal total = BigDecimal.ZERO;
 
@@ -384,11 +438,28 @@ public class BuildPCServlet extends HttpServlet {
         return total;
     }
 
+    /**
+     * Trả về số lượng an toàn, mặc định là 1 khi thiếu hoặc không hợp lệ.
+     */
     private int getSelectedQuantity(Map<String, Integer> selectedQuantities, String slot) {
         Integer quantity = selectedQuantities.get(slot);
         return quantity == null || quantity < 1 ? 1 : quantity;
     }
 
+    /**
+     * Xác nhận rằng số lượng đã lưu là dương và không vượt quá tồn kho.
+     */
+    private boolean isValidSelectedQuantity(Map<String, Integer> selectedQuantities, String slot, int availableQuantity) {
+        Integer quantity = selectedQuantities.get(slot);
+        if (quantity == null) {
+            quantity = 1;
+        }
+        return quantity >= 1 && quantity <= availableQuantity;
+    }
+
+    /**
+     * Ánh xạ key slot trên giao diện với category id tương ứng.
+     */
     private int getCategoryIdBySlot(String slot) {
         switch (slot) {
             case "CPU":
@@ -414,6 +485,9 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Kiểm tra và chuẩn hóa tên slot nhận từ request.
+     */
     private String normalizeSlot(String slot) {
         if (slot == null) {
             return null;
@@ -435,6 +509,9 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Parse một số nguyên dương từ tham số request.
+     */
     private Integer parsePositiveInteger(String value) {
         try {
             int parsedValue = Integer.parseInt(value);
@@ -444,6 +521,30 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Parse giá trị số lượng Build PC chỉ chấp nhận số và phạm vi dương.
+     */
+    private Integer parseBuildQuantity(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        if (trimmed.isEmpty() || !trimmed.matches("^\\d+$") || trimmed.length() > MAX_BUILD_QUANTITY_DIGITS) {
+            return null;
+        }
+
+        try {
+            int parsedValue = Integer.parseInt(trimmed);
+            return parsedValue >= 1 ? parsedValue : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Parse một số nguyên tổng quát cho cập nhật theo delta.
+     */
     private Integer parseInteger(String value) {
         try {
             return Integer.parseInt(value);
@@ -452,6 +553,9 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Tìm mục giỏ hàng tương ứng với sản phẩm trong giỏ hiện tại.
+     */
     private CartItem findCartItemByProductId(List<CartItem> cartItems, int productId) {
         for (CartItem item : cartItems) {
             if (item.getProductId() == productId) {
@@ -462,11 +566,17 @@ public class BuildPCServlet extends HttpServlet {
         return null;
     }
 
+    /**
+     * Lấy số lượng sản phẩm đã có trong giỏ hàng.
+     */
     private int getCurrentCartQuantity(List<CartItem> cartItems, int productId) {
         CartItem item = findCartItemByProductId(cartItems, productId);
         return item == null ? 0 : item.getQuantity();
     }
 
+    /**
+     * Tính tổng số lượng trong giỏ để lấy số lượng mục giỏ hàng.
+     */
     private int calculateCartItemCount(List<CartItem> cartItems) {
         int count = 0;
 
@@ -477,6 +587,9 @@ public class BuildPCServlet extends HttpServlet {
         return count;
     }
 
+    /**
+     * Lấy số lượng mục giỏ hàng của khách hàng đang đăng nhập.
+     */
     private int getCartItemCount(HttpSession session) {
         User account = (User) session.getAttribute("account");
 
@@ -488,6 +601,9 @@ public class BuildPCServlet extends HttpServlet {
         return cartDAO.getCartItemCountByCustomerId(account.getCustomerId());
     }
 
+    /**
+     * Chuyển thông báo flash một lần từ session sang request.
+     */
     private void moveFlash(HttpSession session, HttpServletRequest request, String sessionKey, String requestKey) {
         Object value = session.getAttribute(sessionKey);
         if (value != null) {
@@ -496,8 +612,55 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Lưu một thông báo flash cho lần render trang tiếp theo.
+     */
     private void setFlash(HttpSession session, String message, String type) {
         session.setAttribute(BUILD_MESSAGE, message);
         session.setAttribute(BUILD_MESSAGE_TYPE, type);
+    }
+
+    /**
+     * Xử lý lỗi thêm vào giỏ hàng thống nhất cho cả request thường và AJAX.
+     */
+    private void respondAddToCartError(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, boolean ajaxRequest, String message) throws IOException {
+        if (ajaxRequest) {
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false, message, getCartItemCount(session));
+            return;
+        }
+
+        setFlash(session, message, "error");
+        response.sendRedirect(request.getContextPath() + "/build-pc");
+    }
+
+    /**
+     * Kiểm tra xem request có phải là AJAX hay không.
+     */
+    private boolean isAjaxRequest(HttpServletRequest request) {
+        return "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
+    }
+
+    /**
+     * Ghi một phản hồi JSON đơn giản cho hành động thêm vào giỏ hàng bằng AJAX.
+     */
+    private void writeJson(HttpServletResponse response, int status, boolean success, String message, int cartItemCount)
+            throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"success\":" + success
+                + ",\"message\":\"" + escapeJson(message)
+                + "\",\"cartItemCount\":" + cartItemCount + "}");
+    }
+
+    private String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n");
     }
 }

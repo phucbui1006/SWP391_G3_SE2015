@@ -68,12 +68,6 @@ const Validator = {
         return trimmed.length >= 3 && trimmed.length <= 255;
     },
 
-    validatePrice(price) {
-        if (price === null || price === undefined || price === '') return false;
-        const val = parseFloat(price);
-        return !isNaN(val) && val >= 0;
-    },
-
     validateFileSize(file, maxBytes = 2 * 1024 * 1024) {
         if (!file) return true; // Optional file is considered valid
         return file.size <= maxBytes;
@@ -114,6 +108,20 @@ const Validator = {
         if (!qtyStr) return false;
         const qty = parseInt(qtyStr, 10);
         return !isNaN(qty) && qty >= 0 && qty <= 100000;
+    },
+
+    validateBuildQuantity(qtyStr, maxQuantity = 1) {
+//        if (!qtyStr) return false;
+//        const trimmed = String(qtyStr).trim();
+//        if (!/^[1-9][0-9]*$/.test(trimmed) || trimmed.length > 9) return false;
+//
+//        const qty = Number(trimmed);
+//        const max = Number(maxQuantity);
+//        return Number.isSafeInteger(qty)
+//                && qty >= 1
+//                && Number.isSafeInteger(max)
+//                && max >= 1
+//                && qty <= max;
     },
 
     validateRating(ratingStr) {

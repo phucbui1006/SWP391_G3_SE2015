@@ -196,21 +196,17 @@ public class CheckoutServlet extends HttpServlet {
         ProductDAO productDAO = new ProductDAO();
         Product product = productDAO.getProductById(productId);
 
-        if (product == null || product.getQuantity() <= 0) {
-            return null;
-        }
-
-        int appliedQuantity = Math.min(quantity, product.getQuantity());
-        if (appliedQuantity <= 0) {
+        if (product == null || product.getQuantity() <= 0
+                || quantity > product.getQuantity()) {
             return null;
         }
 
         CartItem directItem = new CartItem();
         directItem.setProductId(productId);
-        directItem.setQuantity(appliedQuantity);
+        directItem.setQuantity(quantity);
         directItem.setProduct(product);
 
-        return CheckoutPayload.forDirectProduct(directItem, productId, appliedQuantity);
+        return CheckoutPayload.forDirectProduct(directItem, productId, quantity);
     }
 
     private BigDecimal calculateSubtotal(List<CartItem> items) {

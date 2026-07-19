@@ -463,7 +463,7 @@
 
         <jsp:include page="/includes/footer.jsp" />
 
-        <script src="<%= contextPath %>/js/admin-categories.js?v=1.0.5"></script>
+        <script src="<%= contextPath %>/js/admin-categories.js?v=1.0.6"></script>
 
     </body>
 </html>

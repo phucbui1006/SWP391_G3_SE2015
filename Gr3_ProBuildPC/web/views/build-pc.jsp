@@ -186,7 +186,16 @@
                             <form class="build-quantity" action="<%= ctx %>/build-pc" method="post">
                                 <input type="hidden" name="action" value="updateQuantity">
                                 <input type="hidden" name="slot" value="<%= escapeHtml(slot.getKey()) %>">
-                                <input class="build-qty-input" type="number" name="quantity" value="<%= slot.getQuantity() %>" min="1" max="<%= selectedProduct.getQuantity() %>" step="1" inputmode="numeric" data-max-quantity="<%= selectedProduct.getQuantity() %>">
+                                <input class="build-qty-input"
+                                       type="number"
+                                       name="quantity"
+                                       value="<%= slot.getQuantity() %>"
+                                       min="1"
+                                       max="<%= selectedProduct.getQuantity() %>"
+                                       step="1"
+                                       inputmode="numeric"
+                                       autocomplete="off"
+                                       data-max-quantity="<%= selectedProduct.getQuantity() %>">
                             </form>
                             <small><%= slot.getAvailableProducts().size() %> sản phẩm phù hợp</small>
                         </div>
@@ -291,115 +300,7 @@
         </div>
 
         <script src="<%= ctx %>/js/validator.js"></script>
-        <script>
-            function validateQuantity(form, showFeedback) {
-                var firstInvalidInput = null;
-                document.querySelectorAll(".build-qty-input").forEach(function (input) {
-                    var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || "1", 10);
-                    var isValid = Validator.validateBuildQuantity(input.value, maxQuantity);
-                    if (showFeedback) {
-                        Validator.showFeedback(input, isValid, "Số lượng phải từ 1 đến " + maxQuantity + ".");
-                    }
-                    if (!isValid && !firstInvalidInput) {
-                        firstInvalidInput = input;
-                    }
-                });
-
-                if (firstInvalidInput) {
-                    firstInvalidInput.focus();
-                    return false;
-                }
-
-                return true;
-            }
-
-            document.querySelectorAll(".build-open-quick-view").forEach(function (button) {
-                button.addEventListener("click", function () {
-                    var modal = document.getElementById(button.getAttribute("data-build-modal"));
-                    if (modal) {
-                        modal.classList.add("is-open");
-                        modal.setAttribute("aria-hidden", "false");
-                        document.body.classList.add("build-modal-open");
-                    }
-                });
-            });
-
-            document.querySelectorAll("[data-build-close]").forEach(function (button) {
-                button.addEventListener("click", function () {
-                    var modal = button.closest(".build-quick-view");
-                    if (modal) {
-                        modal.classList.remove("is-open");
-                        modal.setAttribute("aria-hidden", "true");
-                        document.body.classList.remove("build-modal-open");
-                    }
-                });
-            });
-
-            document.addEventListener("keydown", function (event) {
-                if (event.key === "Escape") {
-                    document.querySelectorAll(".build-quick-view.is-open").forEach(function (modal) {
-                        modal.classList.remove("is-open");
-                        modal.setAttribute("aria-hidden", "true");
-                    });
-                    document.body.classList.remove("build-modal-open");
-                }
-            });
-
-            document.querySelectorAll(".build-qty-input").forEach(function (input) {
-                var baseWidth = 114;
-                var digitWidth = 14;
-
-                function resizeQuantityInput() {
-                    var length = Math.max(input.value.length, 1);
-                    input.style.width = Math.max(baseWidth, length * digitWidth + 48) + "px";
-                }
-
-                function validateQuantityInput() {
-                    var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || "1", 10);
-                    var isValid = Validator.validateBuildQuantity(input.value, maxQuantity);
-                    Validator.showFeedback(input, isValid, "Số lượng phải từ 1 đến " + maxQuantity + ".");
-                    return isValid;
-                }
-
-                input.addEventListener("input", function () {
-                    resizeQuantityInput();
-                    if (input.classList.contains("is-invalid")) {
-                        validateQuantityInput();
-                    }
-                });
-
-                input.addEventListener("blur", function () {
-                    if (validateQuantityInput()) {
-                        input.form.submit();
-                    }
-                });
-
-                input.addEventListener("keydown", function (event) {
-                    if (event.key === "Enter") {
-                        event.preventDefault();
-                        if (validateQuantityInput()) {
-                            input.form.submit();
-                        }
-                    }
-                });
-
-                input.form.addEventListener("submit", function (event) {
-                    if (!validateQuantityInput()) {
-                        event.preventDefault();
-                    }
-                });
-
-                resizeQuantityInput();
-            });
-
-            document.querySelectorAll(".build-add-cart-form").forEach(function (form) {
-                form.addEventListener("submit", function (event) {
-                    if (!validateQuantity(form, true)) {
-                        event.preventDefault();
-                    }
-                });
-            });
-        </script>
+        <script src="<%= ctx %>/js/build-pc.js"></script>
         <script src="<%= ctx %>/js/cart.js"></script>
     </body>
 </html>

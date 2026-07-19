@@ -111,17 +111,17 @@ const Validator = {
     },
 
     validateBuildQuantity(qtyStr, maxQuantity = 1) {
-        if (!qtyStr) return false;
-        const trimmed = String(qtyStr).trim();
-        if (!/^[1-9][0-9]*$/.test(trimmed) || trimmed.length > 9) return false;
-
-        const qty = Number(trimmed);
-        const max = Number(maxQuantity);
-        return Number.isSafeInteger(qty)
-                && qty >= 1
-                && Number.isSafeInteger(max)
-                && max >= 1
-                && qty <= max;
+//        if (!qtyStr) return false;
+//        const trimmed = String(qtyStr).trim();
+//        if (!/^[1-9][0-9]*$/.test(trimmed) || trimmed.length > 9) return false;
+//
+//        const qty = Number(trimmed);
+//        const max = Number(maxQuantity);
+//        return Number.isSafeInteger(qty)
+//                && qty >= 1
+//                && Number.isSafeInteger(max)
+//                && max >= 1
+//                && qty <= max;
     },
 
     validateRating(ratingStr) {

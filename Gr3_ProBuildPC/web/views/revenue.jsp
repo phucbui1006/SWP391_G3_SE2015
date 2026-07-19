@@ -22,18 +22,14 @@
 
                         <!-- Header / Filter -->
                         <!-- Header / Filter -->
-                        <form id="adminChartFilter" class="admin-chart-filter" action="RevenueServlet" method="get">
+                        <form id="adminChartFilter" class="admin-chart-filter" action="${pageContext.request.contextPath}/RevenueServlet" method="get">
                             <label>
                                 <input type="date" id="fromDate" name="fromDate" value="${param.fromDate}" title="Từ" required> -
                                 <input type="date" id="toDate" name="toDate" value="${param.toDate}" title="Đến" required>
                             </label>
-                            <select name="type" id="statType" style="height: 40px; border-radius: 8px; font-size: 13px; font-weight: 800; padding: 0 12px; border: 1px solid #d8dee9; background: #ffffff; color: #111827; outline: none; font-family: inherit;">
-                                <option value="day" ${param.type=='day' ? 'selected' : '' }>Ngày</option>
-                                <option value="month" ${param.type=='month' ? 'selected' : '' }>Tháng</option>
-                                <option value="year" ${param.type=='year' ? 'selected' : '' }>Năm</option>
-                            </select>
+
                             <button type="submit">Xem báo cáo</button>
-                            <button type="submit" formaction="RevenueExportServlet" style="background: #16a34a;">Xuất Excel</button>
+                            <button type="submit" formaction="${pageContext.request.contextPath}/RevenueExportServlet" style="background: #16a34a;">Xuất Excel</button>
                         </form>
 
                         <!-- Summary -->
@@ -80,48 +76,7 @@
                             </section>
                         </div>
 
-                        <!-- Table -->
-                        <div class="admin-dashboard-grid" style="grid-template-columns: 1fr; margin-top: 18px;">
-                            <section class="admin-panel">
-                                <div class="admin-panel-header">
-                                    <h2>Chi tiết doanh thu</h2>
-                                </div>
-                                <table class="admin-dashboard-table">
-                                    <thead>
-                                        <tr>
-                                            <th>STT</th>
-                                            <th>Thời gian</th>
-                                            <th>Số đơn</th>
-                                            <th>Doanh thu</th>
-                                            <th>TB/Đơn</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <c:choose>
-                                            <c:when test="${empty revenueList}">
-                                                <tr>
-                                                    <td colspan="5"
-                                                        style="text-align: center; padding: 30px; color: #64748b; font-weight: 600;">
-                                                        Chưa có dữ liệu.
-                                                    </td>
-                                                </tr>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <c:forEach items="${revenueList}" var="r" varStatus="loop">
-                                                    <tr>
-                                                        <td>${loop.index+1}</td>
-                                                        <td>${r.label}</td>
-                                                        <td>${r.orderCount}</td>
-                                                        <td>${r.formattedRevenue}</td>
-                                                        <td>${r.formattedAverage}</td>
-                                                    </tr>
-                                                </c:forEach>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </tbody>
-                                </table>
-                            </section>
-                        </div>
+
 
                     </div>
                 </div>
@@ -134,45 +89,13 @@
                     const fromDateInput = document.getElementById('fromDate');
                     const toDateInput = document.getElementById('toDate');
                     const form = document.getElementById('adminChartFilter');
-                    const statType = document.getElementById('statType');
                     
                     // Get today's date
                     const today = new Date();
                     const todayFormatted = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-                    const currentMonth = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
-                    const currentYear = today.getFullYear();
                     
-                    function updateInputTypes() {
-                        const type = statType.value;
-                        if (type === 'day') {
-                            fromDateInput.type = 'date';
-                            toDateInput.type = 'date';
-                            fromDateInput.setAttribute('max', todayFormatted);
-                            toDateInput.setAttribute('max', todayFormatted);
-                            fromDateInput.removeAttribute('min');
-                        } else if (type === 'month') {
-                            fromDateInput.type = 'month';
-                            toDateInput.type = 'month';
-                            fromDateInput.setAttribute('max', currentMonth);
-                            toDateInput.setAttribute('max', currentMonth);
-                            fromDateInput.removeAttribute('min');
-                        } else if (type === 'year') {
-                            fromDateInput.type = 'number';
-                            toDateInput.type = 'number';
-                            fromDateInput.setAttribute('min', '2000');
-                            fromDateInput.setAttribute('max', currentYear);
-                            toDateInput.setAttribute('max', currentYear);
-                            fromDateInput.placeholder = "Năm (VD: 2024)";
-                            toDateInput.placeholder = "Năm (VD: 2026)";
-                        }
-                    }
-
-                    statType.addEventListener('change', function() {
-                        fromDateInput.value = '';
-                        toDateInput.value = '';
-                        updateInputTypes();
-                        updateToDateState();
-                    });
+                    fromDateInput.setAttribute('max', todayFormatted);
+                    toDateInput.setAttribute('max', todayFormatted);
 
                     function updateToDateState() {
                         if (fromDateInput.value) {
@@ -186,8 +109,6 @@
 
                     fromDateInput.addEventListener('change', updateToDateState);
 
-                    // Initial state on load
-                    updateInputTypes();
                     // Set values if passed back from server
                     const paramFrom = '${param.fromDate}';
                     const paramTo = '${param.toDate}';
@@ -199,7 +120,6 @@
                         form.addEventListener('submit', function(e) {
                             const fromVal = fromDateInput.value;
                             const toVal = toDateInput.value;
-                            const type = statType.value;
                             
                             if (!fromVal) {
                                 e.preventDefault();
@@ -220,24 +140,10 @@
                                 return;
                             }
 
-                            if (type === 'year') {
-                                if (fromVal > currentYear || toVal > currentYear) {
-                                    e.preventDefault();
-                                    alert('Năm không được vượt quá năm hiện tại!');
-                                    return;
-                                }
-                            } else if (type === 'month') {
-                                if (fromVal > currentMonth || toVal > currentMonth) {
-                                    e.preventDefault();
-                                    alert('Tháng không được vượt quá tháng hiện tại!');
-                                    return;
-                                }
-                            } else {
-                                if (fromVal > todayFormatted || toVal > todayFormatted) {
-                                    e.preventDefault();
-                                    alert('Ngày được chọn không được vượt quá ngày hiện tại!');
-                                    return;
-                                }
+                            if (fromVal > todayFormatted || toVal > todayFormatted) {
+                                e.preventDefault();
+                                alert('Ngày được chọn không được vượt quá ngày hiện tại!');
+                                return;
                             }
                         });
                     }

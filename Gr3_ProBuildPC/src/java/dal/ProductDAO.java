@@ -250,7 +250,8 @@ public class ProductDAO extends DBContext {
         List<Object> params = new ArrayList<>();
 
         String sql = PRODUCT_SELECT
-                + "WHERE " + getActiveProductCondition();
+                + "WHERE " + getActiveProductCondition()
+                + "AND COALESCE(stock.quantity, 0) > 0 ";
 
         if (brandId != null) {
             sql += "AND p.brand_id = ? ";

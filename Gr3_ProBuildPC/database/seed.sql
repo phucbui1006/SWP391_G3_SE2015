@@ -97,11 +97,11 @@ VALUES
 INSERT INTO USERS
 (user_id, full_name, status, email, password, account_type)
 VALUES
-(1, 'Bùi Phúc', 'ACTIVE', 'nguyenngoccham120705@gmail.com', '10000:ADiFKmTgiJQB3hGjYWMkzg==:NDFF0ZdDpzVNqTquOBe+qsL0TyMPekXLzin0kJuOt9M=', 'STAFF'),
-(2, 'Nguyễn Văn Nam', 'ACTIVE', 'nguyenvannam@gmail.com', '10000:tVcPKMs6RKo5wpJVQSZiPg==:6QK0yCsLw0hdgwHBn4kNrbUb6lk9J10GjfwFAzVNpx0=', 'STAFF'),
-(3, 'Trần Minh Quân', 'ACTIVE', 'tranminhquan@gmail.com', '10000:cCoBKOOvKdQd9149/OvPOA==:l+I8TAaTyGQB42so2sh3BNqt0HjC/Q5pjH32yCa6sag=', 'STAFF'),
-(4, 'Lê Hoàng Anh', 'ACTIVE', 'lehoanganh@gmail.com', '10000:oOwR9cRBPIYGzREAAHrQWA==:YUujHK8Rsdb0SM/0uXqH+/BN0aQBAUib8ui5nEBxpqY=', 'CUSTOMER'),
-(5, 'Phạm Thu Trang', 'ACTIVE', 'phamthutrang@gmail.com', '10000:0Vi4JR9Wkh4FykRLuHGylw==:TOL2YJLA7c1XICTniSDbsBmMBQtKDdrtYDWbbx7qWGo=', 'CUSTOMER');
+(1, 'Bùi Phúc', 'ACTIVE', 'nguyenngoccham120705@gmail.com', MD5('123456'), 'STAFF'),
+(2, 'Nguyễn Văn Nam', 'ACTIVE', 'nguyenvannam@gmail.com', MD5('123456'), 'STAFF'),
+(3, 'Trần Minh Quân', 'ACTIVE', 'tranminhquan@gmail.com', MD5('123456'), 'STAFF'),
+(4, 'Lê Hoàng Anh', 'ACTIVE', 'lehoanganh@gmail.com', MD5('123456'), 'CUSTOMER'),
+(5, 'Phạm Thu Trang', 'ACTIVE', 'phamthutrang@gmail.com', MD5('123456'), 'CUSTOMER');
 
 INSERT INTO CUSTOMERS (customer_id, user_id)
 VALUES

@@ -101,7 +101,8 @@ public class AdminDashboardDAO extends DBContext {
         String sql = """
                 SELECT DATE_FORMAT(o.order_date, ?) AS label,
                        COUNT(o.order_id) AS order_count,
-                       COALESCE(SUM(o.total_amount), 0) AS revenue
+                       COALESCE(SUM(o.total_amount), 0) AS revenue,
+                       COALESCE(SUM((SELECT SUM(quantity) FROM order_details WHERE order_id = o.order_id)), 0) AS products_sold
                 FROM orders o
                 LEFT JOIN orders_status os ON os.status_id = o.status_id
                 WHERE o.order_date >= ?
@@ -125,7 +126,8 @@ public class AdminDashboardDAO extends DBContext {
                     sqlData.put(label, new RevenueRow(
                         label,
                         rs.getInt("order_count"),
-                        nullToZero(rs.getBigDecimal("revenue"))
+                        nullToZero(rs.getBigDecimal("revenue")),
+                        rs.getInt("products_sold")
                     ));
                 }
             }

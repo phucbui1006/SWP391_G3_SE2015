@@ -76,10 +76,15 @@ public class BrandDAO extends DBContext {
 
         String sql = """
             SELECT br.brand_id, br.brand_name, br.img, br.status,
-                   COUNT(CASE WHEN ca.category_id IS NOT NULL THEN p.product_id END) AS product_count
+                   COUNT(CASE WHEN ca.category_id IS NOT NULL AND COALESCE(stock.quantity, 0) > 0 THEN p.product_id END) AS product_count
             FROM brands br
             LEFT JOIN products p ON br.brand_id = p.brand_id AND p.status = 'ACTIVE'
             LEFT JOIN categories ca ON p.category_id = ca.category_id AND ca.status = 'ACTIVE'
+            LEFT JOIN (
+                SELECT product_id, SUM(quantity) AS quantity
+                FROM batch_items
+                GROUP BY product_id
+            ) stock ON stock.product_id = p.product_id
             WHERE br.status = 'ACTIVE'
             GROUP BY br.brand_id, br.brand_name, br.img, br.status
             ORDER BY br.brand_id DESC

@@ -87,11 +87,11 @@
         <jsp:include page="/includes/header.jsp" />
 
         <main class="shipping-address-shell">
-            <div class="shipping-address-breadcrumb">
+            <nav class="shipping-address-breadcrumb site-breadcrumb" aria-label="Breadcrumb">
                 <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a>
-                <span class="shipping-address-breadcrumb-separator">/</span>
-                <span class="active">&#272;&#7883;a ch&#7881; giao h&#224;ng</span>
-            </div>
+                <span>›</span>
+                <strong>&#272;&#7883;a ch&#7881; giao h&#224;ng</strong>
+            </nav>
 
             <% if (request.getAttribute("successMsg") != null) { %>
             <div class="alert-message alert-success shipping-address-feedback">

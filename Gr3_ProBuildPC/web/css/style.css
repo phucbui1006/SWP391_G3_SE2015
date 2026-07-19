@@ -9077,23 +9077,39 @@ body.admin-brand-body .site-footer {
 }
 
 .build-qty-input {
-    width: 74px;
-    height: 40px;
-    padding: 0 14px;
-    border: 1px solid #cfd6e3;
+    width: 92px;
+    height: 48px;
+    padding: 0;
+    border: 1px solid #c8ccd3;
     border-radius: 8px;
     background: #ffffff;
-    color: #000000;
+    color: #111111;
     font-family: inherit;
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 400;
     text-align: center;
     outline: none;
 }
 
+.build-qty-input.is-invalid {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+.build-quantity .error-feedback {
+    max-width: 190px;
+    text-align: center;
+    line-height: 1.35;
+}
+
 .build-qty-input:focus {
     border-color: #9fb0c8;
     box-shadow: 0 0 0 3px rgba(159, 176, 200, 0.18);
+}
+
+.build-qty-input.is-invalid:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
 }
 
 .build-part-actions {
@@ -10352,4 +10368,51 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
 .product-rating .fa-regular.fa-star {
     color: #111827; 
+}
+
+/* Breadcrumb dùng chung cho toàn bộ trang khách hàng và quản trị. */
+.site-breadcrumb.site-breadcrumb {
+    width: 100% !important;
+    min-height: 24px;
+    margin: 0 0 22px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #7b8494 !important;
+    font-family: inherit !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    line-height: 24px !important;
+}
+
+.site-breadcrumb.site-breadcrumb a {
+    color: #7b8494 !important;
+    font-size: inherit !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+}
+
+.site-breadcrumb.site-breadcrumb a:hover {
+    color: #111827 !important;
+    text-decoration: none !important;
+}
+
+.site-breadcrumb.site-breadcrumb span {
+    color: #9ca3af !important;
+    font-size: inherit !important;
+    font-weight: 500 !important;
+}
+
+.site-breadcrumb.site-breadcrumb strong,
+.site-breadcrumb.site-breadcrumb > :last-child:not(a) {
+    color: #111827 !important;
+    font-size: inherit !important;
+    font-weight: 700 !important;
 }

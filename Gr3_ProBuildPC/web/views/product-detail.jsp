@@ -140,18 +140,17 @@
             </div>
             <% } %>
 
-            <div class="breadcrumb">
-                <a href="<%= contextPath %>/home">Trang chủ</a>
-                <span>›</span>
+                                                            <nav class="breadcrumb site-breadcrumb" aria-label="Breadcrumb">
+                                                                <a href="<%= contextPath %>/home">Trang chủ</a>
+                                                                <span>›</span>
 
-                <a href="<%= contextPath %>/categories">Sản phẩm</a>
-                <span>›</span>
-                <strong>
-                    <%= product.getProductName() %>
-                </strong>
-            </div>
+                                                                <a href="<%= contextPath %>/categories">Sản phẩm</a>
+                                                                <span>›</span>
 
-            <section class="detail-card">
+                                                                <strong>
+                                                                    <%= product.getProductName() %>
+                                                                </strong>
+                                                            </nav>
 
                 <div class="product-images">
                     <div class="main-image">

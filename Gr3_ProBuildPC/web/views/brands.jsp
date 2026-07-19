@@ -66,7 +66,7 @@
     <body class="brands-page" data-context-path="<%= ctx %>" style="padding-bottom: 0px; padding-left: 0px; padding-right: 0px; padding-top: 0px">
         <jsp:include page="/includes/header.jsp" />
         <main class="brand-page">
-            <nav class="brand-breadcrumb" aria-label="Breadcrumb">
+            <nav class="brand-breadcrumb site-breadcrumb" aria-label="Breadcrumb">
                 <a href="<%= ctx %>/home">Trang chủ</a>
                 <span>›</span>
                 <strong>Thương hiệu</strong>

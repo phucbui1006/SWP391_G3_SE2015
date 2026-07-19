@@ -58,9 +58,11 @@
         <jsp:include page="/includes/header.jsp" />
 
         <div class="cart-container">
-            <div class="breadcrumb">
-                <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a> &gt; <span class="active">gi&#7887; h&#224;ng</span>
-            </div>
+            <nav class="breadcrumb site-breadcrumb" aria-label="Breadcrumb">
+                <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a>
+                <span>›</span>
+                <strong>Gi&#7887; h&#224;ng</strong>
+            </nav>
 
             <% if (request.getAttribute("cartSuccessMsg") != null) { %>
             <div class="alert-message alert-success cart-feedback">

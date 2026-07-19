@@ -87,11 +87,11 @@
         <jsp:include page="/includes/header.jsp" />
 
         <main class="checkout-shell">
-            <div class="checkout-breadcrumb">
+            <nav class="checkout-breadcrumb site-breadcrumb" aria-label="Breadcrumb">
                 <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a>
-                <span>/</span>
-                <span class="active">Thanh to&#225;n</span>
-            </div>
+                <span>›</span>
+                <strong>Thanh to&#225;n</strong>
+            </nav>
 
             <% if (request.getAttribute("errorMsg") != null) { %>
             <div class="alert-message alert-danger checkout-feedback">

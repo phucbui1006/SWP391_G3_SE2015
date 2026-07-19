@@ -49,7 +49,7 @@
         <main class="wl-shell">
             <div class="wl-container">
                 <!-- 1. Breadcrumbs & Header sitting directly on the flat light background -->
-                <nav class="wl-breadcrumb" aria-label="breadcrumb">
+                <nav class="wl-breadcrumb site-breadcrumb" aria-label="breadcrumb">
                     <a href="${ctx}/home">Trang chủ</a>
                     <span class="wl-breadcrumb-sep">›</span>
                     <span>Kiểm tra bảo hành</span>

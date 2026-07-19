@@ -24,7 +24,7 @@
                 </div>
             </c:if>
 
-            <nav class="category-breadcrumb" aria-label="Breadcrumb">
+            <nav class="category-breadcrumb site-breadcrumb" aria-label="Breadcrumb">
                 <a href="${pageContext.request.contextPath}/home">Trang chủ</a>
                 <span>›</span>
                 <strong>Danh mục sản phẩm</strong>

@@ -19,8 +19,14 @@
             <div class="dashboard-content">
                 <div class="dashboard-card admin-shell">
                     <div class="admin-dashboard">
+                        <nav class="site-breadcrumb" aria-label="Breadcrumb">
+                            <a href="${pageContext.request.contextPath}/Dashboard">Dashboard</a>
+                            <span>›</span>
+                            <strong>Thống kê doanh thu</strong>
+                        </nav>
 
-                        <!-- Header / Filter -->
+                        <h1>Thống kê doanh thu</h1>
+
                         <!-- Header / Filter -->
                         <form id="adminChartFilter" class="admin-chart-filter" action="${pageContext.request.contextPath}/RevenueServlet" method="get">
                             <label>

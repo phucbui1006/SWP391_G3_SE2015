@@ -250,10 +250,10 @@
         <jsp:include page="/includes/header.jsp" />
 
         <main class="order-history-page">
-            <nav class="order-history-breadcrumb" aria-label="Breadcrumb">
+            <nav class="order-history-breadcrumb site-breadcrumb" aria-label="Breadcrumb">
                 <a href="<%= isCustomerView ? ctx + "/home" : ctx + "/Dashboard" %>">Trang chủ</a>
-                <span>&gt;</span>
-                <span><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý giao hàng") %></span>
+                <span>›</span>
+                <strong><%= isCustomerView ? "Lịch sử đơn hàng" : (deliveryHistoryMode ? "Lịch sử giao hàng" : "Quản lý giao hàng") %></strong>
             </nav>
 
             <section class="order-history-heading">

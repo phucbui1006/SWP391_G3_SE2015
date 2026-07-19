@@ -123,7 +123,7 @@
 
         <main class="build-pc-shell">
             <section class="build-pc-main">
-                <nav class="build-breadcrumb" aria-label="Breadcrumb">
+                <nav class="build-breadcrumb site-breadcrumb" aria-label="Breadcrumb">
                     <a href="<%= ctx %>/home">Trang chủ</a>
                     <span>›</span>
                     <strong>Build PC</strong>

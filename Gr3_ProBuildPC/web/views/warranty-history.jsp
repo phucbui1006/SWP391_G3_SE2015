@@ -20,7 +20,7 @@
         <div class="history-shell-wrapper">
             <!-- Centered Content Wrapper -->
             <main class="history-shell">
-                <nav class="history-breadcrumb" aria-label="breadcrumb">
+                <nav class="history-breadcrumb site-breadcrumb" aria-label="breadcrumb">
                     <a href="${ctx}/home">Trang chủ</a>
                     <span>›</span>
                     <strong>Lịch sử bảo hành</strong>

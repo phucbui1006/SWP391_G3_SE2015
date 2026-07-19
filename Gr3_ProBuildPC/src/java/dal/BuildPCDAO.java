@@ -11,11 +11,6 @@ import model.Product;
 
 public class BuildPCDAO extends DBContext {
 
-//    private static final int CPU_CATEGORY_ID = 1;
-//    private static final int MAINBOARD_CATEGORY_ID = 2;
-//    private static final int RAM_CATEGORY_ID = 3;
-//    private static final int GPU_CATEGORY_ID = 4;
-
     private static final String PRODUCT_SELECT
             = "SELECT p.product_id, p.price, COALESCE(stock.quantity, 0) AS quantity, "
             + "COALESCE(stock.batch_id, 0) AS batch_id, p.description, p.image_url, "
@@ -217,72 +212,6 @@ public class BuildPCDAO extends DBContext {
 
         return false;
     }
-
-    /**
-     * Helper nội bộ dùng cho logic lọc danh sách để lấy các sản phẩm tương thích cho một slot.
-     */
-//    private List<Product> getCompatibleProducts(int sourceProductId, int sourceCategoryId, int targetCategoryId) {
-//        List<Product> products = new ArrayList<>();
-//
-//        // Truy vấn tương thích dùng COMPATIBILITY_RULES làm cấu hình động:
-//        // với mỗi rule source_spec -> target_spec, target chỉ hợp lệ khi giá trị spec bằng nhau.
-//        // NOT EXISTS đảm bảo target bị loại nếu thiếu bất kỳ rule nào.
-//        String sql = PRODUCT_SELECT
-//                + "WHERE p.category_id = ? AND " + ACTIVE_IN_STOCK_CONDITION
-//                + "AND EXISTS ( "
-//                + "    SELECT 1 FROM products source_product "
-//                + "    JOIN categories source_category ON source_category.category_id = source_product.category_id "
-//                + "    JOIN brands source_brand ON source_brand.brand_id = source_product.brand_id "
-//                + "    JOIN ( "
-//                + "        SELECT product_id, SUM(quantity) AS quantity "
-//                + "        FROM batch_items "
-//                + "        GROUP BY product_id "
-//                + "    ) source_stock ON source_stock.product_id = source_product.product_id "
-//                + "    WHERE source_product.product_id = ? "
-//                + "      AND source_product.category_id = ? "
-//                + "      AND source_product.status = 'ACTIVE' "
-//                + "      AND source_category.status = 'ACTIVE' "
-//                + "      AND source_brand.status = 'ACTIVE' "
-//                + "      AND source_stock.quantity > 0 "
-//                + ") "
-//                + "AND NOT EXISTS ( "
-//                + "    SELECT 1 "
-//                + "    FROM compatibility_rules cr "
-//                + "    JOIN product_specifications source_spec "
-//                + "      ON source_spec.product_id = ? "
-//                + "     AND source_spec.specification_name = cr.source_spec_name "
-//                + "    WHERE cr.source_category_id = ? "
-//                + "      AND cr.target_category_id = ? "
-//                + "      AND cr.comparison_operator = '=' "
-//                + "      AND NOT EXISTS ( "
-//                + "          SELECT 1 "
-//                + "          FROM product_specifications target_spec "
-//                + "          WHERE target_spec.product_id = p.product_id "
-//                + "            AND target_spec.specification_name = cr.target_spec_name "
-//                + "            AND LOWER(TRIM(target_spec.specification_value)) = LOWER(TRIM(source_spec.specification_value)) "
-//                + "      ) "
-//                + ") "
-//                + "ORDER BY p.product_name";
-//
-//        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-//            ps.setInt(1, targetCategoryId);
-//            ps.setInt(2, sourceProductId);
-//            ps.setInt(3, sourceCategoryId);
-//            ps.setInt(4, sourceProductId);
-//            ps.setInt(5, sourceCategoryId);
-//            ps.setInt(6, targetCategoryId);
-//
-//            try (ResultSet rs = ps.executeQuery()) {
-//                while (rs.next()) {
-//                    products.add(mapProduct(rs));
-//                }
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return products;
-//    }
 
     private Product mapProduct(ResultSet rs) throws SQLException {
         Product product = new Product();

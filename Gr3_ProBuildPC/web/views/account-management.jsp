@@ -101,12 +101,12 @@
         <main class="admin-brand-page">
 
             <section class="admin-page-heading">
-                <h1><%= isStaffType ? "Quản lý tài khoản nhân viên" : "Quản lý tài khoản khách hàng" %></h1>
-                <div class="admin-breadcrumb">
+                <nav class="admin-breadcrumb site-breadcrumb" aria-label="Breadcrumb">
                     <a href="<%= ctx %>/Dashboard">Dashboard</a>
                     <span>›</span>
                     <strong><%= isStaffType ? "Tài khoản nhân viên" : "Tài khoản khách hàng" %></strong>
-                </div>
+                </nav>
+                <h1><%= isStaffType ? "Quản lý tài khoản nhân viên" : "Quản lý tài khoản khách hàng" %></h1>
             </section>
 
             <% if (success != null && !success.isEmpty()) { %>

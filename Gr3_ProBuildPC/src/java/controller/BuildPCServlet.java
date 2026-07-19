@@ -182,51 +182,47 @@ public class BuildPCServlet extends HttpServlet {
             throws IOException {
         HttpSession session = request.getSession();
         String slot = normalizeSlot(request.getParameter("slot"));
-        Integer quantity = parseBuildQuantity(request.getParameter("quantity"));
-        Integer delta = parseInteger(request.getParameter("delta"));
+        String quantityRaw = request.getParameter("quantity");
+        Integer quantity = parseBuildQuantity(quantityRaw);
+        boolean ajaxRequest = isAjaxRequest(request);
 
-        if (slot == null || (quantity == null && delta == null)) {
-            setFlash(session, "Số lượng linh kiện không hợp lệ.", "error");
-            response.sendRedirect(request.getContextPath() + "/build-pc");
+        if (slot == null || quantity == null) {
+            respondQuantityError(request, response, session, ajaxRequest,
+                    "Số lượng phải là số nguyên từ 1 trở lên.");
             return;
         }
 
         Map<String, Integer> selectedBuild = getSelectedBuild(session);
         if (!selectedBuild.containsKey(slot)) {
-            setFlash(session, "Vui lòng chọn linh kiện trước khi chỉnh số lượng.", "error");
-            response.sendRedirect(request.getContextPath() + "/build-pc");
+            respondQuantityError(request, response, session, ajaxRequest,
+                    "Vui lòng chọn linh kiện trước khi chỉnh số lượng.");
             return;
         }
 
         Map<String, Integer> selectedQuantities = getSelectedQuantities(session);
-        if (delta != null) {
-            quantity = getSelectedQuantity(selectedQuantities, slot) + delta;
-        }
-
-        if (quantity == null || quantity < 1) {
-            quantity = 1;
-        }
-
         BuildPCDAO buildPCDAO = new BuildPCDAO();
         int productId = selectedBuild.get(slot);
         int availableQuantity = buildPCDAO.getAvailableQuantity(productId);
 
         if (availableQuantity <= 0) {
-            setFlash(session, "Linh kiện này đã hết hàng.", "error");
-            response.sendRedirect(request.getContextPath() + "/build-pc");
+            respondQuantityError(request, response, session, ajaxRequest,
+                    "Linh kiện này đã hết hàng.");
             return;
         }
 
         if (quantity > availableQuantity) {
-            quantity = availableQuantity;
+            respondQuantityError(request, response, session, ajaxRequest,
+                    "Số lượng không được lớn hơn số lượng trong kho (" + availableQuantity + ").");
+            return;
         }
 
-        int appliedQuantity = quantity;
-        selectedQuantities.put(slot, appliedQuantity);
+        selectedQuantities.put(slot, quantity);
         session.setAttribute(SESSION_SELECTED_BUILD_QUANTITIES, selectedQuantities);
 
-        if (appliedQuantity < quantity) {
-            setFlash(session, "Số lượng vượt tồn kho. Hệ thống đã đặt về mức tối đa có thể mua.", "error");
+        if (ajaxRequest) {
+            writeQuantityJson(response, HttpServletResponse.SC_OK, true,
+                    "Đã cập nhật số lượng.", quantity);
+            return;
         }
 
         response.sendRedirect(request.getContextPath() + "/build-pc");
@@ -543,17 +539,6 @@ public class BuildPCServlet extends HttpServlet {
     }
 
     /**
-     * Parse một số nguyên tổng quát cho cập nhật theo delta.
-     */
-    private Integer parseInteger(String value) {
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    /**
      * Tìm mục giỏ hàng tương ứng với sản phẩm trong giỏ hiện tại.
      */
     private CartItem findCartItemByProductId(List<CartItem> cartItems, int productId) {
@@ -634,6 +619,17 @@ public class BuildPCServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
+    private void respondQuantityError(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, boolean ajaxRequest, String message) throws IOException {
+        if (ajaxRequest) {
+            writeQuantityJson(response, HttpServletResponse.SC_BAD_REQUEST, false, message, null);
+            return;
+        }
+
+        setFlash(session, message, "error");
+        response.sendRedirect(request.getContextPath() + "/build-pc");
+    }
+
     /**
      * Kiểm tra xem request có phải là AJAX hay không.
      */
@@ -651,6 +647,15 @@ public class BuildPCServlet extends HttpServlet {
         response.getWriter().write("{\"success\":" + success
                 + ",\"message\":\"" + escapeJson(message)
                 + "\",\"cartItemCount\":" + cartItemCount + "}");
+    }
+
+    private void writeQuantityJson(HttpServletResponse response, int status, boolean success,
+            String message, Integer quantity) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"success\":" + success
+                + ",\"message\":\"" + escapeJson(message) + "\""
+                + (quantity == null ? "" : ",\"quantity\":" + quantity) + "}");
     }
 
     private String escapeJson(String value) {

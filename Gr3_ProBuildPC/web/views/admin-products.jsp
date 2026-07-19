@@ -130,15 +130,15 @@
 
         <main class="admin-product-container">
             <div class="admin-page-title">
-                <h2>Quản lý sản phẩm</h2>
-                <div class="admin-breadcrumb">
+                <nav class="admin-breadcrumb site-breadcrumb" aria-label="Breadcrumb">
                     <a href="<%= contextPath %>/Dashboard">Dashboard</a>
 
                     <span>›</span>
                     <span>Sản phẩm</span>
                     <span>›</span>
-                    <span>Quản lý sản phẩm</span>
-                </div>
+                    <strong>Quản lý sản phẩm</strong>
+                </nav>
+                <h2>Quản lý sản phẩm</h2>
             </div>
 
             <% if (success != null && !success.isEmpty()) { %>

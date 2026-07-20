@@ -104,7 +104,9 @@
                     <input type="hidden" name="action" value="placeOrder">
                     <input type="hidden" name="selectedAddressId" value="<%= selectedAddress != null ? selectedAddress.getAddressId() : "" %>" data-checkout-selected-address-id>
 
-                    <% if ("cart".equalsIgnoreCase(checkoutMode)) { %>
+                    <% if ("build".equalsIgnoreCase(checkoutMode)) { %>
+                    <input type="hidden" name="checkoutMode" value="build">
+                    <% } else if ("cart".equalsIgnoreCase(checkoutMode)) { %>
                     <% for (Integer cartItemId : selectedCartItemIds) { %>
                     <input type="hidden" name="selectedCartItemIds" value="<%= cartItemId %>">
                     <% } %>
@@ -194,8 +196,8 @@
                     </section>
 
                     <div class="checkout-actions">
-                        <a class="checkout-back-link" href="${pageContext.request.contextPath}/cart">
-                            &#8592; Quay l&#7841;i gi&#7887; h&#224;ng
+                        <a class="checkout-back-link" href="${pageContext.request.contextPath}/<%= "build".equalsIgnoreCase(checkoutMode) ? "build-pc" : "cart" %>">
+                            &#8592; <%= "build".equalsIgnoreCase(checkoutMode) ? "Quay lại Build PC" : "Quay lại giỏ hàng" %>
                         </a>
 
                         <button

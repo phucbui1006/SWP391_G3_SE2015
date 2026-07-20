@@ -22,6 +22,7 @@ import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import util.ValidatorUtil;
 
 @WebFilter(filterName = "CartOrderValidationFilter", urlPatterns = {
@@ -65,6 +66,7 @@ public class CartOrderValidationFilter implements Filter {
     public void destroy() {}
 
     private boolean validateItems(HttpServletRequest req, HttpServletResponse res, User account) throws IOException {
+        boolean buildCheckout = "build".equalsIgnoreCase(req.getParameter("checkoutMode"));
         String[] selectedCartItemIdsRaw = req.getParameterValues("selectedCartItemIds");
         List<Integer> selectedCartItemIds = new ArrayList<>();
         if (selectedCartItemIdsRaw != null) {
@@ -78,7 +80,31 @@ public class CartOrderValidationFilter implements Filter {
 
         List<CartItem> checkoutItems = new ArrayList<>();
 
-        if (!selectedCartItemIds.isEmpty()) {
+        if (buildCheckout) {
+            Object snapshot = req.getSession().getAttribute("buildCheckoutItems");
+            if (snapshot instanceof Map<?, ?>) {
+                ProductDAO productDAO = new ProductDAO();
+                for (Map.Entry<?, ?> entry : ((Map<?, ?>) snapshot).entrySet()) {
+                    if (!(entry.getKey() instanceof Integer) || !(entry.getValue() instanceof Integer)) {
+                        continue;
+                    }
+
+                    int productId = (Integer) entry.getKey();
+                    int quantity = (Integer) entry.getValue();
+                    Product product = productDAO.getProductById(productId);
+                    if (product == null || quantity <= 0 || quantity > product.getQuantity()) {
+                        return redirectBuildError(req, res,
+                                "Số lượng hoặc tồn kho của cấu hình đã thay đổi. Vui lòng kiểm tra lại.");
+                    }
+
+                    CartItem item = new CartItem();
+                    item.setProductId(productId);
+                    item.setQuantity(quantity);
+                    item.setProduct(product);
+                    checkoutItems.add(item);
+                }
+            }
+        } else if (!selectedCartItemIds.isEmpty()) {
             CartDAO cartDAO = new CartDAO();
             List<CartItem> allCartItems = cartDAO.getCartItemsByCustomerId(account.getCustomerId());
             java.util.Set<Integer> selectedIdSet = new java.util.LinkedHashSet<>(selectedCartItemIds);
@@ -132,6 +158,9 @@ public class CartOrderValidationFilter implements Filter {
         }
 
         if (checkoutItems.isEmpty()) {
+            if (buildCheckout) {
+                return redirectBuildError(req, res, "Không tìm thấy cấu hình để thanh toán.");
+            }
             req.getSession().setAttribute("cartErrorMsg", "Không tìm thấy sản phẩm để thanh toán.");
             res.sendRedirect(req.getContextPath() + "/cart");
             return false;
@@ -140,6 +169,9 @@ public class CartOrderValidationFilter implements Filter {
         for (CartItem item : checkoutItems) {
             Product product = item.getProduct();
             if (product == null || !product.isAvailableForSale()) {
+                if (buildCheckout) {
+                    return redirectBuildError(req, res, "Một linh kiện trong cấu hình hiện không còn kinh doanh.");
+                }
                 req.getSession().setAttribute("cartErrorMsg", "Sản phẩm hiện không còn kinh doanh.");
                 res.sendRedirect(req.getContextPath() + "/cart");
                 return false;
@@ -147,6 +179,15 @@ public class CartOrderValidationFilter implements Filter {
         }
 
         return true;
+    }
+
+    private boolean redirectBuildError(HttpServletRequest req, HttpServletResponse res, String message)
+            throws IOException {
+        HttpSession session = req.getSession();
+        session.setAttribute("buildPcMessage", message);
+        session.setAttribute("buildPcMessageType", "error");
+        res.sendRedirect(req.getContextPath() + "/build-pc");
+        return false;
     }
 
     private void redirectToProductDetailWithQuantityError(

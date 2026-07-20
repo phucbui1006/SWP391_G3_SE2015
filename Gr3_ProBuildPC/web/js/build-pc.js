@@ -1,13 +1,29 @@
 // Tương tác trên trang Build PC: modal, kiểm tra số lượng và chặn thêm vào giỏ hàng.
 (function () {
+    var activeModalTrigger = null;
+
+    function closeBuildModal(modal) {
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('build-modal-open');
+        if (activeModalTrigger) {
+            activeModalTrigger.focus();
+            activeModalTrigger = null;
+        }
+    }
+
     // Mở modal chọn linh kiện cho một slot Build PC.
     document.querySelectorAll('.build-open-quick-view').forEach(function (button) {
         button.addEventListener('click', function () {
             var modal = document.getElementById(button.getAttribute('data-build-modal'));
             if (modal) {
+                activeModalTrigger = button;
                 modal.classList.add('is-open');
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('build-modal-open');
+                var closeButton = modal.querySelector('[data-build-close]:not(.build-quick-backdrop)');
+                if (closeButton) closeButton.focus();
             }
         });
     });
@@ -16,26 +32,39 @@
     document.querySelectorAll('[data-build-close]').forEach(function (button) {
         button.addEventListener('click', function () {
             var modal = button.closest('.build-quick-view');
-            if (modal) {
-                modal.classList.remove('is-open');
-                modal.setAttribute('aria-hidden', 'true');
-                document.body.classList.remove('build-modal-open');
-            }
+            closeBuildModal(modal);
         });
     });
 
     // Cho phép đóng modal bằng phím Escape.
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
-            document.querySelectorAll('.build-quick-view.is-open').forEach(function (modal) {
-                modal.classList.remove('is-open');
-                modal.setAttribute('aria-hidden', 'true');
-            });
-            document.body.classList.remove('build-modal-open');
+            closeBuildModal(document.querySelector('.build-quick-view.is-open'));
         }
     });
 
     var quantityInputs = Array.prototype.slice.call(document.querySelectorAll('.build-qty-input'));
+    var buildTotalElement = document.querySelector('[data-build-total]');
+
+    function updateBuildTotal() {
+        if (!buildTotalElement) return;
+
+        var total = quantityInputs.reduce(function (sum, input) {
+            var price = Number(input.dataset.unitPrice || 0);
+            var quantityValue = input.classList.contains('is-invalid')
+                    ? input.dataset.savedQuantity
+                    : input.value;
+            var quantity = parseInt(quantityValue, 10);
+            if (!Number.isFinite(price) || !Number.isInteger(quantity) || quantity < 1) {
+                return sum;
+            }
+            return sum + (price * quantity);
+        }, 0);
+
+        buildTotalElement.textContent = new Intl.NumberFormat('vi-VN', {
+            maximumFractionDigits: 0
+        }).format(total) + 'đ';
+    }
 
     function getQuantityError(input) {
         var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || '1', 10);
@@ -63,7 +92,8 @@
         }
 
         var formData = new FormData(input.form);
-        input._pendingQuantityUpdate = fetch(input.form.action, {
+        var endpoint = input.form.getAttribute('action');
+        input._pendingQuantityUpdate = fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -71,16 +101,23 @@
             },
             body: new URLSearchParams(formData).toString()
         }).then(function (response) {
+            var contentType = response.headers.get('content-type') || '';
+            if (contentType.indexOf('application/json') === -1) {
+                throw new Error('Máy chủ không trả về dữ liệu cập nhật số lượng hợp lệ.');
+            }
+
             return response.json().then(function (data) {
                 if (!response.ok || !data.success) {
                     throw new Error(data.message || 'Không thể cập nhật số lượng.');
                 }
                 input.dataset.savedQuantity = String(data.quantity);
                 window.Validator.clearFeedback(input);
+                updateBuildTotal();
                 return true;
             });
         }).catch(function (error) {
             window.Validator.showFeedback(input, false, error.message);
+            updateBuildTotal();
             input.focus();
             return false;
         }).finally(function () {
@@ -108,9 +145,7 @@
         }
 
         input.addEventListener('input', function () {
-            if (input.classList.contains('is-invalid')) {
-                validateQuantityInput();
-            }
+            if (validateQuantityInput()) updateBuildTotal();
         });
 
         input.addEventListener('blur', function () {
@@ -143,10 +178,19 @@
         });
     });
 
+    updateBuildTotal();
+
     var resumeClick = false;
     document.addEventListener('click', function (event) {
         var action = event.target.closest('button[type="submit"], [data-add-to-cart-btn]');
         if (!action || action.closest('.build-quantity') || resumeClick) {
+            return;
+        }
+
+        var submittedForm = action.form;
+        var actionInput = submittedForm && submittedForm.querySelector('input[name="action"]');
+        var submittedAction = actionInput ? actionInput.value : '';
+        if (submittedAction === 'remove' || submittedAction === 'clear') {
             return;
         }
 

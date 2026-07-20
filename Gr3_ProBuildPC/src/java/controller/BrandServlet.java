@@ -11,12 +11,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 import model.Brand;
 import model.Product;
 import model.User;
 
 @WebServlet(name = "BrandServlet", urlPatterns = {"/brands"})
 public class BrandServlet extends HttpServlet {
+
+    private static final int PRODUCTS_PER_PAGE = 24;
 
     private final BrandDAO brandDAO = new BrandDAO();
     private final ProductDAO productDAO = new ProductDAO();
@@ -32,6 +35,8 @@ public class BrandServlet extends HttpServlet {
         String priceRange = normalize(request.getParameter("priceRange"), "all");
         String sort = normalize(request.getParameter("sort"), "newest");
         String keyword = normalize(request.getParameter("keyword"), "");
+        Integer requestedPage = parseInt(request.getParameter("page"));
+        int currentPage = requestedPage == null || requestedPage < 1 ? 1 : requestedPage;
 
         List<Brand> brands = brandDAO.getActiveBrands();
         Brand selectedBrand = brandId == null ? null : brandDAO.getBrandById(brandId);
@@ -39,7 +44,13 @@ public class BrandServlet extends HttpServlet {
             selectedBrand = null;
             brandId = null;
         }
-        List<Product> products = productDAO.getProductsByBrand(brandId, priceRange, sort, keyword);
+        List<Product> filteredProducts = productDAO.getProductsByBrand(brandId, priceRange, sort, keyword);
+        int totalProducts = filteredProducts.size();
+        int totalPages = Math.max(1, (int) Math.ceil(totalProducts / (double) PRODUCTS_PER_PAGE));
+        currentPage = Math.min(currentPage, totalPages);
+        int fromIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+        int toIndex = Math.min(fromIndex + PRODUCTS_PER_PAGE, totalProducts);
+        List<Product> products = new ArrayList<>(filteredProducts.subList(fromIndex, toIndex));
 
         request.setAttribute("brands", brands);
         request.setAttribute("products", products);
@@ -48,6 +59,9 @@ public class BrandServlet extends HttpServlet {
         request.setAttribute("selectedPriceRange", priceRange);
         request.setAttribute("selectedSort", sort);
         request.setAttribute("keyword", keyword);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalProducts", totalProducts);
 
         setCartCount(request);
         request.getRequestDispatcher("/views/brands.jsp").forward(request, response);

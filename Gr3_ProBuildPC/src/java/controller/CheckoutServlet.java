@@ -1,6 +1,7 @@
 package controller;
 
 import dal.AddressDAO;
+import dal.BuildPCDAO;
 import dal.CartDAO;
 import dal.OrderDAO;
 import dal.ProductDAO;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import model.Address;
 import model.CartItem;
@@ -29,6 +31,8 @@ public class CheckoutServlet extends HttpServlet {
     private static final String VIEW_PATH = "/views/checkout.jsp";
     private static final String CART_SUCCESS_FLASH = "cartSuccessMsg";
     private static final String CART_ERROR_FLASH = "cartErrorMsg";
+    private static final String BUILD_CHECKOUT_MODE = "build";
+    private static final String SESSION_BUILD_CHECKOUT_ITEMS = "buildCheckoutItems";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -72,8 +76,7 @@ public class CheckoutServlet extends HttpServlet {
         CheckoutPayload payload = buildCheckoutPayload(request, account);
 
         if (payload == null || payload.getItems().isEmpty()) {
-            setFlashMessage(request.getSession(), CART_ERROR_FLASH, "Không tìm thấy sản phẩm để thanh toán.");
-            response.sendRedirect(request.getContextPath() + "/cart");
+            redirectInvalidCheckout(request, response, "Không tìm thấy sản phẩm để thanh toán.");
             return;
         }
 
@@ -106,6 +109,13 @@ public class CheckoutServlet extends HttpServlet {
             return;
         }
 
+        if (payload.isBuildCheckout()) {
+            HttpSession session = request.getSession();
+            session.removeAttribute(SESSION_BUILD_CHECKOUT_ITEMS);
+            session.removeAttribute("selectedBuild");
+            session.removeAttribute("selectedBuildQuantities");
+        }
+
         if ("VNPAY".equals(paymentMethod)) {
             BigDecimal totalAmount = calculateSubtotal(payload.getItems());
             orderDAO.setVnpayExpiresAt(orderId, 5); // Đặt thời hạn thanh toán 5 phút
@@ -113,7 +123,8 @@ public class CheckoutServlet extends HttpServlet {
             response.sendRedirect(paymentUrl);
         } else {
             setFlashMessage(request.getSession(), CART_SUCCESS_FLASH, "Đã tạo đơn hàng thành công.");
-            response.sendRedirect(request.getContextPath() + "/cart");
+            response.sendRedirect(request.getContextPath()
+                    + (payload.isBuildCheckout() ? "/order-history?selectedOrderId=" + orderId : "/cart"));
         }
     }
 
@@ -122,14 +133,12 @@ public class CheckoutServlet extends HttpServlet {
         CheckoutPayload payload = buildCheckoutPayload(request, account);
 
         if (payload == null || payload.getItems().isEmpty()) {
-            setFlashMessage(request.getSession(), CART_ERROR_FLASH, "Vui long chon it nhat mot san pham de thanh toan.");
-            response.sendRedirect(request.getContextPath() + "/cart");
+            redirectInvalidCheckout(request, response, "Vui lòng kiểm tra lại cấu hình cần thanh toán.");
             return;
         }
 
         if (hasUnavailableItems(payload.getItems())) {
-            setFlashMessage(request.getSession(), CART_ERROR_FLASH, "San pham hien khong con kinh doanh.");
-            response.sendRedirect(request.getContextPath() + "/cart");
+            redirectInvalidCheckout(request, response, "Sản phẩm hiện không còn kinh doanh.");
             return;
         }
 
@@ -164,7 +173,25 @@ public class CheckoutServlet extends HttpServlet {
         request.getRequestDispatcher(VIEW_PATH).forward(request, response);
     }
 
+    private void redirectInvalidCheckout(HttpServletRequest request, HttpServletResponse response, String message)
+            throws IOException {
+        HttpSession session = request.getSession();
+        if (BUILD_CHECKOUT_MODE.equalsIgnoreCase(safeTrim(request.getParameter("checkoutMode")))) {
+            session.setAttribute("buildPcMessage", message);
+            session.setAttribute("buildPcMessageType", "error");
+            response.sendRedirect(request.getContextPath() + "/build-pc");
+            return;
+        }
+
+        setFlashMessage(session, CART_ERROR_FLASH, message);
+        response.sendRedirect(request.getContextPath() + "/cart");
+    }
+
     private CheckoutPayload buildCheckoutPayload(HttpServletRequest request, User account) {
+        if (BUILD_CHECKOUT_MODE.equalsIgnoreCase(safeTrim(request.getParameter("checkoutMode")))) {
+            return buildBuildCheckoutPayload(request.getSession(false));
+        }
+
         List<Integer> selectedCartItemIds = parsePositiveIntegers(request.getParameterValues("selectedCartItemIds"));
 
         if (!selectedCartItemIds.isEmpty()) {
@@ -207,6 +234,49 @@ public class CheckoutServlet extends HttpServlet {
         directItem.setProduct(product);
 
         return CheckoutPayload.forDirectProduct(directItem, productId, quantity);
+    }
+
+    @SuppressWarnings("unchecked")
+    private CheckoutPayload buildBuildCheckoutPayload(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object storedValue = session.getAttribute(SESSION_BUILD_CHECKOUT_ITEMS);
+        if (!(storedValue instanceof Map<?, ?>)) {
+            return null;
+        }
+
+        Map<Integer, Integer> productQuantities = (Map<Integer, Integer>) storedValue;
+        if (productQuantities.isEmpty()) {
+            return null;
+        }
+
+        ProductDAO productDAO = new ProductDAO();
+        BuildPCDAO buildPCDAO = new BuildPCDAO();
+        List<CartItem> items = new ArrayList<>();
+
+        for (Map.Entry<Integer, Integer> entry : productQuantities.entrySet()) {
+            Integer productId = entry.getKey();
+            Integer quantity = entry.getValue();
+            if (productId == null || quantity == null || quantity < 1) {
+                return null;
+            }
+
+            Product product = productDAO.getProductById(productId);
+            int availableQuantity = buildPCDAO.getAvailableQuantity(productId);
+            if (product == null || !product.isAvailableForSale() || quantity > availableQuantity) {
+                return null;
+            }
+
+            CartItem item = new CartItem();
+            item.setProductId(productId);
+            item.setQuantity(quantity);
+            item.setProduct(product);
+            items.add(item);
+        }
+
+        return CheckoutPayload.forBuildItems(items);
     }
 
     private BigDecimal calculateSubtotal(List<CartItem> items) {
@@ -353,6 +423,16 @@ public class CheckoutServlet extends HttpServlet {
             );
         }
 
+        private static CheckoutPayload forBuildItems(List<CartItem> items) {
+            return new CheckoutPayload(
+                    BUILD_CHECKOUT_MODE,
+                    items,
+                    Collections.emptyList(),
+                    null,
+                    null
+            );
+        }
+
         public String getMode() {
             return mode;
         }
@@ -375,6 +455,10 @@ public class CheckoutServlet extends HttpServlet {
 
         public boolean isCartCheckout() {
             return "cart".equals(mode);
+        }
+
+        public boolean isBuildCheckout() {
+            return BUILD_CHECKOUT_MODE.equals(mode);
         }
     }
 }

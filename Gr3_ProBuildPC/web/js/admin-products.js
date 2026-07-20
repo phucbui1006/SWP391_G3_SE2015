@@ -71,6 +71,20 @@ document.addEventListener("DOMContentLoaded", function () {
         return val > 0 && val <= 120;
     }
 
+    function getProductNameError(value) {
+        var name = (value || "").trim();
+        if (name.length === 0) {
+            return "Tên sản phẩm không được để trống.";
+        }
+        if (name.length < 3 || name.length > 255) {
+            return "Tên sản phẩm phải từ 3 đến 255 ký tự.";
+        }
+        if (/\s{2,}/.test(name)) {
+            return "Tên sản phẩm không được chứa nhiều dấu cách liên tiếp.";
+        }
+        return "";
+    }
+
     /**
      * Validates thông số kĩ thuật của sản phẩm
      */
@@ -130,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var nameInp = form.querySelector("input[name='productName']");
         if (nameInp) {
             var nameOk = Validator.validateProductName(nameInp.value);
-            Validator.showFeedback(nameInp, nameOk, "Tên sản phẩm phải từ 3 đến 255 ký tự.");
+            Validator.showFeedback(nameInp, nameOk, getProductNameError(nameInp.value));
             if (!nameOk) {
                 if (isValid)
                     nameInp.focus();
@@ -318,15 +332,38 @@ document.addEventListener("DOMContentLoaded", function () {
         var priceInp = form.querySelector("input[name='price']");
         var fileInp = form.querySelector("input[name='imgFile']");
         var descInp = form.querySelector("textarea[name='description']");
+        var nameCheckTimer;
+        var nameCheckVersion = 0;
 
         if (nameInp) {
-            nameInp.addEventListener("blur", function () {
-                Validator.showFeedback(nameInp, Validator.validateProductName(nameInp.value), "Tên sản phẩm phải từ 3 đến 255 ký tự.");
-            });
             nameInp.addEventListener("input", function () {
-                if (nameInp.classList.contains("is-invalid")) {
-                    Validator.showFeedback(nameInp, Validator.validateProductName(nameInp.value), "Tên sản phẩm phải từ 3 đến 255 ký tự.");
+                clearTimeout(nameCheckTimer);
+                nameCheckVersion++;
+                var currentVersion = nameCheckVersion;
+                var nameOk = Validator.validateProductName(nameInp.value);
+                Validator.showFeedback(nameInp, nameOk, getProductNameError(nameInp.value));
+
+                if (!nameOk) {
+                    return;
                 }
+
+                var checkedName = nameInp.value.trim();
+                nameCheckTimer = setTimeout(function () {
+                    checkProductNameDuplicate(form)
+                            .then(function (duplicate) {
+                                if (currentVersion === nameCheckVersion
+                                        && nameInp.value.trim() === checkedName) {
+                                    Validator.showFeedback(
+                                            nameInp,
+                                            !duplicate,
+                                            "Tên sản phẩm đã tồn tại trong hệ thống."
+                                    );
+                                }
+                            })
+                            .catch(function () {
+                                // Backend vẫn kiểm tra lại khi lưu nếu kết nối tạm thời lỗi.
+                            });
+                }, 300);
             });
         }
 
@@ -349,11 +386,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 Validator.showFeedback(priceInp, priceOk, "Giá bán phải là số lớn hơn 0, nhỏ hơn hoặc bằng 1 tỷ và chia hết cho 1000.");
             });
             priceInp.addEventListener("input", function () {
-                if (priceInp.classList.contains("is-invalid")) {
-                    var priceVal = parseFloat(priceInp.value);
-                    var priceOk = !isNaN(priceVal) && priceVal > 0 && (priceVal % 1000 === 0) && priceVal <= 1000000000;
-                    Validator.showFeedback(priceInp, priceOk, "Giá bán phải là số lớn hơn 0, nhỏ hơn hoặc bằng 1 tỷ và chia hết cho 1000.");
-                }
+                var priceVal = parseFloat(priceInp.value);
+                var priceOk = !isNaN(priceVal) && priceVal > 0 && (priceVal % 1000 === 0) && priceVal <= 1000000000;
+                Validator.showFeedback(priceInp, priceOk, "Giá bán phải là số lớn hơn 0, nhỏ hơn hoặc bằng 1 tỷ và chia hết cho 1000.");
             });
         }
 
@@ -363,9 +398,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 Validator.showFeedback(warrantyInp, validateWarranty(warrantyInp.value), "Thời gian bảo hành phải là số nguyên dương lớn hơn 0 và không vượt quá 120 tháng.");
             });
             warrantyInp.addEventListener("input", function () {
-                if (warrantyInp.classList.contains("is-invalid")) {
-                    Validator.showFeedback(warrantyInp, validateWarranty(warrantyInp.value), "Thời gian bảo hành phải là số nguyên dương lớn hơn 0 và không vượt quá 120 tháng.");
-                }
+                Validator.showFeedback(warrantyInp, validateWarranty(warrantyInp.value), "Thời gian bảo hành phải là số nguyên dương lớn hơn 0 và không vượt quá 120 tháng.");
             });
         }
 
@@ -399,14 +432,24 @@ document.addEventListener("DOMContentLoaded", function () {
                         : "Mô tả chi tiết không được vượt quá 10.000 ký tự.");
             });
             descInp.addEventListener("input", function () {
-                if (descInp.classList.contains("is-invalid")) {
-                    var value = descInp.value.trim();
-                    Validator.showFeedback(descInp, value !== "" && value.length <= 10000,
-                            value === "" ? "Mô tả chi tiết không được để trống."
-                            : "Mô tả chi tiết không được vượt quá 10.000 ký tự.");
-                }
+                var value = descInp.value.trim();
+                Validator.showFeedback(descInp, value !== "" && value.length <= 10000,
+                        value === "" ? "Mô tả chi tiết không được để trống."
+                        : "Mô tả chi tiết không được vượt quá 10.000 ký tự.");
             });
         }
+
+        form.addEventListener("input", function (event) {
+            if (event.target.matches("[name='spec_values[]']")) {
+                validateSpecificationFields(form);
+            }
+        });
+
+        form.addEventListener("change", function (event) {
+            if (event.target.matches("[name='spec_values[]']")) {
+                validateSpecificationFields(form);
+            }
+        });
     }
 
 

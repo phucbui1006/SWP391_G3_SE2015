@@ -28,6 +28,12 @@ public class AdminCategoryServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+
+        if ("check-name".equalsIgnoreCase(request.getParameter("action"))) {
+            handleCheckName(request, response);
+            return;
+        }
+
         response.setContentType("text/html;charset=UTF-8");
 
         String keyword = request.getParameter("keyword");
@@ -104,6 +110,22 @@ public class AdminCategoryServlet extends HttpServlet {
         }
 
         request.getRequestDispatcher("/views/category-management.jsp").forward(request, response);
+    }
+
+    private void handleCheckName(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String rawCategoryName = request.getParameter("categoryName");
+        String validationError = ValidatorUtil.getCategoryNameError(rawCategoryName);
+        boolean exists = false;
+
+        if (validationError == null) {
+            String categoryName = normalizeText(rawCategoryName);
+            Integer excludedCategoryId = parseId(request.getParameter("excludeId"));
+            exists = categoryDAO.categoryNameExists(categoryName, excludedCategoryId);
+        }
+
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"exists\":" + exists + "}");
     }
 
     @Override

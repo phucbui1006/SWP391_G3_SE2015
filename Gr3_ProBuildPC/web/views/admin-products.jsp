@@ -646,8 +646,8 @@
 
         <jsp:include page="/includes/footer.jsp" />
 
-        <script src="<%= contextPath %>/js/validator.js?v=2"></script>
-        <script src="<%= contextPath %>/js/admin-products.js?v=6"></script>
+        <script src="<%= contextPath %>/js/validator.js?v=3"></script>
+        <script src="<%= contextPath %>/js/admin-products.js?v=8"></script>
 
     </body>
 </html>

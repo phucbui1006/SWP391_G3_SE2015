@@ -8,8 +8,7 @@
     request.getAttribute("product"); List<Review> reviews = (List<Review>)
         request.getAttribute("reviews");
         List<Review> allReviews = (List<Review>) request.getAttribute("allReviews");
-                List<Product> similarProducts = (List<Product>)
-                        request.getAttribute("similarProducts");
+        List<Product> similarProducts = (List<Product>) request.getAttribute("similarProducts");
 
                         if (product == null) {
                         response.sendRedirect(contextPath + "/home");
@@ -124,7 +123,7 @@
 
         <link rel="stylesheet" href="<%= contextPath %>/css/style.css">
         <link rel="stylesheet"
-              href="<%= contextPath %>/css/product-detail.css?v=202">
+              href="<%= contextPath %>/css/product-detail.css?v=203">
     </head>
 
     <body class="product-detail-body" data-context-path="<%= contextPath %>">
@@ -140,18 +139,19 @@
             </div>
             <% } %>
 
-                                                            <nav class="breadcrumb site-breadcrumb" aria-label="Breadcrumb">
-                                                                <a href="<%= contextPath %>/home">Trang chủ</a>
-                                                                <span>›</span>
+            <nav class="breadcrumb site-breadcrumb" aria-label="Breadcrumb">
+                <a href="<%= contextPath %>/home">Trang chủ</a>
+                <span>›</span>
 
-                                                                <a href="<%= contextPath %>/categories">Sản phẩm</a>
-                                                                <span>›</span>
+                <a href="<%= contextPath %>/categories">Sản phẩm</a>
+                <span>›</span>
 
-                                                                <strong>
-                                                                    <%= product.getProductName() %>
-                                                                </strong>
-                                                            </nav>
+                <strong>
+                    <%= product.getProductName() %>
+                </strong>
+            </nav>
 
+            <section class="detail-card">
                 <div class="product-images">
                     <div class="main-image">
                         <img src="<%= contextPath %>/<%= product.getImageUrl() %>"
@@ -332,8 +332,7 @@
                             <% for (int i=1; i <=5; i++) { %>
                             <% if (i <=fullStars) { %>
                             <i class="fa-solid fa-star"></i>
-                            <% } else if (i - 1 < avgRating &&
-                                                                                        avgRating < i) { %>
+                            <% } else if (i - 1 < avgRating && avgRating < i) { %>
                             <i
                                 class="fa-solid fa-star-half-stroke"></i>
                             <% } else { %>
@@ -553,6 +552,8 @@
 
             <script src="<%= contextPath %>/js/cart.js"></script>
             <script>
+                                             var quantityValidationMessage = 'Số lượng phải là số nguyên từ 1 trở lên.';
+
                                              function showQuantityError(message) {
                                                  var quantityInput = document.getElementById('quantityInput');
                                                  var errorMessage = document.getElementById('quantityError');
@@ -611,7 +612,7 @@
 
                                                  if (quantityText === '' || !/^\d+$/.test(quantityText)) {
                                                      if (showError) {
-                                                         showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+                                                         showQuantityError(quantityValidationMessage);
                                                      }
                                                      quantityInput.focus();
                                                      return false;
@@ -621,7 +622,7 @@
 
                                                  if (quantity < 1) {
                                                      if (showError) {
-                                                         showQuantityError('Số lượng phải lớn hơn hoặc bằng 1.');
+                                                         showQuantityError(quantityValidationMessage);
                                                      }
                                                      quantityInput.focus();
                                                      return false;
@@ -668,7 +669,7 @@
                                                          }
 
                                                          event.preventDefault();
-                                                         showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+                                                         showQuantityError(quantityValidationMessage);
                                                      });
 
                                                      quantityInput.addEventListener('paste', function (event) {
@@ -679,12 +680,12 @@
                                                          }
 
                                                          event.preventDefault();
-                                                         showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+                                                         showQuantityError(quantityValidationMessage);
                                                      });
 
                                                      quantityInput.addEventListener('input', function () {
                                                          if (quantityInput.value.trim() === '') {
-                                                             clearQuantityError();
+                                                             showQuantityError(quantityValidationMessage);
                                                              return;
                                                          }
 
@@ -692,7 +693,7 @@
                                                      });
 
                                                      quantityInput.addEventListener('blur', function () {
-                                                         validateQuantity(purchaseForm, quantityInput.value.trim() !== '');
+                                                         validateQuantity(purchaseForm, true);
                                                      });
                                                  }
 

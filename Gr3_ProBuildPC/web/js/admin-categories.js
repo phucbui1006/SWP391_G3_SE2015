@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return 'Tên danh mục không được để trống.';
         }
 
-        if (name.length < 2 || name.length > 100) {
-            return 'Tên danh mục phải từ 2 đến 100 ký tự.';
+        if (name.length < 2 || name.length > 50) {
+            return 'Tên danh mục phải từ 2 đến 50 ký tự.';
         }
 
         if (/\s{2,}/.test(name)) {
@@ -76,6 +76,81 @@ document.addEventListener('DOMContentLoaded', function () {
         return isValid;
     }
 
+    const validationRequests = new WeakMap();
+    const validationTimers = new WeakMap();
+
+    async function validateDuplicateName(inputElement, excludedCategoryId) {
+        if (!validateCategoryNameInput(inputElement)) {
+            return false;
+        }
+
+        const previousRequest = validationRequests.get(inputElement);
+        if (previousRequest) {
+            previousRequest.abort();
+        }
+
+        const controller = new AbortController();
+        validationRequests.set(inputElement, controller);
+
+        const params = new URLSearchParams({
+            action: 'check-name',
+            categoryName: inputElement.value.trim()
+        });
+
+        if (excludedCategoryId) {
+            params.set('excludeId', excludedCategoryId);
+        }
+
+        try {
+            const response = await fetch(window.categoryValidationUrl + '?' + params.toString(), {
+                signal: controller.signal,
+                headers: { Accept: 'application/json' }
+            });
+
+            if (!response.ok) {
+                return true;
+            }
+
+            const result = await response.json();
+            const isValid = !result.exists;
+            applyValidationFeedback(
+                inputElement,
+                isValid,
+                'Tên danh mục đã tồn tại trong hệ thống.'
+            );
+            return isValid;
+        } catch (error) {
+            return error.name === 'AbortError' ? false : true;
+        } finally {
+            if (validationRequests.get(inputElement) === controller) {
+                validationRequests.delete(inputElement);
+            }
+        }
+    }
+
+    function scheduleRealtimeValidation(inputElement, getExcludedCategoryId) {
+        clearTimeout(validationTimers.get(inputElement));
+
+        const localError = getCategoryNameError(inputElement.value);
+        applyValidationFeedback(inputElement, localError === '', localError);
+
+        if (localError) {
+            const previousRequest = validationRequests.get(inputElement);
+            if (previousRequest) {
+                previousRequest.abort();
+            }
+            return;
+        }
+
+        const timer = setTimeout(function () {
+            validateDuplicateName(
+                inputElement,
+                getExcludedCategoryId ? getExcludedCategoryId() : ''
+            );
+        }, 300);
+        validationTimers.set(inputElement, timer);
+    }
+
     function resetModalForm(form) {
         if (!form) {
             return;
@@ -84,6 +159,11 @@ document.addEventListener('DOMContentLoaded', function () {
         form.reset();
 
         const categoryNameInput = form.querySelector('input[name="categoryName"]');
+        clearTimeout(validationTimers.get(categoryNameInput));
+        const pendingRequest = validationRequests.get(categoryNameInput);
+        if (pendingRequest) {
+            pendingRequest.abort();
+        }
         clearValidationFeedback(categoryNameInput);
 
         if (form === addForm && categoryNameInput) {
@@ -126,13 +206,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (addCategoryNameInput) {
         addCategoryNameInput.addEventListener('input', function () {
-            clearValidationFeedback(addCategoryNameInput);
+            scheduleRealtimeValidation(addCategoryNameInput);
         });
     }
 
     if (editCategoryNameInput) {
         editCategoryNameInput.addEventListener('input', function () {
-            clearValidationFeedback(editCategoryNameInput);
+            scheduleRealtimeValidation(editCategoryNameInput, function () {
+                return editCategoryIdInput ? editCategoryIdInput.value : '';
+            });
         });
     }
 
@@ -177,21 +259,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     if (addForm) {
-        addForm.addEventListener('submit', function (event) {
-            const isValid = validateCategoryNameInput(addCategoryNameInput);
+        addForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            clearTimeout(validationTimers.get(addCategoryNameInput));
 
-            if (!isValid) {
-                event.preventDefault();
+            if (await validateDuplicateName(addCategoryNameInput, '')) {
+                addForm.submit();
             }
         });
     }
 
     if (editForm) {
-        editForm.addEventListener('submit', function (event) {
-            const isValid = validateCategoryNameInput(editCategoryNameInput);
+        editForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            clearTimeout(validationTimers.get(editCategoryNameInput));
 
-            if (!isValid) {
-                event.preventDefault();
+            const excludedCategoryId = editCategoryIdInput ? editCategoryIdInput.value : '';
+            if (await validateDuplicateName(editCategoryNameInput, excludedCategoryId)) {
+                editForm.submit();
             }
         });
     }

@@ -102,6 +102,9 @@ public final class ProductValidator {
         if (name.trim().length() < 3 || name.trim().length() > 255) {
             return "Tên sản phẩm phải từ 3 đến 255 ký tự.";
         }
+        if (name.trim().matches(".*\\s{2,}.*")) {
+            return "Tên sản phẩm không được chứa nhiều dấu cách liên tiếp.";
+        }
         return null;
     }
 

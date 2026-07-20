@@ -391,7 +391,6 @@
                            value="<%= h(addCategoryOldName) %>"
                            placeholder="VD: Card đồ họa, Bo mạch chủ, Nguồn máy tính..."
                            minlength="2"
-                           maxlength="100"
                            class="<%= !addCategoryNameError.isEmpty() ? "is-invalid" : "" %>"
                            required>
 
@@ -442,7 +441,6 @@
                            value="<%= h(editCategoryOldName) %>"
                            placeholder="VD: Card đồ họa"
                            minlength="2"
-                           maxlength="100"
                            class="<%= !editCategoryNameError.isEmpty() ? "is-invalid" : "" %>"
                            required>
 
@@ -462,7 +460,10 @@
 
         <jsp:include page="/includes/footer.jsp" />
 
-        <script src="<%= contextPath %>/js/admin-categories.js?v=1.0.6"></script>
+        <script>
+            window.categoryValidationUrl = '<%= contextPath %>/admin/categories';
+        </script>
+        <script src="<%= contextPath %>/js/admin-categories.js?v=1.0.7"></script>
 
     </body>
 </html>

@@ -55,14 +55,14 @@
 
             <section class="admin-page-heading" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h1>Quản lý lô hàng</h1>
-                    <div class="admin-breadcrumb">
+                    <nav class="admin-breadcrumb site-breadcrumb" aria-label="Breadcrumb">
                         <a href="${pageContext.request.contextPath}/Dashboard">Dashboard</a>
                         <span>›</span>
                         <span>Sản phẩm</span>
                         <span>›</span>
                         <strong>Quản lý lô hàng</strong>
-                    </div>
+                    </nav>
+                    <h1>Quản lý lô hàng</h1>
                 </div>
                 <div style="display: flex; gap: 10px;">
                    

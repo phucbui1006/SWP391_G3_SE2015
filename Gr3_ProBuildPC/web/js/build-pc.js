@@ -1,26 +1,5 @@
 // Tương tác trên trang Build PC: modal, kiểm tra số lượng và chặn thêm vào giỏ hàng.
 (function () {
-    function validateQuantity(form, showFeedback) {
-        var firstInvalidInput = null;
-        document.querySelectorAll('.build-qty-input').forEach(function (input) {
-            var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || '1', 10);
-            var isValid = window.Validator.validateBuildQuantity(input.value, maxQuantity);
-            if (showFeedback) {
-                window.Validator.showFeedback(input, isValid, 'Số lượng phải từ 1 đến ' + maxQuantity + '.');
-            }
-            if (!isValid && !firstInvalidInput) {
-                firstInvalidInput = input;
-            }
-        });
-
-        if (firstInvalidInput) {
-            firstInvalidInput.focus();
-            return false;
-        }
-
-        return true;
-    }
-
     // Mở modal chọn linh kiện cho một slot Build PC.
     document.querySelectorAll('.build-open-quick-view').forEach(function (button) {
         button.addEventListener('click', function () {
@@ -56,60 +35,86 @@
         }
     });
 
-    // Giữ ô nhập ở dạng số và giới hạn theo số lượng tồn kho có sẵn.
-    function sanitizeBuildQuantityInput(input) {
+    var quantityInputs = Array.prototype.slice.call(document.querySelectorAll('.build-qty-input'));
+
+    function getQuantityError(input) {
         var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || '1', 10);
-        var digits = String(input.value || '').replace(/\D/g, '');
-
-        if (digits === '') {
-            input.value = '';
-            return;
+        var value = String(input.value || '').trim();
+        if (!/^[1-9][0-9]*$/.test(value)) {
+            return 'Số lượng phải là số nguyên từ 1 trở lên.';
         }
-
-        var numericValue = parseInt(digits, 10);
-        if (!Number.isFinite(numericValue)) {
-            input.value = '';
-            return;
-        }
-
-        if (maxQuantity > 0 && numericValue > maxQuantity) {
-            input.value = String(maxQuantity);
-            return;
-        }
-
-        input.value = String(numericValue);
+        return 'Số lượng không được lớn hơn số lượng trong kho (' + maxQuantity + ').';
     }
 
-    // Gắn logic kiểm tra và tự submit cho từng ô nhập số lượng Build PC.
-    document.querySelectorAll('.build-qty-input').forEach(function (input) {
-        var baseWidth = 114;
-        var digitWidth = 14;
-
-        function resizeQuantityInput() {
-            var length = Math.max(input.value.length, 1);
-            input.style.width = Math.max(baseWidth, length * digitWidth + 48) + 'px';
+    function persistQuantity(input) {
+        if (input._pendingQuantityUpdate) {
+            return input._pendingQuantityUpdate;
         }
+
+        var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || '1', 10);
+        var isValid = window.Validator.validateBuildQuantity(input.value, maxQuantity);
+        window.Validator.showFeedback(input, isValid, getQuantityError(input));
+        if (!isValid) {
+            return Promise.resolve(false);
+        }
+
+        if (input.dataset.savedQuantity === input.value) {
+            return Promise.resolve(true);
+        }
+
+        var formData = new FormData(input.form);
+        input._pendingQuantityUpdate = fetch(input.form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams(formData).toString()
+        }).then(function (response) {
+            return response.json().then(function (data) {
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Không thể cập nhật số lượng.');
+                }
+                input.dataset.savedQuantity = String(data.quantity);
+                window.Validator.clearFeedback(input);
+                return true;
+            });
+        }).catch(function (error) {
+            window.Validator.showFeedback(input, false, error.message);
+            input.focus();
+            return false;
+        }).finally(function () {
+            input._pendingQuantityUpdate = null;
+        });
+
+        return input._pendingQuantityUpdate;
+    }
+
+    function flushQuantities() {
+        return Promise.all(quantityInputs.map(persistQuantity)).then(function (results) {
+            return results.every(function (result) { return result; });
+        });
+    }
+
+    // Lưu bằng AJAX để việc chọn linh kiện tiếp theo không chạy trước request cập nhật số lượng.
+    quantityInputs.forEach(function (input) {
+        input.dataset.savedQuantity = input.value;
 
         function validateQuantityInput() {
             var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || '1', 10);
             var isValid = window.Validator.validateBuildQuantity(input.value, maxQuantity);
-            window.Validator.showFeedback(input, isValid, 'Số lượng phải từ 1 đến ' + maxQuantity + '.');
+            window.Validator.showFeedback(input, isValid, getQuantityError(input));
             return isValid;
         }
 
         input.addEventListener('input', function () {
-            sanitizeBuildQuantityInput(input);
-            resizeQuantityInput();
             if (input.classList.contains('is-invalid')) {
                 validateQuantityInput();
             }
         });
 
         input.addEventListener('blur', function () {
-            sanitizeBuildQuantityInput(input);
-            if (validateQuantityInput()) {
-                input.form.submit();
-            }
+            persistQuantity(input);
         });
 
         input.addEventListener('keydown', function (event) {
@@ -126,29 +131,33 @@
         input.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                sanitizeBuildQuantityInput(input);
                 if (validateQuantityInput()) {
-                    input.form.submit();
+                    persistQuantity(input);
                 }
             }
         });
 
         input.form.addEventListener('submit', function (event) {
-            sanitizeBuildQuantityInput(input);
-            if (!validateQuantityInput()) {
-                event.preventDefault();
-            }
-        });
-
-        resizeQuantityInput();
-    });
-
-    // Ngăn thêm cấu hình Build PC vào giỏ hàng khi số lượng không hợp lệ.
-    document.querySelectorAll('.build-add-cart-form').forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            if (!validateQuantity(form, true)) {
-                event.preventDefault();
-            }
+            event.preventDefault();
+            persistQuantity(input);
         });
     });
+
+    var resumeClick = false;
+    document.addEventListener('click', function (event) {
+        var action = event.target.closest('button[type="submit"], [data-add-to-cart-btn]');
+        if (!action || action.closest('.build-quantity') || resumeClick) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        flushQuantities().then(function (success) {
+            if (!success) return;
+            resumeClick = true;
+            action.click();
+            resumeClick = false;
+        });
+    }, true);
+
 })();

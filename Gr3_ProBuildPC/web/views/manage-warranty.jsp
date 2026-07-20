@@ -19,7 +19,7 @@
 
         <main class="warranty-shell">
             <!-- Breadcrumbs -->
-            <nav class="warranty-breadcrumb" aria-label="breadcrumb">
+            <nav class="warranty-breadcrumb site-breadcrumb" aria-label="breadcrumb">
                 <a href="${ctx}/Dashboard">Dashboard</a>
                 <span>›</span>
                 <strong>Quản lý bảo hành</strong>

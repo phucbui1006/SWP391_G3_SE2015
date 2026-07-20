@@ -85,14 +85,14 @@
 
         <main class="admin-brand-page">
             <section class="admin-page-heading">
-                <h1>Quản lý thương hiệu</h1>
-                <div class="admin-breadcrumb">
+                <nav class="admin-breadcrumb site-breadcrumb" aria-label="Breadcrumb">
                     <a href="<%= ctx %>/Dashboard">Dashboard</a>
                     <span>›</span>
                     <span>Sản phẩm</span>
                     <span>›</span>
                     <strong>Thương hiệu</strong>
-                </div>
+                </nav>
+                <h1>Quản lý thương hiệu</h1>
             </section>
 
             <% if (success != null && !success.isEmpty()) { %>

@@ -2760,7 +2760,9 @@ body.home-page .product-psu::after {
 body.home-page .home-pagination {
     margin-top: 34px;
     display: flex;
-    justify-content: center;
+/*    justify-content: flex-end;*/
+justify-content: center;
+/*justify-content: flex-start;*/
     align-items: center;
     gap: 16px;
 }

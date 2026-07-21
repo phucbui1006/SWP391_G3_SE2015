@@ -248,13 +248,8 @@ public final class ProductValidator {
             }
 
             if ("NUMBER".equalsIgnoreCase(template.getSpecType())) {
-                try {
-                    BigDecimal numericValue = new BigDecimal(value);
-                    if (numericValue.compareTo(BigDecimal.ZERO) <= 0) {
-                        errors.put(errorKey, "Thông số '" + template.getSpecName() + "' phải lớn hơn 0.");
-                    }
-                } catch (NumberFormatException e) {
-                    errors.put(errorKey, "Thông số '" + template.getSpecName() + "' phải là một số hợp lệ.");
+                if (!value.matches("^[1-9]\\d*$")) {
+                    errors.put(errorKey, "Thông số phải là số nguyên từ 1 trở lên.");
                 }
             } else if ("SELECT".equalsIgnoreCase(template.getSpecType())
                     && !isAllowedValue(value, template.getAllowedValues())) {

@@ -118,10 +118,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 message = "Thông số không được vượt quá 255 ký tự.";
             }
 
-            if (inputValid && value !== "" && input.type === "number") {
-                var numericValue = Number(value);
-                inputValid = Number.isFinite(numericValue) && numericValue > 0;
-                message = "Thông số phải là số lớn hơn 0.";
+            if (input.type === "number" && (input.validity.badInput || value !== "")) {
+                inputValid = !input.validity.badInput && /^[1-9]\d*$/.test(value);
+                message = "Thông số phải là số nguyên từ 1 trở lên.";
             }
 
             Validator.showFeedback(input, inputValid, message);
@@ -513,8 +512,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 inputElement.name = "spec_values[]";
                 inputElement.placeholder = "Nhập số lượng/thông số...";
                 inputElement.value = preValue;
-                inputElement.min = "0.000001";
-                inputElement.step = "any";
+                inputElement.min = "1";
+                inputElement.step = "1";
             } else {
                 inputElement = document.createElement("input");
                 inputElement.type = "text";

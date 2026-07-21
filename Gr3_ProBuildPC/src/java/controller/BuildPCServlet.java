@@ -2,6 +2,7 @@ package controller;
 
 import dal.BuildPCDAO;
 import dal.CartDAO;
+import dal.ProductDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -17,6 +18,7 @@ import java.util.Map;
 import model.BuildPCSlot;
 import model.CartItem;
 import model.Product;
+import model.ProductSpecification;
 import model.User;
 
 @WebServlet(name = "BuildPCServlet", urlPatterns = {"/build-pc", "/BuildPC"})
@@ -24,6 +26,7 @@ public class BuildPCServlet extends HttpServlet {
 
     private static final String SESSION_SELECTED_BUILD = "selectedBuild";
     private static final String SESSION_SELECTED_BUILD_QUANTITIES = "selectedBuildQuantities";
+    private static final String SESSION_BUILD_CHECKOUT_ITEMS = "buildCheckoutItems";
     private static final String SESSION_CART_ITEM_COUNT = "sessionCartItemCount";
     private static final String BUILD_MESSAGE = "buildPcMessage";
     private static final String BUILD_MESSAGE_TYPE = "buildPcMessageType";
@@ -78,6 +81,9 @@ public class BuildPCServlet extends HttpServlet {
             case "addToCart":
                 handleAddToCart(request, response);
                 break;
+            case "buyNow":
+                handleBuyNow(request, response);
+                break;
             case "view":
             default:
                 showBuildPC(request, response);
@@ -98,12 +104,26 @@ public class BuildPCServlet extends HttpServlet {
         List<BuildPCSlot> buildSlots = createBuildSlots(buildPCDAO, selectedBuild, selectedProducts, selectedQuantities);
 
         request.setAttribute("buildSlots", buildSlots);
+        request.setAttribute("selectedProductSpecifications", loadSelectedSpecifications(selectedProducts));
         request.setAttribute("buildTotal", calculateBuildTotal(selectedProducts, selectedQuantities));
         request.setAttribute("cartItemCount", getCartItemCount(session));
         moveFlash(session, request, BUILD_MESSAGE, "buildPcMessage");
         moveFlash(session, request, BUILD_MESSAGE_TYPE, "buildPcMessageType");
 
         request.getRequestDispatcher("/views/build-pc.jsp").forward(request, response);
+    }
+
+    private Map<Integer, List<ProductSpecification>> loadSelectedSpecifications(
+            Map<String, Product> selectedProducts) {
+        Map<Integer, List<ProductSpecification>> specifications = new LinkedHashMap<>();
+        ProductDAO productDAO = new ProductDAO();
+        for (Product product : selectedProducts.values()) {
+            if (product != null && !specifications.containsKey(product.getProductId())) {
+                specifications.put(product.getProductId(),
+                        productDAO.getSpecificationsByProductId(product.getProductId()));
+            }
+        }
+        return specifications;
     }
 
     /**
@@ -240,6 +260,37 @@ public class BuildPCServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
+    private void handleBuyNow(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        HttpSession session = request.getSession();
+        User account = (User) session.getAttribute("account");
+
+        if (account == null) {
+            setFlash(session, "Bạn cần đăng nhập để mua cấu hình.", "error");
+            response.sendRedirect(request.getContextPath() + "/Login");
+            return;
+        }
+
+        if (!account.isCustomer()) {
+            setFlash(session, "Chỉ tài khoản khách hàng mới có thể mua cấu hình.", "error");
+            response.sendRedirect(request.getContextPath() + "/build-pc");
+            return;
+        }
+
+        Map<String, Integer> selectedBuild = getSelectedBuild(session);
+        Map<String, Integer> selectedQuantities = getSelectedQuantities(session);
+        BuildValidationResult validation = validateBuildForPurchase(selectedBuild, selectedQuantities);
+
+        if (!validation.isValid()) {
+            setFlash(session, validation.getMessage(), "error");
+            response.sendRedirect(request.getContextPath() + "/build-pc");
+            return;
+        }
+
+        session.setAttribute(SESSION_BUILD_CHECKOUT_ITEMS, validation.getProductQuantities());
+        response.sendRedirect(request.getContextPath() + "/checkout?checkoutMode=build");
+    }
+
     /**
      * Thêm cấu hình Build PC hiện tại vào giỏ hàng của khách sau khi kiểm tra tồn kho và tính tương thích.
      */
@@ -343,6 +394,38 @@ public class BuildPCServlet extends HttpServlet {
         }
     }
 
+    private BuildValidationResult validateBuildForPurchase(Map<String, Integer> selectedBuild,
+            Map<String, Integer> selectedQuantities) {
+        if (selectedBuild.isEmpty()) {
+            return BuildValidationResult.error("Bạn chưa chọn linh kiện nào để thanh toán.");
+        }
+
+        BuildPCDAO buildPCDAO = new BuildPCDAO();
+        Map<Integer, Integer> productQuantities = new LinkedHashMap<>();
+
+        for (Map.Entry<String, Integer> entry : selectedBuild.entrySet()) {
+            String slot = entry.getKey();
+            int productId = entry.getValue();
+            Product product = buildPCDAO.getProductById(productId);
+            int availableQuantity = buildPCDAO.getAvailableQuantity(productId);
+            int quantity = getSelectedQuantity(selectedQuantities, slot);
+
+            if (product == null || availableQuantity <= 0) {
+                return BuildValidationResult.error("Một linh kiện trong cấu hình đã hết hàng hoặc ngừng kinh doanh.");
+            }
+            if (!isValidSelectedQuantity(selectedQuantities, slot, availableQuantity)) {
+                return BuildValidationResult.error("Số lượng của " + product.getProductName() + " không hợp lệ.");
+            }
+            if (!buildPCDAO.isProductCompatibleWithSelectedBuild(productId, selectedBuild, slot)) {
+                return BuildValidationResult.error("Cấu hình hiện tại có linh kiện không tương thích.");
+            }
+
+            productQuantities.put(productId, quantity);
+        }
+
+        return BuildValidationResult.success(productQuantities);
+    }
+
     /**
      * Xây dựng danh sách slot hiển thị trên trang, bao gồm các sản phẩm phù hợp theo tính tương thích.
      */
@@ -350,27 +433,15 @@ public class BuildPCServlet extends HttpServlet {
             Map<String, Product> selectedProducts, Map<String, Integer> selectedQuantities) {
         List<BuildPCSlot> slots = new ArrayList<>();
 
-        BuildPCSlot cpu = new BuildPCSlot("CPU", "Bộ vi xử lý (CPU)", CPU_CATEGORY_ID, true);
-        cpu.setAvailableProducts(dao.getProductsByCategoryCompatibleWithBuild(CPU_CATEGORY_ID, selectedBuild, "CPU"));
-        slots.add(cpu);
-
-        BuildPCSlot mainboard = new BuildPCSlot("Mainboard", "Bo mạch chủ", MAINBOARD_CATEGORY_ID, true);
-        mainboard.setAvailableProducts(dao.getProductsByCategoryCompatibleWithBuild(MAINBOARD_CATEGORY_ID, selectedBuild, "Mainboard"));
-        slots.add(mainboard);
-
-        BuildPCSlot ram = new BuildPCSlot("RAM", "Bộ nhớ RAM", RAM_CATEGORY_ID, true);
-        ram.setAvailableProducts(dao.getProductsByCategoryCompatibleWithBuild(RAM_CATEGORY_ID, selectedBuild, "RAM"));
-        slots.add(ram);
-
-        BuildPCSlot gpu = new BuildPCSlot("GPU", "Card đồ họa", GPU_CATEGORY_ID, true);
-        gpu.setAvailableProducts(dao.getProductsByCategoryCompatibleWithBuild(GPU_CATEGORY_ID, selectedBuild, "GPU"));
-        slots.add(gpu);
-
-        slots.add(createAccessorySlot(dao, "SSD", "Ổ cứng SSD", SSD_CATEGORY_ID));
-        slots.add(createAccessorySlot(dao, "Case", "Vỏ máy tính", CASE_CATEGORY_ID));
-        slots.add(createAccessorySlot(dao, "Monitor", "Màn hình", MONITOR_CATEGORY_ID));
-        slots.add(createAccessorySlot(dao, "Keyboard", "Bàn phím", KEYBOARD_CATEGORY_ID));
-        slots.add(createAccessorySlot(dao, "Mouse", "Chuột", MOUSE_CATEGORY_ID));
+        slots.add(createSlot(dao, selectedBuild, "CPU", "Bộ vi xử lý (CPU)", CPU_CATEGORY_ID, true));
+        slots.add(createSlot(dao, selectedBuild, "Mainboard", "Bo mạch chủ", MAINBOARD_CATEGORY_ID, true));
+        slots.add(createSlot(dao, selectedBuild, "RAM", "Bộ nhớ RAM", RAM_CATEGORY_ID, true));
+        slots.add(createSlot(dao, selectedBuild, "GPU", "Card đồ họa", GPU_CATEGORY_ID, true));
+        slots.add(createSlot(dao, selectedBuild, "SSD", "Ổ cứng SSD", SSD_CATEGORY_ID, false));
+        slots.add(createSlot(dao, selectedBuild, "Case", "Vỏ máy tính", CASE_CATEGORY_ID, false));
+        slots.add(createSlot(dao, selectedBuild, "Monitor", "Màn hình", MONITOR_CATEGORY_ID, false));
+        slots.add(createSlot(dao, selectedBuild, "Keyboard", "Bàn phím", KEYBOARD_CATEGORY_ID, false));
+        slots.add(createSlot(dao, selectedBuild, "Mouse", "Chuột", MOUSE_CATEGORY_ID, false));
 
         for (BuildPCSlot slot : slots) {
             slot.setSelectedProduct(selectedProducts.get(slot.getKey()));
@@ -381,12 +452,15 @@ public class BuildPCServlet extends HttpServlet {
     }
 
     /**
-     * Tạo slot không cần kiểm tra tương thích như SSD, case, màn hình, bàn phím hoặc chuột.
+     * Tạo một slot và nạp danh sách sản phẩm phù hợp với loại slot đó.
      */
-    private BuildPCSlot createAccessorySlot(BuildPCDAO dao, String key, String displayName, int categoryId) {
-        BuildPCSlot slot = new BuildPCSlot(key, displayName, categoryId, false);
-        // Phụ kiện không kiểm tra tương thích, chỉ cần ACTIVE và còn hàng.
-        slot.setAvailableProducts(dao.getProductsByCategory(categoryId));
+    private BuildPCSlot createSlot(BuildPCDAO dao, Map<String, Integer> selectedBuild,
+            String key, String displayName, int categoryId, boolean requiresCompatibility) {
+        BuildPCSlot slot = new BuildPCSlot(key, displayName, categoryId, requiresCompatibility);
+        List<Product> products = requiresCompatibility
+                ? dao.getProductsByCategoryCompatibleWithBuild(categoryId, selectedBuild, key)
+                : dao.getProductsByCategory(categoryId);
+        slot.setAvailableProducts(products);
         return slot;
     }
 
@@ -667,5 +741,35 @@ public class BuildPCServlet extends HttpServlet {
                 .replace("\"", "\\\"")
                 .replace("\r", "\\r")
                 .replace("\n", "\\n");
+    }
+
+    private static final class BuildValidationResult {
+        private final Map<Integer, Integer> productQuantities;
+        private final String message;
+
+        private BuildValidationResult(Map<Integer, Integer> productQuantities, String message) {
+            this.productQuantities = productQuantities;
+            this.message = message;
+        }
+
+        private static BuildValidationResult success(Map<Integer, Integer> productQuantities) {
+            return new BuildValidationResult(productQuantities, null);
+        }
+
+        private static BuildValidationResult error(String message) {
+            return new BuildValidationResult(null, message);
+        }
+
+        private boolean isValid() {
+            return productQuantities != null && !productQuantities.isEmpty();
+        }
+
+        private Map<Integer, Integer> getProductQuantities() {
+            return productQuantities;
+        }
+
+        private String getMessage() {
+            return message;
+        }
     }
 }

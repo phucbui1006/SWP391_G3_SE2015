@@ -2,9 +2,11 @@
 <%@ page import="java.math.BigDecimal" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="model.BuildPCSlot" %>
 <%@ page import="model.Product" %>
+<%@ page import="model.ProductSpecification" %>
 
 <%!
     private String formatMoney(NumberFormat formatter, BigDecimal value) {
@@ -104,6 +106,8 @@
     currencyFormatter.setMaximumFractionDigits(0);
 
     List<BuildPCSlot> buildSlots = (List<BuildPCSlot>) request.getAttribute("buildSlots");
+    Map<Integer, List<ProductSpecification>> selectedProductSpecifications =
+            (Map<Integer, List<ProductSpecification>>) request.getAttribute("selectedProductSpecifications");
     BigDecimal buildTotal = (BigDecimal) request.getAttribute("buildTotal");
     String buildPcMessage = (String) request.getAttribute("buildPcMessage");
     String buildPcMessageType = (String) request.getAttribute("buildPcMessageType");
@@ -115,7 +119,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Build PC - ProBuild PC</title>
-        <link rel="stylesheet" href="<%= ctx %>/css/style.css">
+        <link rel="stylesheet" href="<%= ctx %>/css/style.css?v=20260720-4">
     </head>
 
     <body class="build-pc-page" data-context-path="<%= ctx %>" style="padding-bottom: 0px; padding-left: 0px; padding-right: 0px; padding-top: 0px">
@@ -169,7 +173,10 @@
                             <strong><%= escapeHtml(slot.getDisplayName()) %></strong>
                         </div>
 
-                        <div class="build-part-product">
+                        <button class="build-part-product build-selected-product-trigger build-open-quick-view"
+                                type="button"
+                                data-build-modal="build-product-modal-<%= escapeHtml(slot.getKey()) %>"
+                                aria-label="Xem nhanh <%= escapeHtml(selectedProduct.getProductName()) %>">
                             <% if (selectedProduct.getImageUrl() != null) { %>
                             <img src="<%= ctx %>/<%= escapeHtml(selectedProduct.getImageUrl()) %>" alt="<%= escapeHtml(selectedProduct.getProductName()) %>">
                             <% } else { %>
@@ -180,7 +187,8 @@
                                 <h2><%= escapeHtml(selectedProduct.getProductName()) %></h2>
                                 <strong><%= formatMoney(currencyFormatter, selectedProduct.getPrice()) %></strong>
                             </div>
-                        </div>
+                            <span class="build-product-view-hint">Xem nhanh</span>
+                        </button>
 
                         <div class="build-quick-cell">
                             <form class="build-quantity" action="<%= ctx %>/build-pc" method="post">
@@ -195,6 +203,7 @@
                                        step="1"
                                        inputmode="numeric"
                                        autocomplete="off"
+                                       data-unit-price="<%= selectedProduct.getPrice().toPlainString() %>"
                                        data-max-quantity="<%= selectedProduct.getQuantity() %>">
                             </form>
                             <small><%= slot.getAvailableProducts().size() %> sản phẩm phù hợp</small>
@@ -212,12 +221,83 @@
                                     Xóa
                                 </button>
                             </form>
-                            <a class="build-detail-link" href="<%= ctx %>/product-detail?id=<%= selectedProduct.getProductId() %>">
-                                Xem chi tiết
-                            </a>
                         </div>
                         <% } %>
                     </div>
+
+                    <% if (selectedProduct != null) { %>
+                    <div class="build-quick-view build-product-view" id="build-product-modal-<%= escapeHtml(slot.getKey()) %>" aria-hidden="true">
+                        <div class="build-quick-backdrop" data-build-close></div>
+                        <section class="build-product-dialog cart-quick-view-modal" role="dialog" aria-modal="true"
+                                 aria-labelledby="build-product-title-<%= escapeHtml(slot.getKey()) %>">
+                            <button class="build-product-close cart-quick-view-close" type="button" data-build-close aria-label="Đóng xem nhanh">&times;</button>
+
+                            <div class="build-product-media cart-quick-view-media">
+                                <div class="build-product-image-frame cart-quick-view-image-shell">
+                                    <% if (selectedProduct.getImageUrl() != null && !selectedProduct.getImageUrl().trim().isEmpty()) { %>
+                                    <img class="cart-quick-view-image" src="<%= ctx %>/<%= escapeHtml(selectedProduct.getImageUrl()) %>"
+                                         alt="<%= escapeHtml(selectedProduct.getProductName()) %>">
+                                    <% } else { %>
+                                    <div class="build-product-image-placeholder"><%= getIcon(slot.getKey()) %></div>
+                                    <% } %>
+                                </div>
+                                <p>Thương hiệu: <strong><%= escapeHtml(selectedProduct.getBrandName()) %></strong>
+                                    <span>|</span> Danh mục: <strong><%= escapeHtml(selectedProduct.getCategoryName()) %></strong></p>
+                                <span class="build-product-stock cart-quick-view-stock-pill is-in-stock">Còn hàng: <%= selectedProduct.getQuantity() %></span>
+                            </div>
+
+                            <div class="build-product-information cart-quick-view-content">
+                                <div class="cart-quick-view-header">
+                                <span class="build-product-eyebrow cart-quick-view-eyebrow">XEM NHANH</span>
+                                <h2 id="build-product-title-<%= escapeHtml(slot.getKey()) %>"><%= escapeHtml(selectedProduct.getProductName()) %></h2>
+                                <p class="build-product-warranty">Bảo hành: <strong><%= selectedProduct.getWarrantyMonths() %> tháng</strong> chính hãng</p>
+                                </div>
+
+                                <div class="build-product-price-box cart-quick-view-price-panel">
+                                    <span class="cart-quick-view-label">GIÁ HIỆN TẠI</span>
+                                    <strong class="cart-quick-view-price"><%= formatMoney(currencyFormatter, selectedProduct.getPrice()) %></strong>
+                                </div>
+
+                                <div class="build-product-description-box cart-quick-view-section">
+                                    <span class="cart-quick-view-label">CHI TIẾT SẢN PHẨM</span>
+                                    <p class="cart-quick-view-description"><%= escapeHtml(selectedProduct.getDescription() == null || selectedProduct.getDescription().trim().isEmpty()
+                                            ? "Thông tin chi tiết của sản phẩm đang được cập nhật."
+                                            : selectedProduct.getDescription()) %></p>
+                                    <%
+                                        List<ProductSpecification> productSpecifications = selectedProductSpecifications == null
+                                                ? java.util.Collections.emptyList()
+                                                : selectedProductSpecifications.get(selectedProduct.getProductId());
+                                    %>
+                                    <% if (productSpecifications != null && !productSpecifications.isEmpty()) { %>
+                                    <div class="build-product-meta-grid cart-quick-view-specs-grid">
+                                        <% for (ProductSpecification specification : productSpecifications) { %>
+                                        <div class="cart-quick-view-spec-card">
+                                            <span class="cart-quick-view-spec-icon" aria-hidden="true">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                                                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                                                </svg>
+                                            </span>
+                                            <span class="cart-quick-view-spec-info">
+                                                <small class="cart-quick-view-spec-name"><%= escapeHtml(specification.getSpecificationName()) %></small>
+                                                <strong class="cart-quick-view-spec-value"><%= escapeHtml(specification.getSpecificationValue()) %></strong>
+                                            </span>
+                                        </div>
+                                        <% } %>
+                                    </div>
+                                    <% } else { %>
+                                    <p class="build-product-spec-empty">Thông số sản phẩm đang được cập nhật.</p>
+                                    <% } %>
+                                </div>
+
+                                <a class="build-product-full-detail" href="<%= ctx %>/product-detail?id=<%= selectedProduct.getProductId() %>">
+                                    Xem đầy đủ thông số
+                                </a>
+                            </div>
+                        </section>
+                    </div>
+                    <% } %>
 
                     <div class="build-quick-view" id="build-modal-<%= escapeHtml(slot.getKey()) %>" aria-hidden="true">
                         <div class="build-quick-backdrop" data-build-close></div>
@@ -280,6 +360,13 @@
                     <strong class="build-total" data-build-total><%= formatMoney(currencyFormatter, buildTotal) %></strong>
 
                     <div class="build-cart-action">
+                        <form action="<%= ctx %>/build-pc" method="post">
+                            <input type="hidden" name="action" value="buyNow">
+                            <button class="build-buy-now-btn" type="submit">
+                                <span aria-hidden="true"></span>
+                                Mua ngay
+                            </button>
+                        </form>
                         <form class="build-add-cart-form cart-form" action="<%= ctx %>/build-pc" method="post">
                             <input type="hidden" name="action" value="addToCart">
                             <button class="build-cart-btn" type="submit" data-add-to-cart-btn data-product-name="Cấu hình Build PC">
@@ -300,7 +387,7 @@
         </div>
 
         <script src="<%= ctx %>/js/validator.js"></script>
-        <script src="<%= ctx %>/js/build-pc.js"></script>
+        <script src="<%= ctx %>/js/build-pc.js?v=20260720-5"></script>
         <script src="<%= ctx %>/js/cart.js"></script>
     </body>
 </html>

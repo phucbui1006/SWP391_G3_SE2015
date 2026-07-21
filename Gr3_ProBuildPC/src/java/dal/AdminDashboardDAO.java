@@ -107,9 +107,7 @@ public class AdminDashboardDAO extends DBContext {
                 LEFT JOIN orders_status os ON os.status_id = o.status_id
                 WHERE o.order_date >= ?
                   AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-                  AND (os.status_name IS NULL
-                       OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
-                           AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
+                """ + NOT_CANCELLED_ORDER_CONDITION + """
                 GROUP BY DATE_FORMAT(o.order_date, ?)
                 ORDER BY MIN(o.order_date) ASC
                 """;

@@ -23,6 +23,15 @@
     private String url(String value) {
         return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
     }
+
+    private String brandPageUrl(String ctx, Integer brandId, String priceRange,
+            String sort, String keyword, int pageNumber) {
+        return ctx + "/brands?brandId=" + (brandId == null ? "" : brandId)
+                + "&priceRange=" + url(priceRange)
+                + "&sort=" + url(sort)
+                + "&keyword=" + url(keyword)
+                + "&page=" + pageNumber;
+    }
 %>
 
 <%
@@ -35,6 +44,10 @@
     String selectedPriceRange = (String) request.getAttribute("selectedPriceRange");
     String selectedSort = (String) request.getAttribute("selectedSort");
     String keyword = (String) request.getAttribute("keyword");
+    Integer currentPageValue = (Integer) request.getAttribute("currentPage");
+    Integer totalPagesValue = (Integer) request.getAttribute("totalPages");
+    int currentPage = currentPageValue == null ? 1 : currentPageValue;
+    int totalPages = totalPagesValue == null ? 1 : totalPagesValue;
 
     if (selectedPriceRange == null) {
         selectedPriceRange = "all";
@@ -61,7 +74,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Thương hiệu sản phẩm - ProBuild PC</title>
         <link rel="stylesheet" href="<%= ctx %>/css/style.css">
-        <link rel="stylesheet" href="<%= ctx %>/css/brands.css">
+        <link rel="stylesheet" href="<%= ctx %>/css/brands.css?v=3">
     </head>
     <body class="brands-page" data-context-path="<%= ctx %>" style="padding-bottom: 0px; padding-left: 0px; padding-right: 0px; padding-top: 0px">
         <jsp:include page="/includes/header.jsp" />
@@ -237,6 +250,37 @@
                         </div>
                         <% } %>
                     </div>
+                    <% if (totalPages > 1) { %>
+                    <nav class="brand-pagination home-pagination" aria-label="Phân trang sản phẩm">
+                        <% if (currentPage > 1) { %>
+                        <a href="<%= brandPageUrl(ctx, selectedBrandId, selectedPriceRange, selectedSort, keyword, currentPage - 1) %>">Trước</a>
+                        <% } %>
+                        <%
+                            int fromPage = Math.max(2, currentPage - 2);
+                            int toPage = Math.min(totalPages - 1, currentPage + 2);
+                            if (currentPage <= 4) {
+                                fromPage = 2;
+                                toPage = Math.min(totalPages - 1, 5);
+                            } else if (currentPage >= totalPages - 3) {
+                                fromPage = Math.max(2, totalPages - 4);
+                                toPage = totalPages - 1;
+                            }
+                        %>
+                        <a class="<%= currentPage == 1 ? "active" : "" %>"
+                           href="<%= brandPageUrl(ctx, selectedBrandId, selectedPriceRange, selectedSort, keyword, 1) %>">1</a>
+                        <% if (fromPage > 2) { %><span>...</span><% } %>
+                        <% for (int pageNumber = fromPage; pageNumber <= toPage; pageNumber++) { %>
+                        <a class="<%= pageNumber == currentPage ? "active" : "" %>"
+                           href="<%= brandPageUrl(ctx, selectedBrandId, selectedPriceRange, selectedSort, keyword, pageNumber) %>"><%= pageNumber %></a>
+                        <% } %>
+                        <% if (toPage < totalPages - 1) { %><span>...</span><% } %>
+                        <a class="<%= currentPage == totalPages ? "active" : "" %>"
+                           href="<%= brandPageUrl(ctx, selectedBrandId, selectedPriceRange, selectedSort, keyword, totalPages) %>"><%= totalPages %></a>
+                        <% if (currentPage < totalPages) { %>
+                        <a href="<%= brandPageUrl(ctx, selectedBrandId, selectedPriceRange, selectedSort, keyword, currentPage + 1) %>">Sau</a>
+                        <% } %>
+                    </nav>
+                    <% } %>
                 </section>
             </section>
         </main>

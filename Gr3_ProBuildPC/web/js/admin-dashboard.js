@@ -94,12 +94,7 @@
 
     bar('bestSellingProductsChart', data.bestSellingLabels, data.bestSellingValues, 'Đã bán', '#dc2626',
             context => unit('sản phẩm')(context.parsed.x), true);
-    bar('lowStockProductsChart', data.lowStockLabels, data.lowStockValues, 'Số sản phẩm', '#f59e0b',
-            context => unit('sản phẩm')(context.parsed.x), true);
     bar('orderStatusChart', data.orderStatusLabels, data.orderStatusValues, 'Số lượng đơn hàng',
             labels(data.orderStatusLabels).map((_, index) => colors[(index + 1) % colors.length]),
             context => unit('đơn')(context.parsed.y), false);
-    bar('accountOverviewChart', data.accountLabels, data.accountValues, 'Số tài khoản',
-            labels(data.accountLabels).map((_, index) => colors[index % colors.length]),
-            context => context.label + ': ' + unit('tài khoản')(context.parsed.x), true);
 })();

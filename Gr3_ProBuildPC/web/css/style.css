@@ -10039,18 +10039,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-weight: 900;
 }
 
-.admin-account-chart-wrap {
-    min-height: 320px;
-    padding: 20px;
-}
-
-.admin-account-chart {
-    position: relative;
-    width: 100%;
-    height: 250px;
-    justify-self: center;
-}
-
 .admin-dashboard-table .admin-empty-message {
     color: black !important;
     font-size: 14px !important;
@@ -10233,15 +10221,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
         min-width: 0;
     }
 
-    .admin-account-chart-wrap {
-        grid-template-columns: 1fr;
-        min-height: 0;
-        padding: 16px;
-    }
-
-    .admin-account-chart {
-        height: 220px;
-    }
 }
 
 /* ==================== PRODUCT RATING STARS ==================== */

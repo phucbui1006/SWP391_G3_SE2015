@@ -135,7 +135,7 @@
 
                 <div class="build-pc-heading">
                     <div class="headerBuild" style="text-center">
-                        <h1>BUILD PC</h1>
+                        <h1>XÂY DỰNG CẤU HÌNH</h1>
                         <p>Tự tay lựa chọn linh kiện để tạo nên cấu hình PC theo nhu cầu của bạn.</p>
                     </div>
 

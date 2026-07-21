@@ -109,7 +109,7 @@
         <a href="<%= ctx %>/home" class="menu-item <%= "/home".equals(currentPath) || "/Home".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-house"></i> Trang chủ</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/build-pc" class="menu-item <%= "/build-pc".equals(currentPath) || "/BuildPC".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-screwdriver-wrench"></i> BUILD PC</a>
+        <a href="<%= ctx %>/build-pc" class="menu-item <%= "/build-pc".equals(currentPath) || "/BuildPC".equals(currentPath) ? "active" : "" %>"><i class="fa-solid fa-screwdriver-wrench"></i> Xây dựng cấu hình PC</a>
         <span class="menu-divider"></span>
 
         <div class="menu-dropdown">

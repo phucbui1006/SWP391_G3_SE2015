@@ -68,6 +68,7 @@ public class BrandDAO extends DBContext {
         return list;
     }
 
+    //Lấy ra, filter tất cả brand theo status
     public List<Brand> getActiveBrands() {
         List<Brand> list = new ArrayList<>();
 
@@ -102,6 +103,7 @@ public class BrandDAO extends DBContext {
         return list;
     }
 
+    //Lấy ra brand theo id
     public Brand getBrandById(int brandId) {
         String sql = """
             SELECT br.brand_id, br.brand_name, br.img, br.status,
@@ -151,6 +153,8 @@ public class BrandDAO extends DBContext {
         return false;
     }
 
+    
+    //Hàm tanwgg ID của brand mới khi add mới
     private int getNextBrandId() {
         String sql = "SELECT COALESCE(MAX(brand_id), 0) + 1 AS next_id FROM brands";
         try {

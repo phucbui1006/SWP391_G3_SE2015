@@ -137,6 +137,55 @@
     quantityInputs.forEach(function (input) {
         input.dataset.savedQuantity = input.value;
 
+        var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || '1', 10);
+        var isValid = window.Validator.validateBuildQuantity(input.value, maxQuantity);
+        window.Validator.showFeedback(input, isValid, getQuantityError(input));
+        if (!isValid) {
+            return Promise.resolve(false);
+        }
+
+        if (input.dataset.savedQuantity === input.value) {
+            return Promise.resolve(true);
+        }
+
+        var formData = new FormData(input.form);
+        input._pendingQuantityUpdate = fetch(input.form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams(formData).toString()
+        }).then(function (response) {
+            return response.json().then(function (data) {
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Không thể cập nhật số lượng.');
+                }
+                input.dataset.savedQuantity = String(data.quantity);
+                window.Validator.clearFeedback(input);
+                return true;
+            });
+        }).catch(function (error) {
+            window.Validator.showFeedback(input, false, error.message);
+            input.focus();
+            return false;
+        }).finally(function () {
+            input._pendingQuantityUpdate = null;
+        });
+
+        return input._pendingQuantityUpdate;
+    }
+
+    function flushQuantities() {
+        return Promise.all(quantityInputs.map(persistQuantity)).then(function (results) {
+            return results.every(function (result) { return result; });
+        });
+    }
+
+    // Lưu bằng AJAX để việc chọn linh kiện tiếp theo không chạy trước request cập nhật số lượng.
+    quantityInputs.forEach(function (input) {
+        input.dataset.savedQuantity = input.value;
+
         function validateQuantityInput() {
             var maxQuantity = parseInt(input.dataset.maxQuantity || input.max || '1', 10);
             var isValid = window.Validator.validateBuildQuantity(input.value, maxQuantity);

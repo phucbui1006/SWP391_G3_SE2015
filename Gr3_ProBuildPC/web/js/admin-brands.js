@@ -90,9 +90,6 @@ document.addEventListener("DOMContentLoaded", function() {
             nameInput.addEventListener('blur', () => {
                 validateBrandNameInput(nameInput, currentBrandId);
             });
-            nameInput.addEventListener('focusout', () => {
-                validateBrandNameInput(nameInput, currentBrandId);
-            });
             nameInput.addEventListener('input', () => {
                 if (nameInput.classList.contains('is-invalid')) {
                     validateBrandNameInput(nameInput, currentBrandId);

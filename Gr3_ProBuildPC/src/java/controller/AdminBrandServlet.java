@@ -15,17 +15,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.List;
+import java.util.Set;
 import model.Brand;
 import model.User;
 
 @WebServlet(name = "AdminBrandServlet", urlPatterns = {"/AdminBrands"})
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024, // 1MB
-        maxFileSize = 2 * 1024 * 1024, // File tối đa 50MB
-        maxRequestSize = 20 * 1024 * 1024 // Tổng request tối đa 20MB
+        fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 2 * 1024 * 1024,
+        maxRequestSize = 20 * 1024 * 1024
 )
 public class AdminBrandServlet extends HttpServlet {
 
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(".png", ".jpg", ".jpeg", ".webp");
     private final BrandDAO brandDAO = new BrandDAO();
 
     @Override
@@ -120,6 +122,10 @@ public class AdminBrandServlet extends HttpServlet {
     private void addBrand(HttpServletRequest request, HttpSession session)
             throws IOException, ServletException {
         String brandName = normalizeText(request.getParameter("brandName"));
+        if (!isValidBrandName(brandName)) {
+            session.setAttribute("brandError", "Tên thương hiệu phải có từ 2 đến 20 ký tự.");
+            return;
+        }
         String img = saveUploadedBrandImage(request.getPart("imgFile"));
 
         if (img == null) {
@@ -138,6 +144,10 @@ public class AdminBrandServlet extends HttpServlet {
             throws IOException, ServletException {
         Integer brandId = parseId(request.getParameter("brandId"));
         String brandName = normalizeText(request.getParameter("brandName"));
+        if (!isValidBrandName(brandName)) {
+            session.setAttribute("brandError", "Tên thương hiệu phải có từ 2 đến 20 ký tự.");
+            return;
+        }
         String img = saveUploadedBrandImage(request.getPart("imgFile"));
 
         if (img == null) {
@@ -202,6 +212,10 @@ public class AdminBrandServlet extends HttpServlet {
         return value.trim();
     }
 
+    private boolean isValidBrandName(String brandName) {
+        return brandName != null && brandName.length() >= 2 && brandName.length() <= 20;
+    }
+
     private String normalizeStatusFilter(String value) {
         if (value == null || value.trim().isEmpty()) {
             return "ALL";
@@ -255,7 +269,7 @@ public class AdminBrandServlet extends HttpServlet {
 
         String submittedFileName = Paths.get(submittedName).getFileName().toString();
         String extension = getFileExtension(submittedFileName);
-        if (extension.isEmpty()) {
+        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
             return null;
         }
 

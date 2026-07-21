@@ -2,13 +2,14 @@ package dal;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Brand;
 
 public class BrandDAO extends DBContext {
 
-    private Brand mapBrand(ResultSet rs) throws Exception {
+    private Brand mapBrand(ResultSet rs) throws SQLException {
         Brand b = new Brand();
 
         b.setBrandId(rs.getInt("brand_id"));
@@ -18,10 +19,6 @@ public class BrandDAO extends DBContext {
         b.setStatus(rs.getString("status"));
 
         return b;
-    }
-
-    public List<Brand> getBrands(String keyword) {
-        return getBrands(keyword, null, "newest");
     }
 
     public List<Brand> getBrands(String keyword, String status, String sort) {
@@ -198,7 +195,7 @@ public class BrandDAO extends DBContext {
         return updateBrandStatus(brandId, "ACTIVE");
     }
 
-    public boolean updateBrandStatus(int brandId, String status) {
+    private boolean updateBrandStatus(int brandId, String status) {
         String sql = """
             UPDATE brands
             SET status = ?
@@ -217,30 +214,6 @@ public class BrandDAO extends DBContext {
         }
 
         return false;
-    }
-
-    public boolean hasBatches(int brandId) {
-        String sql = """
-            SELECT COUNT(*) AS total
-            FROM products
-            WHERE brand_id = ?
-        """;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, brandId);
-
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt("total") > 0;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return true;
     }
 
     private String normalizeKeyword(String keyword) {

@@ -10818,3 +10818,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
         font-size: 15px;
     }
 }
+
+.home-pagination a.disabled, .category-pagination a.disabled { opacity: 0.45; pointer-events: none; }
+

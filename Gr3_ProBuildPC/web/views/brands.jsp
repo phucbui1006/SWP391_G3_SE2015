@@ -252,9 +252,8 @@
                     </div>
                     <% if (totalPages > 1) { %>
                     <nav class="brand-pagination home-pagination" aria-label="Phân trang sản phẩm">
-                        <% if (currentPage > 1) { %>
-                        <a href="<%= brandPageUrl(ctx, selectedBrandId, selectedPriceRange, selectedSort, keyword, currentPage - 1) %>">Trước</a>
-                        <% } %>
+                        <a class="<%= currentPage <= 1 ? "disabled" : "" %>" 
+                           href="<%= currentPage <= 1 ? "#" : brandPageUrl(ctx, selectedBrandId, selectedPriceRange, selectedSort, keyword, currentPage - 1) %>">&lt;</a>
                         <%
                             int fromPage = Math.max(2, currentPage - 2);
                             int toPage = Math.min(totalPages - 1, currentPage + 2);
@@ -276,9 +275,8 @@
                         <% if (toPage < totalPages - 1) { %><span>...</span><% } %>
                         <a class="<%= currentPage == totalPages ? "active" : "" %>"
                            href="<%= brandPageUrl(ctx, selectedBrandId, selectedPriceRange, selectedSort, keyword, totalPages) %>"><%= totalPages %></a>
-                        <% if (currentPage < totalPages) { %>
-                        <a href="<%= brandPageUrl(ctx, selectedBrandId, selectedPriceRange, selectedSort, keyword, currentPage + 1) %>">Sau</a>
-                        <% } %>
+                        <a class="<%= currentPage >= totalPages ? "disabled" : "" %>" 
+                           href="<%= currentPage >= totalPages ? "#" : brandPageUrl(ctx, selectedBrandId, selectedPriceRange, selectedSort, keyword, currentPage + 1) %>">&gt;</a>
                     </nav>
                     <% } %>
                 </section>

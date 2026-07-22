@@ -224,9 +224,8 @@
 
                 <% if (totalPages > 1) { %>
                 <div class="home-pagination">
-                    <% if (currentPage > 1) { %>
-                    <a href="<%= pagingUrl + (currentPage - 1) %>">Trước</a>
-                    <% } %>
+                    <a class="<%= currentPage <= 1 ? "disabled" : "" %>" 
+                       href="<%= currentPage <= 1 ? "#" : pagingUrl + (currentPage - 1) %>">&lt;</a>
 
                     <%
                         int fromPage = Math.max(2, currentPage - 2);
@@ -257,9 +256,8 @@
                     </a>
                     <% } %>
 
-                    <% if (currentPage < totalPages) { %>
-                    <a href="<%= pagingUrl + (currentPage + 1) %>">Sau</a>
-                    <% } %>
+                    <a class="<%= currentPage >= totalPages ? "disabled" : "" %>" 
+                       href="<%= currentPage >= totalPages ? "#" : pagingUrl + (currentPage + 1) %>">&gt;</a>
                 </div>
                 <% } %>
             </section>

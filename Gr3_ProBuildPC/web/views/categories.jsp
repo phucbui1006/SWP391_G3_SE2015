@@ -249,10 +249,8 @@
                     <c:if test="${totalPages > 1}">
                         <div class="category-pagination">
 
-                            <c:if test="${currentPage > 1}">
-                                <c:set var="previousPageUrl" value="${pagingUrl}${currentPage - 1}" />
-                                <a href="<c:out value="${previousPageUrl}" />">Trước</a>
-                            </c:if>
+                            <c:set var="previousPageUrl" value="${pagingUrl}${currentPage > 1 ? currentPage - 1 : 1}" />
+                            <a class="${currentPage <= 1 ? 'disabled' : ''}" href="<c:out value="${currentPage <= 1 ? '#' : previousPageUrl}" />">&lt;</a>
 
                             <c:choose>
                                 <c:when test="${currentPage <= 4}">
@@ -296,10 +294,8 @@
                                 ${totalPages}
                             </a>
 
-                            <c:if test="${currentPage < totalPages}">
-                                <c:set var="nextPageUrl" value="${pagingUrl}${currentPage + 1}" />
-                                <a href="<c:out value="${nextPageUrl}" />">Sau</a>
-                            </c:if>
+                            <c:set var="nextPageUrl" value="${pagingUrl}${currentPage < totalPages ? currentPage + 1 : totalPages}" />
+                            <a class="${currentPage >= totalPages ? 'disabled' : ''}" href="<c:out value="${currentPage >= totalPages ? '#' : nextPageUrl}" />">&gt;</a>
 
                         </div>
                     </c:if>

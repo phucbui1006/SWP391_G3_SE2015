@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import model.Batch;
 import model.BatchItem;
 import model.Product;
-import model.User;
 
 @WebServlet(name = "BatchServlet", urlPatterns = {"/BatchServlet"})
 public class BatchServlet extends HttpServlet {
@@ -30,28 +29,6 @@ public class BatchServlet extends HttpServlet {
         batchDAO = new BatchDAO();
         batchItemDAO = new BatchItemDAO();
         productDAO = new ProductDAO();
-    }
-
-    private boolean isAdmin(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-
-        HttpSession session = request.getSession(false);
-
-        if (session == null || session.getAttribute("account") == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return false;
-        }
-
-        User account = (User) session.getAttribute("account");
-
-        String roleName = account.getRoleName();
-
-        if (roleName == null || !"ADMIN".equalsIgnoreCase(roleName.trim())) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return false;
-        }
-
-        return true;
     }
 
     private static final int PAGE_SIZE = 5;
@@ -140,10 +117,6 @@ public class BatchServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
-        if (!isAdmin(request, response)) {
-            return;
-        }
-
         String action = request.getParameter("action");
 
         try {
@@ -215,10 +188,6 @@ public class BatchServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
-
-        if (!isAdmin(request, response)) {
-            return;
-        }
 
         String action = request.getParameter("action");
 

@@ -12,8 +12,20 @@ import model.User;
 
 import java.io.IOException;
 
-@WebServlet("/updateProfile")
+@WebServlet(name = "ProfileServlet", urlPatterns = {"/profile", "/updateProfile"})
 public class ProfileServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        User account = session == null ? null : (User) session.getAttribute("account");
+        if (account == null) {
+            response.sendRedirect(request.getContextPath() + "/Login");
+            return;
+        }
+        request.getRequestDispatcher("/views/profile.jsp").forward(request, response);
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -58,7 +70,7 @@ public class ProfileServlet extends HttpServlet {
 
                 if (!PasswordUtil.verify(oldPassword, targetHash)) {
                     request.setAttribute("errorMsg", "Mật khẩu cũ không chính xác!");
-                    request.getRequestDispatcher("views/profile.jsp").forward(request, response);
+                    request.getRequestDispatcher("/views/profile.jsp").forward(request, response);
                     return;
                 }
 
@@ -87,6 +99,6 @@ public class ProfileServlet extends HttpServlet {
         }
 
         // Trả kết quả kèm các thông điệp phản hồi về trang profile.jsp hiển thị
-        request.getRequestDispatcher("views/profile.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/profile.jsp").forward(request, response);
     }
 }

@@ -24,24 +24,13 @@ public class ManageWarrantyServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(false);
-        User account = session != null ? (User) session.getAttribute("account") : null;
-
-        // Role-based access validation
-        if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return;
-        }
+        User account = (User) session.getAttribute("account");
 
         String roleName = account.getRoleName();
         if (roleName != null) {
             roleName = roleName.trim().toUpperCase();
         } else {
             roleName = "";
-        }
-
-        if (!"ADMIN".equals(roleName) && !"EMPLOYEE".equals(roleName)) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return;
         }
 
         // Intercept dashboard search parameters (query, status)
@@ -130,13 +119,7 @@ public class ManageWarrantyServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(false);
-        User account = session != null ? (User) session.getAttribute("account") : null;
-
-        // Ensure user is logged in
-        if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return;
-        }
+        User account = (User) session.getAttribute("account");
 
         String roleName = account.getRoleName();
         if (roleName != null) {

@@ -19,7 +19,6 @@ import java.util.Locale;
 import java.util.List;
 import java.util.Set;
 import model.Brand;
-import model.User;
 
 @WebServlet(name = "AdminBrandServlet", urlPatterns = {"/AdminBrands"})
 @MultipartConfig(
@@ -37,10 +36,7 @@ public class AdminBrandServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = requireAdmin(request, response);
-        if (session == null) {
-            return;
-        }
+        HttpSession session = request.getSession(false);
 
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
@@ -82,10 +78,7 @@ public class AdminBrandServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = requireAdmin(request, response);
-        if (session == null) {
-            return;
-        }
+        HttpSession session = request.getSession(false);
 
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
@@ -105,26 +98,6 @@ public class AdminBrandServlet extends HttpServlet {
         }
 
         response.sendRedirect(buildListUrl(request));
-    }
-
-    private HttpSession requireAdmin(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-
-        HttpSession session = request.getSession(false);
-
-        if (session == null || session.getAttribute("account") == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return null;
-        }
-
-        User user = (User) session.getAttribute("account");
-        String roleName = user.getRoleName();
-        if (roleName == null || !"ADMIN".equals(roleName.trim().toUpperCase())) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return null;
-        }
-
-        return session;
     }
 
     private void addBrand(HttpServletRequest request, HttpSession session)

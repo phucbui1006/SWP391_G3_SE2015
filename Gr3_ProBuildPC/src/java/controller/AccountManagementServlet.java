@@ -24,10 +24,7 @@ public class AccountManagementServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = requireAdmin(request, response);
-        if (session == null) {
-            return;
-        }
+        HttpSession session = request.getSession(false);
 
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
@@ -80,10 +77,7 @@ public class AccountManagementServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = requireAdmin(request, response);
-        if (session == null) {
-            return;
-        }
+        HttpSession session = request.getSession(false);
 
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
@@ -121,26 +115,6 @@ public class AccountManagementServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/AccountManagement" + buildQueryString(request));
     }
 
-    private HttpSession requireAdmin(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-
-        HttpSession session = request.getSession(false);
-
-        if (session == null || session.getAttribute("account") == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return null;
-        }
-
-        User user = (User) session.getAttribute("account");
-        String roleName = user.getRoleName();
-        if (roleName == null || !"ADMIN".equals(roleName.trim().toUpperCase())) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return null;
-        }
-
-        return session;
-    }
-
     private void createStaff(HttpServletRequest request, HttpSession session) {
         String fullName = normalizeText(request.getParameter("fullName"));
         String email = normalizeText(request.getParameter("email"));
@@ -152,7 +126,7 @@ public class AccountManagementServlet extends HttpServlet {
         }
 
         if (roleId == 1) {
-            session.setAttribute("accountError", "Khong the tao tai khoan Admin moi.");
+            session.setAttribute("accountError", "Không thể tạo tài khoản quản trị viên mới.");
             return;
         }
 
@@ -199,7 +173,7 @@ public class AccountManagementServlet extends HttpServlet {
         }
 
         if (!targetUser.isStaff()) {
-            session.setAttribute("accountError", "Chỉ có thể reset mật khẩu của nhân viên (Staff).");
+            session.setAttribute("accountError", "Chỉ có thể đặt lại mật khẩu của nhân viên.");
             return;
         }
 
@@ -235,7 +209,7 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
     }
 
     if (roleId == 1) {
-        session.setAttribute("accountError", "Khong the thay doi vai tro thanh Admin.");
+        session.setAttribute("accountError", "Không thể thay đổi vai trò thành quản trị viên.");
         return;
     }
 
@@ -282,7 +256,7 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
         }
 
         if ("ADMIN".equalsIgnoreCase(targetUser.getRoleName()) && "INACTIVE".equals(status)) {
-            session.setAttribute("accountError", "Khong the khoa tai khoan Admin.");
+            session.setAttribute("accountError", "Không thể khóa tài khoản quản trị viên.");
             return;
         }
 

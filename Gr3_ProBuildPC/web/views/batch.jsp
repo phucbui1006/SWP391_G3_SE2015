@@ -216,8 +216,7 @@
                         <thead>
                             <tr>
                                 <th>Mã chi tiết</th>
-                                <th>Mã lô</th>
-                                <th>Mã sản phẩm</th>
+                                <th>Tên sản phẩm</th>
                                 <th>SL nhập</th>
                                 <th>SL tồn</th>
                                 <th>Giá nhập</th>
@@ -228,16 +227,25 @@
                         <tbody>
                             <% if (batchItems.isEmpty()) { %>
                             <tr>
-                                <td colspan="8" class="batch-empty-row">
+                                <td colspan="6" class="batch-empty-row">
                                     Bấm nút <b>Chi tiết</b> ở một lô hàng để xem sản phẩm trong lô.
                                 </td>
                             </tr>
                             <% } else { %>
-                            <% for (BatchItem item : batchItems) { %>
+                            <% for (BatchItem item : batchItems) { 
+                                String pName = "";
+                                if (products != null) {
+                                    for (Product p : products) {
+                                        if (p.getProductId() == item.getProductId()) {
+                                            pName = p.getProductName();
+                                            break;
+                                        }
+                                    }
+                                }
+                            %>
                             <tr>
                                 <td>#<%= item.getBatchItemId() %></td>
-                                <td>#<%= item.getBatchId() %></td>
-                                <td>#<%= item.getProductId() %></td>
+                                <td><%= pName %></td>
                                 <td><%= item.getImportQuantity() %></td>
                                 <td><%= item.getQuantity() %></td>
                                 <td><%= item.getPrice() %></td>

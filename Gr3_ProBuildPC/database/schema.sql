@@ -286,6 +286,7 @@ CREATE TABLE ORDER_DETAILS (
     product_id      INT NOT NULL,
     quantity        INT NOT NULL,
     unit_price      DECIMAL(18, 2) NOT NULL,
+    warranty_months INT NOT NULL DEFAULT 0,
     subtotal        DECIMAL(18, 2) NOT NULL,
 
     CONSTRAINT FK_ORDER_DETAILS_ORDERS

@@ -12,10 +12,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.util.ArrayList;
 import model.Batch;
 import model.BatchItem;
 import model.Product;
-import model.User;
 
 @WebServlet(name = "BatchServlet", urlPatterns = {"/BatchServlet"})
 public class BatchServlet extends HttpServlet {
@@ -29,28 +29,6 @@ public class BatchServlet extends HttpServlet {
         batchDAO = new BatchDAO();
         batchItemDAO = new BatchItemDAO();
         productDAO = new ProductDAO();
-    }
-
-    private boolean isAdmin(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-
-        HttpSession session = request.getSession(false);
-
-        if (session == null || session.getAttribute("account") == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return false;
-        }
-
-        User account = (User) session.getAttribute("account");
-
-        String roleName = account.getRoleName();
-
-        if (roleName == null || !"ADMIN".equalsIgnoreCase(roleName.trim())) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return false;
-        }
-
-        return true;
     }
 
     private static final int PAGE_SIZE = 5;
@@ -74,7 +52,17 @@ public class BatchServlet extends HttpServlet {
         }
 
         int offset = (currentPage - 1) * PAGE_SIZE;
+        
         List<Batch> batches = batchDAO.getBatches(offset, PAGE_SIZE);
+        List <Batch> filterList = new ArrayList<>();
+//        for (Batch batch : batches) {
+//            if(batch.getBatchId() == 1){
+//                filterList.add(batch);
+//                break;
+//            }
+//            
+//            
+//        }batches = filterList;
         List<Product> products = productDAO.getAllProducts();
 
         int startItem = totalBatches == 0 ? 0 : offset + 1;
@@ -128,10 +116,6 @@ public class BatchServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
-
-        if (!isAdmin(request, response)) {
-            return;
-        }
 
         String action = request.getParameter("action");
 
@@ -204,10 +188,6 @@ public class BatchServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
-
-        if (!isAdmin(request, response)) {
-            return;
-        }
 
         String action = request.getParameter("action");
 

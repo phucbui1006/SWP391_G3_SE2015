@@ -11,11 +11,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import model.Batch;
 import model.BatchItem;
 import model.Product;
-import model.User;
 
 @WebServlet(name = "BatchItemServlet", urlPatterns = {"/BatchItemServlet"})
 public class BatchItemServlet extends HttpServlet {
@@ -29,28 +27,6 @@ public class BatchItemServlet extends HttpServlet {
         batchDAO = new BatchDAO();
         batchItemDAO = new BatchItemDAO();
         productDAO = new ProductDAO();
-    }
-
-    private boolean isAdmin(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-
-        HttpSession session = request.getSession(false);
-
-        if (session == null || session.getAttribute("account") == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return false;
-        }
-
-        User account = (User) session.getAttribute("account");
-
-        String roleName = account.getRoleName();
-
-        if (roleName == null || !"ADMIN".equalsIgnoreCase(roleName.trim())) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return false;
-        }
-
-        return true;
     }
 
     private void loadCommonData(HttpServletRequest request) {
@@ -93,10 +69,6 @@ public class BatchItemServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
-        if (!isAdmin(request, response)) {
-            return;
-        }
-
         String action = request.getParameter("action");
 
         try {
@@ -136,10 +108,6 @@ public class BatchItemServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
-
-        if (!isAdmin(request, response)) {
-            return;
-        }
 
         String action = request.getParameter("action");
 

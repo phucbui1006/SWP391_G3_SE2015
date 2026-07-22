@@ -224,14 +224,10 @@
                     <% } %>
                 </section>
 
-                <div class="product-pagination-footer">
-                    <p>Hiển thị <strong><%= startItem %></strong> đến <strong><%= endItem %></strong> của <strong><%= totalProducts %></strong> sản phẩm</p>
-                <nav class="home-pagination" aria-label="Phân trang sản phẩm">
-                    <% if (currentPage > 1) { %>
-                    <a class="page-btn" href="<%= pagingUrl + (currentPage - 1) %>" aria-label="Trang trước">&lsaquo;</a>
-                    <% } else { %>
-                    <span class="page-btn disabled" aria-hidden="true">&lsaquo;</span>
-                    <% } %>
+                <% if (totalPages > 1) { %>
+                <div class="home-pagination">
+                    <a class="<%= currentPage <= 1 ? "disabled" : "" %>" 
+                       href="<%= currentPage <= 1 ? "#" : pagingUrl + (currentPage - 1) %>">&lt;</a>
 
                     <%
                         int fromPage = Math.max(2, currentPage - 2);
@@ -262,12 +258,8 @@
                     </a>
                     <% } %>
 
-                    <% if (currentPage < totalPages) { %>
-                    <a class="page-btn" href="<%= pagingUrl + (currentPage + 1) %>" aria-label="Trang sau">&rsaquo;</a>
-                    <% } else { %>
-                    <span class="page-btn disabled" aria-hidden="true">&rsaquo;</span>
-                    <% } %>
-                </nav>
+                    <a class="<%= currentPage >= totalPages ? "disabled" : "" %>" 
+                       href="<%= currentPage >= totalPages ? "#" : pagingUrl + (currentPage + 1) %>">&gt;</a>
                 </div>
             </section>
         </main>

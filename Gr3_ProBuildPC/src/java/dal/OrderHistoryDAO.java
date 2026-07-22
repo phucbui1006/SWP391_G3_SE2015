@@ -468,7 +468,7 @@ public class OrderHistoryDAO extends DBContext {
                             od.product_id,
                             od.quantity,
                             od.unit_price,
-                            COALESCE(p.warranty_months, 0) AS warranty_months,
+                            od.warranty_months,
                             od.subtotal,
                             p.product_name,
                             p.image_url,

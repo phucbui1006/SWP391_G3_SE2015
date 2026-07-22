@@ -14,11 +14,11 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import model.Brand;
 import model.Category;
 import model.Product;
-import model.User;
 import model.CategorySpecTemplate;
 
 @WebServlet(name = "AdminProductServlet", urlPatterns = {"/admin/products"})
@@ -39,10 +39,7 @@ public class AdminProductServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = requireAdmin(request, response);
-        if (session == null) {
-            return;
-        }
+        HttpSession session = request.getSession(false);
 
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
@@ -97,10 +94,7 @@ public class AdminProductServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = requireAdmin(request, response);
-        if (session == null) {
-            return;
-        }
+        HttpSession session = request.getSession(false);
 
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
@@ -197,8 +191,18 @@ public class AdminProductServlet extends HttpServlet {
         if (currentPage < 1 || currentPage > totalPages) {
             currentPage = 1;
         }
-
-        List<Product> products = productDAO.getProductsForAdmin(keyword, categoryId, brandId, status, sort, currentPage, PAGE_SIZE);
+////Lấy sản phẩm khi có ID
+       List<Product> products = productDAO.getProductsForAdmin(keyword, categoryId, brandId, status, sort, currentPage, PAGE_SIZE);
+//        List<Product> filteredList = new ArrayList<>();
+//        
+//        for (Product p : products) {
+//            if (p.getProductId() == 1) {
+//                filteredList.add(p);
+//               
+//                
+//            } 
+//            products = filteredList;
+//        }
         List<Category> categories = categoryDAO.getAllCategories();
         List<Brand> brands = brandDAO.getActiveBrands();
 
@@ -374,21 +378,6 @@ public class AdminProductServlet extends HttpServlet {
             }
             return false;
         }
-    }
-
-    private HttpSession requireAdmin(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("account") == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return null;
-        }
-        User user = (User) session.getAttribute("account");
-        String roleName = user.getRoleName();
-        if (roleName == null || !"ADMIN".equalsIgnoreCase(roleName.trim())) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return null;
-        }
-        return session;
     }
 
     private Integer parseId(String value) {

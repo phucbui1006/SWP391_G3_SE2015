@@ -13,11 +13,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import model.DashboardSummary;
 import model.AccountSummary;
 import model.RevenueRow;
-import model.User;
 import util.DashboardViewHelper;
 
 @WebServlet(name = "RevenueServlet", urlPatterns = {"/RevenueServlet"})
@@ -26,18 +24,6 @@ public class RevenueServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("account") == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return;
-        }
-
-        User user = (User) session.getAttribute("account");
-        if (user.getRoleName() == null || !user.getRoleName().trim().toUpperCase().equals("ADMIN")) {
-            response.sendRedirect(request.getContextPath() + "/home");
-            return;
-        }
 
         LocalDate referenceDate = LocalDate.now();
         LocalDate weekStart = referenceDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));

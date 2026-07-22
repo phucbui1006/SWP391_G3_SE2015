@@ -25,13 +25,7 @@ public class ManageWarrantyServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(false);
-        User account = session != null ? (User) session.getAttribute("account") : null;
-
-        // Role-based access validation
-        if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return;
-        }
+        User account = (User) session.getAttribute("account");
 
         String roleName = account.getRoleName();
         if (roleName != null) {
@@ -40,16 +34,8 @@ public class ManageWarrantyServlet extends HttpServlet {
             roleName = "";
         }
 
-        if (!"ADMIN".equals(roleName) && !"EMPLOYEE".equals(roleName)) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return;
-        }
-
-        // Intercept search parameters (keyword, query, search, searchQuery)
-        String search = request.getParameter("keyword");
-        if (search == null) {
-            search = request.getParameter("query");
-        }
+        // Intercept dashboard search parameters (query, status)
+        String search = request.getParameter("query");
         if (search == null) {
             search = request.getParameter("search");
         }
@@ -200,12 +186,7 @@ public class ManageWarrantyServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(false);
-        User account = session != null ? (User) session.getAttribute("account") : null;
-
-        if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return;
-        }
+        User account = (User) session.getAttribute("account");
 
         String roleName = account.getRoleName();
         if (roleName != null) {
@@ -215,7 +196,7 @@ public class ManageWarrantyServlet extends HttpServlet {
         }
 
         if (!"EMPLOYEE".equals(roleName)) {
-            session.setAttribute("errorMsg", "Chỉ nhân viên (EMPLOYEE) mới có quyền cập nhật trạng thái bảo hành!");
+            session.setAttribute("errorMsg", "Chỉ nhân viên mới có quyền cập nhật trạng thái bảo hành!");
             response.sendRedirect(request.getContextPath() + "/ManageWarranty");
             return;
         }

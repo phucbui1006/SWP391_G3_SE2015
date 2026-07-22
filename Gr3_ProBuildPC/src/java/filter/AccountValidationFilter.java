@@ -86,7 +86,7 @@ public class AccountValidationFilter implements Filter {
 
         if (error != null) {
             req.setAttribute("errorMsg", error);
-            req.getRequestDispatcher("views/profile.jsp").forward(req, res);
+            req.getRequestDispatcher("/views/profile.jsp").forward(req, res);
             return false;
         }
         return true;

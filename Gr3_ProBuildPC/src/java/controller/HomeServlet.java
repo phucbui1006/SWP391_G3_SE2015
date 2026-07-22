@@ -28,10 +28,6 @@ public class HomeServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
-        if (!allowHomeAccess(request, response)) {
-            return;
-        }
-
         String keyword = request.getParameter("keyword");
         String normalizedKeyword = keyword == null ? "" : keyword.trim();
 
@@ -103,21 +99,4 @@ public class HomeServlet extends HttpServlet {
         request.getRequestDispatcher("/views/home.jsp").forward(request, response);
     }
 
-    private boolean allowHomeAccess(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session = request.getSession(false);
-        User account = session != null ? (User) session.getAttribute("account") : null;
-
-        if (account == null || account.isCustomer()) {
-            return true;
-        }
-
-        if (account.isStaff()) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return false;
-        }
-
-        response.sendRedirect(request.getContextPath() + "/Login");
-        return false;
-    }
 }

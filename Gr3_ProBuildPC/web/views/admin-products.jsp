@@ -1,3 +1,4 @@
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Collections" %>
@@ -121,8 +122,8 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Quản lý sản phẩm - ProBuild PC</title>
-        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css?v=1.0.6">
-        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css?v=1.0.7">
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css?v=1.0.6">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     </head>
     <body class="admin-product-body" data-ctx="<%= contextPath %>">
@@ -187,8 +188,8 @@
                             <label for="statusFilter">Trạng thái:</label>
                             <select name="status" id="statusFilter">
                                 <option value="ALL" <%= "ALL".equals(status) ? "selected" : "" %>>Tất cả</option>
-                                <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>ACTIVE</option>
-                                <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>INACTIVE</option>
+                                <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>Hoạt động</option>
+                                <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>Ngưng hoạt động</option>
                             </select>
                         </div>
 
@@ -199,8 +200,8 @@
                                 <option value="oldest" <%= "oldest".equals(sort) ? "selected" : "" %>>Cũ nhất</option>
                                 <option value="price_asc" <%= "price_asc".equals(sort) ? "selected" : "" %>>Giá tăng dần</option>
                                 <option value="price_desc" <%= "price_desc".equals(sort) ? "selected" : "" %>>Giá giảm dần</option>
-                                <option value="qty_asc" <%= "qty_asc".equals(sort) ? "selected" : "" %>>Số lượng tăng dần</option>
-                                <option value="qty_desc" <%= "qty_desc".equals(sort) ? "selected" : "" %>>Số lượng giảm dần</option>
+                                <option value="qty_asc" <%= "qty_asc".equals(sort) ? "selected" : "" %>>Số lượng tồn kho tăng dần</option>
+                                <option value="qty_desc" <%= "qty_desc".equals(sort) ? "selected" : "" %>>Số lượng tồn kho giảm dần</option>
                                 <option value="bestSeller" <%= "bestSeller".equals(sort) ? "selected" : "" %>>Bán chạy nhất</option>
                             </select>
                         </div>
@@ -222,11 +223,9 @@
                             <tr>
                                 <th>#</th>
                                 <th>Ảnh</th>
-                                <th>Tên sản phẩm</th>
-                                <th>Danh mục</th>
-                                <th>Thương hiệu</th>
+                                <th>Thông tin sản phẩm</th>
                                 <th>Giá bán</th>
-                                <th>Số lượng tồn</th>
+                                <th>Số lượng tồn kho</th>
                                 <th>Số lượng bán</th>
                                 <th>Trạng thái</th>
                                 <th>Thao tác</th>
@@ -235,7 +234,7 @@
                         <tbody>
                             <% if (products.isEmpty()) { %>
                             <tr>
-                                <td colspan="11" style="text-align:center; padding: 40px; color: #9ca3af;">
+                                <td colspan="8" style="text-align:center; padding: 40px; color: #9ca3af;">
                                     Không tìm thấy sản phẩm nào khớp với bộ lọc
                                 </td>
                             </tr>
@@ -245,6 +244,7 @@
                                 if (imgUrl == null || imgUrl.trim().isEmpty()) {
                                     imgUrl = "images/no-image.png";
                                 }
+                                
                             %>
                             <tr>
                                 <td><%= p.getProductId() %></td>
@@ -253,15 +253,15 @@
                                 </td>
                                 <td class="product-name-cell">
                                     <strong><%= h(p.getProductName()) %></strong>
+                                    <div class="product-info-meta">
+                                        <span><b>Danh mục:</b> <%= h(p.getCategoryName()) %></span>
+                                        <span><b>Thương hiệu:</b> <%= h(p.getBrandName()) %></span>
+                                    </div>
                                 </td>
-                                <td><%= h(p.getCategoryName()) %></td>
-                                <td><%= h(p.getBrandName()) %></td>
                                 <td>
                                     <%= String.format("%,d", p.getPrice().longValue()) %>đ
                                 </td>
-                               
-                                <td style="
-                                    padding-left: 30px;">
+                                <td>
                                     <% if (p.getQuantity() > 0) { %>
                                     <span><%= p.getQuantity() %></span>
                                     <% } else { %>
@@ -271,7 +271,7 @@
                                 <td><%= p.getSoldQuantity() %></td>
                                 <td>
                                     <span class="<%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "active" : "inactive" %>">
-                                        <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "ACTIVE" : "INACTIVE" %>
+                                        <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "Hoạt động" : "Ngưng hoạt động" %>
                                     </span>
                                 </td>
                                 <td>
@@ -296,7 +296,7 @@
 
                                             <button type="submit"
                                                     class="action-btn <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "btn-status-deactivate" : "btn-status-activate" %>">
-                                                <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "Vô hiệu hóa" : "Kích hoạt" %>
+                                                <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "Ngưng hoạt động" : "Hoạt động" %>
                                             </button>
                                         </form>
                                     </div>

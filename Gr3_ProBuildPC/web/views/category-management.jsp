@@ -120,7 +120,7 @@
         <title>Quản lý danh mục sản phẩm</title>
 
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
-        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-categories.css?v=1.0.2">
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-categories.css?v=1.0.3">
     </head>
 
     <body class="admin-category-body">
@@ -171,10 +171,10 @@
                                 Tất cả trạng thái
                             </option>
                             <option value="ACTIVE" <%= "ACTIVE".equals(status) ? "selected" : "" %>>
-                                ACTIVE
+                                Hoạt động
                             </option>
                             <option value="INACTIVE" <%= "INACTIVE".equals(status) ? "selected" : "" %>>
-                                INACTIVE
+                                Ngưng hoạt động
                             </option>
                         </select>
 
@@ -236,7 +236,7 @@
 
                                 <td>
                                     <span class="status-badge status-<%= categoryStatus.toLowerCase() %>">
-                                        <%= isActive ? "ACTIVE" : "INACTIVE" %>
+                                        <%= isActive ? "Hoạt động" : "Ngưng hoạt động" %>
                                     </span>
                                 </td>
 
@@ -283,7 +283,7 @@
                                                    value="<%= currentPage %>">
 
                                             <button type="submit" class="btn-delete">
-                                                <%= isActive ? "Vô hiệu hóa" : "Kích hoạt" %>
+                                                <%= isActive ? "Ngưng hoạt động" : "Hoạt động" %>
                                             </button>
                                         </form>
 

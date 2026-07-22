@@ -145,11 +145,38 @@ body.admin-category-body {
 
 .admin-category-table {
     width: 100%;
-    min-width: 850px;
+    min-width: 1000px;
+    table-layout: fixed;
     border-collapse: collapse;
     background: #fff;
     color: #30333a;
     font-size: 14px;
+}
+
+.admin-category-table th:first-child,
+.admin-category-table td:first-child {
+    width: 70px;
+}
+
+.admin-category-table th:nth-child(2),
+.admin-category-table td:nth-child(2) {
+    width: auto;
+    overflow-wrap: anywhere;
+}
+
+.admin-category-table th:nth-child(3),
+.admin-category-table td:nth-child(3) {
+    width: 180px;
+}
+
+.admin-category-table th:nth-child(4),
+.admin-category-table td:nth-child(4) {
+    width: 160px;
+}
+
+.admin-category-table th:last-child,
+.admin-category-table td:last-child {
+    width: 250px;
 }
 
 .admin-category-table th,
@@ -192,6 +219,7 @@ body.admin-category-body {
     justify-content: center;
     align-items: center;
     gap: 8px;
+    flex-wrap: nowrap;
 }
 
 .category-actions form {

@@ -170,7 +170,7 @@
         <a href="<%= ctx %>/ManageWarranty" class="menu-item"><i class="fa-solid fa-shield-halved"></i> Bảo hành</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/views/revenue.jsp" class="menu-item"><i class="fa-solid fa-chart-line"></i> Thống kê doanh thu</a>
+        <a href="<%= ctx %>/RevenueServlet" class="menu-item"><i class="fa-solid fa-chart-line"></i> Thống kê doanh thu</a>
         <% } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) { %>
 
 
@@ -234,11 +234,11 @@
                     <div>
                         <h4><%= fullName %></h4>
                         <p>
-                            <% if ("SHIPMENT".equals(roleName)) { %>
-                            Tài xế vận chuyển
+                            <% if ("SHIPMENT".equals(roleName) || "TRANSPORT".equals(roleName)) { %>
+                            Nhân viên giao hàng
                             <% } else if ("ADMIN".equals(roleName)) { %>
-                            Admin
-                            <% } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) { %>
+                            Quản trị viên
+                            <% } else if ("EMPLOYEE".equals(roleName) || "EMPLOYEES".equals(roleName) || "STAFF".equals(roleName)) { %>
                             Nhân viên
                             <% } else if ("CUSTOMER".equals(roleName)) { %>
                             Khách hàng
@@ -247,7 +247,7 @@
                     </div>
                 </button>
                 <div class="dropdown-menu">
-                    <a href="<%= ctx %>/views/profile.jsp"><i class="fa-regular fa-id-card"></i> Thông tin cá nhân</a>
+                    <a href="<%= ctx %>/profile"><i class="fa-regular fa-id-card"></i> Thông tin cá nhân</a>
                     <% if ("CUSTOMER".equals(roleName)) { %>
                     <a href="<%= ctx %>/shipping-address"><i class="fa-solid fa-location-dot"></i> Địa chỉ giao hàng</a>
                     <% } %>

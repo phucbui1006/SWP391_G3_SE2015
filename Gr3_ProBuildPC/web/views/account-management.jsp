@@ -22,13 +22,16 @@
         }
         switch (roleName.trim().toUpperCase()) {
             case "ADMIN":
-                return "Admin";
+                return "Quản trị viên";
             case "EMPLOYEE":
-                return "Employee";
+            case "EMPLOYEES":
+            case "STAFF":
+                return "Nhân viên";
             case "SHIPMENT":
-                return "Shipment";
+            case "TRANSPORT":
+                return "Nhân viên giao hàng";
             case "CUSTOMER":
-                return "Customer";
+                return "Khách hàng";
             default:
                 return roleName;
         }
@@ -139,8 +142,8 @@
 
                             <select name="status" onchange="this.form.submit()">
                                 <option value="">Tất cả trạng thái</option>
-                                <option value="ACTIVE" <%= "ACTIVE".equals(selectedStatus) ? "selected" : "" %>>ACTIVE</option>
-                                <option value="INACTIVE" <%= "INACTIVE".equals(selectedStatus) ? "selected" : "" %>>INACTIVE</option>
+                                <option value="ACTIVE" <%= "ACTIVE".equals(selectedStatus) ? "selected" : "" %>>Hoạt động</option>
+                                <option value="INACTIVE" <%= "INACTIVE".equals(selectedStatus) ? "selected" : "" %>>Ngưng hoạt động</option>
                             </select>
 
                             <button type="submit">Tìm kiếm</button>
@@ -152,7 +155,7 @@
                     </div>
 
                     <div class="brand-table-wrap">
-                        <table class="brand-table">
+                        <table class="brand-table account-brand-table">
                             <thead>
                                 <tr>
                                     <th>#</th>
@@ -179,17 +182,14 @@
                                 <tr>
                                     <td><%= startItem + i %></td>
                                     <td>
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            <div style="text-align: left;">
-                                                <strong><%= h(user.getFullName()) %></strong><br>
-                                                <small style="color: #6c757d;">User ID: #<%= user.getUserId() %></small>
-                                            </div>
+                                        <div class="account-user-cell">
+                                            <strong><%= h(user.getFullName()) %></strong>
                                         </div>
                                     </td>
                                     <td><%= h(user.getEmail()) %></td>
                                     <td>
                                         <% if (!isStaff || isAdmin) { %>
-                                            <span style="font-weight: 500; color: <%= isAdmin ? "#dc3545" : "#28a745" %>;">
+                                            <span class="account-role-text">
                                                 <%= h(roleLabel(user.getRoleName())) %>
                                             </span>
                                         <% } else { %>
@@ -202,7 +202,7 @@
                                                 <input type="hidden" name="filterStatus" value="<%= h(selectedStatus) %>">
                                                 <input type="hidden" name="page" value="<%= pageNumber %>">
 
-                                                <select name="roleId" onchange="this.form.submit()" <%= isCurrentAccount ? "disabled" : "" %> style="padding: 4px; border: 1px solid #ced4da; border-radius: 4px;">
+                                                <select class="account-role-select" name="roleId" onchange="this.form.submit()" <%= isCurrentAccount ? "disabled" : "" %>>
                                                     <% if (roles != null) { %>
                                                         <% for (Role role : roles) { %>
                                                             <% if (role.getRoleId() != 1 && !"ADMIN".equalsIgnoreCase(role.getRoleName())) { %>
@@ -217,15 +217,15 @@
                                         <% } %>
                                     </td>
                                     <td>
-                                        <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; <%= "INACTIVE".equals(status) ? "background-color: #f8d7da; color: #721c24;" : "background-color: #d4edda; color: #155724;" %>">
-                                            <%= "INACTIVE".equals(status) ? "Ban" : "Active" %>
+                                        <span class="account-status <%= "INACTIVE".equals(status) ? "inactive" : "active" %>">
+                                            <%= "INACTIVE".equals(status) ? "Ngưng hoạt động" : "Hoạt động" %>
                                         </span>
                                     </td>
                                     <td>
                                         <% if (isAdmin) { %>
-                                            <span style="color: #6c757d; font-size: 0.9rem;">Không thể khóa</span>
+                                            <span class="account-action-note">Không thể khóa</span>
                                         <% } else { %>
-                                            <div class="brand-actions" style="justify-content: center;">
+                                            <div class="brand-actions">
                                                 <form action="<%= ctx %>/AccountManagement" method="post" style="margin: 0;">
                                                     <input type="hidden" name="action" value="updateStatus">
                                                     <input type="hidden" name="userId" value="<%= user.getUserId() %>">
@@ -235,8 +235,8 @@
                                                     <input type="hidden" name="filterRoleId" value="<%= selectedRoleId == null ? "" : selectedRoleId %>">
                                                     <input type="hidden" name="filterStatus" value="<%= h(selectedStatus) %>">
                                                     <input type="hidden" name="page" value="<%= pageNumber %>">
-                                                    <button class="brand-action delete" type="submit" aria-label="Đổi trạng thái" style="<%= "ACTIVE".equals(status) ? "" : "background: #28a745; color: white;" %>">
-                                                        <%= "ACTIVE".equals(status) ? "Ban" : "Active" %>
+                                                    <button class="brand-action delete" type="submit" aria-label="Đổi trạng thái">
+                                                        <%= "ACTIVE".equals(status) ? "Ngưng hoạt động" : "Hoạt động" %>
                                                     </button>
                                                 </form>
 

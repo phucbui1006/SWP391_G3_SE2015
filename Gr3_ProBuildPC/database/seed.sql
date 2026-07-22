@@ -919,3 +919,8 @@ VALUES
 
 (2, 2, 12, 1, '2026-06-01 16:45:00',
 'Cổng USB trên bo mạch chủ hoạt động không ổn định, cần kiểm tra.');
+
+-- Cập nhật warranty_months cho ORDER_DETAILS từ bảng PRODUCTS
+UPDATE ORDER_DETAILS od
+JOIN PRODUCTS p ON od.product_id = p.product_id
+SET od.warranty_months = p.warranty_months;

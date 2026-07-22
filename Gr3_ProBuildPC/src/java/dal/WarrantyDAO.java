@@ -14,7 +14,7 @@ public class WarrantyDAO extends DBContext {
     public boolean isWarrantyRequestValid(int customerId, int productId) {
         String sql = """
                     SELECT COALESCE(o.received_date, o.order_date) AS warranty_start,
-                           p.warranty_months
+                           od.warranty_months
                     FROM orders o
                     INNER JOIN order_details od ON o.order_id = od.order_id
                     INNER JOIN products p ON od.product_id = p.product_id
@@ -208,9 +208,9 @@ public class WarrantyDAO extends DBContext {
                            o.order_date,
                            o.received_date,
                            u.full_name AS customer_name,
-                           p.warranty_months AS warranty_months,
-                           DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH) AS warranty_end_date,
-                           DATEDIFF(DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH), CURDATE()) AS remaining_days
+                           od.warranty_months AS warranty_months,
+                           DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL od.warranty_months MONTH) AS warranty_end_date,
+                           DATEDIFF(DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL od.warranty_months MONTH), CURDATE()) AS remaining_days
                     FROM order_details od
                     INNER JOIN orders o ON od.order_id = o.order_id
                     INNER JOIN customers cust ON o.customer_id = cust.customer_id
@@ -267,11 +267,11 @@ public class WarrantyDAO extends DBContext {
                            w.status_id,
                            w.response,
                            ws.status_name,
-                           p.warranty_months AS warranty_months,
+                           od.warranty_months AS warranty_months,
                            br.brand_name,
                            ca.category_name,
-                           DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH) AS warranty_end_date,
-                           DATEDIFF(DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH), CURDATE()) AS remaining_days
+                           DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL od.warranty_months MONTH) AS warranty_end_date,
+                           DATEDIFF(DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL od.warranty_months MONTH), CURDATE()) AS remaining_days
                     FROM orders o
                     INNER JOIN orders_status os ON o.status_id = os.status_id
                     INNER JOIN order_details od ON o.order_id = od.order_id

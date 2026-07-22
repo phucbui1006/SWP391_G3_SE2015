@@ -88,9 +88,10 @@ public class OrderDAO extends DBContext {
                                               product_id,
                                               quantity,
                                               unit_price,
+                                              warranty_months,
                                               subtotal
                                           )
-                                          VALUES (?, ?, ?, ?, ?)
+                                          VALUES (?, ?, ?, ?, ?, ?)
                                           """;
 
             try (PreparedStatement ps = connection.prepareStatement(insertOrderDetailSql)) {
@@ -105,7 +106,8 @@ public class OrderDAO extends DBContext {
                     ps.setInt(2, item.getProductId());
                     ps.setInt(3, item.getQuantity());
                     ps.setBigDecimal(4, product.getPrice());
-                    ps.setBigDecimal(5, item.getLineTotal());
+                    ps.setInt(5, product.getWarrantyMonths());
+                    ps.setBigDecimal(6, item.getLineTotal());
                     ps.addBatch();
                 }
 

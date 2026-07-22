@@ -1,5 +1,6 @@
 package dal;
 
+import java.util.ArrayList;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -96,11 +97,6 @@ public class OrderDAO extends DBContext {
                 for (CartItem item : items) {
                     Product product = item.getProduct();
                     if (product == null || product.getPrice() == null) {
-                        connection.rollback();
-                        return -1;
-                    }
-
-                    if (!reserveStock(item.getProductId(), item.getQuantity())) {
                         connection.rollback();
                         return -1;
                     }
@@ -270,6 +266,11 @@ public class OrderDAO extends DBContext {
         try {
             connection.setAutoCommit(false);
 
+            if (!reserveStockForOrder(orderId)) {
+                connection.rollback();
+                return false;
+            }
+
             try (PreparedStatement ps = connection.prepareStatement(updateOrderSql)) {
                 ps.setInt(1, STATUS_CONFIRMED);
                 ps.setString(2, PAYMENT_STATUS_PAID);
@@ -310,8 +311,6 @@ public class OrderDAO extends DBContext {
                                   AND payment_status = ?
                                 """;
         try {
-            connection.setAutoCommit(false);
-
             try (PreparedStatement ps = connection.prepareStatement(updateOrderSql)) {
                 ps.setInt(1, STATUS_CANCELLED);
                 ps.setString(2, paymentStatus);
@@ -320,25 +319,11 @@ public class OrderDAO extends DBContext {
                 ps.setInt(5, STATUS_WAITING_CONFIRMATION);
                 ps.setString(6, PAYMENT_STATUS_PENDING);
 
-                if (ps.executeUpdate() != 1) {
-                    connection.rollback();
-                    return false;
-                }
+                return ps.executeUpdate() == 1;
             }
-
-            if (!releaseStockInternal(orderId)) {
-                connection.rollback();
-                return false;
-            }
-
-            connection.commit();
-            return true;
         } catch (SQLException e) {
-            rollbackQuietly();
             e.printStackTrace();
             return false;
-        } finally {
-            resetAutoCommit();
         }
     }
 
@@ -610,6 +595,131 @@ public class OrderDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Employee xác nhận đơn COD. Trừ kho và chuyển status 1 → 2.
+     * @return null nếu thành công, hoặc String thông báo lỗi chi tiết SP thiếu kho.
+     */
+    public String confirmCodOrder(int orderId) {
+        String checkOrderSql = """
+                               SELECT payment_method, status_id
+                               FROM orders
+                               WHERE order_id = ?
+                               """;
+        String updateOrderSql = """
+                                UPDATE orders
+                                SET status_id = ?
+                                WHERE order_id = ?
+                                  AND status_id = ?
+                                """;
+
+        try {
+            connection.setAutoCommit(false);
+
+            // Kiểm tra đơn hàng hợp lệ
+            try (PreparedStatement ps = connection.prepareStatement(checkOrderSql)) {
+                ps.setInt(1, orderId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        connection.rollback();
+                        return "Không tìm thấy đơn hàng.";
+                    }
+                    int currentStatus = rs.getInt("status_id");
+                    if (currentStatus != STATUS_WAITING_CONFIRMATION) {
+                        connection.rollback();
+                        return "Đơn hàng không ở trạng thái Chờ xác nhận.";
+                    }
+                }
+            }
+
+            // Kiểm tra tồn kho trước khi trừ
+            List<String> stockErrors = checkStockForOrder(orderId);
+            if (!stockErrors.isEmpty()) {
+                connection.rollback();
+                StringBuilder message = new StringBuilder("Không thể xác nhận đơn hàng. Các sản phẩm sau không đủ tồn kho:");
+                for (String error : stockErrors) {
+                    message.append("\n- ").append(error);
+                }
+                return message.toString();
+            }
+
+            // Trừ kho
+            if (!reserveStockForOrder(orderId)) {
+                connection.rollback();
+                return "Lỗi khi trừ kho. Vui lòng thử lại.";
+            }
+
+            // Chuyển trạng thái sang Đã xác nhận
+            try (PreparedStatement ps = connection.prepareStatement(updateOrderSql)) {
+                ps.setInt(1, STATUS_CONFIRMED);
+                ps.setInt(2, orderId);
+                ps.setInt(3, STATUS_WAITING_CONFIRMATION);
+                if (ps.executeUpdate() != 1) {
+                    connection.rollback();
+                    return "Không thể cập nhật trạng thái đơn hàng.";
+                }
+            }
+
+            connection.commit();
+            return null; // Thành công
+        } catch (SQLException e) {
+            rollbackQuietly();
+            e.printStackTrace();
+            return "Lỗi hệ thống khi xác nhận đơn hàng.";
+        } finally {
+            resetAutoCommit();
+        }
+    }
+
+    /**
+     * Kiểm tra tồn kho cho đơn hàng. Trả về danh sách SP thiếu kho.
+     */
+    public List<String> checkStockForOrder(int orderId) throws SQLException {
+        List<String> errors = new ArrayList<>();
+        String sql = """
+                     SELECT od.product_id, od.quantity AS ordered_qty, p.product_name,
+                            COALESCE(SUM(bi.quantity), 0) AS available_qty
+                     FROM order_details od
+                     INNER JOIN products p ON p.product_id = od.product_id
+                     LEFT JOIN batch_items bi ON bi.product_id = od.product_id AND bi.quantity > 0
+                     WHERE od.order_id = ?
+                     GROUP BY od.product_id, od.quantity, p.product_name
+                     """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int orderedQty = rs.getInt("ordered_qty");
+                    int availableQty = rs.getInt("available_qty");
+                    if (availableQty < orderedQty) {
+                        String productName = rs.getString("product_name");
+                        errors.add(productName + ": cần " + orderedQty + ", kho còn " + availableQty);
+                    }
+                }
+            }
+        }
+
+        return errors;
+    }
+
+    /**
+     * Trừ kho cho tất cả SP trong đơn hàng.
+     */
+    private boolean reserveStockForOrder(int orderId) throws SQLException {
+        String sql = "SELECT product_id, quantity FROM order_details WHERE order_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    if (!reserveStock(rs.getInt("product_id"), rs.getInt("quantity"))) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     private static class BatchStock {

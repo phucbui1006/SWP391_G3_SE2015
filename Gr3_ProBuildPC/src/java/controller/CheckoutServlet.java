@@ -87,7 +87,7 @@ public class CheckoutServlet extends HttpServlet {
         Address selectedAddress = findAddressById(savedAddresses, selectedAddressId);
 
         String paymentMethod = normalizePaymentMethod(request.getParameter("paymentMethod"));
-        int statusId = "VNPAY".equals(paymentMethod) ? 1 : 2; // 1: Chờ xác nhận, 2: Đã xác nhận (auto-confirmed)
+        int statusId = 1; // Cả COD và VNPAY đều bắt đầu ở Chờ xác nhận, chờ xác nhận thủ công hoặc thanh toán
         String paymentStatus = "VNPAY".equals(paymentMethod) ? "Chờ thanh toán" : "Chưa thanh toán";
         String note = util.ValidatorUtil.safeTrimAndClean(request.getParameter("note"));
 

@@ -243,10 +243,14 @@ public class OrderHistoryDAO extends DBContext {
                 updateShipmentStatusAndNote(shipmentId, statusName, shipmentNote);
             }
 
+            // Lưu status_id hiện tại trước khi cập nhật (để xác định kho đã trừ chưa)
+            boolean wasConfirmedOrLater = !currentStatusName.trim().equalsIgnoreCase("Chờ xác nhận")
+                    && !currentStatusName.trim().equalsIgnoreCase("Đã hủy");
+
             updateOrderStatus(orderId, statusId);
             
-            // If the status is changing to 'Đã hủy' (id = 6), release the stock
-            if (statusId == 6 && !currentStatusName.trim().equalsIgnoreCase("Đã hủy")) {
+            // If the status is changing to 'Đã hủy' (id = 6), release the stock only if order was confirmed (kho đã trừ)
+            if (statusId == 6 && wasConfirmedOrLater) {
                 OrderDAO orderDAO = new OrderDAO();
                 orderDAO.releaseStock(orderId);
             }
@@ -280,6 +284,19 @@ public class OrderHistoryDAO extends DBContext {
             Integer confirmedStatusId = 2; // Đã xác nhận
             Integer cancelledStatusId = 6; // Đã hủy
 
+            // Lấy status hiện tại trước khi hủy
+            int currentStatusId = 0;
+            try (PreparedStatement psCheck = connection.prepareStatement(
+                    "SELECT status_id FROM orders WHERE order_id = ? AND customer_id = ?")) {
+                psCheck.setInt(1, orderId);
+                psCheck.setInt(2, customerId);
+                try (ResultSet rs = psCheck.executeQuery()) {
+                    if (rs.next()) {
+                        currentStatusId = rs.getInt("status_id");
+                    }
+                }
+            }
+
             String sql = """
                          UPDATE orders
                          SET status_id = ?,
@@ -302,8 +319,11 @@ public class OrderHistoryDAO extends DBContext {
                 ps.setInt(5, confirmedStatusId);
                 boolean success = ps.executeUpdate() > 0;
                 if (success) {
-                    OrderDAO orderDAO = new OrderDAO();
-                    orderDAO.releaseStock(orderId);
+                    // Chỉ hoàn kho nếu đơn đã ở trạng thái Đã xác nhận (kho đã trừ)
+                    if (currentStatusId == confirmedStatusId) {
+                        OrderDAO orderDAO = new OrderDAO();
+                        orderDAO.releaseStock(orderId);
+                    }
                     
                     // Also update shipment status if it exists
                     try (PreparedStatement psShipment = connection.prepareStatement(

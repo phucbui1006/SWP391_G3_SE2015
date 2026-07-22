@@ -38,6 +38,25 @@ public class VNPayRetryServlet extends HttpServlet {
         }
 
         OrderDAO orderDAO = new OrderDAO();
+
+        try {
+            java.util.List<String> stockErrors = orderDAO.checkStockForOrder(orderId);
+            if (!stockErrors.isEmpty()) {
+                StringBuilder errorMsg = new StringBuilder("Không đủ số lượng trong kho cho các sản phẩm: ");
+                for (String error : stockErrors) {
+                    errorMsg.append(error).append("; ");
+                }
+                session.setAttribute("orderHistoryError", errorMsg.toString());
+                response.sendRedirect(request.getContextPath() + "/order-history?selectedOrderId=" + orderId);
+                return;
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+            session.setAttribute("orderHistoryError", "Lỗi kiểm tra kho. Vui lòng thử lại sau.");
+            response.sendRedirect(request.getContextPath() + "/order-history?selectedOrderId=" + orderId);
+            return;
+        }
+
         boolean extended = orderDAO.extendVnpayExpiresAtForCustomer(orderId, account.getCustomerId(), 5);
 
         if (!extended) {

@@ -264,65 +264,48 @@
                         </table>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
-                        <span style="color: #6c757d;">
-                            <%= startItem %> đến <%= endItem %> / <%= totalUsers %> tài khoản
-                        </span>
-                        
-                        <nav aria-label="Account pagination">
-                            <ul class="account-v2-pagination" style="display: flex; list-style: none; padding: 0; margin: 0; gap: 5px;">
-                                <li>
-                                    <% if (pageNumber > 1) { %>
-                                        <a href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, pageNumber - 1) %>" style="padding: 5px 10px; border: 1px solid #ced4da; text-decoration: none; border-radius: 4px;">‹</a>
-                                    <% } else { %>
-                                        <span style="padding: 5px 10px; border: 1px solid #ced4da; background-color: #e9ecef; color: #6c757d; border-radius: 4px;">‹</span>
-                                    <% } %>
-                                </li>
-                                <%
-                                    int fromPage = Math.max(2, pageNumber - 2);
-                                    int toPage = Math.min(totalPages - 1, pageNumber + 2);
-                                    if (pageNumber <= 4) {
-                                        fromPage = 2;
-                                        toPage = Math.min(totalPages - 1, 5);
-                                    } else if (pageNumber >= totalPages - 3) {
-                                        fromPage = Math.max(2, totalPages - 4);
-                                        toPage = totalPages - 1;
-                                    }
-                                %>
-                                    <li>
-                                        <a href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, 1) %>" style="padding: 5px 10px; border: 1px solid #ced4da; text-decoration: none; border-radius: 4px; <%= pageNumber == 1 ? "background-color: #0d6efd; color: white;" : "color: #0d6efd;" %>">
-                                            1
-                                        </a>
-                                    </li>
-                                <% if (fromPage > 2) { %>
-                                    <li><span style="padding: 5px 10px; color: #6c757d;">...</span></li>
-                                <% } %>
-                                <% for (int p = fromPage; p <= toPage; p++) { %>
-                                    <li>
-                                        <a href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, p) %>" style="padding: 5px 10px; border: 1px solid #ced4da; text-decoration: none; border-radius: 4px; <%= p == pageNumber ? "background-color: #0d6efd; color: white;" : "color: #0d6efd;" %>">
-                                            <%= p %>
-                                        </a>
-                                    </li>
-                                <% } %>
-                                <% if (toPage < totalPages - 1) { %>
-                                    <li><span style="padding: 5px 10px; color: #6c757d;">...</span></li>
-                                <% } %>
-                                <% if (totalPages > 1) { %>
-                                    <li>
-                                        <a href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, totalPages) %>" style="padding: 5px 10px; border: 1px solid #ced4da; text-decoration: none; border-radius: 4px; <%= pageNumber == totalPages ? "background-color: #0d6efd; color: white;" : "color: #0d6efd;" %>">
-                                            <%= totalPages %>
-                                        </a>
-                                    </li>
-                                <% } %>
-                                <li>
-                                    <% if (pageNumber < totalPages) { %>
-                                        <a href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, pageNumber + 1) %>" style="padding: 5px 10px; border: 1px solid #ced4da; text-decoration: none; border-radius: 4px;">›</a>
-                                    <% } else { %>
-                                        <span style="padding: 5px 10px; border: 1px solid #ced4da; background-color: #e9ecef; color: #6c757d; border-radius: 4px;">›</span>
-                                    <% } %>
-                                </li>
-                            </ul>
-                        </nav>
+                    <div class="admin-product-footer">
+                        <p>
+                            Hiển thị <strong><%= startItem %></strong> đến <strong><%= endItem %></strong> của <strong><%= totalUsers %></strong> tài khoản
+                        </p>
+                        <div class="admin-pagination">
+                            <% if (pageNumber > 1) { %>
+                            <a class="page-btn" href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, pageNumber - 1) %>">&lsaquo;</a>
+                            <% } else { %>
+                            <span class="page-btn disabled"><</span>
+                            <% } %>
+
+                            <%
+                                int fromPage = Math.max(2, pageNumber - 2);
+                                int toPage = Math.min(totalPages - 1, pageNumber + 2);
+                                if (pageNumber <= 4) {
+                                    fromPage = 2;
+                                    toPage = Math.min(totalPages - 1, 5);
+                                } else if (pageNumber >= totalPages - 3) {
+                                    fromPage = Math.max(2, totalPages - 4);
+                                    toPage = totalPages - 1;
+                                }
+                            %>
+                            <a class="page-btn <%= pageNumber == 1 ? "active" : "" %>" href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, 1) %>">1</a>
+                            <% if (fromPage > 2) { %>
+                            <span class="page-btn disabled">...</span>
+                            <% } %>
+                            <% for (int p = fromPage; p <= toPage; p++) { %>
+                            <a class="page-btn <%= pageNumber == p ? "active" : "" %>" href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, p) %>"><%= p %></a>
+                            <% } %>
+                            <% if (toPage < totalPages - 1) { %>
+                            <span class="page-btn disabled">...</span>
+                            <% } %>
+                            <% if (totalPages > 1) { %>
+                            <a class="page-btn <%= pageNumber == totalPages ? "active" : "" %>" href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, totalPages) %>"><%= totalPages %></a>
+                            <% } %>
+
+                            <% if (pageNumber < totalPages) { %>
+                            <a class="page-btn" href="<%= buildUrl(ctx, type, keyword, selectedRoleId, selectedStatus, pageNumber + 1) %>">&rsaquo;</a>
+                            <% } else { %>
+                            <span class="page-btn disabled">></span>
+                            <% } %>
+                        </div>
                     </div>
 
                 </div>

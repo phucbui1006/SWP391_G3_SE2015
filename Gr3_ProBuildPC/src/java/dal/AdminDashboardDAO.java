@@ -37,10 +37,6 @@ public class AdminDashboardDAO extends DBContext {
                 FROM orders
                 WHERE order_date >= ? AND order_date < DATE_ADD(?, INTERVAL 1 DAY)
                 """, startDate, endDate));
-        summary.setActiveProducts(queryInt("SELECT COUNT(*) AS value FROM products WHERE UPPER(status) = 'ACTIVE'"));
-        summary.setTotalBrands(queryInt("SELECT COUNT(*) AS value FROM brands"));
-        summary.setAcceptedWarrantyRequests(queryInt(
-                "SELECT COUNT(*) AS value FROM warranties WHERE status_id = 3"));
         summary.setImportedBatches(queryInt("""
                 SELECT COUNT(*) AS value FROM batch WHERE date BETWEEN ? AND ?
                 """, startDate, endDate));
@@ -224,38 +220,6 @@ public class AdminDashboardDAO extends DBContext {
         }
 
         return products;
-    }
-
-    public Map<Integer, Integer> getLowStockProductCounts(int maxStockQuantity) {
-        Map<Integer, Integer> counts = new LinkedHashMap<>();
-        String sql = """
-                SELECT stock_quantity, COUNT(*) AS total
-                FROM (
-                    SELECT COALESCE(stock.quantity, 0) AS stock_quantity
-                    FROM products p
-                    LEFT JOIN (
-                        SELECT product_id, SUM(quantity) AS quantity
-                        FROM batch_items
-                        GROUP BY product_id
-                    ) stock ON stock.product_id = p.product_id
-                ) product_stock
-                WHERE stock_quantity BETWEEN 0 AND ?
-                GROUP BY stock_quantity
-                ORDER BY stock_quantity ASC
-                """;
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, maxStockQuantity);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    counts.put(rs.getInt("stock_quantity"), rs.getInt("total"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return counts;
     }
 
     public Map<String, Integer> getOrderStatusCounts(LocalDate startDate, LocalDate endDate) {

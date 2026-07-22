@@ -2,6 +2,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="model.Brand" %>
 <%@ page import="model.User" %>
+<%@ page import="java.net.URLEncoder" %>
 
 <%!
     private String h(String value) {
@@ -30,6 +31,17 @@
                 .replace("<", "\\u003C")
                 .replace(">", "\\u003E")
                 .replace("&", "\\u0026");
+    }
+
+    private String pageUrl(String ctx, String keyword, String status, String sort, int page) {
+        try {
+            return ctx + "/AdminBrands?keyword=" + URLEncoder.encode(keyword == null ? "" : keyword, "UTF-8")
+                    + "&status=" + URLEncoder.encode(status, "UTF-8")
+                    + "&sort=" + URLEncoder.encode(sort, "UTF-8")
+                    + "&page=" + page;
+        } catch (Exception e) {
+            return ctx + "/AdminBrands?page=" + page;
+        }
     }
 %>
 
@@ -61,6 +73,10 @@
     String success = (String) request.getAttribute("success");
     String error = (String) request.getAttribute("error");
     List<Brand> allBrands = (List<Brand>) request.getAttribute("allBrands");
+    Integer currentPageObj = (Integer) request.getAttribute("currentPage");
+    Integer totalPagesObj = (Integer) request.getAttribute("totalPages");
+    int currentPage = currentPageObj == null ? 1 : currentPageObj;
+    int totalPages = totalPagesObj == null ? 1 : totalPagesObj;
 
     if (selectedStatus == null || selectedStatus.isEmpty()) {
         selectedStatus = "ALL";
@@ -117,6 +133,7 @@
 
                             <select name="sort" onchange="this.form.submit()">
                                 <option value="newest" <%= "newest".equals(selectedSort) ? "selected" : "" %>>Mới nhất</option>
+                                <option value="oldest" <%= "oldest".equals(selectedSort) ? "selected" : "" %>>Cũ nhất</option>
                                 <option value="product_count_asc" <%= "product_count_asc".equals(selectedSort) ? "selected" : "" %>>Số sản phẩm tăng dần</option>
                                 <option value="product_count_desc" <%= "product_count_desc".equals(selectedSort) ? "selected" : "" %>>Số sản phẩm giảm dần</option>
                             </select>
@@ -134,7 +151,6 @@
                                     <th>#</th>
                                     <th>Logo</th>
                                     <th>Tên thương hiệu</th>
-                                    <th>Đường dẫn logo</th>
                                     <th>Số lượng sản phẩm</th>
                                     <th>Trạng thái</th>
                                     <th>Thao tác</th>
@@ -143,7 +159,7 @@
                             <tbody>
                                 <% if (brands == null || brands.isEmpty()) { %>
                                 <tr>
-                                    <td class="brand-empty-state" colspan="7">Không tìm thấy thương hiệu phù hợp.</td>
+                                    <td class="brand-empty-state" colspan="6">Không tìm thấy thương hiệu phù hợp.</td>
                                 </tr>
                                 <% } else { %>
                                 <% for (Brand brand : brands) { %>
@@ -153,7 +169,6 @@
                                         <img class="brand-logo" src="<%= ctx %>/<%= h(brand.getImg()) %>" alt="<%= h(brand.getBrandName()) %>">
                                     </td>
                                     <td><%= h(brand.getBrandName()) %></td>
-                                    <td><%= h(brand.getImg()) %></td>
                                     <td><%= brand.getProductCount() %></td>
                                     <td><%= h(brand.getStatus()) %></td>
                                     <td>
@@ -177,6 +192,39 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <% if (totalPages > 1) { %>
+                    <nav class="home-pagination" aria-label="Phân trang thương hiệu">
+                        <% if (currentPage > 1) { %>
+                        <a href="<%= pageUrl(ctx, keyword, selectedStatus, selectedSort, currentPage - 1) %>">Trước</a>
+                        <% } %>
+
+                        <%
+                            int fromPage = Math.max(2, currentPage - 2);
+                            int toPage = Math.min(totalPages - 1, currentPage + 2);
+                            if (currentPage <= 4) {
+                                fromPage = 2;
+                                toPage = Math.min(totalPages - 1, 5);
+                            } else if (currentPage >= totalPages - 3) {
+                                fromPage = Math.max(2, totalPages - 4);
+                                toPage = totalPages - 1;
+                            }
+                        %>
+                        <a class="<%= currentPage == 1 ? "active" : "" %>" href="<%= pageUrl(ctx, keyword, selectedStatus, selectedSort, 1) %>">1</a>
+                        <% if (fromPage > 2) { %><span>...</span><% } %>
+                        <% for (int pageNumber = fromPage; pageNumber <= toPage; pageNumber++) { %>
+                        <a class="<%= currentPage == pageNumber ? "active" : "" %>"
+                           href="<%= pageUrl(ctx, keyword, selectedStatus, selectedSort, pageNumber) %>"><%= pageNumber %></a>
+                        <% } %>
+                        <% if (toPage < totalPages - 1) { %><span>...</span><% } %>
+                        <a class="<%= currentPage == totalPages ? "active" : "" %>"
+                           href="<%= pageUrl(ctx, keyword, selectedStatus, selectedSort, totalPages) %>"><%= totalPages %></a>
+
+                        <% if (currentPage < totalPages) { %>
+                        <a href="<%= pageUrl(ctx, keyword, selectedStatus, selectedSort, currentPage + 1) %>">Sau</a>
+                        <% } %>
+                    </nav>
+                    <% } %>
                 </div>
             </section>
         </main>
@@ -218,8 +266,6 @@
                 <form action="<%= ctx %>/AdminBrands" method="post" enctype="multipart/form-data" class="brand-modal-form" data-brand-id="<%= brand.getBrandId() %>">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="brandId" value="<%= brand.getBrandId() %>">
-                    <input type="hidden" name="currentImg" value="<%= h(brand.getImg()) %>">
-
                     <label for="editBrandName<%= brand.getBrandId() %>">Tên thương hiệu <span>*</span></label>
                     <input id="editBrandName<%= brand.getBrandId() %>" name="brandName" type="text" value="<%= h(brand.getBrandName()) %>" minlength="2" maxlength="19" required>
 

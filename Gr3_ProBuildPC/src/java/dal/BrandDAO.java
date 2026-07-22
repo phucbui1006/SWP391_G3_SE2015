@@ -22,6 +22,10 @@ public class BrandDAO extends DBContext {
     }
 
     public List<Brand> getBrands(String keyword, String status, String sort) {
+        return getBrands(keyword, status, sort, 0, 0);
+    }
+
+    public List<Brand> getBrands(String keyword, String status, String sort, int page, int pageSize) {
         List<Brand> list = new ArrayList<>();
 
         String sql = """
@@ -32,7 +36,7 @@ public class BrandDAO extends DBContext {
             WHERE (? IS NULL OR br.brand_name LIKE ?)
               AND (? IS NULL OR br.status = ?)
             GROUP BY br.brand_id, br.brand_name, br.img, br.status
-        """ + getAdminOrderBy(sort);
+        """ + getAdminOrderBy(sort) + (pageSize > 0 ? " LIMIT ? OFFSET ?" : "");
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -55,6 +59,11 @@ public class BrandDAO extends DBContext {
                 ps.setString(4, normalizedStatus);
             }
 
+            if (pageSize > 0) {
+                ps.setInt(5, pageSize);
+                ps.setInt(6, (Math.max(page, 1) - 1) * pageSize);
+            }
+
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -66,6 +75,42 @@ public class BrandDAO extends DBContext {
         }
 
         return list;
+    }
+
+    public int countBrands(String keyword, String status) {
+        String sql = """
+            SELECT COUNT(*) AS total
+            FROM brands br
+            WHERE (? IS NULL OR br.brand_name LIKE ?)
+              AND (? IS NULL OR br.status = ?)
+        """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            String normalizedKeyword = normalizeKeyword(keyword);
+            String normalizedStatus = normalizeStatus(status);
+
+            setOptionalFilter(ps, 1, normalizedKeyword, true);
+            setOptionalFilter(ps, 3, normalizedStatus, false);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("total") : 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    private void setOptionalFilter(PreparedStatement ps, int index, String value, boolean useWildcard)
+            throws SQLException {
+        if (value == null) {
+            ps.setNull(index, java.sql.Types.VARCHAR);
+            ps.setNull(index + 1, java.sql.Types.VARCHAR);
+            return;
+        }
+
+        ps.setString(index, value);
+        ps.setString(index + 1, useWildcard ? "%" + value + "%" : value);
     }
 
     //Lấy ra, filter tất cả brand theo status
@@ -85,7 +130,7 @@ public class BrandDAO extends DBContext {
             ) stock ON stock.product_id = p.product_id
             WHERE br.status = 'ACTIVE'
             GROUP BY br.brand_id, br.brand_name, br.img, br.status
-            ORDER BY br.brand_id DESC
+            ORDER BY br.brand_id ASC
         """;
 
         try {
@@ -242,7 +287,9 @@ public class BrandDAO extends DBContext {
     }
 
     private String getAdminOrderBy(String sort) {
-        if ("product_count_asc".equals(sort)) {
+        if ("oldest".equals(sort)) {
+            return " ORDER BY br.brand_id ASC ";
+        } else if ("product_count_asc".equals(sort)) {
             return " ORDER BY product_count ASC, br.brand_id DESC ";
         } else if ("product_count_desc".equals(sort)) {
             return " ORDER BY product_count DESC, br.brand_id DESC ";

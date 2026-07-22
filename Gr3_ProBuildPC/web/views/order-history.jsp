@@ -11,6 +11,8 @@
 <%@ page import="model.OrderHistoryDetail" %>
 <%@ page import="model.OrderHistoryItem" %>
 <%@ page import="model.OrderStatus" %>
+<%@ page import="model.ProductSpecification" %>
+<%@ page import="dal.ProductDAO" %>
 <%!
     private String h(String value) {
         if (value == null) {
@@ -27,6 +29,18 @@
 
     private String defaultText(String value, String fallback) {
         return value == null || value.trim().isEmpty() ? fallback : value.trim();
+    }
+
+    private String escapeHtmlAttribute(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("&", "&amp;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
     }
 
     private String formatMoney(BigDecimal value, NumberFormat formatter) {
@@ -216,10 +230,11 @@
             && selectedOrder.getStatusId() == 1;
 
     boolean isEmployee = request.getAttribute("isEmployee") != null && (Boolean) request.getAttribute("isEmployee");
+    boolean selectedCanConfirm = isEmployee && selectedOrder != null && selectedOrder.getStatusId() == 1;
     boolean selectedCanUpdateShipment = false;
     if (canManageShipment && selectedOrder != null) {
         if (isShipper) {
-            selectedCanUpdateShipment = !isLockedShipmentOrder(selectedOrder);
+            selectedCanUpdateShipment = !isLockedShipmentOrder(selectedOrder) && selectedOrder.getStatusId() != 1;
         } else if (isEmployee) {
             selectedCanUpdateShipment = (selectedOrder.getStatusId() == 7);
         } else {
@@ -273,7 +288,7 @@
                         <% if (canManageShipment && isDeliveredShipmentStatus(status.getStatusName())) {
                                 continue;
                             } 
-                           if (!isCustomerView && (status.getStatusId() == 1 || status.getStatusId() == 3)) {
+                           if (!isCustomerView && !isEmployee && (status.getStatusId() == 1 || status.getStatusId() == 3)) {
                                 continue;
                             }
                         %>
@@ -335,7 +350,7 @@
                     <div class="order-history-pagination">
                         <a class="prev <%= currentPage <= 1 ? "disabled" : "" %>"
                            href="<%= currentPage <= 1 ? "#" : buildPageLink(ctx, keyword, selectedStatusIdValue, currentPage - 1, selectedOrderId, deliveryHistoryMode) %>"
-                           aria-label="Trang trước">‹</a>
+                           aria-label="Trang trước">&lt;</a>
                         <%
                             int fromPage = Math.max(2, currentPage - 2);
                             int toPage = Math.min(totalPages - 1, currentPage + 2);
@@ -365,7 +380,7 @@
                         <% } %>
                         <a class="next <%= currentPage >= totalPages ? "disabled" : "" %>"
                            href="<%= currentPage >= totalPages ? "#" : buildPageLink(ctx, keyword, selectedStatusIdValue, currentPage + 1, selectedOrderId, deliveryHistoryMode) %>"
-                           aria-label="Trang sau">›</a>
+                           aria-label="Trang sau">&gt;</a>
                     </div>
                     <% } %>
                 </aside>
@@ -388,6 +403,16 @@
                                 <input type="hidden" name="filterStatusId" value="<%= h(selectedStatusIdValue) %>">
                                 <input type="hidden" name="page" value="<%= currentPage %>">
                                 <button type="submit" class="order-cancel-btn">Hủy đơn</button>
+                            </form>
+                            <% } %>
+                            <% if (selectedCanConfirm) { %>
+                            <form class="order-confirm-form" action="<%= ctx %>/order-history" method="post" onsubmit="return confirm('Xác nhận đơn hàng này? Hệ thống sẽ trừ kho.');">
+                                <input type="hidden" name="action" value="confirmOrder">
+                                <input type="hidden" name="orderId" value="<%= selectedOrder.getOrderId() %>">
+                                <input type="hidden" name="keyword" value="<%= h(keyword) %>">
+                                <input type="hidden" name="filterStatusId" value="<%= h(selectedStatusIdValue) %>">
+                                <input type="hidden" name="page" value="<%= currentPage %>">
+                                <button type="submit" class="order-confirm-btn">✓ Xác nhận đơn hàng</button>
                             </form>
                             <% } %>
                             <% if (selectedCanRetryVnpay) { %>
@@ -493,9 +518,36 @@
                     <div class="order-products-box">
                         <h3>Danh sách sản phẩm</h3>
                         <div class="order-product-list">
+                            <%
+                                ProductDAO pqDao = new ProductDAO();
+                            %>
                             <% for (OrderHistoryDetail detail : selectedDetails) { %>
+                            <%
+                                List<ProductSpecification> pqSpecs = pqDao.getSpecificationsByProductId(detail.getProductId());
+                                StringBuilder pqSpecsHtml = new StringBuilder();
+                                if (pqSpecs != null && !pqSpecs.isEmpty()) {
+                                    pqSpecsHtml.append("<div class=\"cart-quick-view-specs-grid\">");
+                                    for (ProductSpecification pqSpec : pqSpecs) {
+                                        pqSpecsHtml.append("<div class=\"cart-quick-view-spec-card\">")
+                                                   .append("<div class=\"cart-quick-view-spec-icon\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z\"></path><polyline points=\"3.27 6.96 12 12.01 20.73 6.96\"></polyline><line x1=\"12\" y1=\"22.08\" x2=\"12\" y2=\"12\"></line></svg></div>")
+                                                   .append("<div class=\"cart-quick-view-spec-info\">")
+                                                   .append("<span class=\"cart-quick-view-spec-name\">").append(escapeHtmlAttribute(pqSpec.getSpecificationName())).append("</span>")
+                                                   .append("<strong class=\"cart-quick-view-spec-value\">").append(escapeHtmlAttribute(pqSpec.getSpecificationValue())).append("</strong>")
+                                                   .append("</div></div>");
+                                    }
+                                    pqSpecsHtml.append("</div>");
+                                }
+                            %>
                             <div class="order-product-item-wrap">
-                                <a class="order-product-row" href="<%= ctx %>/product-detail?id=<%= detail.getProductId() %>">
+                                <button type="button" class="order-product-row" style="background: none; border: none; padding: 0; width: 100%; text-align: left; cursor: pointer; font-family: inherit;"
+                                        data-name="<%= h(defaultText(detail.getProductName(), "Sản phẩm")) %>"
+                                        data-brand="<%= h(defaultText(detail.getBrandName(), "Thương hiệu")) %>"
+                                        data-category="<%= h(defaultText(detail.getCategoryName(), "Danh mục")) %>"
+                                        data-image="<%= detail.getImageUrl() != null && !detail.getImageUrl().trim().isEmpty() ? h(assetUrl(ctx, detail.getImageUrl())) : "" %>"
+                                        data-warranty="<%= detail.getWarrantyMonths() %>"
+                                        data-price="<%= formatMoney(detail.getUnitPrice(), currencyFormatter) %>"
+                                        data-specs="<%= escapeHtmlAttribute(pqSpecsHtml.toString()) %>"
+                                        onclick="openProductQuickView(this)">
                                     <% if (detail.getImageUrl() != null && !detail.getImageUrl().trim().isEmpty()) { %>
                                     <img src="<%= h(assetUrl(ctx, detail.getImageUrl())) %>" alt="<%= h(defaultText(detail.getProductName(), "Sản phẩm")) %>">
                                     <% } else { %>
@@ -507,7 +559,7 @@
                                     </div>
                                     <span>x<%= detail.getQuantity() %></span>
                                     <strong><%= formatMoney(detail.getSubtotal(), currencyFormatter) %></strong>
-                                </a>
+                                </button>
                                 
                                 <% if (isCustomerView && selectedOrder != null && isDeliveredShipmentStatus(selectedOrder.getDisplayStatus())) { %>
                                 <div class="order-product-review-row">
@@ -679,7 +731,109 @@
         </div>
         <% } %>
 
+        <div class="cart-quick-view-backdrop" data-pq-backdrop hidden>
+            <div class="cart-quick-view-modal" role="dialog" aria-modal="true" aria-labelledby="pqQuickViewTitle">
+                <button type="button" class="cart-quick-view-close" data-pq-close aria-label="Đóng xem nhanh">
+                    &times;
+                </button>
+
+                <div class="cart-quick-view-layout">
+                    <div class="cart-quick-view-media">
+                        <div class="cart-quick-view-image-shell">
+                            <img
+                                class="cart-quick-view-image"
+                                data-pq-image
+                                src="https://via.placeholder.com/320x320?text=PC"
+                                alt="Sản phẩm">
+                        </div>
+
+                        <div class="cart-quick-view-brand-category" style="font-size: 14px; color: #4b5563; margin-top: 4px;">
+                            Thương hiệu: <strong style="color: #111827;" data-pq-brand>Khác</strong> | Danh mục: <strong style="color: #111827;" data-pq-category>Khác</strong>
+                        </div>
+                    </div>
+
+                    <div class="cart-quick-view-content">
+                        <div class="cart-quick-view-header">
+                            <span class="cart-quick-view-eyebrow">XEM NHANH</span>
+                            <h3 id="pqQuickViewTitle" data-pq-title>Tên sản phẩm</h3>
+                            <div style="font-size: 14px; color: #4b5563; margin-top: 4px;">
+                                Bảo hành: <strong style="color: #111827;" data-pq-warranty>0 tháng</strong> chính hãng
+                            </div>
+                        </div>
+
+                        <div class="cart-quick-view-price-panel">
+                            <span class="cart-quick-view-label">GIÁ HIỆN TẠI</span>
+                            <strong class="cart-quick-view-price" data-pq-price>0đ</strong>
+                        </div>
+
+                        <div class="cart-quick-view-section">
+                            <div class="cart-quick-view-label">CHI TIẾT SẢN PHẨM</div>
+                            <p class="cart-quick-view-description" data-pq-description>Sản phẩm chính hãng, bảo hành tại ProBuild PC.</p>
+                            <div class="cart-quick-view-specs-container" data-pq-specs></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script>
+            (function () {
+                var pqBackdrop = document.querySelector('[data-pq-backdrop]');
+                var pqCloseBtn = document.querySelector('[data-pq-close]');
+                var pqImage   = document.querySelector('[data-pq-image]');
+                var pqTitle   = document.querySelector('[data-pq-title]');
+                var pqBrand   = document.querySelector('[data-pq-brand]');
+                var pqCategory= document.querySelector('[data-pq-category]');
+                var pqWarranty= document.querySelector('[data-pq-warranty]');
+                var pqPrice   = document.querySelector('[data-pq-price]');
+                var pqDesc    = document.querySelector('[data-pq-description]');
+
+                function closePQ() {
+                    if (!pqBackdrop) return;
+                    pqBackdrop.classList.remove('is-open');
+                    window.setTimeout(function () {
+                        if (!pqBackdrop.classList.contains('is-open')) {
+                            pqBackdrop.hidden = true;
+                        }
+                    }, 180);
+                }
+
+                var pqSpecs = document.querySelector('[data-pq-specs]');
+
+                window.openProductQuickView = function (btn) {
+                    if (!pqBackdrop) return;
+                    if (pqTitle)    pqTitle.textContent    = btn.getAttribute('data-name') || 'Sản phẩm';
+                    if (pqBrand)    pqBrand.textContent    = btn.getAttribute('data-brand') || 'Khác';
+                    if (pqCategory) pqCategory.textContent = btn.getAttribute('data-category') || 'Khác';
+                    if (pqWarranty) pqWarranty.textContent = (btn.getAttribute('data-warranty') || '0') + ' tháng';
+                    if (pqPrice)    pqPrice.textContent    = btn.getAttribute('data-price') || '0đ';
+                    if (pqDesc)     pqDesc.textContent     = btn.getAttribute('data-description') || 'Sản phẩm chính hãng, bảo hành tại ProBuild PC.';
+                    if (pqSpecs)    pqSpecs.innerHTML      = btn.getAttribute('data-specs') || '';
+                    if (pqImage) {
+                        pqImage.src = btn.getAttribute('data-image') || 'https://via.placeholder.com/320x320?text=PC';
+                        pqImage.alt = btn.getAttribute('data-name') || 'Sản phẩm';
+                    }
+                    pqBackdrop.hidden = false;
+                    window.requestAnimationFrame(function () {
+                        pqBackdrop.classList.add('is-open');
+                    });
+                    if (pqCloseBtn) pqCloseBtn.focus();
+                };
+
+                if (pqCloseBtn) pqCloseBtn.addEventListener('click', closePQ);
+
+                if (pqBackdrop) {
+                    pqBackdrop.addEventListener('click', function (e) {
+                        if (e.target === pqBackdrop) closePQ();
+                    });
+                }
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape' && pqBackdrop && !pqBackdrop.hidden) closePQ();
+                });
+            })();
+
+
             (function () {
                 const openButtons = document.querySelectorAll("[data-open-modal]");
                 const closeButtons = document.querySelectorAll("[data-close-modal]");
@@ -690,6 +844,9 @@
                         return;
                     }
                     modal.hidden = false;
+                    requestAnimationFrame(function () {
+                        modal.classList.add("is-open");
+                    });
                     document.body.classList.add("order-modal-open");
                 }
 
@@ -697,7 +854,11 @@
                     if (!modal) {
                         return;
                     }
-                    modal.hidden = true;
+                    modal.classList.remove("is-open");
+                    // Delay hiding to allow transition to finish
+                    setTimeout(function () {
+                        modal.hidden = true;
+                    }, 200);
                     document.body.classList.remove("order-modal-open");
                 }
 

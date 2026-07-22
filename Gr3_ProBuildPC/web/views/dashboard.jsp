@@ -102,31 +102,18 @@
                     <div class="admin-dashboard-grid admin-products-grid">
                         <section class="admin-panel admin-module-panel admin-chart-panel">
                             <div class="admin-panel-header">
-                                <h2>Top 5 sản phẩm bán chạy nhất</h2>
-                            </div>
+                                <div>
+                                    <h2>Top 5 sản phẩm bán chạy nhất</h2>
+                                    <p class="admin-chart-period"><%= adminDashboard.getChartPeriodLabel() %></p>
+                                </div> </div>
 
                             <div class="admin-chart-body">
                                 <canvas id="bestSellingProductsChart" aria-label="Biểu đồ thanh ngang top 5 sản phẩm bán chạy nhất"></canvas>
                             </div>
                             <div class="admin-panel-footer">
-                                <a href="<%= ctx %>/admin/products">Xem tất cả</a>
                             </div>
                         </section>
 
-                        <aside class="admin-panel admin-quick-panel admin-chart-panel">
-                            <div class="admin-panel-header">
-                                <h2>Sản phẩm mức tồn kho thấp (&le;5)</h2>
-                            </div>
-                            <div class="admin-chart-body">
-                                <canvas id="lowStockProductsChart" aria-label="Biểu đồ sản phẩm tồn kho thấp"></canvas>
-                            </div>
-                            <div class="admin-panel-footer">
-                                <a href="<%= ctx %>/admin/products?sort=qty_asc">Xem tất cả</a>
-                            </div>
-                        </aside>
-                    </div>
-
-                    <div class="admin-dashboard-grid admin-bottom-grid">
                         <section class="admin-panel admin-chart-panel">
                             <div class="admin-panel-header">
                                 <div>
@@ -137,27 +124,6 @@
 
                             <div class="admin-chart-body admin-order-status-chart-body">
                                 <canvas id="orderStatusChart" aria-label="Biểu đồ số lượng đơn hàng theo trạng thái"></canvas>
-                            </div>
-                            <div class="admin-panel-footer">
-                                <a href="<%= ctx %>/order-history">Xem tất cả</a>
-                            </div>
-                        </section>
-
-                        <section class="admin-panel admin-chart-panel admin-account-panel">
-                            <div class="admin-panel-header">
-                                <div>
-                                    <h2>Tổng quan tài khoản</h2>
-                                </div>
-                            </div>
-
-                            <div class="admin-account-chart-wrap">
-                                <div class="admin-account-chart">
-                                    <canvas id="accountOverviewChart" aria-label="Biểu đồ tổng quan tài khoản"></canvas>
-                                </div>
-                            </div>
-                            <div class="admin-panel-footer">
-                                <span><a href="<%= ctx %>/AccountManagement?type=user">Quản lý khách hàng</a></span>
-                                <a href="<%= ctx %>/AccountManagement?type=staff">Quản lý nhân viên</a>
                             </div>
                         </section>
                     </div>
@@ -170,12 +136,8 @@
                             categoryValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getCategorySoldProducts()) %>,
                             bestSellingLabels: <%= DashboardViewHelper.productNamesToJson(adminDashboard.getBestSellingProducts()) %>,
                             bestSellingValues: <%= DashboardViewHelper.productSoldQuantitiesToJson(adminDashboard.getBestSellingProducts()) %>,
-                            lowStockLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getLowStockProductsChart()) %>,
-                            lowStockValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getLowStockProductsChart()) %>,
                             orderStatusLabels: <%= DashboardViewHelper.chartPointLabelsToJson(adminDashboard.getOrderStatusCounts()) %>,
-                            orderStatusValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getOrderStatusCounts()) %>,
-                            accountLabels: <%= DashboardViewHelper.countRowLabelsToJson(adminDashboard.getAccountSummaries()) %>,
-                            accountValues: <%= DashboardViewHelper.countRowValuesToJson(adminDashboard.getAccountSummaries()) %>
+                            orderStatusValues: <%= DashboardViewHelper.chartPointValuesToJson(adminDashboard.getOrderStatusCounts()) %>
                         };
                     </script>
                     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
@@ -229,7 +191,7 @@
                                 <p class="admin-empty-message">Không có đơn bảo hành trong khoảng thời gian này.</p>
                                 <% } else { %>
                                 <canvas id="employeeWarrantyChart" aria-label="Biểu đồ xử lý bảo hành"></canvas>
-                                <% } %>
+                                    <% } %>
                             </div>
                         </section>
 
@@ -248,7 +210,7 @@
                                 <p class="admin-empty-message">Không có đơn hàng trong khoảng thời gian này.</p>
                                 <% } else { %>
                                 <canvas id="employeeOrderChart" aria-label="Biểu đồ quản lý đơn hàng"></canvas>
-                                <% } %>
+                                    <% } %>
                             </div>
                         </section>
                     </div>
@@ -258,36 +220,36 @@
                     <script>
                         (() => {
                             const warrantyLabels = [
-                                <% for (int i = 0; i < employeeDashboard.getWarrantyStatusCounts().size(); i++) {
+                        <% for (int i = 0; i < employeeDashboard.getWarrantyStatusCounts().size(); i++) {
                                     EmployeeDashboardView.ChartPoint point = employeeDashboard.getWarrantyStatusCounts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
+                        <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
+                        <% } %>
                             ];
                             const warrantyValues = [
-                                <% for (int i = 0; i < employeeDashboard.getWarrantyStatusCounts().size(); i++) {
+                        <% for (int i = 0; i < employeeDashboard.getWarrantyStatusCounts().size(); i++) {
                                     EmployeeDashboardView.ChartPoint point = employeeDashboard.getWarrantyStatusCounts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue() %>
-                                <% } %>
+                        <%= i > 0 ? "," : "" %><%= point.getValue() %>
+                        <% } %>
                             ];
 
                             const orderLabels = [
-                                <% for (int i = 0; i < employeeDashboard.getOrderStatusCounts().size(); i++) {
+                        <% for (int i = 0; i < employeeDashboard.getOrderStatusCounts().size(); i++) {
                                     EmployeeDashboardView.ChartPoint point = employeeDashboard.getOrderStatusCounts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
+                        <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
+                        <% } %>
                             ];
                             const orderValues = [
-                                <% for (int i = 0; i < employeeDashboard.getOrderStatusCounts().size(); i++) {
+                        <% for (int i = 0; i < employeeDashboard.getOrderStatusCounts().size(); i++) {
                                     EmployeeDashboardView.ChartPoint point = employeeDashboard.getOrderStatusCounts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue() %>
-                                <% } %>
+                        <%= i > 0 ? "," : "" %><%= point.getValue() %>
+                        <% } %>
                             ];
 
                             const formatCount = value =>
                                 new Intl.NumberFormat('vi-VN').format(value) + ' đơn';
 
-                            const warrantyColors = ['#f59e0b', '#16a34a', '#dc2626']; 
-                            const orderColors = ['#16a34a', '#dc2626', '#f59e0b']; 
+                            const warrantyColors = ['#f59e0b', '#16a34a', '#dc2626'];
+                            const orderColors = ['#16a34a', '#dc2626', '#f59e0b'];
 
                             const warrantyCanvas = document.getElementById('employeeWarrantyChart');
                             if (warrantyCanvas) {
@@ -296,11 +258,11 @@
                                     data: {
                                         labels: warrantyLabels,
                                         datasets: [{
-                                            data: warrantyValues,
-                                            backgroundColor: warrantyColors,
-                                            borderColor: '#ffffff',
-                                            borderWidth: 2
-                                        }]
+                                                data: warrantyValues,
+                                                backgroundColor: warrantyColors,
+                                                borderColor: '#ffffff',
+                                                borderWidth: 2
+                                            }]
                                     },
                                     options: {
                                         responsive: true,
@@ -326,11 +288,11 @@
                                     data: {
                                         labels: orderLabels,
                                         datasets: [{
-                                            data: orderValues,
-                                            backgroundColor: orderColors,
-                                            borderColor: '#ffffff',
-                                            borderWidth: 2
-                                        }]
+                                                data: orderValues,
+                                                backgroundColor: orderColors,
+                                                borderColor: '#ffffff',
+                                                borderWidth: 2
+                                            }]
                                     },
                                     options: {
                                         responsive: true,
@@ -352,8 +314,8 @@
                     </script>
                 </div>
 
-                            
-       
+
+
                 <% } else if ("SHIPMENT".equals(roleName)) { %>
 
                 <%
@@ -400,27 +362,27 @@
                                 <p class="admin-empty-message">Không có đơn vận chuyển trong khoảng thời gian này.</p>
                                 <% } else { %>
                                 <canvas id="shipmentStatusChart" aria-label="Biểu đồ trạng thái vận chuyển"></canvas>
-                                <% } %>
+                                    <% } %>
                             </div>
                         </section>
 
                     </div>
-                            
-                     
+
+
                     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
                     <script>
                         (() => {
                             const statusLabels = [
-                                <% for (int i = 0; i < shipmentDashboard.getOrderStatusCounts().size(); i++) {
+                        <% for (int i = 0; i < shipmentDashboard.getOrderStatusCounts().size(); i++) {
                                     ShipmentDashboardView.ChartPoint point = shipmentDashboard.getOrderStatusCounts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
-                                <% } %>
+                        <%= i > 0 ? "," : "" %><%= DashboardViewHelper.toJsonString(point.getLabel()) %>
+                        <% } %>
                             ];
                             const statusValues = [
-                                <% for (int i = 0; i < shipmentDashboard.getOrderStatusCounts().size(); i++) {
+                        <% for (int i = 0; i < shipmentDashboard.getOrderStatusCounts().size(); i++) {
                                     ShipmentDashboardView.ChartPoint point = shipmentDashboard.getOrderStatusCounts().get(i); %>
-                                <%= i > 0 ? "," : "" %><%= point.getValue() %>
-                                <% } %>
+                        <%= i > 0 ? "," : "" %><%= point.getValue() %>
+                        <% } %>
                             ];
                             const statusCanvas = document.getElementById('shipmentStatusChart');
                             if (statusCanvas) {
@@ -429,11 +391,11 @@
                                     data: {
                                         labels: statusLabels,
                                         datasets: [{
-                                            data: statusValues,
-                                            backgroundColor: ['#f59e0b', '#16a34a', '#dc2626'],
-                                            borderColor: '#ffffff',
-                                            borderWidth: 2
-                                        }]
+                                                data: statusValues,
+                                                backgroundColor: ['#f59e0b', '#16a34a', '#dc2626'],
+                                                borderColor: '#ffffff',
+                                                borderWidth: 2
+                                            }]
                                     },
                                     options: {
                                         responsive: true,

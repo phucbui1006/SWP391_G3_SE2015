@@ -500,11 +500,11 @@ body.order-history-body * {
 }
 
 .order-history-pagination a.prev::after {
-    content: "Trước";
+    content: "<";
 }
 
 .order-history-pagination a.next::after {
-    content: "Sau";
+    content: ">";
 }
 
 .order-history-pagination a.active {

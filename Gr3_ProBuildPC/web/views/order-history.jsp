@@ -350,7 +350,7 @@
                     <div class="order-history-pagination">
                         <a class="prev <%= currentPage <= 1 ? "disabled" : "" %>"
                            href="<%= currentPage <= 1 ? "#" : buildPageLink(ctx, keyword, selectedStatusIdValue, currentPage - 1, selectedOrderId, deliveryHistoryMode) %>"
-                           aria-label="Trang trước">‹</a>
+                           aria-label="Trang trước">&lt;</a>
                         <%
                             int fromPage = Math.max(2, currentPage - 2);
                             int toPage = Math.min(totalPages - 1, currentPage + 2);
@@ -380,7 +380,7 @@
                         <% } %>
                         <a class="next <%= currentPage >= totalPages ? "disabled" : "" %>"
                            href="<%= currentPage >= totalPages ? "#" : buildPageLink(ctx, keyword, selectedStatusIdValue, currentPage + 1, selectedOrderId, deliveryHistoryMode) %>"
-                           aria-label="Trang sau">›</a>
+                           aria-label="Trang sau">&gt;</a>
                     </div>
                     <% } %>
                 </aside>

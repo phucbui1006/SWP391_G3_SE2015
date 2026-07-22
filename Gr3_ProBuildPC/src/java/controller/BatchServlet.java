@@ -44,7 +44,8 @@ public class BatchServlet extends HttpServlet {
             currentPage = 1;
         }
 
-        int totalBatches = batchDAO.countBatches();
+        List<Batch> allBatches = batchDAO.getAllBatches();
+        int totalBatches = allBatches.size();
         int totalPages = totalBatches == 0 ? 1 : (int) Math.ceil((double) totalBatches / PAGE_SIZE);
 
         if (currentPage < 1 || currentPage > totalPages) {
@@ -52,23 +53,15 @@ public class BatchServlet extends HttpServlet {
         }
 
         int offset = (currentPage - 1) * PAGE_SIZE;
-        
-        List<Batch> batches = batchDAO.getBatches(offset, PAGE_SIZE);
-        List <Batch> filterList = new ArrayList<>();
-//        for (Batch batch : batches) {
-//            if(batch.getBatchId() == 1){
-//                filterList.add(batch);
-//                break;
-//            }
-//            
-//            
-//        }batches = filterList;
+        int toIndex = Math.min(offset + PAGE_SIZE, totalBatches);
+        List<Batch> batches = new ArrayList<>(allBatches.subList(offset, toIndex));
         List<Product> products = productDAO.getAllProducts();
 
         int startItem = totalBatches == 0 ? 0 : offset + 1;
         int endItem = Math.min(currentPage * PAGE_SIZE, totalBatches);
 
         request.setAttribute("batches", batches);
+        request.setAttribute("allBatches", allBatches);
         request.setAttribute("products", products);
         
         request.setAttribute("currentPage", currentPage);

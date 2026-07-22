@@ -34,6 +34,7 @@ public class BatchItemServlet extends HttpServlet {
         List<Product> products = productDAO.getAllProducts();
 
         request.setAttribute("batches", batches);
+        request.setAttribute("allBatches", batches);
         request.setAttribute("products", products);
     }
 

@@ -332,8 +332,15 @@ public class CartOrderValidationFilter implements Filter {
                     return false;
                 }
 
-                // Check Shipper updates: Shipper can only update to 4, 5, 7
+                // Check Shipper updates: Shipper can only update to 4, 5, 7, and cannot update if order is "Chờ xác nhận"
                 if (isShipper) {
+                    OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
+                    String currentStatusName = orderHistoryDAO.findCurrentOrderStatusName(orderId);
+                    if (currentStatusName != null && currentStatusName.trim().equalsIgnoreCase("Chờ xác nhận")) {
+                        session.setAttribute("orderHistoryError", "Chỉ nhân viên mới có quyền chỉnh sửa đơn hàng đang ở trạng thái Chờ xác nhận.");
+                        res.sendRedirect(req.getContextPath() + "/order-history" + buildRedirectQueryString(req, orderId));
+                        return false;
+                    }
                     if (shipmentStatusId != 4 && shipmentStatusId != 5 && shipmentStatusId != 7) {
                         session.setAttribute("orderHistoryError", "Shipper chỉ được phép cập nhật thành: Đang giao hàng, Đã giao hàng, hoặc Giao hàng thất bại.");
                         res.sendRedirect(req.getContextPath() + "/order-history" + buildRedirectQueryString(req, orderId));

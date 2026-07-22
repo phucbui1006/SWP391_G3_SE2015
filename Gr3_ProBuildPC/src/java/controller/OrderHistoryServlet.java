@@ -1,5 +1,6 @@
 package controller;
 
+import dal.OrderDAO;
 import dal.OrderHistoryDAO;
 import dal.ReviewDAO;
 import model.Review;
@@ -127,8 +128,7 @@ public class OrderHistoryServlet extends HttpServlet {
 
     private boolean shouldHideStatus(String statusName) {
         String normalized = normalizeVietnameseText(statusName);
-        return normalized.contains("cho xac nhan")
-                || normalized.contains("dang chuan bi hang");
+        return normalized.contains("dang chuan bi hang");
     }
 
     private String normalizeVietnameseText(String value) {
@@ -160,6 +160,11 @@ public class OrderHistoryServlet extends HttpServlet {
 
         if ("cancelOrder".equals(action)) {
             handleCancelOrder(request, response, session, account, orderId);
+            return;
+        }
+
+        if ("confirmOrder".equals(action)) {
+            handleConfirmOrder(request, response, session, account, orderId);
             return;
         }
 
@@ -203,6 +208,35 @@ public class OrderHistoryServlet extends HttpServlet {
             session.setAttribute(SUCCESS_FLASH, "Đã hủy đơn hàng thành công.");
         } else {
             session.setAttribute(ERROR_FLASH, "Chỉ có thể hủy đơn hàng đang ở trạng thái Chờ xác nhận hoặc Đã xác nhận.");
+        }
+
+        response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
+    }
+
+    private void handleConfirmOrder(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            HttpSession session,
+            User account,
+            Integer orderId) throws IOException {
+        if (!isEmployee(account)) {
+            session.setAttribute(ERROR_FLASH, "Chỉ nhân viên mới có thể xác nhận đơn hàng.");
+            response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
+            return;
+        }
+
+        if (orderId == null) {
+            session.setAttribute(ERROR_FLASH, "Đơn hàng cần xác nhận không hợp lệ.");
+            response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, null));
+            return;
+        }
+
+        OrderDAO orderDAO = new OrderDAO();
+        String error = orderDAO.confirmCodOrder(orderId);
+        if (error == null) {
+            session.setAttribute(SUCCESS_FLASH, "Đã xác nhận đơn hàng #" + orderId + " thành công.");
+        } else {
+            session.setAttribute(ERROR_FLASH, error);
         }
 
         response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));

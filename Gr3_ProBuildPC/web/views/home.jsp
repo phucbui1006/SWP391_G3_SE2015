@@ -261,6 +261,7 @@
                     <a class="<%= currentPage >= totalPages ? "disabled" : "" %>" 
                        href="<%= currentPage >= totalPages ? "#" : pagingUrl + (currentPage + 1) %>">&gt;</a>
                 </div>
+                <% } %>
             </section>
         </main>
 

@@ -346,8 +346,12 @@
                         </a>                        <% } %>
 
                         <% if (currentPage < totalPages) { %>
-                        <a class="page-btn" href="<%= contextPath %>/admin/categories?page=<%= currentPage + 1 %><%= listQuery %>">Sau</a>
-                        <% } %>
+                        <a class="page-btn"
+                           href="<%= contextPath %>/admin/categories?page=<%= currentPage + 1 %><%= listQuery %>">
+                            ›
+                        </a>
+                        <% } else { %>
+                        <span class="page-btn disabled">›</span>                        <% } %>
                     </div>
                 </div>
             </section>

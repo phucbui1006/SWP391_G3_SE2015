@@ -213,6 +213,6 @@ public class OrderHistoryItem {
     }
 
     public String getDisplayTrackingCode() {
-        return "PB" + orderId;
+        return String.valueOf(orderId);
     }
 }

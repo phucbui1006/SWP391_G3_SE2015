@@ -107,7 +107,7 @@ public class CategoryServlet extends HttpServlet {
             products.removeIf(product -> product.getQuantity() <= 0);
         }
 
-        int pageSize = 5;
+        int pageSize = 24;
         int currentPage = 1;
 
         String pageRaw = request.getParameter("page");
@@ -181,6 +181,8 @@ public class CategoryServlet extends HttpServlet {
         request.setAttribute("products", pagingProducts);
         request.setAttribute("productRatings", productRatings);
         request.setAttribute("totalProducts", totalProducts);
+        request.setAttribute("startItem", totalProducts == 0 ? 0 : fromIndex + 1);
+        request.setAttribute("endItem", toIndex);
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("selectedCategory", selectedCategory);

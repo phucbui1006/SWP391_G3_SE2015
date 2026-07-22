@@ -152,7 +152,7 @@
                             <span class="order-card-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
                             <span class="order-card-main">
                                 <strong>#WR<%= item.getWarrantyId() %></strong>
-                                <small>Đơn #PB<%= item.getOrderId() %> · <%= formatDate(item.getRequestDate(), dateFormatter) %></small>
+                                <small>Đơn #<%= item.getOrderId() %> · <%= formatDate(item.getRequestDate(), dateFormatter) %></small>
                                 <em><%= h(defaultText(item.getCustomerName(), "Khách hàng")) %></em>
                             </span>
                             <span class="order-status-pill <%= stClass %>"><%= h(item.getStatusName()) %></span>
@@ -214,7 +214,7 @@
                     <div class="order-detail-header">
                         <h2>Yêu cầu bảo hành #WR<%= selectedWarranty.getWarrantyId() %></h2>
                         <div class="order-detail-actions">
-                            <a href="<%= ctx %>/ManageWarranty?action=viewCondition&productId=<%= selectedWarranty.getProductId() %>&customerId=<%= selectedWarranty.getCustomerId() %>&search=<%= h(searchQuery) %>&statusFilter=<%= statusFilterId != null ? statusFilterId : "" %>&page=<%= currentPage %>&selectedWarrantyId=<%= selectedWarranty.getWarrantyId() %>" class="btn-action btn-view" style="text-decoration:none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; background: #e0e7ff; color: #3730a3;">
+                            <a href="<%= ctx %>/ManageWarranty?action=viewCondition&orderId=<%= selectedWarranty.getOrderId() %>&productId=<%= selectedWarranty.getProductId() %>&customerId=<%= selectedWarranty.getCustomerId() %>&search=<%= h(searchQuery) %>&statusFilter=<%= statusFilterId != null ? statusFilterId : "" %>&page=<%= currentPage %>&selectedWarrantyId=<%= selectedWarranty.getWarrantyId() %>" class="btn-action btn-view" style="text-decoration:none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; background: #e0e7ff; color: #3730a3;">
                                 🔍 Xem tình trạng
                             </a>
                         </div>
@@ -224,7 +224,7 @@
                     <article class="order-summary-card">
                         <div class="order-summary-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></div>
                         <div>
-                            <strong>Mã YC: #WR<%= selectedWarranty.getWarrantyId() %> (Đơn hàng #PB<%= selectedWarranty.getOrderId() %>)</strong>
+                            <strong>Mã YC: #WR<%= selectedWarranty.getWarrantyId() %> (Đơn hàng #<%= selectedWarranty.getOrderId() %>)</strong>
                             <span>Khách hàng: <%= h(defaultText(selectedWarranty.getCustomerName(), "Khách hàng")) %></span>
                             <span>Ngày gửi: <%= formatDate(selectedWarranty.getRequestDate(), dateFormatter) %> · <%= formatTime(selectedWarranty.getRequestDate(), timeFormatter) %></span>
                         </div>
@@ -240,7 +240,7 @@
                                 <h3>Thông tin chung</h3>
                             </div>
                             <p><span>Khách hàng</span><strong><%= h(defaultText(selectedWarranty.getCustomerName(), "Chưa cập nhật")) %></strong></p>
-                            <p><span>Mã đơn hàng</span><strong>#PB<%= selectedWarranty.getOrderId() %></strong></p>
+                            <p><span>Mã đơn hàng</span><strong>#<%= selectedWarranty.getOrderId() %></strong></p>
                             <p><span>Sản phẩm</span><strong><%= h(selectedWarranty.getProductName()) %></strong></p>
                         </section>
 
@@ -379,7 +379,7 @@
                         </div>
                         <div class="info-item">
                             <label>Mã đơn hàng</label>
-                            <span>#PB<c:out value="${condItem.orderId}"/></span>
+                            <span>#<c:out value="${condItem.orderId}"/></span>
                         </div>
                         <div class="info-item">
                             <label>Khách hàng</label>

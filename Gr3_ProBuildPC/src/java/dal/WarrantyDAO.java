@@ -11,8 +11,8 @@ import model.WarrantyRequest;
 
 public class WarrantyDAO extends DBContext {
 
-    //Kiểm tra còn thời hạn bảo hành đối với một sản phẩm hay không.
-    public boolean isWarrantyRequestValid(int customerId, int productId) {
+    //Kiểm tra còn thời hạn bảo hành đối một sản phẩm hay không.
+    public boolean isWarrantyRequestValid(int customerId, int orderId, int productId) {
         String sql = """
                     SELECT COALESCE(o.received_date, o.order_date) AS warranty_start,
                            p.warranty_months
@@ -20,15 +20,18 @@ public class WarrantyDAO extends DBContext {
                     INNER JOIN order_details od ON o.order_id = od.order_id
                     INNER JOIN products p ON od.product_id = p.product_id
                     INNER JOIN orders_status os ON o.status_id = os.status_id
+                    LEFT JOIN shipments sh ON sh.order_id = o.order_id
                     WHERE o.customer_id = ?
+                      AND o.order_id = ?
                       AND od.product_id = ?
-                      AND os.status_name = 'Đã giao hàng'
+                      AND (o.status_id = 5 OR os.status_name = 'Đã giao hàng' OR sh.shipment_status = 'Đã giao hàng')
                     ORDER BY o.order_date DESC
                     LIMIT 1
                 """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, customerId);
-            ps.setInt(2, productId);
+            ps.setInt(2, orderId);
+            ps.setInt(3, productId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -53,9 +56,10 @@ public class WarrantyDAO extends DBContext {
 
     public String getOrderStatus(int orderId, int customerId) {
         String sql = """
-                    SELECT os.status_name
+                    SELECT COALESCE(sh.shipment_status, os.status_name) AS status_name
                     FROM orders o
                     INNER JOIN orders_status os ON o.status_id = os.status_id
+                    LEFT JOIN shipments sh ON sh.order_id = o.order_id
                     WHERE o.order_id = ? AND o.customer_id = ?
                 """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -73,15 +77,16 @@ public class WarrantyDAO extends DBContext {
 
     public boolean createWarrantyRequest(Warranty warranty) {
         String sql = """
-                    INSERT INTO warranties (customer_id, product_id, status_id, request_date, request)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO warranties (customer_id, order_id, product_id, status_id, request_date, request)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, warranty.getCustomerId());
-            ps.setInt(2, warranty.getProductId());
-            ps.setInt(3, warranty.getStatusId());
-            ps.setTimestamp(4, new Timestamp(warranty.getRequestDate().getTime()));
-            ps.setString(5, warranty.getRequest());
+            ps.setInt(2, warranty.getOrderId());
+            ps.setInt(3, warranty.getProductId());
+            ps.setInt(4, warranty.getStatusId());
+            ps.setTimestamp(5, new Timestamp(warranty.getRequestDate().getTime()));
+            ps.setString(6, warranty.getRequest());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -101,7 +106,7 @@ public class WarrantyDAO extends DBContext {
         return false;
     }
 
-    public Warranty getProductWarrantyCondition(int productId, int customerId) {
+    public Warranty getProductWarrantyCondition(int orderId, int productId, int customerId) {
         String sql = """
                     SELECT od.product_id,
                            od.quantity,
@@ -121,16 +126,20 @@ public class WarrantyDAO extends DBContext {
                     INNER JOIN customers cust ON o.customer_id = cust.customer_id
                     INNER JOIN users u ON cust.user_id = u.user_id
                     INNER JOIN products p ON od.product_id = p.product_id
-                    INNER JOIN brands b ON p.brand_id = b.brand_id
-                    INNER JOIN categories c ON p.category_id = c.category_id
+                    LEFT JOIN brands b ON p.brand_id = b.brand_id
+                    LEFT JOIN categories c ON p.category_id = c.category_id
+                    INNER JOIN orders_status os ON o.status_id = os.status_id
+                    LEFT JOIN shipments sh ON sh.order_id = o.order_id
                     WHERE od.product_id = ?
                       AND o.customer_id = ?
-                      AND o.status_id = 5
+                      AND o.order_id = ?
+                      AND (o.status_id = 5 OR os.status_name = 'Đã giao hàng' OR sh.shipment_status = 'Đã giao hàng')
                 """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, productId);
             ps.setInt(2, customerId);
+            ps.setInt(3, orderId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Warranty item = new Warranty();
@@ -163,7 +172,7 @@ public class WarrantyDAO extends DBContext {
                            o.total_amount,
                            o.payment_method,
                            o.payment_status,
-                           os.status_name AS order_status_name,
+                           COALESCE(sh.shipment_status, os.status_name) AS order_status_name,
                            od.product_id,
                            od.quantity,
                            p.product_name,
@@ -179,17 +188,21 @@ public class WarrantyDAO extends DBContext {
                            DATEDIFF(DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL p.warranty_months MONTH), CURDATE()) AS remaining_days
                     FROM orders o
                     INNER JOIN orders_status os ON o.status_id = os.status_id
+                    LEFT JOIN shipments sh ON sh.order_id = o.order_id
                     INNER JOIN order_details od ON o.order_id = od.order_id
                     INNER JOIN products p ON od.product_id = p.product_id
-                    INNER JOIN brands br ON p.brand_id = br.brand_id
-                    INNER JOIN categories ca ON p.category_id = ca.category_id
-                    LEFT JOIN warranties w ON p.product_id = w.product_id
+                    LEFT JOIN brands br ON p.brand_id = br.brand_id
+                    LEFT JOIN categories ca ON p.category_id = ca.category_id
+                    LEFT JOIN warranties w ON w.order_id = o.order_id
+                                          AND w.product_id = od.product_id
                                           AND w.customer_id = o.customer_id
                     LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
                     WHERE o.order_id = ?
                       AND o.customer_id = ?
-                      AND o.status_id = 5
-                    ORDER BY od.order_detail_id
+                      AND (o.status_id = 5
+                           OR os.status_name = 'Đã giao hàng'
+                           OR sh.shipment_status = 'Đã giao hàng')
+                    ORDER BY od.order_detail_id, w.request_date DESC
                 """;
 
         List<Warranty> list = new ArrayList<>();
@@ -244,7 +257,7 @@ public class WarrantyDAO extends DBContext {
         return list.isEmpty() ? null : list;
     }
 
-    public List<Warranty> getWarrantyHistoryByProductAndCustomer(int productId, int customerId) {
+    public List<Warranty> getWarrantyHistoryByOrderAndProduct(int orderId, int productId, int customerId) {
         List<Warranty> list = new ArrayList<>();
         String sql = """
                     SELECT w.warranty_id,
@@ -260,11 +273,13 @@ public class WarrantyDAO extends DBContext {
                     LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
                     WHERE w.product_id = ?
                       AND w.customer_id = ?
+                      AND w.order_id = ?
                     ORDER BY w.request_date DESC
                 """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, productId);
             ps.setInt(2, customerId);
+            ps.setInt(3, orderId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Warranty w = new Warranty();
@@ -299,17 +314,19 @@ public class WarrantyDAO extends DBContext {
     }
 
     //Chờ tiếp nhận
-    public boolean isWarrantyPendingOrActive(int customerId, int productId) {
+    public boolean isWarrantyPendingOrActive(int customerId, int orderId, int productId) {
         String sql = """
                     SELECT COUNT(*)
                     FROM warranties
                     WHERE customer_id = ?
+                      AND order_id = ?
                       AND product_id = ?
                       AND status_id = 1
                 """;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, customerId);
-            ps.setInt(2, productId);
+            ps.setInt(2, orderId);
+            ps.setInt(3, productId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
@@ -338,14 +355,7 @@ public class WarrantyDAO extends DBContext {
                            c.category_name,
                            ws.status_name,
                            u.full_name AS customer_name,
-                           COALESCE((
-                               SELECT od.order_id
-                               FROM order_details od
-                               JOIN orders o ON od.order_id = o.order_id
-                               WHERE od.product_id = w.product_id AND o.customer_id = w.customer_id
-                               ORDER BY o.order_date DESC
-                               LIMIT 1
-                           ), 0) AS order_id
+                           w.order_id
                     FROM warranties w
                     JOIN products p ON w.product_id = p.product_id
                     LEFT JOIN brands b ON p.brand_id = b.brand_id
@@ -484,14 +494,7 @@ public class WarrantyDAO extends DBContext {
                            p.image_url,
                            ws.status_name,
                            u.full_name AS customer_name,
-                           COALESCE((
-                               SELECT od.order_id
-                               FROM order_details od
-                               JOIN orders o ON od.order_id = o.order_id
-                               WHERE od.product_id = w.product_id AND o.customer_id = w.customer_id
-                               ORDER BY o.order_date DESC
-                               LIMIT 1
-                           ), 0) AS order_id
+                           w.order_id
                     FROM warranties w
                     JOIN products p ON w.product_id = p.product_id
                     JOIN customers cust ON w.customer_id = cust.customer_id
@@ -582,14 +585,7 @@ public class WarrantyDAO extends DBContext {
                            p.image_url,
                            ws.status_name,
                            u.full_name AS customer_name,
-                           COALESCE((
-                               SELECT od.order_id
-                               FROM order_details od
-                               JOIN orders o ON od.order_id = o.order_id
-                               WHERE od.product_id = w.product_id AND o.customer_id = w.customer_id
-                               ORDER BY o.order_date DESC
-                               LIMIT 1
-                           ), 0) AS order_id
+                           w.order_id
                     FROM warranties w
                     JOIN products p ON w.product_id = p.product_id
                     JOIN customers cust ON w.customer_id = cust.customer_id

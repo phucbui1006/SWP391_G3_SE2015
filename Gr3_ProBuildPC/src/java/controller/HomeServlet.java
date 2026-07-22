@@ -84,6 +84,8 @@ public class HomeServlet extends HttpServlet {
         request.setAttribute("categories", categories);
         request.setAttribute("products", pagingProducts);
         request.setAttribute("totalProducts", totalProducts);
+        request.setAttribute("startItem", totalProducts == 0 ? 0 : fromIndex + 1);
+        request.setAttribute("endItem", toIndex);
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("productDAO", productDAO);

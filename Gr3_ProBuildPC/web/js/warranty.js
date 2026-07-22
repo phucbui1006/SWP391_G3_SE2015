@@ -45,9 +45,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const validateOrderId = () => {
             const value = orderIdInput.value.trim();
-            const matchesFormat = /^(?:PB)?[0-9]+$/i.test(value);
-            const digits = value.replace(/[^0-9]/g, "");
-            const numericId = Number(digits);
+            const matchesFormat = /^[0-9]+$/.test(value);
+            const numericId = Number(value);
             const isValid = matchesFormat
                     && Number.isInteger(numericId)
                     && numericId > 0
@@ -57,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!value) {
                 message = "Vui lòng nhập mã đơn hàng.";
             } else if (!isValid) {
-                message = "Mã đơn hàng phải là số dương hoặc bắt đầu bằng PB (ví dụ: PB10006).";
+                message = "Mã đơn hàng phải là số nguyên dương (ví dụ: 10006).";
             }
 
             orderIdInput.classList.toggle("is-invalid", !isValid);

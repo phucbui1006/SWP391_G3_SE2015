@@ -130,6 +130,7 @@ public class WarrantyLookupServlet extends HttpServlet {
 
             boolean valid = warrantyDAO.isWarrantyRequestValid(
                     account.getCustomerId(),
+                    orderId,
                     productId
             );
 
@@ -142,7 +143,7 @@ public class WarrantyLookupServlet extends HttpServlet {
                 return;
             }
 
-            if (warrantyDAO.isWarrantyPendingOrActive(account.getCustomerId(), productId)) {
+            if (warrantyDAO.isWarrantyPendingOrActive(account.getCustomerId(), orderId, productId)) {
                 session.setAttribute(
                         "warrantyFailMessage",
                         "Sản phẩm này đã có yêu cầu bảo hành đang được xử lý hoặc chờ tiếp nhận."
@@ -153,6 +154,7 @@ public class WarrantyLookupServlet extends HttpServlet {
 
             Warranty warranty = new Warranty();
             warranty.setCustomerId(account.getCustomerId());
+            warranty.setOrderId(orderId);
             warranty.setProductId(productId);
             warranty.setStatusId(1);
             warranty.setRequestDate(new java.util.Date());
@@ -193,7 +195,7 @@ public class WarrantyLookupServlet extends HttpServlet {
         String url = request.getContextPath() + "/warranty-lookup";
 
         if (orderId != null) {
-            url += "?orderId=PB" + orderId;
+            url += "?orderId=" + orderId;
         }
 
         response.sendRedirect(url);
@@ -204,9 +206,9 @@ public class WarrantyLookupServlet extends HttpServlet {
     }
 
     private Integer parseOrderId(String value) {
-        String digits = value == null ? "" : value.replaceAll("[^0-9]", "");
+        String digits = value == null ? "" : value.trim();
 
-        if (digits.isEmpty()) {
+        if (digits.isEmpty() || !digits.matches("[0-9]+")) {
             return null;
         }
 

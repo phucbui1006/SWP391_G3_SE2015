@@ -759,6 +759,14 @@ public class ProductDAO extends DBContext {
             UPDATE products
             SET product_name = ?, category_id = ?, brand_id = ?, price = ?, description = ?, image_url = ?, warranty_months = ?
             WHERE product_id = ?
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM order_details od
+                  JOIN orders o ON o.order_id = od.order_id
+                  JOIN orders_status os ON os.status_id = o.status_id
+                  WHERE od.product_id = products.product_id
+                    AND os.status_name = 'Đã giao hàng'
+              )
         """;
         String sqlDeleteSpecs = "DELETE FROM PRODUCT_SPECIFICATIONS WHERE product_id = ?";
         String sqlInsertSpec = "INSERT INTO PRODUCT_SPECIFICATIONS (product_id, specification_name, specification_value) VALUES (?, ?, ?)";
@@ -835,6 +843,35 @@ public class ProductDAO extends DBContext {
             }
         }
         return false;
+    }
+
+    /**
+     * Products that already have delivered sales may only change their selling
+     * price and warranty period. Keeping this as a separate UPDATE prevents
+     * crafted requests from modifying historical product identity/spec data.
+     */
+    public boolean updateSoldProductPricing(int productId, BigDecimal price, int warrantyMonths) {
+        String sql = """
+                UPDATE products
+                SET price = ?, warranty_months = ?
+                WHERE product_id = ?
+                  AND EXISTS (
+                      SELECT 1
+                      FROM order_details od
+                      JOIN orders o ON o.order_id = od.order_id
+                      JOIN orders_status os ON os.status_id = o.status_id
+                      WHERE od.product_id = products.product_id
+                        AND os.status_name = 'Đã giao hàng'
+                  )
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setBigDecimal(1, price);
+            ps.setInt(2, warrantyMonths);
+            ps.setInt(3, productId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
     public List<ProductSpecification> getSpecificationsByProductId(int productId) {

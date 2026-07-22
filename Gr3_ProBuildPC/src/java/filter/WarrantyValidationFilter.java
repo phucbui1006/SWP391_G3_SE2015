@@ -72,7 +72,7 @@ public class WarrantyValidationFilter implements Filter {
         String productIdRaw = req.getParameter("productId");
         String requestReason = req.getParameter("request");
 
-        String orderIdClean = orderIdRaw != null ? orderIdRaw.trim().replaceAll("[^0-9]", "") : "";
+        String orderIdClean = orderIdRaw != null ? orderIdRaw.trim() : "";
         Integer orderId = parseInteger(orderIdClean);
         Integer productId = parseInteger(productIdRaw);
 
@@ -93,9 +93,9 @@ public class WarrantyValidationFilter implements Filter {
             String redirectUrl = req.getContextPath() + "/warranty-lookup";
             if (orderIdRaw != null && !orderIdRaw.trim().isEmpty()) {
                 // Ensure correct formatting of order ID when redirecting back
-                String cleanOrderId = orderIdRaw.trim().replaceAll("[^0-9]", "");
+                String cleanOrderId = orderIdRaw.trim();
                 if (!cleanOrderId.isEmpty()) {
-                    redirectUrl += "?orderId=PB" + cleanOrderId;
+                    redirectUrl += "?orderId=" + cleanOrderId;
                 }
             }
             res.sendRedirect(redirectUrl);

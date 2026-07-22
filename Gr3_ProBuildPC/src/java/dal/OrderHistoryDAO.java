@@ -238,7 +238,7 @@ public class OrderHistoryDAO extends DBContext {
 
             Integer shipmentId = findShipmentId(orderId);
             if (shipmentId == null) {
-                insertShipment(orderId, "PB" + orderId, statusName, shipmentNote);
+                insertShipment(orderId, String.valueOf(orderId), statusName, shipmentNote);
             } else {
                 updateShipmentStatusAndNote(shipmentId, statusName, shipmentNote);
             }

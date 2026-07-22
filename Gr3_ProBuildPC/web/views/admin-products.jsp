@@ -61,6 +61,7 @@
     String failedAction = (String) request.getAttribute("failedAction");
     Integer enteredProductId = (Integer) request.getAttribute("enteredProductId");
     String enteredCurrentImg = (String) request.getAttribute("enteredCurrentImg");
+    boolean editingRestricted = Boolean.TRUE.equals(request.getAttribute("editingRestricted"));
 
     // Spec templates and entered spec values for server-side re-rendering
     List<CategorySpecTemplate> specTemplates = (List<CategorySpecTemplate>) request.getAttribute("specTemplates");
@@ -120,8 +121,8 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Quản lý sản phẩm - ProBuild PC</title>
-        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
-        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css?v=1.0.3">
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css?v=1.0.6">
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css?v=1.0.7">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     </head>
     <body class="admin-product-body" data-ctx="<%= contextPath %>">
@@ -341,14 +342,14 @@
                         <a class="page-btn <%= currentPage == i ? "active" : "" %>" href="<%= contextPath %>/admin/products?page=<%= i %><%= listQuery %>"><%= i %></a>
                         <% } %>
                         <% if (toPage < totalPages - 1) { %>
-                        <span class="page-btn">...</span>
+                        <span class="page-btn disabled">...</span>
                         <% } %>
                         <% if (totalPages > 1) { %>
                         <a class="page-btn <%= currentPage == totalPages ? "active" : "" %>" href="<%= contextPath %>/admin/products?page=<%= totalPages %><%= listQuery %>"><%= totalPages %></a>
                         <% } %>
 
                         <% if (currentPage < totalPages) { %>
-                        <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage + 1 %><%= listQuery %>">Sau</a>
+                        <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage + 1 %><%= listQuery %>">&rsaquo;</a>
                         <% } %>
                     </div>
                 </div>
@@ -511,6 +512,13 @@
                     <input type="hidden" name="productId" id="editProductId" value="<%= "update".equals(failedAction) && enteredProductId != null ? enteredProductId : "" %>">
                     <input type="hidden" name="currentImg" id="editCurrentImg" value="<%= "update".equals(failedAction) && enteredCurrentImg != null ? h(enteredCurrentImg) : "" %>">
 
+                    <% if (editingRestricted) { %>
+                    <div class="product-alert warning edit-restriction-notice">
+                        <i class="fa-solid fa-lock"></i>
+                        Sản phẩm đã phát sinh bán hàng. Chỉ được phép sửa giá bán và thời gian bảo hành.
+                    </div>
+                    <% } %>
+
                     <% if ("update".equals(failedAction) && error != null && !error.isEmpty()) { %>
                     <div class="product-alert error" style="margin: 0 0 12px 0;">
                         <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
@@ -529,13 +537,13 @@
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="editProductName">Tên sản phẩm <span>*</span></label>
-                            <input id="editProductName" name="productName" type="text" minlength="3" maxlength="255" value="<%= "update".equals(failedAction) ? h(enteredProductName) : "" %>" required>
+                            <input id="editProductName" name="productName" type="text" minlength="3" maxlength="255" value="<%= "update".equals(failedAction) ? h(enteredProductName) : "" %>" <%= editingRestricted ? "readonly" : "" %> required>
                             <small class="form-error-text" id="editProductNameError" style="<%= "update".equals(failedAction) && validationErrors.containsKey("productName") ? "display:block" : "" %>"><%= "update".equals(failedAction) ? h(validationErrors.get("productName")) : "" %></small>
                         </div>
 
                         <div class="form-group">
                             <label for="editCategory">Danh mục sản phẩm <span>*</span></label>
-                            <select id="editCategory" name="categoryId" required>
+                            <select id="editCategory" name="categoryId" class="<%= editingRestricted ? "locked-control" : "" %>" <%= editingRestricted ? "tabindex=\"-1\" aria-disabled=\"true\"" : "" %> required>
                                 <% for (Category c : categories) { %>
                                 <option value="<%= c.getCategoryId() %>" <%= ("update".equals(failedAction) && enteredCategoryId != null && enteredCategoryId == c.getCategoryId()) ? "selected" : "" %>><%= h(c.getCategoryName()) %></option>
                                 <% } %>
@@ -545,7 +553,7 @@
 
                         <div class="form-group">
                             <label for="editBrand">Thương hiệu <span>*</span></label>
-                            <select id="editBrand" name="brandId" required>
+                            <select id="editBrand" name="brandId" class="<%= editingRestricted ? "locked-control" : "" %>" <%= editingRestricted ? "tabindex=\"-1\" aria-disabled=\"true\"" : "" %> required>
                                 <% for (Brand b : brands) { %>
                                 <option value="<%= b.getBrandId() %>" <%= ("update".equals(failedAction) && enteredBrandId != null && enteredBrandId == b.getBrandId()) ? "selected" : "" %>><%= h(b.getBrandName()) %></option>
                                 <% } %>
@@ -567,7 +575,7 @@
 
                         <div class="form-group">
                             <label for="editImageFile">Thay đổi hình ảnh</label>
-                            <input id="editImageFile" name="imgFile" type="file" accept=".jpg,.jpeg,.png,.webp">
+                            <input id="editImageFile" name="imgFile" type="file" accept=".jpg,.jpeg,.png,.webp" <%= editingRestricted ? "disabled" : "" %>>
                             <small class="image-hint">Tối đa 2MB | Bỏ trống nếu giữ ảnh cũ</small>
                             <small class="form-error-text" id="editImageFileError"></small>
 
@@ -579,13 +587,13 @@
 
                         <div class="form-group full-width">
                             <label for="editDescription">Mô tả chi tiết <span>*</span></label>
-                            <textarea id="editDescription" name="description" rows="4" maxlength="10000" required><%= "update".equals(failedAction) ? h(enteredDescription) : "" %></textarea>
+                            <textarea id="editDescription" name="description" rows="4" maxlength="10000" <%= editingRestricted ? "readonly" : "" %> required><%= "update".equals(failedAction) ? h(enteredDescription) : "" %></textarea>
                             <small class="form-error-text" style="<%= "update".equals(failedAction) && validationErrors.containsKey("description") ? "display:block" : "" %>"><%= "update".equals(failedAction) ? h(validationErrors.get("description")) : "" %></small>
                         </div>
 
                         <!-- Button to load technical specifications for edit -->
                         <div class="form-group full-width">
-                            <button type="button" id="editSpecBtn" class="btn-load-specs" style="display: inline-flex;">
+                            <button type="button" id="editSpecBtn" class="btn-load-specs" style="display: inline-flex;" <%= editingRestricted ? "disabled" : "" %>>
                                 <i class="fa-solid fa-gear"></i> Tải thông số kĩ thuật
                             </button>
                             <small class="form-error-text" style="<%= "update".equals(failedAction) && validationErrors.containsKey("specifications") ? "display:block" : "" %>"><%= "update".equals(failedAction) ? h(validationErrors.get("specifications")) : "" %></small>
@@ -613,7 +621,7 @@
                                     <% if ("SELECT".equalsIgnoreCase(t.getSpecType()) && t.getAllowedValues() != null) {
                                         String[] specOptions = t.getAllowedValues().split(",");
                                     %>
-                                    <select name="spec_values[]" <%= t.isRequired() ? "required" : "" %>>
+                                    <select name="spec_values[]" class="<%= editingRestricted ? "locked-control" : "" %>" <%= editingRestricted ? "tabindex=\"-1\" aria-disabled=\"true\"" : "" %> <%= t.isRequired() ? "required" : "" %>>
                                         <option value="">-- Chọn <%= h(t.getSpecName()) %> --</option>
                                         <% for (String optItem : specOptions) {
                                             String optTrimmed = optItem.trim();
@@ -622,9 +630,9 @@
                                         <% } %>
                                     </select>
                                     <% } else if ("NUMBER".equalsIgnoreCase(t.getSpecType())) { %>
-                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="1" step="1" <%= t.isRequired() ? "required" : "" %>>
+                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="1" step="1" <%= editingRestricted ? "readonly" : "" %> <%= t.isRequired() ? "required" : "" %>>
                                     <% } else { %>
-                                    <input type="text" name="spec_values[]" placeholder="Nhập thông tin..." value="<%= h(enteredVal) %>" <%= t.isRequired() ? "required" : "" %>>
+                                    <input type="text" name="spec_values[]" placeholder="Nhập thông tin..." value="<%= h(enteredVal) %>" <%= editingRestricted ? "readonly" : "" %> <%= t.isRequired() ? "required" : "" %>>
                                     <% } %>
                                     <small class="form-error-text" style="<%= validationErrors.containsKey("spec_" + t.getTemplateId()) ? "display:block" : "" %>"><%= h(validationErrors.get("spec_" + t.getTemplateId())) %></small>
                                 </div>

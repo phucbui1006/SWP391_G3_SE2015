@@ -93,7 +93,7 @@
                                                         <span class="req-id">#WR${item.warrantyId}</span>
                                                     </td>
                                                     <td>
-                                                        <span class="order-link">#PB${item.orderId}</span>
+                                                        <span class="order-link">#${item.orderId}</span>
                                                     </td>
                                                     <td>
                                                         <strong><c:out value="${item.customerName}"/></strong>

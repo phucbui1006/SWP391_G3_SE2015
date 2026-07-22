@@ -128,8 +128,8 @@ public class ManageWarrantyServlet extends HttpServlet {
         }
 
         if (selectedWarranty != null) {
-            Warranty condItem = warrantyDAO.getProductWarrantyCondition(selectedWarranty.getProductId(), selectedWarranty.getCustomerId());
-            List<Warranty> condHistory = warrantyDAO.getWarrantyHistoryByProductAndCustomer(selectedWarranty.getProductId(), selectedWarranty.getCustomerId());
+            Warranty condItem = warrantyDAO.getProductWarrantyCondition(selectedWarranty.getOrderId(), selectedWarranty.getProductId(), selectedWarranty.getCustomerId());
+            List<Warranty> condHistory = warrantyDAO.getWarrantyHistoryByOrderAndProduct(selectedWarranty.getOrderId(), selectedWarranty.getProductId(), selectedWarranty.getCustomerId());
             request.setAttribute("condItem", condItem);
             request.setAttribute("condHistory", condHistory);
         }
@@ -138,14 +138,17 @@ public class ManageWarrantyServlet extends HttpServlet {
         if ("viewCondition".equalsIgnoreCase(action)) {
             String productIdRaw = request.getParameter("productId");
             String customerIdRaw = request.getParameter("customerId");
+            String orderIdRaw = request.getParameter("orderId");
             if (productIdRaw != null && !productIdRaw.trim().isEmpty()
-                    && customerIdRaw != null && !customerIdRaw.trim().isEmpty()) {
+                    && customerIdRaw != null && !customerIdRaw.trim().isEmpty()
+                    && orderIdRaw != null && !orderIdRaw.trim().isEmpty()) {
                 try {
                     int productId = Integer.parseInt(productIdRaw);
                     int customerId = Integer.parseInt(customerIdRaw);
-                    Warranty condItem = warrantyDAO.getProductWarrantyCondition(productId, customerId);
+                    int orderId = Integer.parseInt(orderIdRaw);
+                    Warranty condItem = warrantyDAO.getProductWarrantyCondition(orderId, productId, customerId);
                     if (condItem != null) {
-                        List<Warranty> condHistory = warrantyDAO.getWarrantyHistoryByProductAndCustomer(productId, customerId);
+                        List<Warranty> condHistory = warrantyDAO.getWarrantyHistoryByOrderAndProduct(orderId, productId, customerId);
                         request.setAttribute("condItem", condItem);
                         request.setAttribute("condHistory", condHistory);
                     }

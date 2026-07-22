@@ -65,7 +65,7 @@ public class VNPayUtil {
         vnp_Params.put("vnp_Amount", String.valueOf(amount));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", String.valueOf(orderId));
-        vnp_Params.put("vnp_OrderInfo", "ThanhToanDonHangPB" + orderId); // Không có dấu cách
+        vnp_Params.put("vnp_OrderInfo", "ThanhToanDonHang" + orderId); // Không có dấu cách
         vnp_Params.put("vnp_OrderType", "other");
         vnp_Params.put("vnp_Locale", "vn");
         vnp_Params.put("vnp_ReturnUrl", vnp_ReturnUrl);

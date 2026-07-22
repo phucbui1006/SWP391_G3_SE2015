@@ -455,6 +455,27 @@ body.admin-product-body {
     color: #856404;
 }
 
+.edit-restriction-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+}
+
+.product-modal-form input[readonly],
+.product-modal-form textarea[readonly],
+.product-modal-form .locked-control,
+.product-modal-form input:disabled,
+.product-modal-form button:disabled {
+    cursor: not-allowed;
+    background: #f1f3f6;
+    color: #6b7280;
+}
+
+.product-modal-form .locked-control {
+    pointer-events: none;
+}
+
 /* Modals styling (:target mechanism) */
 .product-modal-overlay {
     position: fixed;

@@ -73,6 +73,7 @@ public class ProductValidationFilter implements Filter {
                         errors.put("productId", "Không tìm thấy sản phẩm cần cập nhật.");
                     } else {
                         currentImg = existingProduct.getImageUrl();
+                        req.setAttribute("editingRestricted", existingProduct.getSoldQuantity() > 0);
                     }
                 }
             }

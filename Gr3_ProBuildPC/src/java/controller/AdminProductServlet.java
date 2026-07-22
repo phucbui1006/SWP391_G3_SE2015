@@ -70,6 +70,7 @@ public class AdminProductServlet extends HttpServlet {
                 request.setAttribute("enteredWarrantyMonths", String.valueOf(editProduct.getWarrantyMonths()));
                 request.setAttribute("enteredDescription", editProduct.getDescription());
                 request.setAttribute("enteredCurrentImg", editProduct.getImageUrl());
+                request.setAttribute("editingRestricted", editProduct.getSoldQuantity() > 0);
 
                 List<CategorySpecTemplate> specTemplates
                         = categoryDAO.getTemplatesWithValues(editProduct.getCategoryId(), editProduct.getProductId());
@@ -304,6 +305,13 @@ public class AdminProductServlet extends HttpServlet {
         }
 
         Integer productId = parseId(request.getParameter("productId"));
+        Product existingProduct = productId == null ? null : productDAO.getProductByIdForAdmin(productId);
+        if (existingProduct == null) {
+            request.setAttribute("error", "Không tìm thấy sản phẩm cần cập nhật.");
+            return false;
+        }
+
+        boolean editingRestricted = existingProduct.getSoldQuantity() > 0;
         String productName = normalizeText(request.getParameter("productName"));
         Integer categoryId = parseId(request.getParameter("categoryId"));
         Integer brandId = parseId(request.getParameter("brandId"));
@@ -327,8 +335,13 @@ public class AdminProductServlet extends HttpServlet {
         request.setAttribute("enteredCurrentImg", imageUrl);
         request.setAttribute("enteredSpecNames", specNames);
         request.setAttribute("enteredSpecValues", specValues);
+        request.setAttribute("editingRestricted", editingRestricted);
 
-        if (productDAO.updateProduct(productId, productName, categoryId, brandId, price, description, imageUrl, warrantyMonths, specNames, specValues)) {
+        boolean updated = editingRestricted
+                ? productDAO.updateSoldProductPricing(productId, price, warrantyMonths)
+                : productDAO.updateProduct(productId, productName, categoryId, brandId, price, description, imageUrl, warrantyMonths, specNames, specValues);
+
+        if (updated) {
             session.setAttribute("productSuccess", "Cập nhật sản phẩm thành công.");
             return true;
         } else {

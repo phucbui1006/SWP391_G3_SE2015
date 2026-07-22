@@ -9,8 +9,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Danh mục sản phẩm - ProBuild PC</title>
 
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=2">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/categories.css?v=54">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=3">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/categories.css?v=55">
     </head>
 
     <body class="categories-page" data-context-path="${pageContext.request.contextPath}">
@@ -246,13 +246,17 @@
                         </c:choose>
                     </div>
 
-                    <c:if test="${totalPages > 1}">
-                        <div class="category-pagination">
+                    <div class="product-pagination-footer category-pagination-footer">
+                        <p>Hiển thị <strong>${startItem}</strong> đến <strong>${endItem}</strong> của <strong>${totalProducts}</strong> sản phẩm</p>
+                        <nav class="category-pagination" aria-label="Phân trang sản phẩm">
 
-                            <c:if test="${currentPage > 1}">
-                                <c:set var="previousPageUrl" value="${pagingUrl}${currentPage - 1}" />
-                                <a href="<c:out value="${previousPageUrl}" />">Trước</a>
-                            </c:if>
+                            <c:choose>
+                                <c:when test="${currentPage > 1}">
+                                    <c:set var="previousPageUrl" value="${pagingUrl}${currentPage - 1}" />
+                                    <a class="page-btn" href="<c:out value="${previousPageUrl}" />" aria-label="Trang trước">&lsaquo;</a>
+                                </c:when>
+                                <c:otherwise><span class="page-btn disabled" aria-hidden="true">&lsaquo;</span></c:otherwise>
+                            </c:choose>
 
                             <c:choose>
                                 <c:when test="${currentPage <= 4}">
@@ -272,37 +276,42 @@
                             </c:choose>
 
                             <c:set var="firstPageUrl" value="${pagingUrl}1" />
-                            <a class="${currentPage == 1 ? 'active' : ''}" href="<c:out value="${firstPageUrl}" />">1</a>
+                            <a class="page-btn ${currentPage == 1 ? 'active' : ''}" href="<c:out value="${firstPageUrl}" />">1</a>
 
                             <c:if test="${fromPage > 2}">
-                                <span>...</span>
+                                <span class="page-btn disabled">...</span>
                             </c:if>
 
                             <c:forEach begin="${fromPage}" end="${toPage}" var="pageNumber">
                                 <c:set var="numberedPageUrl" value="${pagingUrl}${pageNumber}" />
-                                <a class="${currentPage == pageNumber ? 'active' : ''}"
+                                <a class="page-btn ${currentPage == pageNumber ? 'active' : ''}"
                                    href="<c:out value="${numberedPageUrl}" />">
                                     ${pageNumber}
                                 </a>
                             </c:forEach>
 
                             <c:if test="${toPage < totalPages - 1}">
-                                <span>...</span>
+                                <span class="page-btn disabled">...</span>
                             </c:if>
 
                             <c:set var="lastPageUrl" value="${pagingUrl}${totalPages}" />
-                            <a class="${currentPage == totalPages ? 'active' : ''}"
+                            <c:if test="${totalPages > 1}">
+                            <a class="page-btn ${currentPage == totalPages ? 'active' : ''}"
                                href="<c:out value="${lastPageUrl}" />">
                                 ${totalPages}
                             </a>
-
-                            <c:if test="${currentPage < totalPages}">
-                                <c:set var="nextPageUrl" value="${pagingUrl}${currentPage + 1}" />
-                                <a href="<c:out value="${nextPageUrl}" />">Sau</a>
                             </c:if>
 
-                        </div>
-                    </c:if>
+                            <c:choose>
+                                <c:when test="${currentPage < totalPages}">
+                                    <c:set var="nextPageUrl" value="${pagingUrl}${currentPage + 1}" />
+                                    <a class="page-btn" href="<c:out value="${nextPageUrl}" />" aria-label="Trang sau">&rsaquo;</a>
+                                </c:when>
+                                <c:otherwise><span class="page-btn disabled" aria-hidden="true">&rsaquo;</span></c:otherwise>
+                            </c:choose>
+
+                        </nav>
+                    </div>
                 </section>
             </section>
         </main>

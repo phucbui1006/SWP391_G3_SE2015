@@ -31,6 +31,8 @@
     Integer currentPageObj = (Integer) request.getAttribute("currentPage");
     Integer totalPagesObj = (Integer) request.getAttribute("totalPages");
     int totalProducts = totalProductsObj == null ? 0 : totalProductsObj;
+    int startItem = request.getAttribute("startItem") == null ? 0 : (Integer) request.getAttribute("startItem");
+    int endItem = request.getAttribute("endItem") == null ? 0 : (Integer) request.getAttribute("endItem");
     int currentPage = currentPageObj == null ? 1 : currentPageObj;
     int totalPages = totalPagesObj == null ? 1 : totalPagesObj;
     int searchResultCount = totalProducts;
@@ -47,7 +49,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ProBuild PC</title>
-        <link rel="stylesheet" href="<%= ctx %>/css/style.css?v=203">
+        <link rel="stylesheet" href="<%= ctx %>/css/style.css?v=204">
     </head>
 
     <body class="home-page" data-context-path="<%= ctx %>">
@@ -222,10 +224,13 @@
                     <% } %>
                 </section>
 
-                <% if (totalPages > 1) { %>
-                <div class="home-pagination">
+                <div class="product-pagination-footer">
+                    <p>Hiển thị <strong><%= startItem %></strong> đến <strong><%= endItem %></strong> của <strong><%= totalProducts %></strong> sản phẩm</p>
+                <nav class="home-pagination" aria-label="Phân trang sản phẩm">
                     <% if (currentPage > 1) { %>
-                    <a href="<%= pagingUrl + (currentPage - 1) %>">Trước</a>
+                    <a class="page-btn" href="<%= pagingUrl + (currentPage - 1) %>" aria-label="Trang trước">&lsaquo;</a>
+                    <% } else { %>
+                    <span class="page-btn disabled" aria-hidden="true">&lsaquo;</span>
                     <% } %>
 
                     <%
@@ -239,29 +244,31 @@
                             toPage = totalPages - 1;
                         }
                     %>
-                    <a class="<%= currentPage == 1 ? "active" : "" %>" href="<%= pagingUrl + 1 %>">1</a>
+                    <a class="page-btn <%= currentPage == 1 ? "active" : "" %>" href="<%= pagingUrl + 1 %>">1</a>
                     <% if (fromPage > 2) { %>
-                    <span>...</span>
+                    <span class="page-btn disabled">...</span>
                     <% } %>
                     <% for (int i = fromPage; i <= toPage; i++) { %>
-                    <a class="<%= currentPage == i ? "active" : "" %>" href="<%= pagingUrl + i %>">
+                    <a class="page-btn <%= currentPage == i ? "active" : "" %>" href="<%= pagingUrl + i %>">
                         <%= i %>
                     </a>
                     <% } %>
                     <% if (toPage < totalPages - 1) { %>
-                    <span>...</span>
+                    <span class="page-btn disabled">...</span>
                     <% } %>
                     <% if (totalPages > 1) { %>
-                    <a class="<%= currentPage == totalPages ? "active" : "" %>" href="<%= pagingUrl + totalPages %>">
+                    <a class="page-btn <%= currentPage == totalPages ? "active" : "" %>" href="<%= pagingUrl + totalPages %>">
                         <%= totalPages %>
                     </a>
                     <% } %>
 
                     <% if (currentPage < totalPages) { %>
-                    <a href="<%= pagingUrl + (currentPage + 1) %>">Sau</a>
+                    <a class="page-btn" href="<%= pagingUrl + (currentPage + 1) %>" aria-label="Trang sau">&rsaquo;</a>
+                    <% } else { %>
+                    <span class="page-btn disabled" aria-hidden="true">&rsaquo;</span>
                     <% } %>
+                </nav>
                 </div>
-                <% } %>
             </section>
         </main>
 

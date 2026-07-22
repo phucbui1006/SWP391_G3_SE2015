@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.util.ArrayList;
 import model.Batch;
 import model.BatchItem;
 import model.Product;
@@ -74,7 +75,17 @@ public class BatchServlet extends HttpServlet {
         }
 
         int offset = (currentPage - 1) * PAGE_SIZE;
+        
         List<Batch> batches = batchDAO.getBatches(offset, PAGE_SIZE);
+        List <Batch> filterList = new ArrayList<>();
+//        for (Batch batch : batches) {
+//            if(batch.getBatchId() == 1){
+//                filterList.add(batch);
+//                break;
+//            }
+//            
+//            
+//        }batches = filterList;
         List<Product> products = productDAO.getAllProducts();
 
         int startItem = totalBatches == 0 ? 0 : offset + 1;

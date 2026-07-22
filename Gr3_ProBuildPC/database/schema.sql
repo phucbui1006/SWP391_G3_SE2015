@@ -334,13 +334,12 @@ CREATE TABLE WARRANTY_STATUS (
 
 -- =========================
 -- BẢO HÀNH
--- KHÔNG NỐI ORDERS
--- KHÔNG NỐI ORDER_DETAILS
--- Chỉ nối CUSTOMERS, PRODUCTS, WARRANTY_STATUS
+-- Mỗi yêu cầu phải gắn với đúng đơn hàng chứa sản phẩm
 -- =========================
 CREATE TABLE WARRANTIES (
     warranty_id     INT AUTO_INCREMENT PRIMARY KEY,
     customer_id     INT NOT NULL,
+    order_id        INT NOT NULL,
     product_id      INT NOT NULL,
     status_id       INT,
     request_date    DATETIME NOT NULL,
@@ -350,6 +349,9 @@ CREATE TABLE WARRANTIES (
 
     CONSTRAINT FK_WARRANTIES_CUSTOMERS
         FOREIGN KEY (customer_id) REFERENCES CUSTOMERS(customer_id),
+
+    CONSTRAINT FK_WARRANTIES_ORDERS
+        FOREIGN KEY (order_id) REFERENCES ORDERS(order_id),
 
     CONSTRAINT FK_WARRANTIES_PRODUCTS
         FOREIGN KEY (product_id) REFERENCES PRODUCTS(product_id),

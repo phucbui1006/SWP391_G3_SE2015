@@ -18,6 +18,7 @@ public class Warranty {
     private String customerName;
     private int orderId;
     private int quantity;
+    private BigDecimal unitPrice;
     private String brandName;
     private String categoryName;
     private String imageUrl;
@@ -157,6 +158,14 @@ public class Warranty {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
     }
 
     public String getBrandName() {

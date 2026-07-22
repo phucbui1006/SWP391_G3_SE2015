@@ -50,6 +50,7 @@ public class WarrantyDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
+            logSqlError("isWarrantyRequestValid", e);
         }
         return false;
     }
@@ -71,6 +72,7 @@ public class WarrantyDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
+            logSqlError("getOrderStatus", e);
         }
         return null;
     }
@@ -90,6 +92,7 @@ public class WarrantyDAO extends DBContext {
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
+            logSqlError("createWarrantyRequest", e);
         }
         return false;
     }
@@ -102,6 +105,7 @@ public class WarrantyDAO extends DBContext {
             ps.setInt(3, warrantyId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
+            logSqlError("updateWarrantyStatus", e);
         }
         return false;
     }
@@ -145,6 +149,7 @@ public class WarrantyDAO extends DBContext {
                     Warranty item = new Warranty();
                     item.setProductId(rs.getInt("product_id"));
                     item.setQuantity(rs.getInt("quantity"));
+                    item.setUnitPrice(rs.getBigDecimal("unit_price"));
                     item.setProductName(rs.getString("product_name"));
                     item.setBrandName(rs.getString("brand_name"));
                     item.setCategoryName(rs.getString("category_name"));
@@ -159,6 +164,7 @@ public class WarrantyDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
+            logSqlError("getProductWarrantyCondition", e);
         }
         return null;
     }
@@ -175,6 +181,7 @@ public class WarrantyDAO extends DBContext {
                            COALESCE(sh.shipment_status, os.status_name) AS order_status_name,
                            od.product_id,
                            od.quantity,
+                           od.unit_price,
                            p.product_name,
                            p.image_url,
                            w.warranty_id,
@@ -223,6 +230,7 @@ public class WarrantyDAO extends DBContext {
                     w.setOrderStatusName(rs.getString("order_status_name"));
                     w.setProductId(rs.getInt("product_id"));
                     w.setQuantity(rs.getInt("quantity"));
+                    w.setUnitPrice(rs.getBigDecimal("unit_price"));
                     w.setProductName(rs.getString("product_name"));
                     w.setImageUrl(rs.getString("image_url"));
                     w.setWarrantyMonths(rs.getInt("warranty_months"));
@@ -253,6 +261,7 @@ public class WarrantyDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
+            logSqlError("getWarrantyInfoByOrderId", e);
         }
         return list.isEmpty() ? null : list;
     }
@@ -632,5 +641,9 @@ public class WarrantyDAO extends DBContext {
 
     public List<WarrantyRequest> getAllWarrantyRequestsForAdmin(String searchKeyword, Integer statusId) {
         return getAllWarrantyRequestsForAdmin(searchKeyword, statusId, 0, 0);
+    }
+
+    private void logSqlError(String operation, SQLException e) {
+        System.err.println("WarrantyDAO." + operation + " failed: " + e.getMessage());
     }
 }

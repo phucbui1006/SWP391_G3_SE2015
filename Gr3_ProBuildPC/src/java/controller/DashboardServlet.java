@@ -34,21 +34,10 @@ public class DashboardServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-
-        if (session == null || session.getAttribute("account") == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return;
-        }
-
         User user = (User) session.getAttribute("account");
 
         if (user.getRoleName() == null) {
             response.sendRedirect(request.getContextPath() + "/Login");
-            return;
-        }
-
-        if (user.isCustomer()) {
-            response.sendRedirect(request.getContextPath() + "/home");
             return;
         }
 

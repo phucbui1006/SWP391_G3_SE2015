@@ -20,7 +20,7 @@ public class GetCategoryTemplatesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("application/json;charset=UTF-8");
-        
+
         String categoryIdRaw = request.getParameter("categoryId");
         String productIdRaw = request.getParameter("productId");
         PrintWriter out = response.getWriter();

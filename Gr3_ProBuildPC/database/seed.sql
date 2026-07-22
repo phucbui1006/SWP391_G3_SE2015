@@ -97,11 +97,11 @@ VALUES
 INSERT INTO USERS
 (user_id, full_name, status, email, password, account_type)
 VALUES
-(1, 'Bùi Phúc', 'ACTIVE', 'nguyenngoccham120705@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 'STAFF'),
-(2, 'Nguyễn Văn Nam', 'ACTIVE', 'nguyenvannam@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 'STAFF'),
-(3, 'Trần Minh Quân', 'ACTIVE', 'tranminhquan@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 'STAFF'),
-(4, 'Lê Hoàng Anh', 'ACTIVE', 'lehoanganh@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 'CUSTOMER'),
-(5, 'Phạm Thu Trang', 'ACTIVE', 'phamthutrang@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 'CUSTOMER');
+(1, 'Bùi Phúc', 'ACTIVE', 'nguyenngoccham120705@gmail.com', MD5('123456'), 'STAFF'),
+(2, 'Nguyễn Văn Nam', 'ACTIVE', 'nguyenvannam@gmail.com', MD5('123456'), 'STAFF'),
+(3, 'Trần Minh Quân', 'ACTIVE', 'tranminhquan@gmail.com', MD5('123456'), 'STAFF'),
+(4, 'Lê Hoàng Anh', 'ACTIVE', 'lehoanganh@gmail.com', MD5('123456'), 'CUSTOMER'),
+(5, 'Phạm Thu Trang', 'ACTIVE', 'phamthutrang@gmail.com', MD5('123456'), 'CUSTOMER');
 
 INSERT INTO CUSTOMERS (customer_id, user_id)
 VALUES
@@ -912,10 +912,11 @@ VALUES
 (4, 4, 'images/reviews/msi4060-review.jpg');
 
 INSERT INTO WARRANTIES
-(warranty_id, customer_id, product_id, status_id, request_date, request)
+(warranty_id, customer_id, order_id, product_id, status_id, request_date, request)
 VALUES
-(1, 1, 1, 2, '2026-03-01 10:30:00',
+(1, 1, 1000, 1, 2, '2026-03-01 10:30:00',
 'CPU có nhiệt độ cao hơn mong đợi khi chơi game, cần kiểm tra bảo hành.'),
 
-(2, 2, 12, 1, '2026-06-01 16:45:00',
+(2, 2, 1003,12, 1, '2026-06-01 16:45:00',
 'Cổng USB trên bo mạch chủ hoạt động không ổn định, cần kiểm tra.');
+

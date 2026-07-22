@@ -6,10 +6,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import model.CategorySpecTemplate;
+import model.User;
 
 @WebServlet(name = "GetCategoryTemplatesServlet", urlPatterns = {"/GetCategoryTemplates"})
 public class GetCategoryTemplatesServlet extends HttpServlet {
@@ -20,6 +22,18 @@ public class GetCategoryTemplatesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("application/json;charset=UTF-8");
+
+        HttpSession session = request.getSession(false);
+        User account = session == null ? null : (User) session.getAttribute("account");
+        if (account == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+        if (account.getRoleName() == null
+                || !"ADMIN".equalsIgnoreCase(account.getRoleName().trim())) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
         
         String categoryIdRaw = request.getParameter("categoryId");
         String productIdRaw = request.getParameter("productId");

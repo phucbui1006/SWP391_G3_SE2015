@@ -226,7 +226,6 @@
                                 <th>Danh mục</th>
                                 <th>Thương hiệu</th>
                                 <th>Giá bán</th>
-                                <th>Số lượng nhập</th>
                                 <th>Số lượng tồn</th>
                                 <th>Số lượng bán</th>
                                 <th>Trạng thái</th>
@@ -260,9 +259,7 @@
                                 <td>
                                     <%= String.format("%,d", p.getPrice().longValue()) %>đ
                                 </td>
-                                <td>
-                                    <%= p.getImportQuantity() %>
-                                </td>
+                               
                                 <td style="
                                     padding-left: 30px;">
                                     <% if (p.getQuantity() > 0) { %>

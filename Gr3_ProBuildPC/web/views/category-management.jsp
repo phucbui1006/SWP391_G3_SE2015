@@ -120,7 +120,7 @@
         <title>Quản lý danh mục sản phẩm</title>
 
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
-        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-categories.css?v=1.0.2">
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-categories.css?v=1.0.3">
     </head>
 
     <body class="admin-category-body">
@@ -298,21 +298,15 @@
                 </div>
 
                 <div class="admin-category-footer">
-                    <p>
-                        Hiển thị <%= startItem %>
-                        đến <%= endItem %>
-                        của <%= totalCategories %> danh mục.
-                    </p>
+                    <!--                    <p>
+                                            Hiển thị <%= startItem %>
+                                            đến <%= endItem %>
+                                            của <%= totalCategories %> danh mục.
+                                        </p>-->
 
                     <div class="admin-pagination">
-
                         <% if (currentPage > 1) { %>
-                        <a class="page-btn"
-                           href="<%= contextPath %>/admin/categories?page=<%= currentPage - 1 %><%= listQuery %>">
-                            ‹
-                        </a>
-                        <% } else { %>
-                        <span class="page-btn disabled">‹</span>
+                        <a class="page-btn" href="<%= contextPath %>/admin/categories?page=<%= currentPage - 1 %><%= listQuery %>">Trước</a>
                         <% } %>
 
                         <%
@@ -326,38 +320,23 @@
                                 toPage = totalPages - 1;
                             }
                         %>
-                        <a class="page-btn <%= currentPage == 1 ? "active" : "" %>"
-                           href="<%= contextPath %>/admin/categories?page=1<%= listQuery %>">
-                            1
-                        </a>
+                        <a class="page-btn <%= currentPage == 1 ? "active" : "" %>" href="<%= contextPath %>/admin/categories?page=1<%= listQuery %>">1</a>
                         <% if (fromPage > 2) { %>
-                        <span class="page-btn disabled">...</span>
+                        <span class="page-btn">...</span>
                         <% } %>
-                        <% for (int i=fromPage; i <=toPage; i++) { %>
-                        <a class="page-btn <%= currentPage == i ? "active" : "" %>"
-                           href="<%= contextPath %>/admin/categories?page=<%= i %><%= listQuery %>">
-                            <%= i %>
-                        </a>
+                        <% for (int i = fromPage; i <= toPage; i++) { %>
+                        <a class="page-btn <%= currentPage == i ? "active" : "" %>" href="<%= contextPath %>/admin/categories?page=<%= i %><%= listQuery %>"><%= i %></a>
                         <% } %>
                         <% if (toPage < totalPages - 1) { %>
-                        <span class="page-btn disabled">...</span>
+                        <span class="page-btn">...</span>
                         <% } %>
                         <% if (totalPages > 1) { %>
-                        <a class="page-btn <%= currentPage == totalPages ? "active" : "" %>"
-                           href="<%= contextPath %>/admin/categories?page=<%= totalPages %><%= listQuery %>">
-                            <%= totalPages %>
-                        </a>
+                        <a class="page-btn <%= currentPage == totalPages ? "active" : "" %>" href="<%= contextPath %>/admin/categories?page=<%= totalPages %><%= listQuery %>"><%= totalPages %></a>
                         <% } %>
 
                         <% if (currentPage < totalPages) { %>
-                        <a class="page-btn"
-                           href="<%= contextPath %>/admin/categories?page=<%= currentPage + 1 %><%= listQuery %>">
-                            ›
-                        </a>
-                        <% } else { %>
-                        <span class="page-btn disabled">›</span>
+                        <a class="page-btn" href="<%= contextPath %>/admin/categories?page=<%= currentPage + 1 %><%= listQuery %>">Sau</a>
                         <% } %>
-
                     </div>
                 </div>
             </section>

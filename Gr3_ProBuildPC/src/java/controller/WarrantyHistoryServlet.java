@@ -77,16 +77,62 @@ public class WarrantyHistoryServlet extends HttpServlet {
             }
         }
 
-        List<WarrantyRequest> list = warrantyDAO.getWarrantyRequestsByCustomerId(
+        List<WarrantyRequest> fullList = warrantyDAO.getWarrantyRequestsByCustomerId(
                 customerId, 
                 parsedSearchKeyword, 
                 statusId
         );
 
-        request.setAttribute("clientWarrantyList", list);
-        request.setAttribute("warrantyList", list); 
+        int pageSize = 5;
+        String pageRaw = request.getParameter("page");
+        int currentPage = 1;
+        try {
+            if (pageRaw != null && !pageRaw.trim().isEmpty()) {
+                currentPage = Integer.parseInt(pageRaw.trim());
+            }
+        } catch (NumberFormatException e) {
+            currentPage = 1;
+        }
+
+        if (currentPage < 1) {
+            currentPage = 1;
+        }
+
+        int totalWarranties = fullList == null ? 0 : fullList.size();
+        int totalPages = (int) Math.ceil((double) totalWarranties / pageSize);
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalWarranties);
+        List<WarrantyRequest> pagingList;
+        if (fullList == null || fullList.isEmpty()) {
+            pagingList = new java.util.ArrayList<>();
+        } else {
+            pagingList = fullList.subList(fromIndex, toIndex);
+        }
+
+        StringBuilder pagingUrlBuilder = new StringBuilder(request.getContextPath() + "/warranty-history?");
+        if (search != null && !search.trim().isEmpty()) {
+            pagingUrlBuilder.append("searchProduct=").append(java.net.URLEncoder.encode(search.trim(), "UTF-8")).append("&");
+        }
+        if (statusId != null) {
+            pagingUrlBuilder.append("statusId=").append(statusId).append("&");
+        }
+        pagingUrlBuilder.append("page=");
+
+        request.setAttribute("clientWarrantyList", pagingList);
+        request.setAttribute("warrantyList", pagingList); 
         request.setAttribute("searchProduct", search != null ? search.trim() : "");
         request.setAttribute("filterStatusId", statusId);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalWarranties", totalWarranties);
+        request.setAttribute("pagingUrl", pagingUrlBuilder.toString());
 
         request.getRequestDispatcher("/views/warranty-history.jsp").forward(request, response);
     }

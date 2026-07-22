@@ -128,6 +128,55 @@
                                         </tbody>
                                     </table>
                                 </div>
+
+                                <%
+                                    Integer totalPagesObj = (Integer) request.getAttribute("totalPages");
+                                    Integer currentPageObj = (Integer) request.getAttribute("currentPage");
+                                    String pagingUrl = (String) request.getAttribute("pagingUrl");
+                                    int totalPages = totalPagesObj != null ? totalPagesObj : 1;
+                                    int currentPage = currentPageObj != null ? currentPageObj : 1;
+                                    if (pagingUrl == null) pagingUrl = "";
+                                    if (totalPages > 1) {
+                                %>
+                                <div class="home-pagination">
+                                    <% if (currentPage > 1) { %>
+                                    <a href="<%= pagingUrl + (currentPage - 1) %>">Trước</a>
+                                    <% } %>
+
+                                    <%
+                                        int fromPage = Math.max(2, currentPage - 2);
+                                        int toPage = Math.min(totalPages - 1, currentPage + 2);
+                                        if (currentPage <= 4) {
+                                            fromPage = 2;
+                                            toPage = Math.min(totalPages - 1, 5);
+                                        } else if (currentPage >= totalPages - 3) {
+                                            fromPage = Math.max(2, totalPages - 4);
+                                            toPage = totalPages - 1;
+                                        }
+                                    %>
+                                    <a class="<%= currentPage == 1 ? "active" : "" %>" href="<%= pagingUrl + 1 %>">1</a>
+                                    <% if (fromPage > 2) { %>
+                                    <span>...</span>
+                                    <% } %>
+                                    <% for (int i = fromPage; i <= toPage; i++) { %>
+                                    <a class="<%= currentPage == i ? "active" : "" %>" href="<%= pagingUrl + i %>">
+                                        <%= i %>
+                                    </a>
+                                    <% } %>
+                                    <% if (toPage < totalPages - 1) { %>
+                                    <span>...</span>
+                                    <% } %>
+                                    <% if (totalPages > 1) { %>
+                                    <a class="<%= currentPage == totalPages ? "active" : "" %>" href="<%= pagingUrl + totalPages %>">
+                                        <%= totalPages %>
+                                    </a>
+                                    <% } %>
+
+                                    <% if (currentPage < totalPages) { %>
+                                    <a href="<%= pagingUrl + (currentPage + 1) %>">Sau</a>
+                                    <% } %>
+                                </div>
+                                <% } %>
                             </c:when>
                             <c:otherwise>
                                 <div class="tracking-empty-state">

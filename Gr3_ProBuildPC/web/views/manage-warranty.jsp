@@ -163,10 +163,11 @@
 
                     <!-- Pagination -->
                     <% if (totalPages > 1) { %>
-                    <div class="order-history-pagination">
-                        <a class="prev <%= currentPage <= 1 ? "disabled" : "" %>"
-                           href="<%= currentPage <= 1 ? "#" : buildPageLink(ctx, searchQuery, statusFilterId, currentPage - 1, selectedWarrantyId) %>"
-                           aria-label="Trang trước">‹</a>
+                    <div class="home-pagination">
+                        <% if (currentPage > 1) { %>
+                        <a href="<%= buildPageLink(ctx, searchQuery, statusFilterId, currentPage - 1, selectedWarrantyId) %>">Trước</a>
+                        <% } %>
+
                         <%
                             int fromPage = Math.max(2, currentPage - 2);
                             int toPage = Math.min(totalPages - 1, currentPage + 2);
@@ -194,9 +195,10 @@
                         <a class="<%= currentPage == totalPages ? "active" : "" %>"
                            href="<%= buildPageLink(ctx, searchQuery, statusFilterId, totalPages, selectedWarrantyId) %>"><%= totalPages %></a>
                         <% } %>
-                        <a class="next <%= currentPage >= totalPages ? "disabled" : "" %>"
-                           href="<%= currentPage >= totalPages ? "#" : buildPageLink(ctx, searchQuery, statusFilterId, currentPage + 1, selectedWarrantyId) %>"
-                           aria-label="Trang sau">›</a>
+
+                        <% if (currentPage < totalPages) { %>
+                        <a href="<%= buildPageLink(ctx, searchQuery, statusFilterId, currentPage + 1, selectedWarrantyId) %>">Sau</a>
+                        <% } %>
                     </div>
                     <% } %>
                 </aside>

@@ -11,6 +11,7 @@ import model.WarrantyRequest;
 
 public class WarrantyDAO extends DBContext {
 
+    //Kiểm tra còn thời hạn bảo hành đối với một sản phẩm hay không.
     public boolean isWarrantyRequestValid(int customerId, int productId) {
         String sql = """
                     SELECT COALESCE(o.received_date, o.order_date) AS warranty_start,
@@ -34,12 +35,13 @@ public class WarrantyDAO extends DBContext {
                     java.sql.Timestamp warrantyStart = rs.getTimestamp("warranty_start");
                     int warrantyMonths = rs.getInt("warranty_months");
                     if (warrantyStart != null) {
+
+                        //Tạo đối tượng Calendar đại diện cho ngày giờ hiện tại.
                         java.util.Calendar cal = java.util.Calendar.getInstance();
                         cal.setTimeInMillis(warrantyStart.getTime());
                         cal.add(java.util.Calendar.MONTH, warrantyMonths);
                         java.util.Date endDate = cal.getTime();
                         java.util.Date now = new java.util.Date();
-
                         return endDate.after(now);
                     }
                 }
@@ -85,103 +87,6 @@ public class WarrantyDAO extends DBContext {
         } catch (SQLException e) {
         }
         return false;
-    }
-
-    public List<Warranty> getAllWarranties(String search, Integer statusId) {
-        List<Warranty> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("""
-                    SELECT w.warranty_id,
-                           w.customer_id,
-                           w.product_id,
-                           w.status_id,
-                           w.request_date,
-                           w.response_date,
-                           w.request,
-                           w.response,
-                           p.product_name,
-                           ws.status_name,
-                           u.full_name AS customer_name,
-                           COALESCE((
-                               SELECT od.order_id
-                               FROM order_details od
-                               JOIN orders o ON od.order_id = o.order_id
-                               WHERE od.product_id = w.product_id AND o.customer_id = w.customer_id
-                               ORDER BY o.order_date DESC
-                               LIMIT 1
-                           ), 0) AS order_id
-                    FROM warranties w
-                    JOIN products p ON w.product_id = p.product_id
-                    LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
-                    LEFT JOIN customers c ON w.customer_id = c.customer_id
-                    LEFT JOIN users u ON c.user_id = u.user_id
-                    WHERE 1=1
-                """);
-
-        List<Object> params = new ArrayList<>();
-
-        if (search != null && !search.trim().isEmpty()) {
-            String digits = search.replaceAll("[^0-9]", "").trim();
-            if (!digits.isEmpty()) {
-                sql.append(" AND w.warranty_id = ? ");
-                params.add(Integer.parseInt(digits));
-            } else {
-                sql.append(" AND (p.product_name LIKE ? OR u.full_name LIKE ?) ");
-                params.add("%" + search.trim() + "%");
-                params.add("%" + search.trim() + "%");
-            }
-        }
-
-        if (statusId != null && statusId > 0) {
-            sql.append(" AND w.status_id = ? ");
-            params.add(statusId);
-        }
-
-        sql.append(" ORDER BY w.request_date DESC ");
-
-        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                Object p = params.get(i);
-                if (p instanceof Integer) {
-                    ps.setInt(i + 1, (Integer) p);
-                } else {
-                    ps.setString(i + 1, (String) p);
-                }
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Warranty w = new Warranty();
-                    w.setWarrantyId(rs.getInt("warranty_id"));
-                    w.setCustomerId(rs.getInt("customer_id"));
-                    w.setProductId(rs.getInt("product_id"));
-                    w.setStatusId(rs.getInt("status_id"));
-                    w.setRequestDate(rs.getTimestamp("request_date"));
-                    w.setResponseDate(rs.getTimestamp("response_date"));
-                    w.setRequest(rs.getString("request"));
-                    w.setResponse(rs.getString("response"));
-                    w.setProductName(rs.getString("product_name"));
-                    w.setCustomerName(rs.getString("customer_name"));
-                    w.setOrderId(rs.getInt("order_id"));
-
-                    String statusName = rs.getString("status_name");
-                    if (statusName == null || statusName.trim().isEmpty()) {
-                        if (w.getStatusId() == 1) {
-                            statusName = "Chờ tiếp nhận";
-                        } else if (w.getStatusId() == 2) {
-                            statusName = "Từ chối";
-                        } else if (w.getStatusId() == 3) {
-                            statusName = "Chấp nhận";
-                        }
-                    }
-                    w.setStatusName(statusName);
-                    w.setStoreResponse(w.getResponse() != null ? w.getResponse() : "");
-
-                    list.add(w);
-                }
-            }
-        } catch (SQLException e) {
-        }
-        return list;
     }
 
     public boolean updateWarrantyStatus(int warrantyId, int statusId, String response) {
@@ -393,6 +298,7 @@ public class WarrantyDAO extends DBContext {
         return list;
     }
 
+    //Chờ tiếp nhận
     public boolean isWarrantyPendingOrActive(int customerId, int productId) {
         String sql = """
                     SELECT COUNT(*)

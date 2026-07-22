@@ -121,7 +121,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Quản lý sản phẩm - ProBuild PC</title>
         <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/style.css">
-        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css?v=1.0.3">
+        <link rel="stylesheet" type="text/css" href="<%= contextPath %>/css/admin-products.css?v=1.0.5">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     </head>
     <body class="admin-product-body" data-ctx="<%= contextPath %>">
@@ -312,14 +312,12 @@
 
                 <!-- Pagination Footer -->
                 <div class="admin-product-footer">
-                    <p>
+<!--                    <p>
                         Hiển thị <strong><%= startItem %></strong> đến <strong><%= endItem %></strong> của <strong><%= totalProducts %></strong> sản phẩm
-                    </p>
+                    </p>-->
                     <div class="admin-pagination">
                         <% if (currentPage > 1) { %>
-                        <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage - 1 %><%= listQuery %>">&lsaquo;</a>
-                        <% } else { %>
-                        <span class="page-btn disabled"><</span>
+                        <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage - 1 %><%= listQuery %>">Trước</a>
                         <% } %>
 
                         <%
@@ -335,22 +333,20 @@
                         %>
                         <a class="page-btn <%= currentPage == 1 ? "active" : "" %>" href="<%= contextPath %>/admin/products?page=1<%= listQuery %>">1</a>
                         <% if (fromPage > 2) { %>
-                        <span class="page-btn disabled">...</span>
+                        <span class="page-btn">...</span>
                         <% } %>
                         <% for (int i = fromPage; i <= toPage; i++) { %>
                         <a class="page-btn <%= currentPage == i ? "active" : "" %>" href="<%= contextPath %>/admin/products?page=<%= i %><%= listQuery %>"><%= i %></a>
                         <% } %>
                         <% if (toPage < totalPages - 1) { %>
-                        <span class="page-btn disabled">...</span>
+                        <span class="page-btn">...</span>
                         <% } %>
                         <% if (totalPages > 1) { %>
                         <a class="page-btn <%= currentPage == totalPages ? "active" : "" %>" href="<%= contextPath %>/admin/products?page=<%= totalPages %><%= listQuery %>"><%= totalPages %></a>
                         <% } %>
 
                         <% if (currentPage < totalPages) { %>
-                        <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage + 1 %><%= listQuery %>">&rsaquo;</a>
-                        <% } else { %>
-                        <span class="page-btn disabled">></span>
+                        <a class="page-btn" href="<%= contextPath %>/admin/products?page=<%= currentPage + 1 %><%= listQuery %>">Sau</a>
                         <% } %>
                     </div>
                 </div>

@@ -65,7 +65,9 @@ const Validator = {
     validateProductName(name) {
         if (!name) return false;
         const trimmed = name.trim();
-        return trimmed.length >= 3 && trimmed.length <= 255;
+        return trimmed.length >= 3
+            && trimmed.length <= 255
+            && !/\s{2,}/.test(trimmed);
     },
 
     validateFileSize(file, maxBytes = 2 * 1024 * 1024) {

@@ -155,16 +155,16 @@ public class ValidatorUtil {
     public static String getPurchaseQuantityError(String quantityRaw) {
         if (quantityRaw == null || quantityRaw.trim().isEmpty()
                 || !quantityRaw.trim().matches("^\\d+$")) {
-            return "Vui lòng chỉ nhập số nguyên cho số lượng.";
+            return "Số lượng phải là số nguyên từ 1 trở lên.";
         }
 
         try {
             int quantity = Integer.parseInt(quantityRaw.trim());
             if (quantity < 1) {
-                return "Số lượng phải lớn hơn hoặc bằng 1.";
+                return "Số lượng phải là số nguyên từ 1 trở lên.";
             }
         } catch (NumberFormatException e) {
-            return "Số lượng không hợp lệ.";
+            return "Số lượng phải là số nguyên từ 1 trở lên.";
         }
 
         return null;

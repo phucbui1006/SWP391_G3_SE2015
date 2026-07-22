@@ -433,27 +433,15 @@ public class BuildPCServlet extends HttpServlet {
             Map<String, Product> selectedProducts, Map<String, Integer> selectedQuantities) {
         List<BuildPCSlot> slots = new ArrayList<>();
 
-        BuildPCSlot cpu = new BuildPCSlot("CPU", "Bộ vi xử lý (CPU)", CPU_CATEGORY_ID, true);
-        cpu.setAvailableProducts(dao.getProductsByCategoryCompatibleWithBuild(CPU_CATEGORY_ID, selectedBuild, "CPU"));
-        slots.add(cpu);
-
-        BuildPCSlot mainboard = new BuildPCSlot("Mainboard", "Bo mạch chủ", MAINBOARD_CATEGORY_ID, true);
-        mainboard.setAvailableProducts(dao.getProductsByCategoryCompatibleWithBuild(MAINBOARD_CATEGORY_ID, selectedBuild, "Mainboard"));
-        slots.add(mainboard);
-
-        BuildPCSlot ram = new BuildPCSlot("RAM", "Bộ nhớ RAM", RAM_CATEGORY_ID, true);
-        ram.setAvailableProducts(dao.getProductsByCategoryCompatibleWithBuild(RAM_CATEGORY_ID, selectedBuild, "RAM"));
-        slots.add(ram);
-
-        BuildPCSlot gpu = new BuildPCSlot("GPU", "Card đồ họa", GPU_CATEGORY_ID, true);
-        gpu.setAvailableProducts(dao.getProductsByCategoryCompatibleWithBuild(GPU_CATEGORY_ID, selectedBuild, "GPU"));
-        slots.add(gpu);
-
-        slots.add(createAccessorySlot(dao, "SSD", "Ổ cứng SSD", SSD_CATEGORY_ID));
-        slots.add(createAccessorySlot(dao, "Case", "Vỏ máy tính", CASE_CATEGORY_ID));
-        slots.add(createAccessorySlot(dao, "Monitor", "Màn hình", MONITOR_CATEGORY_ID));
-        slots.add(createAccessorySlot(dao, "Keyboard", "Bàn phím", KEYBOARD_CATEGORY_ID));
-        slots.add(createAccessorySlot(dao, "Mouse", "Chuột", MOUSE_CATEGORY_ID));
+        slots.add(createSlot(dao, selectedBuild, "CPU", "Bộ vi xử lý (CPU)", CPU_CATEGORY_ID, true));
+        slots.add(createSlot(dao, selectedBuild, "Mainboard", "Bo mạch chủ", MAINBOARD_CATEGORY_ID, true));
+        slots.add(createSlot(dao, selectedBuild, "RAM", "Bộ nhớ RAM", RAM_CATEGORY_ID, true));
+        slots.add(createSlot(dao, selectedBuild, "GPU", "Card đồ họa", GPU_CATEGORY_ID, true));
+        slots.add(createSlot(dao, selectedBuild, "SSD", "Ổ cứng SSD", SSD_CATEGORY_ID, false));
+        slots.add(createSlot(dao, selectedBuild, "Case", "Vỏ máy tính", CASE_CATEGORY_ID, false));
+        slots.add(createSlot(dao, selectedBuild, "Monitor", "Màn hình", MONITOR_CATEGORY_ID, false));
+        slots.add(createSlot(dao, selectedBuild, "Keyboard", "Bàn phím", KEYBOARD_CATEGORY_ID, false));
+        slots.add(createSlot(dao, selectedBuild, "Mouse", "Chuột", MOUSE_CATEGORY_ID, false));
 
         for (BuildPCSlot slot : slots) {
             slot.setSelectedProduct(selectedProducts.get(slot.getKey()));
@@ -464,12 +452,15 @@ public class BuildPCServlet extends HttpServlet {
     }
 
     /**
-     * Tạo slot không cần kiểm tra tương thích như SSD, case, màn hình, bàn phím hoặc chuột.
+     * Tạo một slot và nạp danh sách sản phẩm phù hợp với loại slot đó.
      */
-    private BuildPCSlot createAccessorySlot(BuildPCDAO dao, String key, String displayName, int categoryId) {
-        BuildPCSlot slot = new BuildPCSlot(key, displayName, categoryId, false);
-        // Phụ kiện không kiểm tra tương thích, chỉ cần ACTIVE và còn hàng.
-        slot.setAvailableProducts(dao.getProductsByCategory(categoryId));
+    private BuildPCSlot createSlot(BuildPCDAO dao, Map<String, Integer> selectedBuild,
+            String key, String displayName, int categoryId, boolean requiresCompatibility) {
+        BuildPCSlot slot = new BuildPCSlot(key, displayName, categoryId, requiresCompatibility);
+        List<Product> products = requiresCompatibility
+                ? dao.getProductsByCategoryCompatibleWithBuild(categoryId, selectedBuild, key)
+                : dao.getProductsByCategory(categoryId);
+        slot.setAvailableProducts(products);
         return slot;
     }
 

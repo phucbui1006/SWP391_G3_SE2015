@@ -1,3 +1,5 @@
+var quantityValidationMessage = 'Số lượng phải là số nguyên từ 1 trở lên.';
+
 function showQuantityError(message) {
     var quantityInput = document.querySelector('.purchase-form input[name="quantity"]');
     var errorMessage = document.getElementById('quantityError');
@@ -60,7 +62,7 @@ function validateQuantity(form, showError) {
 
     if (quantityText === '' || !/^\d+$/.test(quantityText)) {
         if (showError) {
-            showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+            showQuantityError(quantityValidationMessage);
         }
 
         quantityInput.focus();
@@ -71,7 +73,7 @@ function validateQuantity(form, showError) {
 
     if (quantity < 1) {
         if (showError) {
-            showQuantityError('Số lượng phải lớn hơn hoặc bằng 1.');
+            showQuantityError(quantityValidationMessage);
         }
 
         quantityInput.focus();
@@ -103,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (insertedText !== null && /[^0-9]/.test(insertedText)) {
                 event.preventDefault();
-                showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+                showQuantityError(quantityValidationMessage);
             }
         });
 
@@ -113,20 +115,25 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             event.preventDefault();
-            showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+            showQuantityError(quantityValidationMessage);
         });
 
         quantityInput.addEventListener('input', function () {
             var currentValue = quantityInput.value;
             var numericValue = currentValue.replace(/[^0-9]/g, '');
 
-            if (currentValue !== numericValue) {
-                quantityInput.value = numericValue;
-                showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+            if (currentValue.trim() === '') {
+                showQuantityError(quantityValidationMessage);
                 return;
             }
 
-            clearQuantityError();
+            if (currentValue !== numericValue) {
+                quantityInput.value = numericValue;
+                showQuantityError(quantityValidationMessage);
+                return;
+            }
+
+            validateQuantity(purchaseForm, true);
         });
 
         quantityInput.addEventListener('paste', function (event) {
@@ -137,16 +144,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             event.preventDefault();
-            showQuantityError('Vui lòng chỉ nhập số cho số lượng.');
+            showQuantityError(quantityValidationMessage);
         });
 
         quantityInput.addEventListener('blur', function () {
-            if (quantityInput.value.trim() === '') {
-                quantityInput.value = '1';
-                clearQuantityError();
-                return;
-            }
-
             validateQuantity(purchaseForm, true);
         });
     }

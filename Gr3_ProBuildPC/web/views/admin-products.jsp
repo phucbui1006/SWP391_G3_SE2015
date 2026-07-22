@@ -476,7 +476,7 @@
                                         <% } %>
                                     </select>
                                     <% } else if ("NUMBER".equalsIgnoreCase(t.getSpecType())) { %>
-                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="0.000001" step="any" <%= t.isRequired() ? "required" : "" %>>
+                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="1" step="1" <%= t.isRequired() ? "required" : "" %>>
                                     <% } else { %>
                                     <input type="text" name="spec_values[]" placeholder="Nhập thông tin..." value="<%= h(enteredVal) %>" <%= t.isRequired() ? "required" : "" %>>
                                     <% } %>
@@ -624,7 +624,7 @@
                                         <% } %>
                                     </select>
                                     <% } else if ("NUMBER".equalsIgnoreCase(t.getSpecType())) { %>
-                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="0.000001" step="any" <%= t.isRequired() ? "required" : "" %>>
+                                    <input type="number" name="spec_values[]" placeholder="Nhập số lượng/thông số..." value="<%= h(enteredVal) %>" min="1" step="1" <%= t.isRequired() ? "required" : "" %>>
                                     <% } else { %>
                                     <input type="text" name="spec_values[]" placeholder="Nhập thông tin..." value="<%= h(enteredVal) %>" <%= t.isRequired() ? "required" : "" %>>
                                     <% } %>
@@ -646,8 +646,8 @@
 
         <jsp:include page="/includes/footer.jsp" />
 
-        <script src="<%= contextPath %>/js/validator.js?v=2"></script>
-        <script src="<%= contextPath %>/js/admin-products.js?v=6"></script>
+        <script src="<%= contextPath %>/js/validator.js?v=3"></script>
+        <script src="<%= contextPath %>/js/admin-products.js?v=9"></script>
 
     </body>
 </html>

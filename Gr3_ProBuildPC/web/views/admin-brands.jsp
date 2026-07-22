@@ -127,8 +127,8 @@
 
                             <select name="status" onchange="this.form.submit()">
                                 <option value="ALL" <%= "ALL".equals(selectedStatus) ? "selected" : "" %>>Tất cả trạng thái</option>
-                                <option value="ACTIVE" <%= "ACTIVE".equals(selectedStatus) ? "selected" : "" %>>ACTIVE</option>
-                                <option value="INACTIVE" <%= "INACTIVE".equals(selectedStatus) ? "selected" : "" %>>INACTIVE</option>
+                                <option value="ACTIVE" <%= "ACTIVE".equals(selectedStatus) ? "selected" : "" %>>Hoạt động</option>
+                                <option value="INACTIVE" <%= "INACTIVE".equals(selectedStatus) ? "selected" : "" %>>Ngưng hoạt động</option>
                             </select>
 
                             <select name="sort" onchange="this.form.submit()">
@@ -170,7 +170,7 @@
                                     </td>
                                     <td><%= h(brand.getBrandName()) %></td>
                                     <td><%= brand.getProductCount() %></td>
-                                    <td><%= h(brand.getStatus()) %></td>
+                                    <td><%= "ACTIVE".equalsIgnoreCase(brand.getStatus()) ? "Hoạt động" : "Ngưng hoạt động" %></td>
                                     <td>
                                         <div class="brand-actions">
                                             <a class="brand-action edit"
@@ -185,7 +185,7 @@
                                                 <input type="hidden" name="sort" value="<%= h(selectedSort) %>">
                                                 <input type="hidden" name="page" value="<%= currentPage %>">
                                                 <button class="brand-action delete" type="submit" aria-label="Đổi trạng thái <%= h(brand.getBrandName()) %>">
-                                                    <%= "ACTIVE".equalsIgnoreCase(brand.getStatus()) ? "Vô hiệu hóa" : "Kích hoạt" %>
+                                                    <%= "ACTIVE".equalsIgnoreCase(brand.getStatus()) ? "Ngưng hoạt động" : "Hoạt động" %>
                                                 </button>
                                             </form>
                                         </div>

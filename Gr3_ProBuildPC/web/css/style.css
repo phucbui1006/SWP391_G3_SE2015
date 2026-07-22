@@ -3857,6 +3857,101 @@ body.admin-brand-body {
     font-weight: 700;
 }
 
+/* Account table keeps the Brand Management table style with account-specific columns. */
+.account-brand-table {
+    min-width: 1280px;
+    table-layout: fixed;
+}
+
+.account-brand-table th:first-child,
+.account-brand-table td:first-child {
+    width: 68px;
+}
+
+.account-brand-table th:nth-child(2),
+.account-brand-table td:nth-child(2) {
+    width: 280px;
+    text-align: left;
+}
+
+.account-brand-table th:nth-child(3),
+.account-brand-table td:nth-child(3) {
+    width: auto;
+    overflow-wrap: anywhere;
+}
+
+.account-brand-table th:nth-child(4),
+.account-brand-table td:nth-child(4) {
+    width: 230px;
+    min-width: 0;
+}
+
+.account-brand-table th:nth-child(5),
+.account-brand-table td:nth-child(5) {
+    width: 200px;
+    min-width: 0;
+    text-align: center;
+}
+
+.account-brand-table th:last-child,
+.account-brand-table td:last-child {
+    width: 330px;
+    min-width: 0;
+    text-align: center;
+}
+
+.account-user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+}
+
+.account-user-cell strong,
+.account-role-text,
+.account-action-note {
+    color: inherit;
+    font: inherit;
+}
+
+.account-role-select {
+    width: 100%;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    color: inherit;
+    background: #fff;
+    font: inherit;
+}
+
+.account-role-select:focus {
+    border-color: #e60000;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(230, 0, 0, 0.08);
+}
+
+.account-status {
+    color: inherit;
+    background: transparent;
+    font: inherit;
+}
+
+.account-status.active {
+    color: inherit;
+    background: transparent;
+}
+
+.account-status.inactive {
+    color: inherit;
+    background: transparent;
+}
+
+.account-brand-table .brand-actions {
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
 .brand-logo {
     width: 86px;
     height: 34px;

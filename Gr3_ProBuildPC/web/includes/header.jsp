@@ -234,11 +234,11 @@
                     <div>
                         <h4><%= fullName %></h4>
                         <p>
-                            <% if ("SHIPMENT".equals(roleName)) { %>
-                            Tài xế vận chuyển
+                            <% if ("SHIPMENT".equals(roleName) || "TRANSPORT".equals(roleName)) { %>
+                            Nhân viên giao hàng
                             <% } else if ("ADMIN".equals(roleName)) { %>
-                            Admin
-                            <% } else if ("EMPLOYEE".equals(roleName) || "STAFF".equals(roleName)) { %>
+                            Quản trị viên
+                            <% } else if ("EMPLOYEE".equals(roleName) || "EMPLOYEES".equals(roleName) || "STAFF".equals(roleName)) { %>
                             Nhân viên
                             <% } else if ("CUSTOMER".equals(roleName)) { %>
                             Khách hàng

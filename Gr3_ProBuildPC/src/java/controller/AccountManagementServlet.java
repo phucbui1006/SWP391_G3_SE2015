@@ -152,7 +152,7 @@ public class AccountManagementServlet extends HttpServlet {
         }
 
         if (roleId == 1) {
-            session.setAttribute("accountError", "Khong the tao tai khoan Admin moi.");
+            session.setAttribute("accountError", "Không thể tạo tài khoản quản trị viên mới.");
             return;
         }
 
@@ -199,7 +199,7 @@ public class AccountManagementServlet extends HttpServlet {
         }
 
         if (!targetUser.isStaff()) {
-            session.setAttribute("accountError", "Chỉ có thể reset mật khẩu của nhân viên (Staff).");
+            session.setAttribute("accountError", "Chỉ có thể đặt lại mật khẩu của nhân viên.");
             return;
         }
 
@@ -235,7 +235,7 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
     }
 
     if (roleId == 1) {
-        session.setAttribute("accountError", "Khong the thay doi vai tro thanh Admin.");
+        session.setAttribute("accountError", "Không thể thay đổi vai trò thành quản trị viên.");
         return;
     }
 
@@ -282,7 +282,7 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
         }
 
         if ("ADMIN".equalsIgnoreCase(targetUser.getRoleName()) && "INACTIVE".equals(status)) {
-            session.setAttribute("accountError", "Khong the khoa tai khoan Admin.");
+            session.setAttribute("accountError", "Không thể khóa tài khoản quản trị viên.");
             return;
         }
 

@@ -17,7 +17,7 @@ import model.User;
 @WebServlet(name = "AccountManagementServlet", urlPatterns = {"/AccountManagement"})
 public class AccountManagementServlet extends HttpServlet {
 
-    private static final int PAGE_SIZE = 10;
+    private static final int PAGE_SIZE = 5;
     private final UserDAO userDAO = new UserDAO();
 
     @Override
@@ -53,6 +53,10 @@ public class AccountManagementServlet extends HttpServlet {
         List<User> users = userDAO.getUsers(keyword, roleId, status, accountType, page, PAGE_SIZE);
         List<Role> roles = userDAO.getRoles();
 
+        int offset = (page - 1) * PAGE_SIZE;
+        int startItem = totalUsers == 0 ? 0 : offset + 1;
+        int endItem = Math.min(page * PAGE_SIZE, totalUsers);
+
         request.setAttribute("type", type);
         request.setAttribute("users", users);
         request.setAttribute("roles", roles);
@@ -63,6 +67,8 @@ public class AccountManagementServlet extends HttpServlet {
         request.setAttribute("pageSize", PAGE_SIZE);
         request.setAttribute("totalUsers", totalUsers);
         request.setAttribute("totalPages", totalPages);
+        request.setAttribute("startItem", startItem);
+        request.setAttribute("endItem", endItem);
 
         moveFlashToRequest(session, request, "accountSuccess", "success");
         moveFlashToRequest(session, request, "accountError", "error");

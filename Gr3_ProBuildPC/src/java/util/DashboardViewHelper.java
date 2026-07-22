@@ -148,32 +148,6 @@ public final class DashboardViewHelper {
         return result.append("]").toString();
     }
 
-    public static String countRowLabelsToJson(List<AdminDashboardView.CountRow> rows) {
-        StringBuilder result = new StringBuilder("[");
-        if (rows != null) {
-            for (int i = 0; i < rows.size(); i++) {
-                if (i > 0) {
-                    result.append(",");
-                }
-                result.append(toJsonString(rows.get(i).getLabel()));
-            }
-        }
-        return result.append("]").toString();
-    }
-
-    public static String countRowValuesToJson(List<AdminDashboardView.CountRow> rows) {
-        StringBuilder result = new StringBuilder("[");
-        if (rows != null) {
-            for (int i = 0; i < rows.size(); i++) {
-                if (i > 0) {
-                    result.append(",");
-                }
-                result.append(rows.get(i).getValue());
-            }
-        }
-        return result.append("]").toString();
-    }
-
     public static String buildShipmentLink(String ctx, Integer statusId, boolean todayOnly, int page) {
         StringBuilder query = new StringBuilder();
         if (statusId != null) {

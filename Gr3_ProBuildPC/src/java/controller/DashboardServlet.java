@@ -16,7 +16,6 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import model.AccountSummary;
 import model.AdminDashboardView;
 import model.DashboardProduct;
 import model.DashboardSummary;
@@ -29,7 +28,6 @@ import util.DashboardViewHelper;
 public class DashboardServlet extends HttpServlet {
 
     private static final int MAX_CHART_DAYS = 366;
-    private static final int LOW_STOCK_MAX_QUANTITY = 5;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -84,10 +82,8 @@ public class DashboardServlet extends HttpServlet {
         DashboardSummary summary = dashboardDAO.getSummary(chartStartDate, chartEndDate);
         List<DashboardProduct> bestSellingProducts = dashboardDAO.getBestSellingProducts(
                 chartStartDate, chartEndDate, 5);
-        Map<Integer, Integer> lowStockProductCounts = dashboardDAO.getLowStockProductCounts(LOW_STOCK_MAX_QUANTITY);
         Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(
                 chartStartDate, chartEndDate);
-        AccountSummary accountSummary = dashboardDAO.getAccountSummary();
         Map<LocalDate, BigDecimal> revenueTimeline = dashboardDAO.getRevenueByDay(chartStartDate, chartEndDate);
         Map<String, Integer> categorySoldQuantities = dashboardDAO.getCategorySoldQuantities(chartStartDate, chartEndDate);
 
@@ -95,9 +91,7 @@ public class DashboardServlet extends HttpServlet {
                 request,
                 summary,
                 bestSellingProducts,
-                lowStockProductCounts,
-                orderStatusCounts,
-                accountSummary
+                orderStatusCounts
         );
         DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd/MM");
         DateTimeFormatter periodFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -112,19 +106,15 @@ public class DashboardServlet extends HttpServlet {
 
     private AdminDashboardView buildAdminDashboardView(HttpServletRequest request,
             DashboardSummary summary, List<DashboardProduct> bestSellingProducts,
-            Map<Integer, Integer> lowStockProductCounts, Map<String, Integer> orderStatusCounts,
-            AccountSummary accountSummary) {
+            Map<String, Integer> orderStatusCounts) {
         AdminDashboardView view = new AdminDashboardView();
         String ctx = request.getContextPath();
         DashboardSummary safeSummary = summary == null ? new DashboardSummary() : summary;
-        AccountSummary safeAccountSummary = accountSummary == null ? new AccountSummary() : accountSummary;
 
         view.setFormAction(ctx + "/Dashboard");
         view.setStatCards(buildAdminStatCards(safeSummary, ctx));
         view.setBestSellingProducts(buildProductRows(bestSellingProducts));
-        view.setLowStockProductsChart(buildLowStockChartPoints(lowStockProductCounts));
         view.setOrderStatusCounts(buildOrderStatusChartPoints(orderStatusCounts));
-        view.setAccountSummaries(buildAccountRows(safeAccountSummary));
 
         return view;
     }
@@ -169,21 +159,6 @@ public class DashboardServlet extends HttpServlet {
         return points;
     }
 
-    private List<AdminDashboardView.ChartPoint> buildLowStockChartPoints(
-            Map<Integer, Integer> productCountsByStock) {
-        List<AdminDashboardView.ChartPoint> points = new ArrayList<>();
-        for (int stockQuantity = 0; stockQuantity <= LOW_STOCK_MAX_QUANTITY; stockQuantity++) {
-            int productCount = productCountsByStock == null
-                    ? 0
-                    : productCountsByStock.getOrDefault(stockQuantity, 0);
-            points.add(new AdminDashboardView.ChartPoint(
-                    "Tồn = " + stockQuantity,
-                    BigDecimal.valueOf(productCount)
-            ));
-        }
-        return points;
-    }
-
     private boolean isHiddenOrderStatusInChart(String status) {
         String value = status == null ? "" : status.toLowerCase();
         return value.contains("chờ xác nhận")
@@ -198,14 +173,6 @@ public class DashboardServlet extends HttpServlet {
                 DashboardViewHelper.formatCurrency(summary.getTotalRevenue()), ""));
         cards.add(new AdminDashboardView.StatCard("dark", "fa-solid fa-receipt", "Tổng đơn hàng",
                 String.valueOf(summary.getTotalOrders()), ctx + "/order-history"));
-        cards.add(new AdminDashboardView.StatCard("blue", "fa-solid fa-desktop", "Tất cả sản phẩm",
-                String.valueOf(summary.getActiveProducts()), ctx + "/admin/products"));
-        cards.add(new AdminDashboardView.StatCard("green", "fa-solid fa-tags", "Tất cả thương hiệu",
-                String.valueOf(summary.getTotalBrands()), ctx + "/AdminBrands"));
-        cards.add(new AdminDashboardView.StatCard("orange", "fa-solid fa-screwdriver-wrench",
-                "Tổng yêu cầu bảo hành đã tiếp nhận",
-                String.valueOf(summary.getAcceptedWarrantyRequests()),
-                ctx + "/ManageWarranty?statusFilter=2"));
         cards.add(new AdminDashboardView.StatCard("purple", "fa-solid fa-truck-ramp-box", "Lô hàng đã nhập",
                 String.valueOf(summary.getImportedBatches()), ctx + "/BatchServlet"));
         return cards;
@@ -223,16 +190,6 @@ public class DashboardServlet extends HttpServlet {
                     product.getSoldQuantity()
             ));
         }
-        return rows;
-    }
-
-    private List<AdminDashboardView.CountRow> buildAccountRows(AccountSummary summary) {
-        List<AdminDashboardView.CountRow> rows = new ArrayList<>();
-        rows.add(new AdminDashboardView.CountRow("Khách hàng", summary.getCustomers()));
-        rows.add(new AdminDashboardView.CountRow("Nhân viên", summary.getEmployees()));
-        rows.add(new AdminDashboardView.CountRow("Nhân viên giao hàng", summary.getTransports()));
-        rows.add(new AdminDashboardView.CountRow("Bị khóa", summary.getLocked()));
-        rows.add(new AdminDashboardView.CountRow("Đang hoạt động", summary.getActive()));
         return rows;
     }
 

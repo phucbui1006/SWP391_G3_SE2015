@@ -24,11 +24,51 @@ public class BatchDAO extends DBContext {
         String sql = """
             SELECT batch_id, batch_name, date
             FROM BATCH
-            ORDER BY batch_id DESC
+            ORDER BY batch_id ASC
         """;
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapBatch(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public int countBatches() {
+        String sql = "SELECT COUNT(*) FROM BATCH";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public List<Batch> getBatches(int offset, int limit) {
+        List<Batch> list = new ArrayList<>();
+        String sql = """
+            SELECT batch_id, batch_name, date
+            FROM BATCH
+            ORDER BY batch_id ASC
+            LIMIT ? OFFSET ?
+        """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, limit);
+            ps.setInt(2, offset);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {

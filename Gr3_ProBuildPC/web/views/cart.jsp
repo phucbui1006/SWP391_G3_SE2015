@@ -51,7 +51,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Gi&#7887; h&#224;ng</title>
+        <title>Giỏ hàng</title>
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
     </head>
     <body class="cart-page">
@@ -59,9 +59,9 @@
 
         <div class="cart-container">
             <nav class="breadcrumb site-breadcrumb" aria-label="Breadcrumb">
-                <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a>
+                <a href="${pageContext.request.contextPath}/home">Trang chủ</a>
                 <span>›</span>
-                <strong>Gi&#7887; h&#224;ng</strong>
+                <strong>Giỏ hàng</strong>
             </nav>
 
             <% if (request.getAttribute("cartSuccessMsg") != null) { %>
@@ -77,7 +77,7 @@
             <% } %>
 
             <div class="cart-page-heading">
-                <div class="cart-page-title">Gi&#7887; h&#224;ng c&#7911;a b&#7841;n</div>
+                <div class="cart-page-title">Giỏ hàng của bạn</div>
 
                 <div class="cart-group-toggle" aria-label="Tuy chon nhom san pham">
                     <button
@@ -86,7 +86,7 @@
                         data-group-mode="brand"
                         aria-pressed="true"
                         <%= cartItems.isEmpty() ? "disabled" : "" %>>
-                        Nh&#243;m theo Brand
+                        Nhóm theo Brand
                     </button>
                     <button
                         type="button"
@@ -94,7 +94,7 @@
                         data-group-mode="category"
                         aria-pressed="false"
                         <%= cartItems.isEmpty() ? "disabled" : "" %>>
-                        Nh&#243;m theo Category
+                        Nhóm theo Category
                     </button>
                 </div>
             </div>
@@ -103,20 +103,20 @@
                 <div class="cart-main-column">
                     <div class="cart-list">
                         <div class="cart-header">
-                            <div class="col-select">Ch&#7885;n</div>
-                            <div class="col-product">S&#7843;n ph&#7849;m</div>
-                            <div class="col-price">Gi&#225;</div>
-                            <div class="col-qty">S&#7889; l&#432;&#7907;ng</div>
-                            <div class="col-total">T&#7893;ng ti&#7873;n</div>
-                            <div class="col-action">Thao t&#225;c</div>
+                            <div class="col-select">Chọn</div>
+                            <div class="col-product">Sản phẩm</div>
+                            <div class="col-price">Giá</div>
+                            <div class="col-qty">Số lượng</div>
+                            <div class="col-total">Tổng tiền</div>
+                            <div class="col-action">Thao tác</div>
                         </div>
 
                         <% if (cartItems.isEmpty()) { %>
                         <div class="cart-item empty-cart">
                             <div class="empty-cart-content">
-                                <div class="empty-cart-message">Gi&#7887; h&#224;ng c&#7911;a b&#7841;n &#273;ang tr&#7889;ng.</div>
+                                <div class="empty-cart-message">Giỏ hàng của bạn đang trống.</div>
                                 <a class="empty-cart-link" href="${pageContext.request.contextPath}/home">
-                                    B&#7855;t &#273;&#7847;u mua s&#7855;m
+                                    Bắt đầu mua sắm
                                 </a>
                             </div>
                         </div>
@@ -178,7 +178,7 @@
                                     name="selectedCartItemIds"
                                     value="<%= item.getCartItemId() %>"
                                     <%= availableForSale ? "" : "disabled" %>
-                                    aria-label="Ch&#7885;n s&#7843;n ph&#7849;m">
+                                    aria-label="Chọn sản phẩm">
                             </div>
                             <div class="col-product">
                                 <img src="<%= (item.getProduct() != null && item.getProduct().getImageUrl() != null && !item.getProduct().getImageUrl().trim().isEmpty())
@@ -202,7 +202,7 @@
                                 <div class="cart-unavailable-note">Sản phẩm hiện không còn kinh doanh</div>
                                 <% } %>
                             </div>
-                            <div class="col-price line-price-value"><%= currencyFormatter.format(unitPrice) %>&#273;</div>
+                            <div class="col-price line-price-value"><%= currencyFormatter.format(unitPrice) %>đ</div>
                             <div class="col-qty">
                                 <div class="quantity-input-wrapper">
                                     <input
@@ -218,12 +218,12 @@
                                         name="quantity_<%= item.getCartItemId() %>">
                                 </div>
                             </div>
-                            <div class="col-total line-total-value"><%= currencyFormatter.format(lineTotal) %>&#273;</div>
+                            <div class="col-total line-total-value"><%= currencyFormatter.format(lineTotal) %>đ</div>
                             <div class="col-action">
                                 <form class="cart-action-form" action="${pageContext.request.contextPath}/cart" method="post">
                                     <input type="hidden" name="action" value="removeCartItem">
                                     <input type="hidden" name="cartItemId" value="<%= item.getCartItemId() %>">
-                                    <button class="cart-action-btn" type="submit" title="X&#243;a s&#7843;n ph&#7849;m">
+                                    <button class="cart-action-btn" type="submit" title="Xóa sản phẩm">
                                         <span class="cart-action-icon" aria-hidden="true">
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M3 6h18"></path>
@@ -233,7 +233,7 @@
                                                 <path d="M14 11v6"></path>
                                             </svg>
                                         </span>
-                                        <span class="cart-action-label">X&#243;a</span>
+                                        <span class="cart-action-label">Xóa</span>
                                     </button>
                                 </form>
                             </div>
@@ -245,21 +245,21 @@
 
                 <aside class="cart-summary-column">
                     <div class="cart-total-box">
-                        <h3>T&#7893;ng gi&#7887; h&#224;ng</h3>
+                        <h3>Tổng giỏ hàng</h3>
 
                         <div class="summary-row">
-                            <span>T&#7841;m t&#237;nh:</span>
-                            <span data-cart-subtotal><%= currencyFormatter.format(BigDecimal.ZERO) %>&#273;</span>
+                            <span>Tạm tính:</span>
+                            <span data-cart-subtotal><%= currencyFormatter.format(BigDecimal.ZERO) %>đ</span>
                         </div>
                         <hr class="divider">
                         <div class="summary-row">
-                            <span>Ph&#237; v&#7853;n chuy&#7875;n:</span>
-                            <span>Mi&#7877;n ph&#237;</span>
+                            <span>Phí vận chuyển:</span>
+                            <span>Miễn phí</span>
                         </div>
                         <hr class="divider">
                         <div class="summary-row summary-row-total">
-                            <span>T&#7893;ng c&#7897;ng:</span>
-                            <span data-cart-total><%= currencyFormatter.format(BigDecimal.ZERO) %>&#273;</span>
+                            <span>Tổng cộng:</span>
+                            <span data-cart-total><%= currencyFormatter.format(BigDecimal.ZERO) %>đ</span>
                         </div>
 
                         <button
@@ -267,7 +267,7 @@
                             class="checkout-btn"
                             data-checkout-button
                             <%= cartItems.isEmpty() ? "disabled" : "" %>>
-                            Ti&#7871;n h&#224;nh thanh to&#225;n
+                            Đặt hàng
                         </button>
                     </div>
                 </aside>
@@ -295,26 +295,26 @@
                         </div>
 
                         <div class="cart-quick-view-stock-pill is-in-stock" data-quick-view-stock-pill>
-                            C&#242;n h&#224;ng: 0
+                            Còn hàng: 0
                         </div>
                     </div>
 
                     <div class="cart-quick-view-content">
                         <div class="cart-quick-view-header">
                             <span class="cart-quick-view-eyebrow">Xem nhanh</span>
-                            <h3 id="cartQuickViewTitle" data-quick-view-title>T&#234;n s&#7843;n ph&#7849;m</h3>
+                            <h3 id="cartQuickViewTitle" data-quick-view-title>Tên sản phẩm</h3>
                             <div style="font-size: 14px; color: #4b5563; margin-top: 4px;">
-                                B&#7843;o h&#224;nh: <strong style="color: #111827;" data-quick-view-warranty>0 th&#225;ng</strong> ch&#237;nh h&#227;ng
+                                Bảo hành: <strong style="color: #111827;" data-quick-view-warranty>0 tháng</strong> chính hãng
                             </div>
                         </div>
 
                         <div class="cart-quick-view-price-panel">
-                            <span class="cart-quick-view-label">Gi&#225; hi&#7879;n t&#7841;i</span>
-                            <strong class="cart-quick-view-price" data-quick-view-price>0&#273;</strong>
+                            <span class="cart-quick-view-label">Giá hiện tại</span>
+                            <strong class="cart-quick-view-price" data-quick-view-price>0đ</strong>
                         </div>
 
                         <div class="cart-quick-view-section">
-                            <div class="cart-quick-view-label">Chi ti&#7871;t s&#7843;n ph&#7849;m</div>
+                            <div class="cart-quick-view-label">Chi tiết sản phẩm</div>
                             <p class="cart-quick-view-description" data-quick-view-description>Chua co chi tiet san pham.</p>
                             
                             <div class="cart-quick-view-specs-container" data-quick-view-specs></div>

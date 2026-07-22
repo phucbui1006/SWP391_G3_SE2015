@@ -78,7 +78,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Thanh to&#225;n</title>
+        <title>Thanh toán</title>
         <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
         <script src="${pageContext.request.contextPath}/js/validator.js"></script>
         <script src="${pageContext.request.contextPath}/js/checkout.js"></script>
@@ -88,9 +88,9 @@
 
         <main class="checkout-shell">
             <nav class="checkout-breadcrumb site-breadcrumb" aria-label="Breadcrumb">
-                <a href="${pageContext.request.contextPath}/home">Trang ch&#7911;</a>
+                <a href="${pageContext.request.contextPath}/home">Trang chủ</a>
                 <span>›</span>
-                <strong>Thanh to&#225;n</strong>
+                <strong>Thanh toán</strong>
             </nav>
 
             <% if (request.getAttribute("errorMsg") != null) { %>
@@ -117,28 +117,28 @@
 
                     <section class="checkout-card">
                         <div class="checkout-section-header">
-                            <h1>Th&#244;ng tin giao h&#224;ng</h1>
+                            <h1>Thông tin giao hàng</h1>
                         </div>
 
                         <% if (selectedAddress != null) { %>
                         <div class="checkout-address-summary">
                             <div class="checkout-address-line">
-                                <span>T&#234;n ng&#432;&#7901;i nh&#7853;n</span>
+                                <span>Tên người nhận</span>
                                 <strong data-checkout-address-name><%= h(selectedAddress.getRecipientName()) %></strong>
                             </div>
                             <div class="checkout-address-line">
-                                <span>S&#7889; &#273;i&#7879;n tho&#7841;i</span>
+                                <span>Số điện thoại</span>
                                 <strong data-checkout-address-phone><%= h(selectedAddress.getPhoneNumber()) %></strong>
                             </div>
                             <div class="checkout-address-line">
-                                <span>&#272;&#7883;a ch&#7881; giao h&#224;ng</span>
+                                <span>Địa chỉ giao hàng</span>
                                 <strong data-checkout-address-detail><%= h(selectedAddress.getAddressDetail()) %></strong>
                             </div>
                         </div>
                         <% } else { %>
                         <div class="checkout-empty-address">
-                            <strong>Ch&#432;a c&#243; &#273;&#7883;a ch&#7881; giao h&#224;ng</strong>
-                            <p>H&#227;y th&#234;m &#273;&#7883;a ch&#7881; nh&#7853;n h&#224;ng tr&#432;&#7899;c khi ti&#7871;n h&#224;nh thanh to&#225;n.</p>
+                            <strong>Chưa có địa chỉ giao hàng</strong>
+                            <p>Hãy thêm địa chỉ nhận hàng trước khi tiến hành thanh toán.</p>
                         </div>
                         <% } %>
 
@@ -149,37 +149,37 @@
                                 data-checkout-address-toggle
                                 aria-haspopup="dialog"
                                 aria-expanded="false">
-                                <span>Ch&#7885;n &#273;&#7883;a ch&#7881; kh&#225;c</span>
-                                <span class="checkout-address-toggle-icon">&#8250;</span>
+                                <span>Chọn địa chỉ khác</span>
+                                <span class="checkout-address-toggle-icon">›</span>
                             </button>
                         </div>
                     </section>
 
                     <section class="checkout-card">
                         <div class="checkout-section-header">
-                            <h2>Ph&#432;&#417;ng th&#7913;c thanh to&#225;n</h2>
+                            <h2>Phương thức thanh toán</h2>
                         </div>
 
                         <label class="checkout-payment-option <%= "COD".equalsIgnoreCase(selectedPaymentMethod) ? "is-selected" : "" %>">
                             <input type="radio" name="paymentMethod" value="COD" <%= "COD".equalsIgnoreCase(selectedPaymentMethod) ? "checked" : "" %>>
                             <div class="checkout-payment-copy">
-                                <strong>Thanh to&#225;n khi nh&#7853;n h&#224;ng</strong>
-                                <span>Thanh to&#225;n b&#7857;ng ti&#7873;n m&#7863;t khi nh&#7853;n h&#224;ng.</span>
+                                <strong>Thanh toán khi nhận hàng</strong>
+                                <span>Thanh toán bằng tiền mặt khi nhận hàng.</span>
                             </div>
                         </label>
 
                         <label class="checkout-payment-option <%= "VNPAY".equalsIgnoreCase(selectedPaymentMethod) ? "is-selected" : "" %>">
                             <input type="radio" name="paymentMethod" value="VNPAY" <%= "VNPAY".equalsIgnoreCase(selectedPaymentMethod) ? "checked" : "" %>>
                             <div class="checkout-payment-copy">
-                                <strong>Thanh to&#225;n qua VNPAY</strong>
-                                <span>L&#432;u l&#7921;a ch&#7885;n thanh to&#225;n VNPAY cho &#273;&#417;n h&#224;ng.</span>
+                                <strong>Thanh toán qua VNPAY</strong>
+                                <span>Lưu lựa chọn thanh toán VNPAY cho đơn hàng.</span>
                             </div>
                         </label>
                     </section>
 
                     <section class="checkout-card">
                         <div class="checkout-section-header">
-                            <h2>Ghi ch&#250; &#273;&#417;n h&#224;ng <span>(kh&#244;ng b&#7855;t bu&#7897;c)</span></h2>
+                            <h2>Ghi chú đơn hàng <span>(không bắt buộc)</span></h2>
                         </div>
 
                         <div class="checkout-note-field">
@@ -187,7 +187,7 @@
                                 name="note"
                                 id="note"
                                 rows="4"
-                                placeholder="Nh&#7853;p ghi ch&#250; cho &#273;&#417;n h&#224;ng..."
+                                placeholder="Nhập ghi chú cho đơn hàng..."
                                 data-checkout-note><%= h(orderNote) %></textarea>
                             <div class="checkout-note-counter">
                                 <span data-checkout-note-count><%= orderNote.length() %></span>/1000
@@ -197,14 +197,14 @@
 
                     <div class="checkout-actions">
                         <a class="checkout-back-link" href="${pageContext.request.contextPath}/<%= "build".equalsIgnoreCase(checkoutMode) ? "build-pc" : "cart" %>">
-                            &#8592; <%= "build".equalsIgnoreCase(checkoutMode) ? "Quay lại Build PC" : "Quay lại giỏ hàng" %>
+                            ← <%= "build".equalsIgnoreCase(checkoutMode) ? "Quay lại Build PC" : "Quay lại giỏ hàng" %>
                         </a>
 
                         <button
                             type="submit"
                             class="checkout-submit-btn"
                             <%= canPlaceOrder ? "" : "disabled" %>>
-                            Ti&#7871;n h&#224;nh thanh to&#225;n &#8594;
+                            Tiến hành thanh toán →
                         </button>
                     </div>
                 </form>
@@ -212,7 +212,7 @@
                 <aside class="checkout-summary-column">
                     <section class="checkout-summary-card">
                         <div class="checkout-section-header">
-                            <h2>&#272;&#417;n h&#224;ng c&#7911;a b&#7841;n <span>(<%= checkoutLineCount %> s&#7843;n ph&#7849;m)</span></h2>
+                            <h2>Đơn hàng của bạn <span>(<%= checkoutLineCount %> sản phẩm)</span></h2>
                         </div>
 
                         <div class="checkout-summary-items">
@@ -234,7 +234,7 @@
                                     <span>x<%= item.getQuantity() %></span>
                                 </div>
                                 <div class="checkout-summary-item-price">
-                                    <%= currencyFormatter.format(item.getLineTotal()) %>&#273;
+                                    <%= currencyFormatter.format(item.getLineTotal()) %>đ
                                 </div>
                             </article>
                             <% } %>
@@ -242,31 +242,31 @@
 
                         <div class="checkout-summary-totals">
                             <div class="checkout-summary-row">
-                                <span>T&#7841;m t&#237;nh</span>
-                                <strong><%= currencyFormatter.format(checkoutSubtotal) %>&#273;</strong>
+                                <span>Tạm tính</span>
+                                <strong><%= currencyFormatter.format(checkoutSubtotal) %>đ</strong>
                             </div>
                             <div class="checkout-summary-row">
-                                <span>Ph&#237; v&#7853;n chuy&#7875;n</span>
-                                <strong class="is-free">Mi&#7877;n ph&#237;</strong>
+                                <span>Phí vận chuyển</span>
+                                <strong class="is-free">Miễn phí</strong>
                             </div>
                             <div class="checkout-summary-row total">
-                                <span>T&#7893;ng c&#7897;ng</span>
-                                <strong><%= currencyFormatter.format(checkoutTotal) %>&#273;</strong>
+                                <span>Tổng cộng</span>
+                                <strong><%= currencyFormatter.format(checkoutTotal) %>đ</strong>
                             </div>
                         </div>
 
                         <div class="checkout-summary-benefits">
                             <div class="checkout-benefit">
-                                <strong>Th&#244;ng tin b&#7843;o m&#7853;t</strong>
-                                <span>Th&#244;ng tin c&#7911;a b&#7841;n &#273;&#432;&#7907;c d&#249;ng cho x&#7917; l&#253; &#273;&#417;n h&#224;ng.</span>
+                                <strong>Thông tin bảo mật</strong>
+                                <span>Thông tin của bạn được dùng cho xử lý đơn hàng.</span>
                             </div>
                             <div class="checkout-benefit">
-                                <strong>Mi&#7877;n ph&#237; v&#7853;n chuy&#7875;n</strong>
-                                <span>&#193;p d&#7909;ng cho c&#225;c &#273;&#417;n h&#224;ng trong khu v&#7921;c H&#242;a L&#7841;c.</span>
+                                <strong>Miễn phí vận chuyển</strong>
+                                <span>Áp dụng cho các đơn hàng trong khu vực Hòa Lạc.</span>
                             </div>
                             <div class="checkout-benefit">
-                                <strong>H&#7895; tr&#7907; nhanh</strong>
-                                <span>C&#243; th&#7875; quay l&#7841;i trang &#273;&#7883;a ch&#7881; giao h&#224;ng &#273;&#7875; th&#234;m m&#7899;i b&#7845;t c&#7913; l&#250;c n&#224;o.</span>
+                                <strong>Hỗ trợ nhanh</strong>
+                                <span>Có thể quay lại trang địa chỉ giao hàng để thêm mới bất cứ lúc nào.</span>
                             </div>
                         </div>
                     </section>
@@ -286,18 +286,18 @@
                     type="button"
                     class="checkout-address-dialog-close"
                     data-checkout-address-close
-                    aria-label="&#272;&#243;ng ch&#7885;n &#273;&#7883;a ch&#7881;">
+                    aria-label="Đóng chọn địa chỉ">
                     &times;
                 </button>
 
                 <div class="checkout-address-dialog-header">
-                    <h3 id="checkoutAddressDialogTitle">Ch&#7885;n &#273;&#7883;a ch&#7881; giao h&#224;ng</h3>
-                    <p>Ch&#7885;n m&#7897;t &#273;&#7883;a ch&#7881; c&#243; s&#7861;n</p>
+                    <h3 id="checkoutAddressDialogTitle">Chọn địa chỉ giao hàng</h3>
+                    <p>Chọn một địa chỉ có sẵn</p>
                 </div>
 
                 <% if (savedAddresses.isEmpty()) { %>
                 <div class="checkout-address-empty-panel is-modal">
-                    <p>Ch&#432;a c&#243; &#273;&#7883;a ch&#7881; n&#224;o &#273;&#432;&#7907;c l&#432;u trong t&#224;i kho&#7843;n.</p>
+                    <p>Chưa có địa chỉ nào được lưu trong tài khoản.</p>
                 </div>
                 <% } else { %>
                 <div class="checkout-address-option-list is-modal">
@@ -311,7 +311,7 @@
                         data-phone-number="<%= h(address.getPhoneNumber()) %>"
                         data-address-detail="<%= h(address.getAddressDetail()) %>">
                         <span class="checkout-address-option-radio" aria-hidden="true"></span>
-                        <span class="checkout-address-option-status">&#272;ang ch&#7885;n</span>
+                        <span class="checkout-address-option-status">Đang chọn</span>
 
                         <span class="checkout-address-option-copy">
                             <strong><%= h(address.getRecipientName()) %></strong>
@@ -325,7 +325,7 @@
 
                 <div class="checkout-address-dialog-footer">
                     <a class="checkout-address-dialog-add-link" href="${pageContext.request.contextPath}/shipping-address">
-                        + Th&#234;m m&#7899;i &#273;&#7883;a ch&#7881;
+                        + Thêm mới địa chỉ
                     </a>
                 </div>
             </div>

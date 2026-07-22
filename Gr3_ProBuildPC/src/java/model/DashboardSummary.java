@@ -5,9 +5,6 @@ import java.math.BigDecimal;
 public class DashboardSummary {
     private BigDecimal totalRevenue = BigDecimal.ZERO;
     private int totalOrders;
-    private int activeProducts;
-    private int totalBrands;
-    private int acceptedWarrantyRequests;
     private int importedBatches;
 
     public DashboardSummary() {
@@ -27,30 +24,6 @@ public class DashboardSummary {
 
     public void setTotalOrders(int totalOrders) {
         this.totalOrders = totalOrders;
-    }
-
-    public int getActiveProducts() {
-        return activeProducts;
-    }
-
-    public void setActiveProducts(int activeProducts) {
-        this.activeProducts = activeProducts;
-    }
-
-    public int getTotalBrands() {
-        return totalBrands;
-    }
-
-    public void setTotalBrands(int totalBrands) {
-        this.totalBrands = totalBrands;
-    }
-
-    public int getAcceptedWarrantyRequests() {
-        return acceptedWarrantyRequests;
-    }
-
-    public void setAcceptedWarrantyRequests(int acceptedWarrantyRequests) {
-        this.acceptedWarrantyRequests = acceptedWarrantyRequests;
     }
 
     public int getImportedBatches() {

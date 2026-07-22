@@ -9,11 +9,9 @@ public class AdminDashboardView {
     private String formAction;
     private List<StatCard> statCards = new ArrayList<>();
     private List<ProductRow> bestSellingProducts = new ArrayList<>();
-    private List<CountRow> accountSummaries = new ArrayList<>();
     private List<ChartPoint> revenueTimeline = new ArrayList<>();
     private List<ChartPoint> categorySoldProducts = new ArrayList<>();
     private List<ChartPoint> orderStatusCounts = new ArrayList<>();
-    private List<ChartPoint> lowStockProductsChart = new ArrayList<>();
     private LocalDate chartStartDate;
     private LocalDate chartEndDate;
     private String chartPeriodLabel;
@@ -42,14 +40,6 @@ public class AdminDashboardView {
         this.bestSellingProducts = bestSellingProducts == null ? new ArrayList<>() : bestSellingProducts;
     }
 
-    public List<CountRow> getAccountSummaries() {
-        return accountSummaries;
-    }
-
-    public void setAccountSummaries(List<CountRow> accountSummaries) {
-        this.accountSummaries = accountSummaries == null ? new ArrayList<>() : accountSummaries;
-    }
-
     public List<ChartPoint> getRevenueTimeline() {
         return revenueTimeline;
     }
@@ -72,14 +62,6 @@ public class AdminDashboardView {
 
     public void setOrderStatusCounts(List<ChartPoint> orderStatusCounts) {
         this.orderStatusCounts = orderStatusCounts == null ? new ArrayList<>() : orderStatusCounts;
-    }
-
-    public List<ChartPoint> getLowStockProductsChart() {
-        return lowStockProductsChart;
-    }
-
-    public void setLowStockProductsChart(List<ChartPoint> lowStockProductsChart) {
-        this.lowStockProductsChart = lowStockProductsChart == null ? new ArrayList<>() : lowStockProductsChart;
     }
 
     public LocalDate getChartStartDate() {
@@ -157,24 +139,6 @@ public class AdminDashboardView {
 
         public int getSoldQuantity() {
             return soldQuantity;
-        }
-    }
-
-    public static class CountRow {
-        private final String label;
-        private final int value;
-
-        public CountRow(String label, int value) {
-            this.label = label;
-            this.value = value;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public int getValue() {
-            return value;
         }
     }
 

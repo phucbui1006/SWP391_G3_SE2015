@@ -10,9 +10,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +29,7 @@ import model.User;
 )
 public class AdminBrandServlet extends HttpServlet {
 
+    private static final int BRANDS_PER_PAGE = 5;
     private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(".png", ".jpg", ".jpeg", ".webp");
     private final BrandDAO brandDAO = new BrandDAO();
 
@@ -45,7 +48,10 @@ public class AdminBrandServlet extends HttpServlet {
         String keyword = request.getParameter("keyword");
         String status = normalizeStatusFilter(request.getParameter("status"));
         String sort = normalizeSort(request.getParameter("sort"));
-        List<Brand> brands = brandDAO.getBrands(keyword, status, sort);
+        int totalBrands = brandDAO.countBrands(keyword, status);
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalBrands / BRANDS_PER_PAGE));
+        int currentPage = Math.min(parsePage(request.getParameter("page")), totalPages);
+        List<Brand> brands = brandDAO.getBrands(keyword, status, sort, currentPage, BRANDS_PER_PAGE);
         List<Brand> allBrands = brandDAO.getBrands(null, "ALL", "newest");
 
         request.setAttribute("brands", brands);
@@ -53,6 +59,8 @@ public class AdminBrandServlet extends HttpServlet {
         request.setAttribute("keyword", keyword);
         request.setAttribute("selectedStatus", status);
         request.setAttribute("selectedSort", sort);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
 
         String success = (String) session.getAttribute("brandSuccess");
         String error = (String) session.getAttribute("brandError");
@@ -96,7 +104,7 @@ public class AdminBrandServlet extends HttpServlet {
             session.setAttribute("brandError", "Thao tác không hợp lệ.");
         }
 
-        response.sendRedirect(request.getContextPath() + "/AdminBrands");
+        response.sendRedirect(buildListUrl(request));
     }
 
     private HttpSession requireAdmin(HttpServletRequest request, HttpServletResponse response)
@@ -148,11 +156,11 @@ public class AdminBrandServlet extends HttpServlet {
             session.setAttribute("brandError", "Tên thương hiệu phải có từ 2 đến 20 ký tự.");
             return;
         }
-        String img = saveUploadedBrandImage(request.getPart("imgFile"));
-
-        if (img == null) {
-            img = normalizeImagePath(request.getParameter("currentImg"));
-        }
+        Brand currentBrand = brandId == null ? null : brandDAO.getBrandById(brandId);
+        String uploadedImg = saveUploadedBrandImage(request.getPart("imgFile"));
+        String img = uploadedImg != null
+                ? uploadedImg
+                : (currentBrand == null ? null : currentBrand.getImg());
 
         if (brandId == null || img == null) {
             session.setAttribute("brandError", "Thông tin cập nhật thương hiệu chưa hợp lệ.");
@@ -204,6 +212,11 @@ public class AdminBrandServlet extends HttpServlet {
         }
     }
 
+    private int parsePage(String value) {
+        Integer page = parseId(value);
+        return page == null || page < 1 ? 1 : page;
+    }
+
     private String normalizeText(String value) {
         if (value == null || value.trim().isEmpty()) {
             return null;
@@ -230,31 +243,31 @@ public class AdminBrandServlet extends HttpServlet {
     }
 
     private String normalizeSort(String value) {
-        if ("product_count_asc".equals(value) || "product_count_desc".equals(value)) {
+        if ("newest".equals(value)
+                || "oldest".equals(value)
+                || "product_count_asc".equals(value)
+                || "product_count_desc".equals(value)) {
             return value;
         }
 
         return "newest";
     }
 
-    private String normalizeImagePath(String value) {
-        String img = normalizeText(value);
+    private String buildListUrl(HttpServletRequest request) {
+        String keyword = normalizeText(request.getParameter("keyword"));
+        String status = normalizeStatusFilter(request.getParameter("status"));
+        String sort = normalizeSort(request.getParameter("sort"));
+        int page = parsePage(request.getParameter("page"));
 
-        if (img == null) {
-            return null;
-        }
+        return request.getContextPath() + "/AdminBrands"
+                + "?keyword=" + encodeQueryValue(keyword)
+                + "&status=" + encodeQueryValue(status)
+                + "&sort=" + encodeQueryValue(sort)
+                + "&page=" + page;
+    }
 
-        img = img.replace("\\", "/");
-
-        while (img.startsWith("/")) {
-            img = img.substring(1);
-        }
-
-        if (!img.contains("/")) {
-            img = "images/brands/" + img;
-        }
-
-        return img;
+    private String encodeQueryValue(String value) {
+        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
     }
 
     private String saveUploadedBrandImage(Part filePart) throws IOException {

@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.util.ArrayList;
 import model.Batch;
 import model.BatchItem;
 import model.Product;
@@ -53,12 +54,51 @@ public class BatchServlet extends HttpServlet {
         return true;
     }
 
+    private static final int PAGE_SIZE = 5;
+
     private void loadCommonData(HttpServletRequest request) {
-        List<Batch> batches = batchDAO.getAllBatches();
+        String pageRaw = request.getParameter("page");
+        int currentPage = 1;
+        try {
+            if (pageRaw != null && !pageRaw.trim().isEmpty()) {
+                currentPage = Integer.parseInt(pageRaw);
+            }
+        } catch (NumberFormatException e) {
+            currentPage = 1;
+        }
+
+        int totalBatches = batchDAO.countBatches();
+        int totalPages = totalBatches == 0 ? 1 : (int) Math.ceil((double) totalBatches / PAGE_SIZE);
+
+        if (currentPage < 1 || currentPage > totalPages) {
+            currentPage = 1;
+        }
+
+        int offset = (currentPage - 1) * PAGE_SIZE;
+        
+        List<Batch> batches = batchDAO.getBatches(offset, PAGE_SIZE);
+        List <Batch> filterList = new ArrayList<>();
+//        for (Batch batch : batches) {
+//            if(batch.getBatchId() == 1){
+//                filterList.add(batch);
+//                break;
+//            }
+//            
+//            
+//        }batches = filterList;
         List<Product> products = productDAO.getAllProducts();
+
+        int startItem = totalBatches == 0 ? 0 : offset + 1;
+        int endItem = Math.min(currentPage * PAGE_SIZE, totalBatches);
 
         request.setAttribute("batches", batches);
         request.setAttribute("products", products);
+        
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalBatches", totalBatches);
+        request.setAttribute("startItem", startItem);
+        request.setAttribute("endItem", endItem);
     }
 
     private void setSuccessMessage(HttpServletRequest request) {

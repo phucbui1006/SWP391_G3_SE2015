@@ -500,11 +500,11 @@ body.order-history-body * {
 }
 
 .order-history-pagination a.prev::after {
-    content: "Trước";
+    content: "<";
 }
 
 .order-history-pagination a.next::after {
-    content: "Sau";
+    content: ">";
 }
 
 .order-history-pagination a.active {
@@ -3608,6 +3608,54 @@ body.admin-brand-body {
     width: min(1440px, calc(100% - 56px));
     margin: 0 auto;
     padding: 28px 0 40px;
+}
+
+.admin-brand-page .home-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 18px 20px 22px;
+    border-top: 1px solid #eceff4;
+    background: #fff;
+}
+
+.admin-brand-page .home-pagination a,
+.admin-brand-page .home-pagination span {
+    min-width: 38px;
+    height: 38px;
+    padding: 0 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    color: #344054;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.admin-brand-page .home-pagination a:hover {
+    color: #e60000;
+    border-color: #e60000;
+    background: #fff5f5;
+}
+
+.admin-brand-page .home-pagination a.active {
+    color: #fff;
+    border-color: #e60000;
+    background: #e60000;
+}
+
+.admin-brand-page .home-pagination span {
+    min-width: auto;
+    padding: 0 4px;
+    border-color: transparent;
 }
 
 .admin-page-heading {
@@ -10068,18 +10116,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-weight: 900;
 }
 
-.admin-account-chart-wrap {
-    min-height: 320px;
-    padding: 20px;
-}
-
-.admin-account-chart {
-    position: relative;
-    width: 100%;
-    height: 250px;
-    justify-self: center;
-}
-
 .admin-dashboard-table .admin-empty-message {
     color: black !important;
     font-size: 14px !important;
@@ -10262,15 +10298,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
         min-width: 0;
     }
 
-    .admin-account-chart-wrap {
-        grid-template-columns: 1fr;
-        min-height: 0;
-        padding: 16px;
-    }
-
-    .admin-account-chart {
-        height: 220px;
-    }
 }
 
 /* ==================== PRODUCT RATING STARS ==================== */
@@ -10754,5 +10781,88 @@ body.dashboard-body .dashboard-card.shipment-shell {
     .build-product-price-box,
     .build-product-description-box {
         padding: 20px;
+    }
+}
+
+/* Pagination Footer */
+.admin-product-footer {
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    border-top: 1px solid #eceff4;
+}
+.admin-product-footer p {
+    margin: 0;
+    color: #8b8f99;
+    font-size: 13.5px;
+    flex: 1;
+    text-align: left;
+}
+.admin-product-footer::after {
+    content: " ";
+    flex: 1;
+}
+.admin-product-footer strong {
+    color: #252932;
+}
+.admin-pagination {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.page-btn {
+    min-width: 48px;
+    height: 48px;
+    padding: 0 14px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #dce3ec;
+    border-radius: 7px;
+    background: #fff;
+    color: #111;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 800;
+    transition: all 0.15s ease;
+}
+.page-btn:hover {
+    border-color: #ed1c24;
+    color: #ed1c24;
+}
+.page-btn.active {
+    background: #ed1c24;
+    border-color: #ed1c24;
+    color: #ffffff;
+}
+.page-btn.disabled {
+    color: #cbd5e0;
+    border-color: #edf2f7;
+    cursor: not-allowed;
+    background: transparent;
+}
+@media (max-width: 900px) {
+    .admin-product-footer {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    .admin-product-footer p {
+        flex: none;
+        text-align: center;
+    }
+    .admin-product-footer::after {
+        content: none;
+    }
+    .admin-pagination {
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    .page-btn {
+        min-width: 42px;
+        height: 42px;
+        font-size: 15px;
     }
 }

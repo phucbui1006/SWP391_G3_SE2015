@@ -12,6 +12,7 @@
 
 <%
     List<Batch> batches = (List<Batch>) request.getAttribute("batches");
+    List<Batch> allBatches = (List<Batch>) request.getAttribute("allBatches");
     List<BatchItem> batchItems = (List<BatchItem>) request.getAttribute("batchItems");
     List<Product> products = (List<Product>) request.getAttribute("products");
 
@@ -37,6 +38,10 @@
 
     if (batches == null) {
         batches = new ArrayList<>();
+    }
+
+    if (allBatches == null) {
+        allBatches = batches;
     }
 
     if (batchItems == null) {
@@ -366,7 +371,7 @@
                             <label>Lô hàng</label>
                             <select name="batchId" required style="width: 100%;">
                                 <option value="">-- Chọn lô hàng --</option>
-                                <% for (Batch b : batches) { 
+                                <% for (Batch b : allBatches) {
                                     boolean selected = false;
                                     if (selectedBatchId != null && selectedBatchId == b.getBatchId()) {
                                         selected = true;
@@ -444,7 +449,7 @@
                         <div class="batch-form-group">
                             <label>Lô hàng</label>
                             <select name="batchId" required style="width: 100%;">
-                                <% for (Batch b : batches) { %>
+                                <% for (Batch b : allBatches) { %>
                                 <option value="<%= b.getBatchId() %>" <%= editItem.getBatchId() == b.getBatchId() ? "selected" : "" %>>
                                     <%= b.getBatchName() %>
                                 </option>

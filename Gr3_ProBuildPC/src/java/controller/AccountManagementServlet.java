@@ -24,10 +24,7 @@ public class AccountManagementServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = requireAdmin(request, response);
-        if (session == null) {
-            return;
-        }
+        HttpSession session = request.getSession(false);
 
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
@@ -80,10 +77,7 @@ public class AccountManagementServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = requireAdmin(request, response);
-        if (session == null) {
-            return;
-        }
+        HttpSession session = request.getSession(false);
 
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
@@ -119,26 +113,6 @@ public class AccountManagementServlet extends HttpServlet {
         }
 
         response.sendRedirect(request.getContextPath() + "/AccountManagement" + buildQueryString(request));
-    }
-
-    private HttpSession requireAdmin(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-
-        HttpSession session = request.getSession(false);
-
-        if (session == null || session.getAttribute("account") == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return null;
-        }
-
-        User user = (User) session.getAttribute("account");
-        String roleName = user.getRoleName();
-        if (roleName == null || !"ADMIN".equals(roleName.trim().toUpperCase())) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return null;
-        }
-
-        return session;
     }
 
     private void createStaff(HttpServletRequest request, HttpSession session) {

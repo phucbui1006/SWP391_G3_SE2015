@@ -19,7 +19,6 @@ import java.util.List;
 import model.Brand;
 import model.Category;
 import model.Product;
-import model.User;
 import model.CategorySpecTemplate;
 
 @WebServlet(name = "AdminProductServlet", urlPatterns = {"/admin/products"})
@@ -40,10 +39,7 @@ public class AdminProductServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = requireAdmin(request, response);
-        if (session == null) {
-            return;
-        }
+        HttpSession session = request.getSession(false);
 
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
@@ -97,10 +93,7 @@ public class AdminProductServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = requireAdmin(request, response);
-        if (session == null) {
-            return;
-        }
+        HttpSession session = request.getSession(false);
 
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
@@ -372,21 +365,6 @@ public class AdminProductServlet extends HttpServlet {
             }
             return false;
         }
-    }
-
-    private HttpSession requireAdmin(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("account") == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return null;
-        }
-        User user = (User) session.getAttribute("account");
-        String roleName = user.getRoleName();
-        if (roleName == null || !"ADMIN".equalsIgnoreCase(roleName.trim())) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return null;
-        }
-        return session;
     }
 
     private Integer parseId(String value) {

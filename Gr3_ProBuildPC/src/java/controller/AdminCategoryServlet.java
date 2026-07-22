@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import model.Category;
-import model.User;
 import util.ValidatorUtil;
 
 @WebServlet(name = "AdminCategoryServlet", urlPatterns = {"/admin/categories"})
@@ -27,10 +26,6 @@ public class AdminCategoryServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        if (!requireAdmin(request, response)) {
-            return;
-        }
 
         request.setCharacterEncoding("UTF-8");
 
@@ -137,10 +132,6 @@ public class AdminCategoryServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        if (!requireAdmin(request, response)) {
-            return;
-        }
-
         request.setCharacterEncoding("UTF-8");
 
         String action = request.getParameter("action");
@@ -160,22 +151,6 @@ public class AdminCategoryServlet extends HttpServlet {
             String page = request.getParameter("page");
             response.sendRedirect(request.getContextPath() + "/admin/categories" + buildQuery(keyword, status, sort, page));
         }
-    }
-
-    private boolean requireAdmin(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session = request.getSession(false);
-        User account = session == null ? null : (User) session.getAttribute("account");
-        if (account == null) {
-            response.sendRedirect(request.getContextPath() + "/Login");
-            return false;
-        }
-        if (account.getRoleName() == null
-                || !"ADMIN".equalsIgnoreCase(account.getRoleName().trim())) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return false;
-        }
-        return true;
     }
 
     private void handleAdd(HttpServletRequest request, HttpSession session) {

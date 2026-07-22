@@ -13,10 +13,6 @@ import java.io.IOException;
 import java.util.Set;
 import model.User;
 
-/**
- * Central route authorization. UI visibility is not a security boundary, so every
- * protected route is checked again before its servlet is invoked.
- */
 @WebFilter(filterName = "RoleAuthorizationFilter", urlPatterns = {"/*"})
 public class RoleAuthorizationFilter implements Filter {
 
@@ -58,7 +54,6 @@ public class RoleAuthorizationFilter implements Filter {
         String path = getPath(req);
         User account = getAccount(req);
 
-        // JSPs are implementation views and must only be reached through a servlet forward.
         if (path.startsWith("/views/") || path.startsWith("/includes/")) {
             res.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
@@ -66,7 +61,7 @@ public class RoleAuthorizationFilter implements Filter {
 
         if (ADMIN_ONLY_PATHS.contains(path)) {
             if (account == null) {
-                redirectLogin(req, res);
+                requireLogin(req, res);
             } else if (!hasRole(account, "ADMIN")) {
                 denyOrRedirect(req, res, account);
             } else {
@@ -77,7 +72,7 @@ public class RoleAuthorizationFilter implements Filter {
 
         if ("/dashboard".equals(path)) {
             if (account == null) {
-                redirectLogin(req, res);
+                requireLogin(req, res);
             } else if (account.isCustomer()) {
                 res.sendRedirect(req.getContextPath() + "/home");
             } else if (account.isStaff()) {
@@ -90,7 +85,7 @@ public class RoleAuthorizationFilter implements Filter {
 
         if ("/managewarranty".equals(path) || "/manage-warranty".equals(path)) {
             if (account == null) {
-                redirectLogin(req, res);
+                requireLogin(req, res);
             } else if (hasRole(account, "ADMIN") || hasRole(account, "EMPLOYEE")) {
                 chain.doFilter(request, response);
             } else {
@@ -99,7 +94,6 @@ public class RoleAuthorizationFilter implements Filter {
             return;
         }
 
-        // Guests may browse the storefront. Once logged in, only customers may use it.
         if (CUSTOMER_FACING_PATHS.contains(path) && account != null && !account.isCustomer()) {
             denyOrRedirect(req, res, account);
             return;
@@ -135,8 +129,12 @@ public class RoleAuthorizationFilter implements Filter {
                 && expectedRole.equalsIgnoreCase(account.getRoleName().trim());
     }
 
-    private void redirectLogin(HttpServletRequest request, HttpServletResponse response)
+    private void requireLogin(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        if (isAjaxRequest(request)) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
         response.sendRedirect(request.getContextPath() + "/Login");
     }
 

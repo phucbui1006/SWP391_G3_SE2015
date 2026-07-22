@@ -60,15 +60,6 @@ public class BuildPCServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
 
-        HttpSession currentSession = request.getSession(false);
-        User currentAccount = currentSession == null
-                ? null
-                : (User) currentSession.getAttribute("account");
-        if (currentAccount != null && !currentAccount.isCustomer()) {
-            response.sendRedirect(request.getContextPath() + "/Dashboard");
-            return;
-        }
-
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
             action = "view";

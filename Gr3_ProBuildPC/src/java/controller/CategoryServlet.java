@@ -107,7 +107,7 @@ public class CategoryServlet extends HttpServlet {
             products.removeIf(product -> product.getQuantity() <= 0);
         }
 
-        int pageSize = 12;
+        int pageSize = 5;
         int currentPage = 1;
 
         String pageRaw = request.getParameter("page");

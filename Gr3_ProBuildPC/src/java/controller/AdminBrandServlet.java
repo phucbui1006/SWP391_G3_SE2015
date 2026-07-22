@@ -247,7 +247,7 @@ public class AdminBrandServlet extends HttpServlet {
             return value;
         }
 
-        return "newest";
+        return "oldest";
     }
 
     private String saveUploadedBrandImage(Part filePart) throws IOException {

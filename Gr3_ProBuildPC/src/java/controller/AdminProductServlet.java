@@ -33,7 +33,7 @@ public class AdminProductServlet extends HttpServlet {
     private final CategoryDAO categoryDAO = new CategoryDAO();
     private final BrandDAO brandDAO = new BrandDAO();
 
-    private static final int PAGE_SIZE = 8;
+    private static final int PAGE_SIZE = 5;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -178,7 +178,7 @@ public class AdminProductServlet extends HttpServlet {
         Integer brandId = parseId(brandIdRaw);
 
         if (sort == null || sort.trim().isEmpty()) {
-            sort = "newest";
+            sort = "oldest";
         }
 
         int currentPage = 1;

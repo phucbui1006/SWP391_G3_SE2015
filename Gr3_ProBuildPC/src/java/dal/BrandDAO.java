@@ -130,7 +130,7 @@ public class BrandDAO extends DBContext {
             ) stock ON stock.product_id = p.product_id
             WHERE br.status = 'ACTIVE'
             GROUP BY br.brand_id, br.brand_name, br.img, br.status
-            ORDER BY br.brand_id DESC
+            ORDER BY br.brand_id ASC
         """;
 
         try {

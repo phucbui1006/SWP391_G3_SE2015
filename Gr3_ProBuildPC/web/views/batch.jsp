@@ -18,10 +18,22 @@
     Batch editBatch = (Batch) request.getAttribute("editBatch");
     BatchItem editItem = (BatchItem) request.getAttribute("editItem");
 
+    Integer currentPage = (Integer) request.getAttribute("currentPage");
+    Integer totalPages = (Integer) request.getAttribute("totalPages");
+    Integer totalBatches = (Integer) request.getAttribute("totalBatches");
+    Integer startItem = (Integer) request.getAttribute("startItem");
+    Integer endItem = (Integer) request.getAttribute("endItem");
+
     Integer selectedBatchId = (Integer) request.getAttribute("selectedBatchId");
 
     String message = (String) request.getAttribute("message");
     String error = (String) request.getAttribute("error");
+
+    if (currentPage == null) currentPage = 1;
+    if (totalPages == null) totalPages = 1;
+    if (totalBatches == null) totalBatches = 0;
+    if (startItem == null) startItem = 0;
+    if (endItem == null) endItem = 0;
 
     if (batches == null) {
         batches = new ArrayList<>();
@@ -138,6 +150,51 @@
                             <% } %>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination Footer cho Lô hàng -->
+                <div class="admin-product-footer">
+                    <p>
+                        Hiển thị <strong><%= startItem %></strong> đến <strong><%= endItem %></strong> của <strong><%= totalBatches %></strong> lô hàng
+                    </p>
+                    <div class="admin-pagination">
+                        <% if (currentPage > 1) { %>
+                        <a class="page-btn" href="${pageContext.request.contextPath}/BatchServlet?page=<%= currentPage - 1 %>">&lsaquo;</a>
+                        <% } else { %>
+                        <span class="page-btn disabled"><</span>
+                        <% } %>
+
+                        <%
+                            int fromPage = Math.max(2, currentPage - 2);
+                            int toPage = Math.min(totalPages - 1, currentPage + 2);
+                            if (currentPage <= 4) {
+                                fromPage = 2;
+                                toPage = Math.min(totalPages - 1, 5);
+                            } else if (currentPage >= totalPages - 3) {
+                                fromPage = Math.max(2, totalPages - 4);
+                                toPage = totalPages - 1;
+                            }
+                        %>
+                        <a class="page-btn <%= currentPage == 1 ? "active" : "" %>" href="${pageContext.request.contextPath}/BatchServlet?page=1">1</a>
+                        <% if (fromPage > 2) { %>
+                        <span class="page-btn disabled">...</span>
+                        <% } %>
+                        <% for (int i = fromPage; i <= toPage; i++) { %>
+                        <a class="page-btn <%= currentPage == i ? "active" : "" %>" href="${pageContext.request.contextPath}/BatchServlet?page=<%= i %>"><%= i %></a>
+                        <% } %>
+                        <% if (toPage < totalPages - 1) { %>
+                        <span class="page-btn disabled">...</span>
+                        <% } %>
+                        <% if (totalPages > 1) { %>
+                        <a class="page-btn <%= currentPage == totalPages ? "active" : "" %>" href="${pageContext.request.contextPath}/BatchServlet?page=<%= totalPages %>"><%= totalPages %></a>
+                        <% } %>
+
+                        <% if (currentPage < totalPages) { %>
+                        <a class="page-btn" href="${pageContext.request.contextPath}/BatchServlet?page=<%= currentPage + 1 %>">&rsaquo;</a>
+                        <% } else { %>
+                        <span class="page-btn disabled">></span>
+                        <% } %>
+                    </div>
                 </div>
             </section>
 

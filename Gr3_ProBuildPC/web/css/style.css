@@ -467,8 +467,8 @@ body.order-history-body * {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 16px;
-    margin-top: 34px;
+    gap: 9px;
+    margin-top: 28px;
 }
 
 .order-history-pagination a,
@@ -2792,32 +2792,17 @@ body.home-page .home-pagination span {
     color: #111827;
     font-size: 14px;
     font-weight: 700;
-    text-decoration: none;
-    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    
 }
 
-.home-pagination a:hover:not(.active):not(.disabled),
-body.home-page .home-pagination a:hover:not(.active):not(.disabled) {
-    border-color: #e60000;
-    color: #e60000;
-}
 
-.home-pagination a.active,
 body.home-page .home-pagination a.active {
     color: #ffffff;
     border-color: #e60000;
     background: #e60000;
 }
 
-.home-pagination a.disabled,
-.home-pagination span.disabled,
-body.home-page .home-pagination a.disabled {
-    color: #9ca3af;
-    border-color: #e5e7eb;
-    background: #f9fafb;
-    cursor: not-allowed;
-    pointer-events: none;
-}
+
 
 /* ==================== RESPONSIVE ==================== */
 

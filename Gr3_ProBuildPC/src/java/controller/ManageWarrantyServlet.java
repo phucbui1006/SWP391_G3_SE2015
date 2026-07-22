@@ -147,7 +147,7 @@ public class ManageWarrantyServlet extends HttpServlet {
 
         // Only EMPLOYEE is allowed to perform POST actions (updates)
         if (!"EMPLOYEE".equals(roleName)) {
-            session.setAttribute("errorMsg", "Chỉ nhân viên (EMPLOYEE) mới có quyền cập nhật trạng thái bảo hành!");
+            session.setAttribute("errorMsg", "Chỉ nhân viên mới có quyền cập nhật trạng thái bảo hành!");
             response.sendRedirect(request.getContextPath() + "/ManageWarranty");
             return;
         }

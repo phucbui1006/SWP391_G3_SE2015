@@ -10,9 +10,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.List;
 import java.util.Set;
@@ -27,7 +29,7 @@ import model.User;
 )
 public class AdminBrandServlet extends HttpServlet {
 
-    private static final int BRANDS_PER_PAGE = 8;
+    private static final int BRANDS_PER_PAGE = 5;
     private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(".png", ".jpg", ".jpeg", ".webp");
     private final BrandDAO brandDAO = new BrandDAO();
 
@@ -102,7 +104,7 @@ public class AdminBrandServlet extends HttpServlet {
             session.setAttribute("brandError", "Thao tác không hợp lệ.");
         }
 
-        response.sendRedirect(request.getContextPath() + "/AdminBrands");
+        response.sendRedirect(buildListUrl(request));
     }
 
     private HttpSession requireAdmin(HttpServletRequest request, HttpServletResponse response)
@@ -241,13 +243,31 @@ public class AdminBrandServlet extends HttpServlet {
     }
 
     private String normalizeSort(String value) {
-        if ("oldest".equals(value)
+        if ("newest".equals(value)
+                || "oldest".equals(value)
                 || "product_count_asc".equals(value)
                 || "product_count_desc".equals(value)) {
             return value;
         }
 
-        return "oldest";
+        return "newest";
+    }
+
+    private String buildListUrl(HttpServletRequest request) {
+        String keyword = normalizeText(request.getParameter("keyword"));
+        String status = normalizeStatusFilter(request.getParameter("status"));
+        String sort = normalizeSort(request.getParameter("sort"));
+        int page = parsePage(request.getParameter("page"));
+
+        return request.getContextPath() + "/AdminBrands"
+                + "?keyword=" + encodeQueryValue(keyword)
+                + "&status=" + encodeQueryValue(status)
+                + "&sort=" + encodeQueryValue(sort)
+                + "&page=" + page;
+    }
+
+    private String encodeQueryValue(String value) {
+        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
     }
 
     private String saveUploadedBrandImage(Part filePart) throws IOException {

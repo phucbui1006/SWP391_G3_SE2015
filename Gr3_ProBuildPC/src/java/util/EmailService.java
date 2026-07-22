@@ -124,7 +124,7 @@ public class EmailService {
 
             String content = "<html><body style='font-family: Arial, sans-serif;'>"
                            + "<p>Chào bạn,</p>"
-                           + "<p>Mật khẩu cho tài khoản của bạn đã được quản trị viên (Admin) đặt lại thành công.</p>"
+                           + "<p>Mật khẩu cho tài khoản của bạn đã được quản trị viên đặt lại thành công.</p>"
                            + "<p>Thông tin đăng nhập mới của bạn:</p>"
                            + "<ul>"
                            + "<li>Email: <b>" + toEmail + "</b></li>"
@@ -162,7 +162,7 @@ public class EmailService {
             message.setSubject("Mật khẩu nhân viên đã được đặt lại - ProBuild PC", "UTF-8");
 
             String content = "<html><body style='font-family: Arial, sans-serif;'>"
-                           + "<p>Chào Admin,</p>"
+                           + "<p>Chào Quản trị viên,</p>"
                            + "<p>Bạn vừa thực hiện đặt lại mật khẩu cho một tài khoản nhân viên.</p>"
                            + "<p>Thông tin tài khoản:</p>"
                            + "<ul>"

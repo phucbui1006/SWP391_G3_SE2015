@@ -176,6 +176,14 @@ public class CartOrderValidationFilter implements Filter {
                 res.sendRedirect(req.getContextPath() + "/cart");
                 return false;
             }
+            if (item.getQuantity() > product.getQuantity()) {
+                if (buildCheckout) {
+                    return redirectBuildError(req, res, "Số lượng hoặc tồn kho của cấu hình đã thay đổi. Vui lòng kiểm tra lại.");
+                }
+                req.getSession().setAttribute("cartErrorMsg", "Sản phẩm " + product.getProductName() + " không đủ số lượng trong kho.");
+                res.sendRedirect(req.getContextPath() + "/cart");
+                return false;
+            }
         }
 
         return true;

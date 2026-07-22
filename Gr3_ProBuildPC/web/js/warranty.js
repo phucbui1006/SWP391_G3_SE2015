@@ -127,32 +127,40 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Employee warranty response form
-    const editForm = document.getElementById("edit-warranty-form");
+    const editForm = document.getElementById("edit-warranty-form") || document.querySelector(".warranty-process-form");
     if (editForm) {
         const responseInput = editForm.querySelector("textarea[name='response']");
         const statusSelect = editForm.querySelector("select[name='statusId']");
 
-        const validateResponse = () => validateTextLength(
+        const validateResponse = () => {
+            if (!responseInput) return true;
+            return validateTextLength(
                     responseInput,
                     "phản hồi của cửa hàng",
                     5,
                     1000
                     );
+        };
 
         const validateStatus = () => {
-            const isValid = ["1", "2", "3"].includes(statusSelect.value);
+            if (!statusSelect) return true;
+            const isValid = ["2", "3"].includes(statusSelect.value);
             validator.showFeedback(
                     statusSelect,
                     isValid,
-                    "Vui lòng lựa chọn trạng thái bảo hành hợp lệ."
+                    "Vui lòng lựa chọn trạng thái bảo hành hợp lệ (Chấp nhận hoặc Từ chối)."
                     );
             statusSelect.setAttribute("aria-invalid", String(!isValid));
             return isValid;
         };
 
-        bindTextValidation(responseInput, validateResponse);
-        statusSelect.addEventListener("blur", validateStatus);
-        statusSelect.addEventListener("change", validateStatus);
+        if (responseInput) {
+            bindTextValidation(responseInput, validateResponse);
+        }
+        if (statusSelect) {
+            statusSelect.addEventListener("blur", validateStatus);
+            statusSelect.addEventListener("change", validateStatus);
+        }
 
         editForm.addEventListener("submit", event => {
             const isStatusValid = validateStatus();
@@ -160,11 +168,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!isStatusValid || !isResponseValid) {
                 event.preventDefault();
-                (isStatusValid ? responseInput : statusSelect).focus();
+                if (!isStatusValid && statusSelect) {
+                    statusSelect.focus();
+                } else if (!isResponseValid && responseInput) {
+                    responseInput.focus();
+                }
                 return;
             }
 
-            responseInput.value = responseInput.value.trim();
+            if (responseInput) {
+                responseInput.value = responseInput.value.trim();
+            }
             const submitButton = editForm.querySelector("button[type='submit']");
             if (submitButton) {
                 submitButton.disabled = true;

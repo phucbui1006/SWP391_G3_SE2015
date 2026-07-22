@@ -584,3 +584,118 @@
     margin: 0;
     font-size: 14px;
 }
+
+/* Warranty Employee Process Form Styling */
+.warranty-process-form {
+    margin: 18px 22px 0;
+    padding: 20px;
+    border: 1px dashed #f4a5aa;
+    border-radius: 8px;
+    background: #fff8f8;
+}
+
+.warranty-process-header h3 {
+    margin: 0 0 16px 0;
+    font-size: 15px;
+    font-weight: 850;
+    color: #111827;
+}
+
+.warranty-process-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.form-group-row {
+    width: 100%;
+}
+
+.form-label-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.form-label-wrap span {
+    color: #374151;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.form-control-select {
+    max-width: 320px;
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #ffffff;
+    color: #111827;
+}
+
+.form-control-textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    resize: vertical;
+    box-sizing: border-box;
+    font-family: inherit;
+    background: #ffffff;
+    color: #111827;
+}
+
+.form-actions-row {
+    margin-top: 4px;
+}
+
+.btn-save-warranty {
+    height: 40px;
+    padding: 0 22px;
+    border: none;
+    border-radius: 6px;
+    background: #ef1b24;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 750;
+    cursor: pointer;
+    transition: background 0.16s ease, transform 0.16s ease;
+}
+
+.btn-save-warranty:hover {
+    background: #d71920;
+    transform: translateY(-1px);
+}
+
+/* Custom Validation Error Feedback Styling */
+.form-control-select.is-invalid,
+.form-control-textarea.is-invalid,
+input.is-invalid,
+textarea.is-invalid,
+select.is-invalid {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+    outline: none !important;
+}
+
+.form-control-select.is-invalid:focus,
+.form-control-textarea.is-invalid:focus,
+input.is-invalid:focus,
+textarea.is-invalid:focus,
+select.is-invalid:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+.error-feedback {
+    color: #ef4444 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    margin-top: 6px !important;
+    display: block !important;
+    line-height: 1.4 !important;
+}

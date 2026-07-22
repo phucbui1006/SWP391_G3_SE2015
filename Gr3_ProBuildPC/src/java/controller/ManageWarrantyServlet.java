@@ -16,6 +16,7 @@ import model.WarrantyRequest;
 @WebServlet(name = "ManageWarrantyServlet", urlPatterns = {"/ManageWarranty", "/manage-warranty"})
 public class ManageWarrantyServlet extends HttpServlet {
 
+    private static final int PAGE_SIZE = 5;
     private final WarrantyDAO warrantyDAO = new WarrantyDAO();
 
     @Override
@@ -44,8 +45,11 @@ public class ManageWarrantyServlet extends HttpServlet {
             return;
         }
 
-        // Intercept dashboard search parameters (query, status)
-        String search = request.getParameter("query");
+        // Intercept search parameters (keyword, query, search, searchQuery)
+        String search = request.getParameter("keyword");
+        if (search == null) {
+            search = request.getParameter("query");
+        }
         if (search == null) {
             search = request.getParameter("search");
         }
@@ -72,18 +76,66 @@ public class ManageWarrantyServlet extends HttpServlet {
             }
         }
 
-        // Execute the backend global query
-        List<WarrantyRequest> adminList = warrantyDAO.getAllWarrantyRequestsForAdmin(search, statusId);
-        
-        // Securely bind the output lists
-        request.setAttribute("adminWarrantyList", adminList);
-        request.setAttribute("warrantyList", adminList); // compatibility for existing view variable name
-        request.setAttribute("searchQuery", search.trim());
-        request.setAttribute("statusFilterId", statusId);
+        int page = 1;
+        String pageRaw = request.getParameter("page");
+        if (pageRaw != null && !pageRaw.trim().isEmpty()) {
+            try {
+                page = Integer.parseInt(pageRaw.trim());
+                if (page < 1) {
+                    page = 1;
+                }
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
+        }
+
+        int totalWarranties = warrantyDAO.countAllWarrantyRequestsForAdmin(search, statusId);
+        int totalPages = Math.max(1, (int) Math.ceil(totalWarranties / (double) PAGE_SIZE));
+        if (page > totalPages) {
+            page = totalPages;
+        }
+
+        List<WarrantyRequest> adminList = warrantyDAO.getAllWarrantyRequestsForAdmin(search, statusId, page, PAGE_SIZE);
+
+        Integer selectedWarrantyId = null;
+        String selRaw = request.getParameter("selectedWarrantyId");
+        if (selRaw == null) {
+            selRaw = request.getParameter("warrantyId");
+        }
+        if (selRaw != null && !selRaw.trim().isEmpty()) {
+            try {
+                selectedWarrantyId = Integer.parseInt(selRaw.trim());
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+
+        WarrantyRequest selectedWarranty = null;
+        if (selectedWarrantyId != null) {
+            for (WarrantyRequest w : adminList) {
+                if (w.getWarrantyId() == selectedWarrantyId) {
+                    selectedWarranty = w;
+                    break;
+                }
+            }
+            if (selectedWarranty == null) {
+                selectedWarranty = warrantyDAO.getWarrantyRequestById(selectedWarrantyId);
+            }
+        }
+
+        if (selectedWarranty == null && !adminList.isEmpty()) {
+            selectedWarranty = adminList.get(0);
+        }
+
+        if (selectedWarranty != null) {
+            Warranty condItem = warrantyDAO.getProductWarrantyCondition(selectedWarranty.getProductId(), selectedWarranty.getCustomerId());
+            List<Warranty> condHistory = warrantyDAO.getWarrantyHistoryByProductAndCustomer(selectedWarranty.getProductId(), selectedWarranty.getCustomerId());
+            request.setAttribute("condItem", condItem);
+            request.setAttribute("condHistory", condHistory);
+        }
 
         String action = request.getParameter("action");
         if ("viewCondition".equalsIgnoreCase(action)) {
-            // Decoupled: use productId + customerId instead of orderDetailId
             String productIdRaw = request.getParameter("productId");
             String customerIdRaw = request.getParameter("customerId");
             if (productIdRaw != null && !productIdRaw.trim().isEmpty()
@@ -112,6 +164,9 @@ public class ManageWarrantyServlet extends HttpServlet {
                             break;
                         }
                     }
+                    if (editWarranty == null) {
+                        editWarranty = warrantyDAO.getWarrantyRequestById(warrantyId);
+                    }
                     if (editWarranty != null) {
                         request.setAttribute("editWarranty", editWarranty);
                     }
@@ -120,7 +175,19 @@ public class ManageWarrantyServlet extends HttpServlet {
                 }
             }
         }
-        
+
+        request.setAttribute("adminWarrantyList", adminList);
+        request.setAttribute("warrantyList", adminList);
+        request.setAttribute("selectedWarranty", selectedWarranty);
+        request.setAttribute("searchQuery", search.trim());
+        request.setAttribute("keyword", search.trim());
+        request.setAttribute("statusFilterId", statusId);
+        request.setAttribute("selectedStatusId", statusId);
+        request.setAttribute("page", page);
+        request.setAttribute("pageSize", PAGE_SIZE);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalWarranties", totalWarranties);
+
         request.getRequestDispatcher("/views/manage-warranty.jsp").forward(request, response);
     }
 
@@ -132,7 +199,6 @@ public class ManageWarrantyServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         User account = session != null ? (User) session.getAttribute("account") : null;
 
-        // Ensure user is logged in
         if (account == null) {
             response.sendRedirect(request.getContextPath() + "/Login");
             return;
@@ -145,7 +211,6 @@ public class ManageWarrantyServlet extends HttpServlet {
             roleName = "";
         }
 
-        // Only EMPLOYEE is allowed to perform POST actions (updates)
         if (!"EMPLOYEE".equals(roleName)) {
             session.setAttribute("errorMsg", "Chỉ nhân viên (EMPLOYEE) mới có quyền cập nhật trạng thái bảo hành!");
             response.sendRedirect(request.getContextPath() + "/ManageWarranty");
@@ -156,7 +221,19 @@ public class ManageWarrantyServlet extends HttpServlet {
         String statusIdRaw = request.getParameter("statusId");
         String responseText = request.getParameter("response");
         String search = request.getParameter("search");
+        if (search == null) {
+            search = request.getParameter("keyword");
+        }
         String statusFilter = request.getParameter("statusFilter");
+        if (statusFilter == null) {
+            statusFilter = request.getParameter("statusId");
+        }
+        String pageRaw = request.getParameter("page");
+        String selectedWarrantyIdRaw = request.getParameter("selectedWarrantyId");
+        if (selectedWarrantyIdRaw == null) {
+            selectedWarrantyIdRaw = warrantyIdRaw;
+        }
+
         if (search == null) {
             search = "";
         }
@@ -166,17 +243,22 @@ public class ManageWarrantyServlet extends HttpServlet {
 
         if (warrantyIdRaw == null || statusIdRaw == null) {
             session.setAttribute("errorMsg", "Dữ liệu cập nhật không đầy đủ!");
-            response.sendRedirect(request.getContextPath() + "/ManageWarranty?search=" + java.net.URLEncoder.encode(search, "UTF-8") + "&statusFilter=" + statusFilter);
+            redirectBack(request, response, search, statusFilter, pageRaw, selectedWarrantyIdRaw);
             return;
         }
 
         try {
             int warrantyId = Integer.parseInt(warrantyIdRaw);
             int statusId = Integer.parseInt(statusIdRaw);
+            if (statusId != 2 && statusId != 3) {
+                session.setAttribute("errorMsg", "Trạng thái cập nhật phải là 'Từ chối' hoặc 'Chấp nhận'!");
+                redirectBack(request, response, search, statusFilter, pageRaw, selectedWarrantyIdRaw);
+                return;
+            }
             if (responseText == null) {
                 responseText = "";
             }
-            
+
             boolean success = warrantyDAO.updateWarrantyStatus(warrantyId, statusId, responseText.trim());
             if (success) {
                 session.setAttribute("successMsg", "Cập nhật yêu cầu bảo hành #" + warrantyId + " thành công!");
@@ -187,6 +269,23 @@ public class ManageWarrantyServlet extends HttpServlet {
             session.setAttribute("errorMsg", "Dữ liệu mã yêu cầu hoặc trạng thái không hợp lệ!");
         }
 
-        response.sendRedirect(request.getContextPath() + "/ManageWarranty?search=" + java.net.URLEncoder.encode(search, "UTF-8") + "&statusFilter=" + statusFilter);
+        redirectBack(request, response, search, statusFilter, pageRaw, selectedWarrantyIdRaw);
+    }
+
+    private void redirectBack(HttpServletRequest request, HttpServletResponse response,
+                              String search, String statusFilter, String pageRaw, String selectedWarrantyIdRaw)
+            throws IOException {
+        StringBuilder redirectUrl = new StringBuilder(request.getContextPath() + "/ManageWarranty?");
+        redirectUrl.append("search=").append(java.net.URLEncoder.encode(search, "UTF-8"));
+        if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+            redirectUrl.append("&statusFilter=").append(statusFilter.trim());
+        }
+        if (pageRaw != null && !pageRaw.trim().isEmpty()) {
+            redirectUrl.append("&page=").append(pageRaw.trim());
+        }
+        if (selectedWarrantyIdRaw != null && !selectedWarrantyIdRaw.trim().isEmpty()) {
+            redirectUrl.append("&selectedWarrantyId=").append(selectedWarrantyIdRaw.trim());
+        }
+        response.sendRedirect(redirectUrl.toString());
     }
 }

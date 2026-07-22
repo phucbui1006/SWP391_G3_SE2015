@@ -518,7 +518,52 @@ public class WarrantyDAO extends DBContext {
         return list;
     }
 
-    public List<WarrantyRequest> getAllWarrantyRequestsForAdmin(String searchKeyword, Integer statusId) {
+    public int countAllWarrantyRequestsForAdmin(String searchKeyword, Integer statusId) {
+        StringBuilder sql = new StringBuilder("""
+                    SELECT COUNT(*)
+                    FROM warranties w
+                    JOIN products p ON w.product_id = p.product_id
+                    JOIN customers cust ON w.customer_id = cust.customer_id
+                    JOIN users u ON cust.user_id = u.user_id
+                    LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
+                    WHERE 1=1
+                """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+            String digits = searchKeyword.replaceAll("[^0-9]", "").trim();
+            if (!digits.isEmpty()) {
+                sql.append(" AND w.warranty_id = ? ");
+                params.add(Integer.parseInt(digits));
+            } else {
+                sql.append(" AND (p.product_name LIKE ? OR u.full_name LIKE ?) ");
+                params.add("%" + searchKeyword.trim() + "%");
+                params.add("%" + searchKeyword.trim() + "%");
+            }
+        }
+
+        if (statusId != null && statusId > 0) {
+            sql.append(" AND w.status_id = ? ");
+            params.add(statusId);
+        }
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+        }
+        return 0;
+    }
+
+    public List<WarrantyRequest> getAllWarrantyRequestsForAdmin(String searchKeyword, Integer statusId, int page, int pageSize) {
         List<WarrantyRequest> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("""
                     SELECT w.warranty_id,
@@ -570,6 +615,12 @@ public class WarrantyDAO extends DBContext {
 
         sql.append(" ORDER BY w.request_date DESC ");
 
+        if (page > 0 && pageSize > 0) {
+            sql.append(" LIMIT ? OFFSET ? ");
+            params.add(pageSize);
+            params.add((page - 1) * pageSize);
+        }
+
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
@@ -609,5 +660,75 @@ public class WarrantyDAO extends DBContext {
         } catch (SQLException e) {
         }
         return list;
+    }
+
+    public WarrantyRequest getWarrantyRequestById(int warrantyId) {
+        String sql = """
+                    SELECT w.warranty_id,
+                           w.customer_id,
+                           w.product_id,
+                           w.status_id,
+                           w.request_date,
+                           w.response_date,
+                           w.request,
+                           w.response,
+                           p.product_name,
+                           p.image_url,
+                           ws.status_name,
+                           u.full_name AS customer_name,
+                           COALESCE((
+                               SELECT od.order_id
+                               FROM order_details od
+                               JOIN orders o ON od.order_id = o.order_id
+                               WHERE od.product_id = w.product_id AND o.customer_id = w.customer_id
+                               ORDER BY o.order_date DESC
+                               LIMIT 1
+                           ), 0) AS order_id
+                    FROM warranties w
+                    JOIN products p ON w.product_id = p.product_id
+                    JOIN customers cust ON w.customer_id = cust.customer_id
+                    JOIN users u ON cust.user_id = u.user_id
+                    LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
+                    WHERE w.warranty_id = ?
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, warrantyId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    WarrantyRequest w = new WarrantyRequest();
+                    w.setWarrantyId(rs.getInt("warranty_id"));
+                    w.setCustomerId(rs.getInt("customer_id"));
+                    w.setProductId(rs.getInt("product_id"));
+                    w.setStatusId(rs.getInt("status_id"));
+                    w.setRequestDate(rs.getTimestamp("request_date"));
+                    w.setResponseDate(rs.getTimestamp("response_date"));
+                    w.setRequest(rs.getString("request"));
+                    w.setResponse(rs.getString("response"));
+                    w.setProductName(rs.getString("product_name"));
+                    w.setImageUrl(rs.getString("image_url"));
+
+                    String statusName = rs.getString("status_name");
+                    if (statusName == null || statusName.trim().isEmpty()) {
+                        if (w.getStatusId() == 1) {
+                            statusName = "Chờ tiếp nhận";
+                        } else if (w.getStatusId() == 2) {
+                            statusName = "Từ chối";
+                        } else if (w.getStatusId() == 3) {
+                            statusName = "Chấp nhận";
+                        }
+                    }
+                    w.setStatusName(statusName);
+                    w.setCustomerName(rs.getString("customer_name"));
+                    w.setOrderId(rs.getInt("order_id"));
+                    return w;
+                }
+            }
+        } catch (SQLException e) {
+        }
+        return null;
+    }
+
+    public List<WarrantyRequest> getAllWarrantyRequestsForAdmin(String searchKeyword, Integer statusId) {
+        return getAllWarrantyRequestsForAdmin(searchKeyword, statusId, 0, 0);
     }
 }

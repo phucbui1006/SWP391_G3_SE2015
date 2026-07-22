@@ -97,11 +97,11 @@ VALUES
 INSERT INTO USERS
 (user_id, full_name, status, email, password, account_type)
 VALUES
-(1, 'Bùi Phúc', 'ACTIVE', 'nguyenngoccham120705@gmail.com', MD5('123456'), 'STAFF'),
-(2, 'Nguyễn Văn Nam', 'ACTIVE', 'nguyenvannam@gmail.com', MD5('123456'), 'STAFF'),
-(3, 'Trần Minh Quân', 'ACTIVE', 'tranminhquan@gmail.com', MD5('123456'), 'STAFF'),
-(4, 'Lê Hoàng Anh', 'ACTIVE', 'lehoanganh@gmail.com', MD5('123456'), 'CUSTOMER'),
-(5, 'Phạm Thu Trang', 'ACTIVE', 'phamthutrang@gmail.com', MD5('123456'), 'CUSTOMER');
+(1, 'Bùi Phúc', 'ACTIVE', 'nguyenngoccham120705@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 'STAFF'),
+(2, 'Nguyễn Văn Nam', 'ACTIVE', 'nguyenvannam@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 'STAFF'),
+(3, 'Trần Minh Quân', 'ACTIVE', 'tranminhquan@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 'STAFF'),
+(4, 'Lê Hoàng Anh', 'ACTIVE', 'lehoanganh@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 'CUSTOMER'),
+(5, 'Phạm Thu Trang', 'ACTIVE', 'phamthutrang@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 'CUSTOMER');
 
 INSERT INTO CUSTOMERS (customer_id, user_id)
 VALUES

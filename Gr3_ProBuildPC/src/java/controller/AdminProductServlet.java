@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import model.Brand;
 import model.Category;
@@ -196,8 +197,18 @@ public class AdminProductServlet extends HttpServlet {
         if (currentPage < 1 || currentPage > totalPages) {
             currentPage = 1;
         }
-
-        List<Product> products = productDAO.getProductsForAdmin(keyword, categoryId, brandId, status, sort, currentPage, PAGE_SIZE);
+////Lấy sản phẩm khi có ID
+       List<Product> products = productDAO.getProductsForAdmin(keyword, categoryId, brandId, status, sort, currentPage, PAGE_SIZE);
+//        List<Product> filteredList = new ArrayList<>();
+//        
+//        for (Product p : products) {
+//            if (p.getProductId() == 1) {
+//                filteredList.add(p);
+//               
+//                
+//            } 
+//            products = filteredList;
+//        }
         List<Category> categories = categoryDAO.getAllCategories();
         List<Brand> brands = brandDAO.getActiveBrands();
 

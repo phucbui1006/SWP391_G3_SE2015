@@ -1,3 +1,4 @@
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Collections" %>
@@ -245,6 +246,7 @@
                                 if (imgUrl == null || imgUrl.trim().isEmpty()) {
                                     imgUrl = "images/no-image.png";
                                 }
+                                
                             %>
                             <tr>
                                 <td><%= p.getProductId() %></td>

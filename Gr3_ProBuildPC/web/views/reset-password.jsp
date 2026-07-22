@@ -19,6 +19,7 @@
 
                     <div class="input-group">
                         <input type="password" id="password" name="password" placeholder="Nhập mật khẩu mới (8-31 ký tự, có hoa, thường và số)">
+                        <i class="fa-regular fa-eye toggle-password" onclick="togglePass('password', this)"></i>
                     </div>
                 </div>
 
@@ -27,6 +28,7 @@
 
                     <div class="input-group">
                         <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Xác nhận mật khẩu">
+                        <i class="fa-regular fa-eye toggle-password" onclick="togglePass('confirmPassword', this)"></i>
                     </div>
                 </div>
 

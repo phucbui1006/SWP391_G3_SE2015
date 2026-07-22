@@ -220,3 +220,17 @@ const Validator = {
 
 // Expose on window object
 window.Validator = Validator;
+
+// Global toggle password function
+function togglePass(inputId, icon) {
+    const inputField = document.getElementById(inputId);
+    if (inputField.type === 'password') {
+        inputField.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        inputField.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}

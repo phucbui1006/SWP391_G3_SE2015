@@ -11,8 +11,8 @@ import java.util.Properties;
 
 public class EmailService {
 
-    private static final String FROM_EMAIL = "hoangdzvl2005@gmail.com";
-    private static final String APP_PASSWORD = "fgbm ixbv kvoy csew";
+    private static final String FROM_EMAIL = "nguyenngoccham120705@gmail.com";
+    private static final String APP_PASSWORD = "pujz dbjz juub wjzb";
 
     private static Properties getSmtpProperties() {
         Properties props = new Properties();

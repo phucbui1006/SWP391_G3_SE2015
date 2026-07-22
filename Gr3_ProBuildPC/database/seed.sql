@@ -203,47 +203,47 @@ VALUES
 
 (19, 5, 8, 'Samsung 980 Pro 1TB',
 'Ổ cứng SSD Samsung 980 Pro 1TB PCIe 4.0 NVMe siêu tốc, lý tưởng cho hệ thống gaming và render.',
-'images/products/samsung-980-pro-1tb.jpg', 2300000, 0, 'ACTIVE'),
+'images/products/samsung-980-pro-1tb.jpg', 2300000, 12, 'ACTIVE'),
 
 (20, 5, 5, 'Kingston NV2 500GB',
 'Ổ cứng SSD Kingston NV2 500GB PCIe 4.0, giải pháp lưu trữ tiết kiệm và hiệu quả.',
-'images/products/kingston-nv2-500gb.jpg', 950000, 0, 'ACTIVE'),
+'images/products/kingston-nv2-500gb.jpg', 950000, 12, 'ACTIVE'),
 
 (21, 6, 7, 'Corsair RM850x 850W',
 'Nguồn máy tính Corsair RM850x 850W 80 Plus Gold Full Modular, hiệu năng cao và yên tĩnh.',
-'images/products/corsair-rm850x.jpg', 3500000, 0, 'ACTIVE'),
+'images/products/corsair-rm850x.jpg', 3500000, 12, 'ACTIVE'),
 
 (22, 6, 3, 'Gigabyte P650B 650W',
 'Nguồn máy tính Gigabyte P650B 650W 80 Plus Bronze, phù hợp cho cấu hình tầm trung.',
-'images/products/gigabyte-p650b.jpg', 1200000, 0, 'ACTIVE'),
+'images/products/gigabyte-p650b.jpg', 1200000, 12, 'ACTIVE'),
 
 (23, 7, 7, 'Corsair 4000D Airflow',
 'Vỏ case Corsair 4000D Airflow Tempered Glass, tối ưu luồng gió làm mát hệ thống.',
-'images/products/corsair-4000d.jpg', 1900000, 0, 'ACTIVE'),
+'images/products/corsair-4000d.jpg', 1900000, 12, 'ACTIVE'),
 
 (24, 7, 12, 'NZXT H510',
 'Vỏ case NZXT H510 Mid Tower thiết kế tối giản, tinh tế, tích hợp sẵn quản lý cáp.',
-'images/products/nzxt-h510.jpg', 1800000, 0, 'ACTIVE'),
+'images/products/nzxt-h510.jpg', 1800000, 12, 'ACTIVE'),
 
 (25, 8, 9, 'Dell UltraSharp U2720Q',
 'Màn hình Dell UltraSharp U2720Q 27 inch 4K IPS, màu sắc chuẩn xác cho thiết kế đồ họa.',
-'images/products/dell-u2720q.jpg', 12500000, 0, 'ACTIVE'),
+'images/products/dell-u2720q.jpg', 12500000, 12, 'ACTIVE'),
 
 (26, 8, 2, 'ASUS TUF Gaming VG27AQ',
 'Màn hình ASUS TUF Gaming VG27AQ 27 inch 2K 165Hz IPS, mượt mà cho trải nghiệm gaming.',
-'images/products/asus-tuf-vg27aq.jpg', 7500000, 0, 'ACTIVE'),
+'images/products/asus-tuf-vg27aq.jpg', 7500000, 12, 'ACTIVE'),
 
 (27, 9, 10, 'Logitech G Pro X Keyboard',
 'Bàn phím cơ Logitech G Pro X chuyên game, switch thay thế được.',
-'images/products/logitech-g-pro-x-kb.jpg', 3200000, 0, 'ACTIVE'),
+'images/products/logitech-g-pro-x-kb.jpg', 3200000, 12, 'ACTIVE'),
 
 (28, 10, 10, 'Logitech G502 Hero',
 'Chuột gaming Logitech G502 Hero cảm biến 25K cao cấp, thiết kế công thái học.',
-'images/products/logitech-g502-hero.jpg', 1100000, 0, 'ACTIVE'),
+'images/products/logitech-g502-hero.jpg', 1100000, 12, 'ACTIVE'),
 
 (29, 10, 11, 'Razer DeathAdder V3 Pro',
 'Chuột không dây siêu nhẹ Razer DeathAdder V3 Pro, thiết kế ergonomic hàng đầu.',
-'images/products/razer-dav3-pro.jpg', 3500000, 0, 'ACTIVE');
+'images/products/razer-dav3-pro.jpg', 3500000, 12, 'ACTIVE');
 
 -- =========================
 -- MỞ RỘNG CATALOG: 20 SẢN PHẨM / DANH MỤC
@@ -800,54 +800,54 @@ VALUES
 'COD', 'Chưa thanh toán', 'Đơn hàng COD đang giao trong năm 2026', NULL);
 
 INSERT INTO ORDER_DETAILS
-(order_detail_id, order_id, product_id, quantity, unit_price, subtotal)
+(order_detail_id, order_id, product_id, quantity, unit_price, warranty_months, subtotal)
 VALUES
-(1, 10000, 1, 1, 5500000, 5500000),
-(2, 10000, 5, 2, 1500000, 3000000),
+(1, 10000, 1, 1, 5500000, 36, 5500000),
+(2, 10000, 5, 2, 1500000, 60, 3000000),
 
-(3, 10001, 3, 1, 4200000, 4200000),
-(4, 10001, 6, 1, 9500000, 9500000),
+(3, 10001, 3, 1, 4200000, 36, 4200000),
+(4, 10001, 6, 1, 9500000, 36, 9500000),
 
-(5, 10002, 1, 1, 5500000, 5500000),
-(6, 10002, 5, 2, 1500000, 3000000),
+(5, 10002, 1, 1, 5500000, 36, 5500000),
+(6, 10002, 5, 2, 1500000, 60, 3000000),
 
-(7, 10003, 3, 1, 4200000, 4200000),
-(8, 10003, 12, 1, 3200000, 3200000),
-(9, 10003, 5, 1, 1500000, 1500000),
+(7, 10003, 3, 1, 4200000, 36, 4200000),
+(8, 10003, 12, 1, 3200000, 36, 3200000),
+(9, 10003, 5, 1, 1500000, 60, 1500000),
 
-(10, 10004, 6, 1, 9500000, 9500000),
+(10, 10004, 6, 1, 9500000, 36, 9500000),
 
-(11, 10005, 8, 1, 10500000, 10500000),
-(12, 10005, 14, 1, 2800000, 2800000),
+(11, 10005, 8, 1, 10500000, 36, 10500000),
+(12, 10005, 14, 1, 2800000, 60, 2800000),
 
-(13, 10006, 2, 1, 8500000, 8500000),
-(14, 10006, 4, 1, 3800000, 3800000),
-(15, 10006, 5, 2, 1500000, 3000000),
+(13, 10006, 2, 1, 8500000, 36, 8500000),
+(14, 10006, 4, 1, 3800000, 36, 3800000),
+(15, 10006, 5, 2, 1500000, 60, 3000000),
 
-(16, 10007, 16, 1, 16500000, 16500000),
-(17, 10007, 10, 1, 5900000, 5900000),
+(16, 10007, 16, 1, 16500000, 36, 16500000),
+(17, 10007, 10, 1, 5900000, 36, 5900000),
 
-(18, 10008, 7, 1, 11900000, 11900000),
-(19, 10008, 13, 1, 5200000, 5200000),
-(20, 10008, 14, 1, 2800000, 2800000),
+(18, 10008, 7, 1, 11900000, 36, 11900000),
+(19, 10008, 13, 1, 5200000, 36, 5200000),
+(20, 10008, 14, 1, 2800000, 60, 2800000),
 
-(21, 10009, 9, 1, 14900000, 14900000),
-(22, 10009, 15, 1, 5900000, 5900000),
+(21, 10009, 9, 1, 14900000, 36, 14900000),
+(22, 10009, 15, 1, 5900000, 60, 5900000),
 
-(23, 10010, 17, 1, 21900000, 21900000),
-(24, 10010, 11, 1, 4700000, 4700000),
-(25, 10010, 5, 2, 1500000, 3000000),
+(23, 10010, 17, 1, 21900000, 36, 21900000),
+(24, 10010, 11, 1, 4700000, 36, 4700000),
+(25, 10010, 5, 2, 1500000, 60, 3000000),
 
-(26, 10011, 18, 1, 32900000, 32900000),
-(27, 10011, 15, 1, 5900000, 5900000),
+(26, 10011, 18, 1, 32900000, 36, 32900000),
+(27, 10011, 15, 1, 5900000, 60, 5900000),
 
-(28, 10012, 8, 1, 10500000, 10500000),
-(29, 10012, 12, 1, 3200000, 3200000),
-(30, 10012, 14, 2, 2800000, 5600000),
+(28, 10012, 8, 1, 10500000, 36, 10500000),
+(29, 10012, 12, 1, 3200000, 36, 3200000),
+(30, 10012, 14, 2, 2800000, 60, 5600000),
 
-(31, 10013, 6, 1, 9500000, 9500000),
-(32, 10013, 4, 1, 3800000, 3800000),
-(33, 10013, 5, 1, 1500000, 1500000);
+(31, 10013, 6, 1, 9500000, 36, 9500000),
+(32, 10013, 4, 1, 3800000, 36, 3800000),
+(33, 10013, 5, 1, 1500000, 60, 1500000);
 
 INSERT INTO PAYMENTS
 (payment_id, order_id, payment_status, payment_provider, amount)
@@ -919,8 +919,3 @@ VALUES
 
 (2, 2, 12, 1, '2026-06-01 16:45:00',
 'Cổng USB trên bo mạch chủ hoạt động không ổn định, cần kiểm tra.');
-
--- Cập nhật warranty_months cho ORDER_DETAILS từ bảng PRODUCTS
-UPDATE ORDER_DETAILS od
-JOIN PRODUCTS p ON od.product_id = p.product_id
-SET od.warranty_months = p.warranty_months;

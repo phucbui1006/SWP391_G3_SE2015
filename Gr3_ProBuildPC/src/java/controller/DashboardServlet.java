@@ -247,17 +247,17 @@ public class DashboardServlet extends HttpServlet {
             ShipmentDashboardView dashboard) {
         List<ShipmentDashboardView.SummaryCard> cards = new ArrayList<>();
         cards.add(new ShipmentDashboardView.SummaryCard(
-                "all", "fa-solid fa-boxes-stacked", "Tổng đơn vận chuyển",
-                dashboard.getTotalOrderCount()));
+                "all", "fa-solid fa-boxes-stacked", "Tất cả đơn hàng",
+                dashboard.getOverallOrderCount()));
         cards.add(new ShipmentDashboardView.SummaryCard(
-                "shipping", "fa-solid fa-truck", "Đang giao hàng",
-                dashboard.getShippingOrderCount()));
-        cards.add(new ShipmentDashboardView.SummaryCard(
-                "delivered", "fa-solid fa-circle-check", "Đã giao hàng",
-                dashboard.getDeliveredOrderCount()));
+                "delivered", "fa-solid fa-circle-check", "Đơn đã xác nhận",
+                dashboard.getOverallConfirmedOrderCount()));
         cards.add(new ShipmentDashboardView.SummaryCard(
                 "failed", "fa-solid fa-triangle-exclamation", "Giao hàng thất bại",
-                dashboard.getFailedOrderCount()));
+                dashboard.getOverallFailedOrderCount()));
+        cards.add(new ShipmentDashboardView.SummaryCard(
+                "shipping", "fa-solid fa-truck", "Đang giao hàng",
+                dashboard.getOverallShippingOrderCount()));
         return cards;
     }
 

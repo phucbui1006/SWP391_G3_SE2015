@@ -111,40 +111,6 @@
             labels(data.orderStatusLabels).map((_, index) => colors[(index + 1) % colors.length]),
             context => unit('đơn')(context.parsed.y), false);
 
-    function dashboardPie(canvasId, labelList, valueList, backgroundColor) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) {
-            return;
-        }
-
-        new Chart(canvas, {
-            type: 'pie',
-            data: {
-                labels: labelList,
-                datasets: [{
-                    data: valueList,
-                    backgroundColor,
-                    borderColor: '#ffffff',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {usePointStyle: true, padding: 16},
-                        onClick: null
-                    },
-                    tooltip: {
-                        enabled: false
-                    }
-                }
-            }
-        });
-    }
-
     const employeeData = readDashboardData('employeeDashboardData');
     bar('employeeWarrantyChart', employeeData.warrantyLabels, employeeData.warrantyValues,
             'Số yêu cầu bảo hành', ['#f59e0b', '#16a34a', '#dc2626'],
@@ -154,10 +120,7 @@
             context => unit('đơn')(context.parsed.y), false);
 
     const shipmentData = readDashboardData('shipmentDashboardData');
-    dashboardPie(
-            'shipmentStatusChart',
-            shipmentData.statusLabels,
-            shipmentData.statusValues,
-            ['#f59e0b', '#16a34a', '#dc2626']
-            );
+    bar('shipmentStatusChart', shipmentData.statusLabels, shipmentData.statusValues,
+            'Số lượng đơn hàng', ['#2563eb', '#16a34a', '#dc2626'],
+            context => unit('đơn')(context.parsed.y), false);
 })();

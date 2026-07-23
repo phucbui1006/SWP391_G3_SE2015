@@ -35,10 +35,15 @@ public class AdminDashboardDAO extends DBContext {
         summary.setTotalOrders(queryInt("""
                 SELECT COUNT(*) AS value
                 FROM orders
-                WHERE order_date >= ? AND order_date < DATE_ADD(?, INTERVAL 1 DAY)
+                WHERE status_id = 5
+                  AND order_date >= ?
+                  AND order_date < DATE_ADD(?, INTERVAL 1 DAY)
                 """, startDate, endDate));
         summary.setImportedBatches(queryInt("""
-                SELECT COUNT(*) AS value FROM batch WHERE date BETWEEN ? AND ?
+                SELECT COUNT(*) AS value
+                FROM batch
+                WHERE date >= ?
+                  AND date < DATE_ADD(?, INTERVAL 1 DAY)
                 """, startDate, endDate));
         return summary;
     }

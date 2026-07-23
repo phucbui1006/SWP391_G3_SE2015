@@ -160,7 +160,7 @@ public class DashboardServlet extends HttpServlet {
         List<AdminDashboardView.StatCard> cards = new ArrayList<>();
         cards.add(new AdminDashboardView.StatCard("red", "fa-solid fa-coins", "Tổng doanh thu",
                 DashboardViewHelper.formatCurrency(summary.getTotalRevenue()), ""));
-        cards.add(new AdminDashboardView.StatCard("dark", "fa-solid fa-receipt", "Tổng đơn hàng",
+        cards.add(new AdminDashboardView.StatCard("dark", "fa-solid fa-receipt", "Đơn hàng giao thành công",
                 String.valueOf(summary.getTotalOrders()), ctx + "/order-history"));
         cards.add(new AdminDashboardView.StatCard("purple", "fa-solid fa-truck-ramp-box", "Lô hàng đã nhập",
                 String.valueOf(summary.getImportedBatches()), ctx + "/BatchServlet"));

@@ -35,11 +35,12 @@
                             </label>
 
                             <button type="submit">Xem báo cáo</button>
-                            <button type="submit" formaction="${pageContext.request.contextPath}/RevenueExportServlet" style="background: #16a34a;">Xuất Excel</button>
+                            <button type="submit" formaction="${pageContext.request.contextPath}/RevenueExportServlet" name="exportType" value="summary" style="background: #16a34a;">Xuất Tổng hợp</button>
+                            <button type="submit" formaction="${pageContext.request.contextPath}/RevenueExportServlet" name="exportType" value="detail" style="background: #2563eb;">Xuất Chi tiết</button>
                         </form>
 
                         <!-- Summary -->
-                        <div class="admin-stat-grid">
+                        <div class="admin-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                             <a class="admin-stat-card">
                                 <span class="admin-stat-icon green"><i class="fa-solid fa-coins"></i></span>
                                 <span>
@@ -64,8 +65,15 @@
                             <a class="admin-stat-card">
                                 <span class="admin-stat-icon orange"><i class="fa-solid fa-users"></i></span>
                                 <span>
-                                    <small>Khách hàng</small>
+                                    <small>Khách mua hàng</small>
                                     <strong>${not empty totalCustomers ? totalCustomers : '0'}</strong>
+                                </span>
+                            </a>
+                            <a class="admin-stat-card">
+                                <span class="admin-stat-icon" style="background-color: #10b981; color: white;"><i class="fa-solid fa-percent"></i></span>
+                                <span>
+                                    <small>Tỷ lệ hoàn thành</small>
+                                    <strong>${not empty completionRate ? completionRate : '0'}%</strong>
                                 </span>
                             </a>
                         </div>

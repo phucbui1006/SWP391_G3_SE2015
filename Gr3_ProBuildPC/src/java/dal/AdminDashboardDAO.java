@@ -17,10 +17,11 @@ import model.RevenueRow;
 
 public class AdminDashboardDAO extends DBContext {
 
-    private static final String NOT_CANCELLED_ORDER_CONDITION = """
-            AND (os.status_name IS NULL
-                 OR (LOWER(os.status_name) NOT LIKE LOWER('%hủy%')
-                     AND LOWER(os.status_name) NOT LIKE LOWER('%huy%')))
+    private static final String COMPLETED_ORDER_CONDITION = """
+            AND (LOWER(os.status_name) LIKE LOWER('%đã giao%')
+                 OR LOWER(os.status_name) LIKE LOWER('%da giao%')
+                 OR LOWER(os.status_name) LIKE LOWER('%thành công%')
+                 OR LOWER(os.status_name) LIKE LOWER('%hoàn thành%'))
             """;
 
     public DashboardSummary getSummary(LocalDate startDate, LocalDate endDate) {
@@ -31,7 +32,7 @@ public class AdminDashboardDAO extends DBContext {
                 LEFT JOIN orders_status os ON os.status_id = o.status_id
                 WHERE o.order_date >= ?
                   AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-                """ + NOT_CANCELLED_ORDER_CONDITION, startDate, endDate));
+                """ + COMPLETED_ORDER_CONDITION, startDate, endDate));
         summary.setTotalOrders(queryInt("""
                 SELECT COUNT(*) AS value
                 FROM orders
@@ -40,6 +41,13 @@ public class AdminDashboardDAO extends DBContext {
         summary.setImportedBatches(queryInt("""
                 SELECT COUNT(*) AS value FROM batch WHERE date BETWEEN ? AND ?
                 """, startDate, endDate));
+        summary.setPurchasingCustomers(queryInt("""
+                SELECT COUNT(DISTINCT o.customer_id) AS value
+                FROM orders o
+                LEFT JOIN orders_status os ON os.status_id = o.status_id
+                WHERE o.order_date >= ?
+                  AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
+                """ + COMPLETED_ORDER_CONDITION, startDate, endDate));
         return summary;
     }
 
@@ -56,7 +64,7 @@ public class AdminDashboardDAO extends DBContext {
                 LEFT JOIN orders_status os ON os.status_id = o.status_id
                 WHERE o.order_date >= ?
                   AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-                """ + NOT_CANCELLED_ORDER_CONDITION + """
+                """ + COMPLETED_ORDER_CONDITION + """
                 GROUP BY DATE(o.order_date)
                 ORDER BY revenue_date
                 """;
@@ -103,7 +111,7 @@ public class AdminDashboardDAO extends DBContext {
                 LEFT JOIN orders_status os ON os.status_id = o.status_id
                 WHERE o.order_date >= ?
                   AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-                """ + NOT_CANCELLED_ORDER_CONDITION + """
+                """ + COMPLETED_ORDER_CONDITION + """
                 GROUP BY DATE_FORMAT(o.order_date, ?)
                 ORDER BY MIN(o.order_date) ASC
                 """;
@@ -167,7 +175,7 @@ public class AdminDashboardDAO extends DBContext {
                 LEFT JOIN orders_status os ON os.status_id = o.status_id
                 WHERE o.order_date >= ?
                   AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-                """ + NOT_CANCELLED_ORDER_CONDITION + """
+                """ + COMPLETED_ORDER_CONDITION + """
                 GROUP BY c.category_id, c.category_name
                 HAVING sold_quantity > 0
                 ORDER BY sold_quantity DESC, c.category_name
@@ -199,7 +207,7 @@ public class AdminDashboardDAO extends DBContext {
                LEFT JOIN orders_status os ON os.status_id = o.status_id
                WHERE o.order_date >= ?
                  AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-               """ + NOT_CANCELLED_ORDER_CONDITION + """
+               """ + COMPLETED_ORDER_CONDITION + """
                GROUP BY p.product_id, p.product_name
                ORDER BY sold_quantity DESC
                LIMIT ?
@@ -325,4 +333,38 @@ public class AdminDashboardDAO extends DBContext {
         return value == null ? BigDecimal.ZERO : value;
     }
 
+    public List<model.OrderHistoryItem> getOrdersForExport(LocalDate startDate, LocalDate endDate) {
+        List<model.OrderHistoryItem> list = new ArrayList<>();
+        String sql = """
+                SELECT o.order_id, o.order_date, o.total_amount,
+                       os.status_name, u.full_name AS customer_name,
+                       COALESCE((SELECT SUM(quantity) FROM order_details WHERE order_id = o.order_id), 0) AS total_quantity
+                FROM orders o
+                INNER JOIN customers c ON c.customer_id = o.customer_id
+                INNER JOIN users u ON u.user_id = c.user_id
+                LEFT JOIN orders_status os ON os.status_id = o.status_id
+                WHERE o.order_date >= ? AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
+                """ + COMPLETED_ORDER_CONDITION + """
+                ORDER BY o.order_date DESC, o.order_id DESC
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setDate(1, Date.valueOf(startDate));
+            ps.setDate(2, Date.valueOf(endDate));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    model.OrderHistoryItem item = new model.OrderHistoryItem();
+                    item.setOrderId(rs.getInt("order_id"));
+                    item.setOrderDate(rs.getTimestamp("order_date"));
+                    item.setTotalAmount(nullToZero(rs.getBigDecimal("total_amount")));
+                    item.setStatusName(rs.getString("status_name"));
+                    item.setCustomerName(rs.getString("customer_name"));
+                    item.setTotalQuantity(rs.getInt("total_quantity"));
+                    list.add(item);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

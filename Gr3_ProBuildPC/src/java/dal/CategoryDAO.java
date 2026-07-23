@@ -42,6 +42,10 @@ public class CategoryDAO extends DBContext {
         return list;
     }
 
+    public List<Category> getAllCategoriesForAdmin() {
+        return getCategories(null, "ALL", "oldest", 1, Integer.MAX_VALUE);
+    }
+
     public Category getCategoryById(int categoryId) {
         String sql = """
             SELECT category_id, category_name, status
@@ -237,21 +241,46 @@ public class CategoryDAO extends DBContext {
     }
 
     public boolean updateCategoryStatus(int categoryId, String status) {
-        String sql = """
+        String categorySql = """
             UPDATE categories
             SET status = ?
             WHERE category_id = ?
         """;
+        String productSql = """
+            UPDATE products
+            SET status = 'INACTIVE'
+            WHERE category_id = ?
+        """;
 
         try {
-            PreparedStatement ps = connection.prepareStatement(sql);
+            boolean originalAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            try (PreparedStatement categoryPs = connection.prepareStatement(categorySql)) {
+                categoryPs.setString(1, status);
+                categoryPs.setInt(2, categoryId);
 
-            ps.setString(1, status);
-            ps.setInt(2, categoryId);
+                if (categoryPs.executeUpdate() == 0) {
+                    connection.rollback();
+                    return false;
+                }
 
-            return ps.executeUpdate() > 0;
+                if ("INACTIVE".equalsIgnoreCase(status)) {
+                    try (PreparedStatement productPs = connection.prepareStatement(productSql)) {
+                        productPs.setInt(1, categoryId);
+                        productPs.executeUpdate();
+                    }
+                }
 
+                connection.commit();
+                return true;
+            } catch (SQLException e) {
+                connection.rollback();
+                return false;
+            } finally {
+                connection.setAutoCommit(originalAutoCommit);
+            }
         } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return false;

@@ -372,43 +372,52 @@
                     <a href="<%= ctx %>/ManageWarranty?search=<%= h(searchQuery) %>&statusFilter=<%= statusFilterId != null ? statusFilterId : "" %>&page=<%= currentPage %>&selectedWarrantyId=<%= selectedWarrantyId != null ? selectedWarrantyId : "" %>" class="modal-close" style="text-decoration: none;">&times;</a>
                 </div>
                 <div class="modal-body">
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <label>Sản phẩm</label>
-                            <span><c:out value="${condItem.productName}"/></span>
-                        </div>
-                        <div class="info-item">
-                            <label>Mã đơn hàng</label>
-                            <span>#<c:out value="${condItem.orderId}"/></span>
-                        </div>
-                        <div class="info-item">
-                            <label>Khách hàng</label>
-                            <span><c:out value="${condItem.customerName}"/></span>
-                        </div>
-                        <div class="info-item">
-                            <label>Thương hiệu / Loại</label>
-                            <span><c:out value="${condItem.brandName}"/> / <c:out value="${condItem.categoryName}"/></span>
-                        </div>
-                        <div class="info-item">
-                            <label>Ngày nhận hàng</label>
-                            <span><fmt:formatDate value="${condItem.orderDate}" pattern="dd/MM/yyyy" /></span>
-                        </div>
-                        <div class="info-item">
-                            <label>Thời hạn bảo hành</label>
-                            <span><c:out value="${condItem.warrantyMonths}"/> tháng</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Ngày hết hạn</label>
-                            <span><fmt:formatDate value="${condItem.warrantyEndDate}" pattern="dd/MM/yyyy" /></span>
-                        </div>
-                        <div class="info-item">
-                            <label>Tình trạng bảo hành</label>
-                            <c:set var="wState" value="${condItem.warrantyState}"/>
-                            <span class="remaining-${wState}">
-                                <c:out value="${condItem.warrantyStatusLabel}"/> (<c:out value="${condItem.remainingDaysLabel}"/>)
-                            </span>
-                        </div>
-                    </div>
+                    <c:choose>
+                        <c:when test="${not empty condItem}">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label>Sản phẩm</label>
+                                    <span><c:out value="${condItem.productName}"/></span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Mã đơn hàng</label>
+                                    <span>#<c:out value="${condItem.orderId}"/></span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Khách hàng</label>
+                                    <span><c:out value="${condItem.customerName}"/></span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Thương hiệu / Loại</label>
+                                    <span><c:out value="${condItem.brandName}"/> / <c:out value="${condItem.categoryName}"/></span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Ngày nhận hàng</label>
+                                    <span><fmt:formatDate value="${condItem.orderDate}" pattern="dd/MM/yyyy" /></span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Thời hạn bảo hành</label>
+                                    <span><c:out value="${condItem.warrantyMonths}"/> tháng</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Ngày hết hạn</label>
+                                    <span><fmt:formatDate value="${condItem.warrantyEndDate}" pattern="dd/MM/yyyy" /></span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Tình trạng bảo hành</label>
+                                    <c:set var="wState" value="${condItem.warrantyState}"/>
+                                    <span class="remaining-${wState}">
+                                        <c:out value="${condItem.warrantyStatusLabel}"/> (<c:out value="${condItem.remainingDaysLabel}"/>)
+                                    </span>
+                                </div>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="order-history-empty" style="padding: 16px; margin-bottom: 20px; background: #f9fafb; border-radius: 8px; text-align: center;">
+                                <strong style="color: #4b5563;">Không tìm thấy chi tiết bảo hành cho sản phẩm này</strong>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
 
                     <div class="timeline-section">
                         <h4>📋 Lịch sử tiếp nhận & bảo hành sản phẩm này</h4>

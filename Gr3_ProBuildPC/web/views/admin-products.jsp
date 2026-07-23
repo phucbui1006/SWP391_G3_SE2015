@@ -35,6 +35,8 @@
     List<Product> products = (List<Product>) request.getAttribute("products");
     List<Category> categories = (List<Category>) request.getAttribute("categories");
     List<Brand> brands = (List<Brand>) request.getAttribute("brands");
+    List<Category> filterCategories = (List<Category>) request.getAttribute("filterCategories");
+    List<Brand> filterBrands = (List<Brand>) request.getAttribute("filterBrands");
 
     String keyword = (String) request.getAttribute("keyword");
     Integer selectedCategoryId = (Integer) request.getAttribute("categoryId");
@@ -78,6 +80,12 @@
     }
     if (brands == null) {
         brands = Collections.emptyList();
+    }
+    if (filterCategories == null) {
+        filterCategories = Collections.emptyList();
+    }
+    if (filterBrands == null) {
+        filterBrands = Collections.emptyList();
     }
     if (keyword == null) {
         keyword = "";
@@ -168,7 +176,7 @@
                             <label for="categoryFilter">Danh mục:</label>
                             <select name="categoryId" id="categoryFilter">
                                 <option value="">Tất cả</option>
-                                <% for (Category c : categories) { %>
+                                <% for (Category c : filterCategories) { %>
                                 <option value="<%= c.getCategoryId() %>" <%= (selectedCategoryId != null && selectedCategoryId == c.getCategoryId()) ? "selected" : "" %>><%= h(c.getCategoryName()) %></option>
                                 <% } %>
                             </select>
@@ -178,7 +186,7 @@
                             <label for="brandFilter">Thương hiệu:</label>
                             <select name="brandId" id="brandFilter">
                                 <option value="">Tất cả</option>
-                                <% for (Brand b : brands) { %>
+                                <% for (Brand b : filterBrands) { %>
                                 <option value="<%= b.getBrandId() %>" <%= (selectedBrandId != null && selectedBrandId == b.getBrandId()) ? "selected" : "" %>><%= h(b.getBrandName()) %></option>
                                 <% } %>
                             </select>
@@ -241,6 +249,8 @@
                             <% } else { %>
                             <% for (Product p : products) { 
                                 String imgUrl = p.getImageUrl();
+                                boolean parentInactive = !"ACTIVE".equalsIgnoreCase(p.getCategoryStatus())
+                                        || !"ACTIVE".equalsIgnoreCase(p.getBrandStatus());
                                 if (imgUrl == null || imgUrl.trim().isEmpty()) {
                                     imgUrl = "images/no-image.png";
                                 }
@@ -294,10 +304,21 @@
                                             <input type="hidden" name="sort" value="<%= h(sort) %>">
                                             <input type="hidden" name="page" value="<%= currentPage %>">
 
-                                            <button type="submit"
-                                                    class="action-btn <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "btn-status-deactivate" : "btn-status-activate" %>">
-                                                <%= "ACTIVE".equalsIgnoreCase(p.getStatus()) ? "Ngưng hoạt động" : "Hoạt động" %>
+                                            <% if ("ACTIVE".equalsIgnoreCase(p.getStatus())) { %>
+                                            <button type="submit" class="action-btn btn-status-deactivate">
+                                               Ngưng hoạt động
                                             </button>
+                                            <% } else if (parentInactive) { %>
+                                            <button type="button"
+                                                    class="action-btn btn-status-activate"
+                                                    onclick="alert('Không thể kích hoạt sản phẩm. Hãy kích hoạt danh mục và thương hiệu trước.');">
+                                                Hoạt động
+                                            </button>
+                                            <% } else { %>
+                                            <button type="submit" class="action-btn btn-status-activate">
+                                                Hoạt động
+                                            </button>
+                                            <% } %>
                                         </form>
                                     </div>
                                 </td>

@@ -115,13 +115,6 @@ public class AdminProductServlet extends HttpServlet {
             isSuccess = false;
         }
 
-        if ("XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))) {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write("{\"success\": " + isSuccess + "}");
-            return;
-        }
-
         if (!isSuccess) {
             if ("add".equalsIgnoreCase(action) || "update".equalsIgnoreCase(action)) {
                 populatePageDataWithDefaults(request);
@@ -205,6 +198,8 @@ public class AdminProductServlet extends HttpServlet {
 //        }
         List<Category> categories = categoryDAO.getAllCategories();
         List<Brand> brands = brandDAO.getActiveBrands();
+        List<Category> filterCategories = categoryDAO.getAllCategoriesForAdmin();
+        List<Brand> filterBrands = brandDAO.getBrands(null, "ALL", "oldest");
 
         int startItem = totalProducts == 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
         int endItem = Math.min(currentPage * PAGE_SIZE, totalProducts);
@@ -212,6 +207,8 @@ public class AdminProductServlet extends HttpServlet {
         request.setAttribute("products", products);
         request.setAttribute("categories", categories);
         request.setAttribute("brands", brands);
+        request.setAttribute("filterCategories", filterCategories);
+        request.setAttribute("filterBrands", filterBrands);
         request.setAttribute("keyword", keyword);
         request.setAttribute("categoryId", categoryId);
         request.setAttribute("brandId", brandId);
@@ -243,6 +240,8 @@ public class AdminProductServlet extends HttpServlet {
         List<Product> products = productDAO.getProductsForAdmin(keyword, categoryId, brandId, status, sort, currentPage, PAGE_SIZE);
         List<Category> categories = categoryDAO.getAllCategories();
         List<Brand> brands = brandDAO.getActiveBrands();
+        List<Category> filterCategories = categoryDAO.getAllCategoriesForAdmin();
+        List<Brand> filterBrands = brandDAO.getBrands(null, "ALL", "oldest");
 
         int startItem = totalProducts == 0 ? 0 : 1;
         int endItem = Math.min(PAGE_SIZE, totalProducts);
@@ -250,6 +249,8 @@ public class AdminProductServlet extends HttpServlet {
         request.setAttribute("products", products);
         request.setAttribute("categories", categories);
         request.setAttribute("brands", brands);
+        request.setAttribute("filterCategories", filterCategories);
+        request.setAttribute("filterBrands", filterBrands);
         request.setAttribute("keyword", "");
         request.setAttribute("categoryId", null);
         request.setAttribute("brandId", null);
@@ -323,6 +324,9 @@ public class AdminProductServlet extends HttpServlet {
         String warrantyMonthsRaw = request.getParameter("warrantyMonths");
         String description = normalizeText(request.getParameter("description"));
         String imageUrl = (String) request.getAttribute("savedProductImg");
+        if (imageUrl == null || imageUrl.trim().isEmpty()) {
+            imageUrl = existingProduct.getImageUrl();
+        }
         BigDecimal price = new BigDecimal(priceRaw.trim());
         int warrantyMonths = Integer.parseInt(warrantyMonthsRaw.trim());
         String[] specNames = request.getParameterValues("spec_names[]");
@@ -357,25 +361,29 @@ public class AdminProductServlet extends HttpServlet {
     //Thay đổi trạng thái sản phẩm
     private boolean handleStatusChange(HttpServletRequest request, HttpSession session, String newStatus) {
         Integer productId = parseId(request.getParameter("productId"));
-        boolean isAjax = "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
 
         if (productId == null) {
-            if (!isAjax) {
-                request.setAttribute("error", "Sản phẩm không hợp lệ.");
-            }
+            request.setAttribute("error", "Sản phẩm không hợp lệ.");
             return false;
         }
 
-        if (productDAO.updateProductStatus(productId, newStatus)) {
-            if (!isAjax) {
-                String statusMsg = "ACTIVE".equals(newStatus) ? "Kích hoạt" : "Vô hiệu hóa";
-                session.setAttribute("productSuccess", statusMsg + " sản phẩm thành công.");
+        if ("ACTIVE".equalsIgnoreCase(newStatus)) {
+            Product product = productDAO.getProductByIdForAdmin(productId);
+            if (product == null
+                    || !"ACTIVE".equalsIgnoreCase(product.getCategoryStatus())
+                    || !"ACTIVE".equalsIgnoreCase(product.getBrandStatus())) {
+                request.setAttribute("error",
+                        "Không thể kích hoạt sản phẩm khi danh mục hoặc thương hiệu đang bị vô hiệu hóa.");
+                return false;
             }
+        }
+
+        if (productDAO.updateProductStatus(productId, newStatus)) {
+            String statusMsg = "ACTIVE".equals(newStatus) ? "Kích hoạt" : "Vô hiệu hóa";
+            session.setAttribute("productSuccess", statusMsg + " sản phẩm thành công.");
             return true;
         } else {
-            if (!isAjax) {
-                request.setAttribute("error", "Không thể thay đổi trạng thái sản phẩm.");
-            }
+            request.setAttribute("error", "Không thể thay đổi trạng thái sản phẩm.");
             return false;
         }
     }

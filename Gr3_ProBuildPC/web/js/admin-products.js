@@ -26,14 +26,14 @@ document.addEventListener("DOMContentLoaded", function () {
         var isTypeValid = Validator.validateFileType(file, allowedImageTypes);
         if (!isTypeValid) {
             Validator.showFeedback(fileInput, false, imageTypeMessage);
-            fileInput.value = "";
+            //fileInput.value = "";
             return false;
         }
 
         var isSizeValid = Validator.validateFileSize(file, 2 * 1024 * 1024);
         if (!isSizeValid) {
             Validator.showFeedback(fileInput, false, imageSizeMessage);
-            fileInput.value = "";
+            //fileInput.value = "";
             return false;
         }
 
@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function () {
             var value = input.value.trim();
             var inputValid = !input.required || value !== "";
 
-           // Lấy tên thông số từ label
+            // Lấy tên thông số từ label
             var specName = input.closest(".form-group")
                     .querySelector("label")
                     .textContent
@@ -356,7 +356,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                             nameInp,
                                             !duplicate,
                                             "Tên sản phẩm đã tồn tại trong hệ thống."
-                                    );
+                                            );
                                 }
                             })
                             .catch(function () {

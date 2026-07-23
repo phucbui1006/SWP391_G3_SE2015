@@ -456,20 +456,37 @@ public class ProductDAO extends DBContext {
     }
 
     public boolean updateProductStatus(int productId, String status) {
-        String sql = """
-            UPDATE products
-            SET status = ?
-            WHERE product_id = ?
-        """;
+        String sql;
+        if ("ACTIVE".equalsIgnoreCase(status)) {
+            sql = """
+                UPDATE products p
+                JOIN categories c ON c.category_id = p.category_id
+                JOIN brands br ON br.brand_id = p.brand_id
+                SET p.status = 'ACTIVE'
+                WHERE p.product_id = ?
+                  AND c.status = 'ACTIVE'
+                  AND br.status = 'ACTIVE'
+            """;
+        } else {
+            sql = """
+                UPDATE products
+                SET status = ?
+                WHERE product_id = ?
+            """;
+        }
 
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, status);
-            ps.setInt(2, productId);
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            if ("ACTIVE".equalsIgnoreCase(status)) {
+                ps.setInt(1, productId);
+            } else {
+                ps.setString(1, status);
+                ps.setInt(2, productId);
+            }
 
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return false;

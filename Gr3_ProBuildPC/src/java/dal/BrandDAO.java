@@ -245,21 +245,45 @@ public class BrandDAO extends DBContext {
     }
 
     private boolean updateBrandStatus(int brandId, String status) {
-        String sql = """
+        String brandSql = """
             UPDATE brands
             SET status = ?
             WHERE brand_id = ?
         """;
+        String productSql = """
+            UPDATE products
+            SET status = 'INACTIVE'
+            WHERE brand_id = ?
+        """;
 
         try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, status);
-            ps.setInt(2, brandId);
+            boolean originalAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            try (PreparedStatement brandPs = connection.prepareStatement(brandSql)) {
+                brandPs.setString(1, status);
+                brandPs.setInt(2, brandId);
 
-            return ps.executeUpdate() > 0;
+                if (brandPs.executeUpdate() == 0) {
+                    connection.rollback();
+                    return false;
+                }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+                if ("INACTIVE".equalsIgnoreCase(status)) {
+                    try (PreparedStatement productPs = connection.prepareStatement(productSql)) {
+                        productPs.setInt(1, brandId);
+                        productPs.executeUpdate();
+                    }
+                }
+
+                connection.commit();
+                return true;
+            } catch (SQLException e) {
+                connection.rollback();
+                return false;
+            } finally {
+                connection.setAutoCommit(originalAutoCommit);
+            }
+        } catch (SQLException e) {
         }
 
         return false;

@@ -416,6 +416,15 @@ body.admin-product-body {
     background: #ed1c24;
 }
 
+.action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.action-btn:disabled:hover {
+    opacity: 0.45;
+}
+
 /* Pagination Footer */
 .admin-product-footer {
     padding: 18px 20px;

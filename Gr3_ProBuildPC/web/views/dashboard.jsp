@@ -152,14 +152,6 @@
                 %>
 
                 <div class="employee-dashboard">
-                    <form class="admin-chart-filter" action="<%= employeeDashboard.getFormAction() %>" method="get">
-                        <label>
-                            <input type="date" name="chartFrom" value="<%= employeeDashboard.getStartDate() %>" required> -
-                            <input type="date" name="chartTo" value="<%= employeeDashboard.getEndDate() %>" required>
-                        </label>
-                        <button type="submit">Xem</button>
-                    </form>
-
                     <div class="employee-summary-grid" aria-label="Tổng quan công việc cần xử lý">
                         <% for (EmployeeDashboardView.SummaryCard card : employeeDashboard.getSummaryCards()) { %>
                         <div class="employee-summary-card">
@@ -174,6 +166,14 @@
                         </div>
                         <% } %>
                     </div>
+
+                    <form class="admin-chart-filter" action="<%= employeeDashboard.getFormAction() %>" method="get">
+                        <label>
+                            <input type="date" name="chartFrom" value="<%= employeeDashboard.getStartDate() %>" required> -
+                            <input type="date" name="chartTo" value="<%= employeeDashboard.getEndDate() %>" required>
+                        </label>
+                        <button type="submit">Xem</button>
+                    </form>
 
                     <div id="employeeCharts" class="admin-dashboard-grid admin-bottom-grid" style="margin-top: 20px; margin-bottom: 20px;">
                         <section class="admin-panel admin-chart-panel">
@@ -255,14 +255,6 @@
                 %>
 
                 <div class="shipment-dashboard">
-                    <form class="admin-chart-filter" action="<%= shipmentDashboard.getFormAction() %>" method="get">
-                        <label>
-                            <input type="date" name="chartFrom" value="<%= shipmentDashboard.getStartDate() %>" required> -
-                            <input type="date" name="chartTo" value="<%= shipmentDashboard.getEndDate() %>" required>
-                        </label>
-                        <button type="submit">Xem</button>
-                    </form>
-
                     <div class="shipment-summary-grid" aria-label="Thống kê đơn hàng vận chuyển">
                         <% for (ShipmentDashboardView.SummaryCard card : shipmentDashboard.getSummaryCards()) { %>
                         <div class="shipment-summary-card">
@@ -278,6 +270,14 @@
                         <% } %>
                     </div>
 
+                    <form class="admin-chart-filter" action="<%= shipmentDashboard.getFormAction() %>" method="get">
+                        <label>
+                            <input type="date" name="chartFrom" value="<%= shipmentDashboard.getStartDate() %>" required> -
+                            <input type="date" name="chartTo" value="<%= shipmentDashboard.getEndDate() %>" required>
+                        </label>
+                        <button type="submit">Xem</button>
+                    </form>
+
                     <div id="shipmentCharts" class="admin-dashboard-grid" style="margin-top: 20px; margin-bottom: 20px;">
                         <section class="admin-panel admin-chart-panel">
                             <div class="admin-panel-header">
@@ -285,7 +285,6 @@
                                     <h2>Biểu đồ trạng thái vận chuyển</h2>
                                     <p class="admin-chart-period">
                                         <%= shipmentDashboard.getStartDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) %> - <%= shipmentDashboard.getEndDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) %>
-                                        | <strong>Tổng cộng: <%= shipmentDashboard.getTotalOrderCount() %> đơn</strong>
                                     </p>
                                 </div>
                             </div>

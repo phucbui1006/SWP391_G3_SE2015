@@ -160,7 +160,7 @@ public class DashboardServlet extends HttpServlet {
         List<AdminDashboardView.StatCard> cards = new ArrayList<>();
         cards.add(new AdminDashboardView.StatCard("red", "fa-solid fa-coins", "Tổng doanh thu",
                 DashboardViewHelper.formatCurrency(summary.getTotalRevenue()), ""));
-        cards.add(new AdminDashboardView.StatCard("dark", "fa-solid fa-receipt", "Tổng đơn hàng",
+        cards.add(new AdminDashboardView.StatCard("dark", "fa-solid fa-receipt", "Đơn hàng giao thành công",
                 String.valueOf(summary.getTotalOrders()), ctx + "/order-history"));
         cards.add(new AdminDashboardView.StatCard("purple", "fa-solid fa-truck-ramp-box", "Lô hàng đã nhập",
                 String.valueOf(summary.getImportedBatches()), ctx + "/BatchServlet"));
@@ -247,17 +247,17 @@ public class DashboardServlet extends HttpServlet {
             ShipmentDashboardView dashboard) {
         List<ShipmentDashboardView.SummaryCard> cards = new ArrayList<>();
         cards.add(new ShipmentDashboardView.SummaryCard(
-                "all", "fa-solid fa-boxes-stacked", "Tổng đơn vận chuyển",
-                dashboard.getTotalOrderCount()));
+                "all", "fa-solid fa-boxes-stacked", "Tất cả đơn hàng",
+                dashboard.getOverallOrderCount()));
         cards.add(new ShipmentDashboardView.SummaryCard(
-                "shipping", "fa-solid fa-truck", "Đang giao hàng",
-                dashboard.getShippingOrderCount()));
-        cards.add(new ShipmentDashboardView.SummaryCard(
-                "delivered", "fa-solid fa-circle-check", "Đã giao hàng",
-                dashboard.getDeliveredOrderCount()));
+                "delivered", "fa-solid fa-circle-check", "Đơn đã xác nhận",
+                dashboard.getOverallConfirmedOrderCount()));
         cards.add(new ShipmentDashboardView.SummaryCard(
                 "failed", "fa-solid fa-triangle-exclamation", "Giao hàng thất bại",
-                dashboard.getFailedOrderCount()));
+                dashboard.getOverallFailedOrderCount()));
+        cards.add(new ShipmentDashboardView.SummaryCard(
+                "shipping", "fa-solid fa-truck", "Đang giao hàng",
+                dashboard.getOverallShippingOrderCount()));
         return cards;
     }
 

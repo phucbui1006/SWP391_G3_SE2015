@@ -191,7 +191,7 @@
         <a href="<%= ctx %>/order-history" class="menu-item <%= ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) && !deliveryHistoryMode ? "active" : "" %>"><i class="fa-solid fa-box"></i> Đơn hàng của tôi</a>
         <span class="menu-divider"></span>
 
-        <a href="<%= ctx %>/order-history?deliveryHistory=1" class="menu-item <%= ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) && deliveryHistoryMode ? "active" : "" %>"><i class="fa-solid fa-truck-fast"></i> Lịch sử giao hàng</a>
+        <a href="<%= ctx %>/order-history?deliveryHistory=1" class="menu-item <%= ("/order-history".equals(currentPath) || "/OrderHistory".equals(currentPath)) && deliveryHistoryMode ? "active" : "" %>"><i class="fa-solid fa-truck-fast"></i> Lịch sử giao hàng thành công</a>
         <% } %>
 
 

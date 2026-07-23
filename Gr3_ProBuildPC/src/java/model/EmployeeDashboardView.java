@@ -14,6 +14,9 @@ public class EmployeeDashboardView {
     private int failedOrderCount;
     private int cancelledOrderCount;
     private int deliveredOrderCount;
+    private int overallPendingOrderCount;
+    private int overallFailedOrderCount;
+    private int overallWaitingWarrantyCount;
     private List<ChartPoint> warrantyStatusCounts = new ArrayList<>();
     private List<ChartPoint> orderStatusCounts = new ArrayList<>();
     private List<SummaryCard> summaryCards = new ArrayList<>();
@@ -100,6 +103,30 @@ public class EmployeeDashboardView {
 
     public void setDeliveredOrderCount(int deliveredOrderCount) {
         this.deliveredOrderCount = deliveredOrderCount;
+    }
+
+    public int getOverallPendingOrderCount() {
+        return overallPendingOrderCount;
+    }
+
+    public void setOverallPendingOrderCount(int overallPendingOrderCount) {
+        this.overallPendingOrderCount = overallPendingOrderCount;
+    }
+
+    public int getOverallFailedOrderCount() {
+        return overallFailedOrderCount;
+    }
+
+    public void setOverallFailedOrderCount(int overallFailedOrderCount) {
+        this.overallFailedOrderCount = overallFailedOrderCount;
+    }
+
+    public int getOverallWaitingWarrantyCount() {
+        return overallWaitingWarrantyCount;
+    }
+
+    public void setOverallWaitingWarrantyCount(int overallWaitingWarrantyCount) {
+        this.overallWaitingWarrantyCount = overallWaitingWarrantyCount;
     }
 
 

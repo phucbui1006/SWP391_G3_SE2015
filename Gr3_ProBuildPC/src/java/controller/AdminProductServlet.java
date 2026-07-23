@@ -136,7 +136,6 @@ public class AdminProductServlet extends HttpServlet {
             return;
         }
 
-        // Redirect preserving parameters on success for other actions (PRG pattern)
         String keyword = request.getParameter("keyword");
         String categoryId = request.getParameter("categoryId");
         String brandId = request.getParameter("brandId");
@@ -184,18 +183,8 @@ public class AdminProductServlet extends HttpServlet {
         if (currentPage < 1 || currentPage > totalPages) {
             currentPage = 1;
         }
-////Lấy sản phẩm khi có ID
-       List<Product> products = productDAO.getProductsForAdmin(keyword, categoryId, brandId, status, sort, currentPage, PAGE_SIZE);
-//        List<Product> filteredList = new ArrayList<>();
-//        
-//        for (Product p : products) {
-//            if (p.getProductId() == 1) {
-//                filteredList.add(p);
-//               
-//                
-//            } 
-//            products = filteredList;
-//        }
+        List<Product> products = productDAO.getProductsForAdmin(keyword, categoryId, brandId, status, sort, currentPage, PAGE_SIZE);
+
         List<Category> categories = categoryDAO.getAllCategories();
         List<Brand> brands = brandDAO.getActiveBrands();
         List<Category> filterCategories = categoryDAO.getAllCategoriesForAdmin();
@@ -222,9 +211,7 @@ public class AdminProductServlet extends HttpServlet {
     }
 
     /**
-     * Populate page data with CLEAN defaults (no filters applied). Used when
-     * forwarding back from add/update validation failures to prevent the
-     * product form's categoryId/brandId from corrupting the dashboard filters.
+     * Bỏ qua các tham số đó và tải trang với giá trị mặc định
      */
     private void populatePageDataWithDefaults(HttpServletRequest request) {
         String keyword = "";

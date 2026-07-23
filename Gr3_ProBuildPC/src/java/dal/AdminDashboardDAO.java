@@ -56,6 +56,17 @@ public class AdminDashboardDAO extends DBContext {
         return summary;
     }
 
+    public BigDecimal getTotalImportCost(LocalDate startDate, LocalDate endDate) {
+        String sql = """
+                SELECT COALESCE(SUM(bi.import_quantity * bi.price), 0) AS value
+                FROM batch b
+                JOIN BATCH_ITEMS bi ON b.batch_id = bi.batch_id
+                WHERE b.date >= ?
+                  AND b.date < DATE_ADD(?, INTERVAL 1 DAY)
+                """;
+        return queryBigDecimal(sql, startDate, endDate);
+    }
+
     public Map<LocalDate, BigDecimal> getRevenueByDay(LocalDate startDate, LocalDate endDate) {
         Map<LocalDate, BigDecimal> revenueByDay = new LinkedHashMap<>();
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {

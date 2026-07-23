@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.time.DayOfWeek;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import jakarta.servlet.ServletException;
@@ -78,7 +79,10 @@ public class RevenueServlet extends HttpServlet {
         labels.append("]");
         data.append("]");
 
+        BigDecimal totalImportCost = dao.getTotalImportCost(startDate, endDate);
+
         request.setAttribute("totalRevenue", DashboardViewHelper.formatCurrency(summary.getTotalRevenue()));
+        request.setAttribute("totalImportCost", DashboardViewHelper.formatCurrency(totalImportCost));
         request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("successOrders", successOrders);
         

@@ -88,10 +88,17 @@ public class RevenueExportServlet extends HttpServlet {
 
             out.println("<tr>");
             out.println("<td></td>");
-            out.println("<td><b>Tổng Cộng</b></td>");
+            out.println("<td><b>Tổng Doanh Thu</b></td>");
             out.printf("<td style=\"text-align: center;\"><b>%d</b></td>", totalOrders);
             out.printf("<td style=\"text-align: center;\"><b>%d</b></td>", totalProducts);
             out.printf("<td><b>%s</b></td>", DashboardViewHelper.formatCurrency(totalRevenue));
+            out.println("</tr>");
+
+            BigDecimal totalImportCost = dao.getTotalImportCost(startDate, endDate);
+
+            out.println("<tr>");
+            out.println("<td colspan='4'><b>Vốn Nhập Hàng</b></td>");
+            out.printf("<td><b>%s</b></td>", DashboardViewHelper.formatCurrency(totalImportCost));
             out.println("</tr>");
 
             out.println("</table>");

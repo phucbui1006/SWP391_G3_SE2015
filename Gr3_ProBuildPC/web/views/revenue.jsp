@@ -69,13 +69,7 @@
                                     <strong>${not empty totalCustomers ? totalCustomers : '0'}</strong>
                                 </span>
                             </a>
-                            <a class="admin-stat-card">
-                                <span class="admin-stat-icon" style="background-color: #10b981; color: white;"><i class="fa-solid fa-percent"></i></span>
-                                <span>
-                                    <small>Tỷ lệ hoàn thành</small>
-                                    <strong>${not empty completionRate ? completionRate : '0'}%</strong>
-                                </span>
-                            </a>
+
                         </div>
 
                         <!-- Chart -->

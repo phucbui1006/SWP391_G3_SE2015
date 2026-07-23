@@ -61,10 +61,6 @@ public class RevenueServlet extends HttpServlet {
         }
         
         int totalOrders = summary.getTotalOrders();
-        double completionRate = 0.0;
-        if (totalOrders > 0) {
-            completionRate = ((double) successOrders / totalOrders) * 100.0;
-        }
 
         List<RevenueRow> revenueList = dao.getRevenueStatistics(startDate, endDate, type);
 
@@ -86,7 +82,6 @@ public class RevenueServlet extends HttpServlet {
         request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("successOrders", successOrders);
         request.setAttribute("totalCustomers", summary.getPurchasingCustomers());
-        request.setAttribute("completionRate", String.format("%.2f", completionRate));
         
         request.setAttribute("revenueList", revenueList);
         request.setAttribute("chartLabels", labels.toString());

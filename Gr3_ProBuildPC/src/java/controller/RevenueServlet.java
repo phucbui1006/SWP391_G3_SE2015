@@ -81,7 +81,6 @@ public class RevenueServlet extends HttpServlet {
         request.setAttribute("totalRevenue", DashboardViewHelper.formatCurrency(summary.getTotalRevenue()));
         request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("successOrders", successOrders);
-        request.setAttribute("totalCustomers", summary.getPurchasingCustomers());
         
         request.setAttribute("revenueList", revenueList);
         request.setAttribute("chartLabels", labels.toString());

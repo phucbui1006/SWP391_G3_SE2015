@@ -82,9 +82,6 @@ public class BatchServlet extends HttpServlet {
             case "add":
                 request.setAttribute("message", "Thêm lô hàng thành công.");
                 break;
-            case "update":
-                request.setAttribute("message", "Cập nhật lô hàng thành công.");
-                break;
             default:
                 break;
         }
@@ -142,20 +139,7 @@ public class BatchServlet extends HttpServlet {
                     break;
                 }
 
-                case "editBatch": {
-                    int batchId = Integer.parseInt(request.getParameter("batchId"));
 
-                    Batch editBatch = batchDAO.getBatchById(batchId);
-
-                    if (editBatch == null) {
-                        request.setAttribute("error", "Không tìm thấy lô hàng cần sửa.");
-                    } else {
-                        request.setAttribute("editBatch", editBatch);
-                    }
-
-                    forwardToBatchPage(request, response);
-                    break;
-                }
 
                 default:
                     response.sendRedirect(request.getContextPath() + "/BatchServlet");
@@ -213,39 +197,7 @@ public class BatchServlet extends HttpServlet {
                     break;
                 }
 
-                case "updateBatch": {
-                    int batchId = Integer.parseInt(request.getParameter("batchId"));
-                    String batchName = request.getParameter("batchName");
-                    String dateRaw = request.getParameter("date");
 
-                    Batch tempBatch = new Batch();
-                    tempBatch.setBatchId(batchId);
-                    tempBatch.setBatchName(batchName != null ? batchName.trim() : "");
-                    try {
-                        if (dateRaw != null && !dateRaw.trim().isEmpty()) {
-                            tempBatch.setDate(Date.valueOf(dateRaw));
-                        }
-                    } catch (Exception e) {}
-                    request.setAttribute("editBatch", tempBatch);
-
-                    Date inputDate = Date.valueOf(dateRaw);
-
-                    Batch batch = new Batch();
-                    batch.setBatchId(batchId);
-                    batch.setBatchName(batchName.trim());
-                    batch.setDate(inputDate);
-
-                    boolean success = batchDAO.updateBatch(batch);
-
-                    if (success) {
-                        response.sendRedirect(request.getContextPath() + "/BatchServlet?success=update");
-                    } else {
-                        request.setAttribute("error", "Cập nhật lô hàng thất bại.");
-                        forwardToBatchPage(request, response);
-                    }
-
-                    break;
-                }
 
                 default:
                     response.sendRedirect(request.getContextPath() + "/BatchServlet");

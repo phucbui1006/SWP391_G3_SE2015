@@ -73,21 +73,7 @@ public class BatchItemServlet extends HttpServlet {
         String action = request.getParameter("action");
 
         try {
-            if ("editItem".equals(action)) {
-                int batchItemId = Integer.parseInt(request.getParameter("batchItemId"));
-                int batchId = Integer.parseInt(request.getParameter("batchId"));
 
-                BatchItem editItem = batchItemDAO.getItemById(batchItemId);
-
-                if (editItem == null) {
-                    request.setAttribute("error", "Không tìm thấy sản phẩm trong lô cần sửa.");
-                } else {
-                    request.setAttribute("editItem", editItem);
-                }
-
-                forwardWithBatchDetail(request, response, batchId);
-                return;
-            }
 
             response.sendRedirect(request.getContextPath() + "/BatchServlet");
 
@@ -140,7 +126,7 @@ public class BatchItemServlet extends HttpServlet {
                     boolean existed = batchItemDAO.existsBatchProduct(batchId, productId);
 
                     if (existed) {
-                        request.setAttribute("error", "Sản phẩm này đã tồn tại trong lô. Hãy cập nhật thay vì thêm mới.");
+                        request.setAttribute("error", "Sản phẩm này đã tồn tại trong lô.");
                         forwardWithBatchDetail(request, response, batchId);
                         return;
                     }
@@ -165,52 +151,7 @@ public class BatchItemServlet extends HttpServlet {
                     break;
                 }
 
-                case "updateItem": {
-                    int batchItemId = Integer.parseInt(request.getParameter("batchItemId"));
-                    int batchId = Integer.parseInt(request.getParameter("batchId"));
-                    int productId = Integer.parseInt(request.getParameter("productId"));
-                    int importQuantity = Integer.parseInt(request.getParameter("importQuantity"));
-                    int quantity = Integer.parseInt(request.getParameter("quantity"));
-                    BigDecimal price = new BigDecimal(request.getParameter("price"));
 
-                    if (importQuantity <= 0) {
-                        request.setAttribute("error", "Số lượng nhập phải lớn hơn 0.");
-                        forwardWithBatchDetail(request, response, batchId);
-                        return;
-                    }
-
-                    if (quantity < 0) {
-                        request.setAttribute("error", "Số lượng tồn không được âm.");
-                        forwardWithBatchDetail(request, response, batchId);
-                        return;
-                    }
-
-                    if (price.compareTo(BigDecimal.ZERO) < 0) {
-                        request.setAttribute("error", "Giá nhập không được âm.");
-                        forwardWithBatchDetail(request, response, batchId);
-                        return;
-                    }
-
-                    BatchItem item = new BatchItem();
-                    item.setBatchItemId(batchItemId);
-                    item.setBatchId(batchId);
-                    item.setProductId(productId);
-                    item.setImportQuantity(importQuantity);
-                    item.setQuantity(quantity);
-                    item.setPrice(price);
-
-                    boolean success = batchItemDAO.updateItem(item);
-
-                    if (success) {
-                        response.sendRedirect(request.getContextPath()
-                                + "/BatchServlet?action=viewDetail&batchId=" + batchId);
-                    } else {
-                        request.setAttribute("error", "Cập nhật sản phẩm trong lô thất bại.");
-                        forwardWithBatchDetail(request, response, batchId);
-                    }
-
-                    break;
-                }
 
 
                 default:

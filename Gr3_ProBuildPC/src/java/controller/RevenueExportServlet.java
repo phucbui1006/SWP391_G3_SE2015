@@ -46,11 +46,9 @@ public class RevenueExportServlet extends HttpServlet {
         }
 
         AdminDashboardDAO dao = new AdminDashboardDAO();
-        String exportType = request.getParameter("exportType");
-        boolean isDetailed = "detail".equalsIgnoreCase(exportType);
 
         String currentDateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"));
-        String fileName = isDetailed ? "ProBuildPC_ChiTietDonHang_" + currentDateStr + ".xls" : "ProBuildPC_DoanhThu_" + currentDateStr + ".xls";
+        String fileName = "ProBuildPC_DoanhThu_" + currentDateStr + ".xls";
 
         response.setContentType("application/vnd.ms-excel; charset=UTF-8");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
@@ -59,83 +57,42 @@ public class RevenueExportServlet extends HttpServlet {
             out.println("<html><head><meta charset=\"UTF-8\"></head><body>");
             out.println("<table border='1'>");
             
-            if (isDetailed) {
-                // Export Detailed Orders
-                List<model.OrderHistoryItem> orderList = dao.getOrdersForExport(startDate, endDate);
-                out.println("<tr style=\"background-color: #d1d5db;\">");
-                out.println("<th>STT</th><th>Mã đơn hàng</th><th>Thời gian đặt</th><th>Tên khách hàng</th><th>Trạng thái</th><th>Số lượng SP</th><th>Tổng tiền</th>");
-                out.println("</tr>");
+            // Export Summary
+            List<RevenueRow> revenueList = dao.getRevenueStatistics(startDate, endDate, type);
+            out.println("<tr style=\"background-color: #d1d5db;\">");
+            out.println("<th>STT</th><th>Thời gian</th><th>Số đơn</th><th>Tổng SP bán ra</th><th>Doanh thu</th>");
+            out.println("</tr>");
 
-                int rowNum = 1;
-                long totalQuantity = 0;
-                BigDecimal totalAmount = BigDecimal.ZERO;
+            long totalOrders = 0;
+            BigDecimal totalRevenue = BigDecimal.ZERO;
+            long totalProducts = 0;
 
-                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-
-                for (model.OrderHistoryItem o : orderList) {
-                    out.println("<tr>");
-                    out.printf("<td style=\"text-align: center;\">%d</td>", rowNum++);
-                    out.printf("<td style=\"text-align: center;\">%d</td>", o.getOrderId());
-                    
-                    String formattedDate = o.getOrderDate() != null ? 
-                        new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(o.getOrderDate()) : "";
-                    
-                    out.printf("<td>%s</td>", formattedDate);
-                    out.printf("<td>%s</td>", DashboardViewHelper.h(o.getCustomerName()));
-                    out.printf("<td>%s</td>", o.getStatusName());
-                    out.printf("<td style=\"text-align: center;\">%d</td>", o.getTotalQuantity());
-                    out.printf("<td>%s</td>", DashboardViewHelper.formatCurrency(o.getTotalAmount()));
-                    out.println("</tr>");
-
-                    totalQuantity += o.getTotalQuantity();
-                    totalAmount = totalAmount.add(o.getTotalAmount());
+            int rowNum = 1;
+            for (RevenueRow r : revenueList) {
+                if (r.getOrderCount() == 0 && r.getRevenue().compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
                 }
-
-                // Total Row
-                out.println("<tr>");
-                out.println("<td colspan='5' style=\"text-align: right;\"><b>Tổng Cộng</b></td>");
-                out.printf("<td style=\"text-align: center;\"><b>%d</b></td>", totalQuantity);
-                out.printf("<td><b>%s</b></td>", DashboardViewHelper.formatCurrency(totalAmount));
-                out.println("</tr>");
                 
-            } else {
-                // Export Summary
-                List<RevenueRow> revenueList = dao.getRevenueStatistics(startDate, endDate, type);
-                out.println("<tr style=\"background-color: #d1d5db;\">");
-                out.println("<th>STT</th><th>Thời gian</th><th>Số đơn</th><th>Tổng SP bán ra</th><th>Doanh thu</th>");
-                out.println("</tr>");
-
-                long totalOrders = 0;
-                BigDecimal totalRevenue = BigDecimal.ZERO;
-                long totalProducts = 0;
-
-                int rowNum = 1;
-                for (RevenueRow r : revenueList) {
-                    if (r.getOrderCount() == 0 && r.getRevenue().compareTo(BigDecimal.ZERO) <= 0) {
-                        continue;
-                    }
-                    
-                    out.println("<tr>");
-                    out.printf("<td style=\"text-align: center;\">%d</td>", rowNum++);
-                    out.printf("<td>%s</td>", r.getLabel() != null ? r.getLabel() : "");
-                    out.printf("<td style=\"text-align: center;\">%d</td>", r.getOrderCount());
-                    out.printf("<td style=\"text-align: center;\">%d</td>", r.getProductsSold());
-                    out.printf("<td>%s</td>", r.getFormattedRevenue() != null ? r.getFormattedRevenue() : "0");
-                    out.println("</tr>");
-
-                    totalOrders += r.getOrderCount();
-                    totalRevenue = totalRevenue.add(r.getRevenue());
-                    totalProducts += r.getProductsSold();
-                }
-
                 out.println("<tr>");
-                out.println("<td></td>");
-                out.println("<td><b>Tổng Cộng</b></td>");
-                out.printf("<td style=\"text-align: center;\"><b>%d</b></td>", totalOrders);
-                out.printf("<td style=\"text-align: center;\"><b>%d</b></td>", totalProducts);
-                out.printf("<td><b>%s</b></td>", DashboardViewHelper.formatCurrency(totalRevenue));
+                out.printf("<td style=\"text-align: center;\">%d</td>", rowNum++);
+                out.printf("<td>%s</td>", r.getLabel() != null ? r.getLabel() : "");
+                out.printf("<td style=\"text-align: center;\">%d</td>", r.getOrderCount());
+                out.printf("<td style=\"text-align: center;\">%d</td>", r.getProductsSold());
+                out.printf("<td>%s</td>", r.getFormattedRevenue() != null ? r.getFormattedRevenue() : "0");
                 out.println("</tr>");
+
+                totalOrders += r.getOrderCount();
+                totalRevenue = totalRevenue.add(r.getRevenue());
+                totalProducts += r.getProductsSold();
             }
+
+            out.println("<tr>");
+            out.println("<td></td>");
+            out.println("<td><b>Tổng Cộng</b></td>");
+            out.printf("<td style=\"text-align: center;\"><b>%d</b></td>", totalOrders);
+            out.printf("<td style=\"text-align: center;\"><b>%d</b></td>", totalProducts);
+            out.printf("<td><b>%s</b></td>", DashboardViewHelper.formatCurrency(totalRevenue));
+            out.println("</tr>");
 
             out.println("</table>");
             out.println("</body></html>");

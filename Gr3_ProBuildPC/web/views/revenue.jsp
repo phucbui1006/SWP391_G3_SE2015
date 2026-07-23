@@ -35,8 +35,7 @@
                             </label>
 
                             <button type="submit">Xem báo cáo</button>
-                            <button type="submit" formaction="${pageContext.request.contextPath}/RevenueExportServlet" name="exportType" value="summary" style="background: #16a34a;">Xuất Tổng hợp</button>
-                            <button type="submit" formaction="${pageContext.request.contextPath}/RevenueExportServlet" name="exportType" value="detail" style="background: #2563eb;">Xuất Chi tiết</button>
+                            <button type="submit" formaction="${pageContext.request.contextPath}/RevenueExportServlet" style="background: #16a34a;">Xuất Excel</button>
                         </form>
 
                         <!-- Summary -->
@@ -49,26 +48,13 @@
                                 </span>
                             </a>
                             <a class="admin-stat-card">
-                                <span class="admin-stat-icon blue"><i class="fa-solid fa-boxes-stacked"></i></span>
+                                <span class="admin-stat-icon blue"><i class="fa-solid fa-check"></i></span>
                                 <span>
-                                    <small>Tổng đơn hàng</small>
-                                    <strong>${not empty totalOrders ? totalOrders : '0'}</strong>
-                                </span>
-                            </a>
-                            <a class="admin-stat-card">
-                                <span class="admin-stat-icon purple"><i class="fa-solid fa-check"></i></span>
-                                <span>
-                                    <small>Đơn thành công</small>
+                                    <small>Tổng đơn hàng thành công</small>
                                     <strong>${not empty successOrders ? successOrders : '0'}</strong>
                                 </span>
                             </a>
-                            <a class="admin-stat-card">
-                                <span class="admin-stat-icon orange"><i class="fa-solid fa-users"></i></span>
-                                <span>
-                                    <small>Khách mua hàng</small>
-                                    <strong>${not empty totalCustomers ? totalCustomers : '0'}</strong>
-                                </span>
-                            </a>
+
 
                         </div>
 

@@ -51,10 +51,10 @@ public class ForgotPasswordServlet extends HttpServlet {
             }
         }
 
-        String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+        //String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 
-        //com.mifmif.common.regex.Generex generex = new com.mifmif.common.regex.Generex("[0-9]{6}");
-        //String otp = generex.random();
+        com.mifmif.common.regex.Generex generex = new com.mifmif.common.regex.Generex("[0-9]{6}");
+        String otp = generex.random();
         session.setAttribute("resetEmail", email);
         session.setAttribute("resetOtp", otp);
         session.setAttribute("otpExpiredTime", System.currentTimeMillis() + 2 * 60 * 1000);

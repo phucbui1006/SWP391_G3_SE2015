@@ -98,35 +98,7 @@ public class BatchItemDAO extends DBContext {
         return false;
     }
 
-    public boolean updateItem(BatchItem item) {
-        String sql = """
-            UPDATE BATCH_ITEMS
-            SET batch_id = ?,
-                product_id = ?,
-                import_quantity = ?,
-                quantity = ?,
-                price = ?
-            WHERE batch_item_id = ?
-        """;
 
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-
-            ps.setInt(1, item.getBatchId());
-            ps.setInt(2, item.getProductId());
-            ps.setInt(3, item.getImportQuantity());
-            ps.setInt(4, item.getQuantity());
-            ps.setBigDecimal(5, item.getPrice());
-            ps.setInt(6, item.getBatchItemId());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
 
 
     public boolean existsBatchProduct(int batchId, int productId) {

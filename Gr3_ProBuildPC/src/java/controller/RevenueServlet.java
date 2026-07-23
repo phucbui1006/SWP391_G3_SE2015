@@ -49,7 +49,6 @@ public class RevenueServlet extends HttpServlet {
         
         DashboardSummary summary = dao.getSummary(startDate, endDate);
         Map<String, Integer> orderStatusCounts = dao.getOrderStatusCounts(startDate, endDate);
-        AccountSummary accountSummary = dao.getAccountSummary();
         
         int successOrders = 0;
         if (orderStatusCounts != null) {
@@ -59,6 +58,12 @@ public class RevenueServlet extends HttpServlet {
                     successOrders += entry.getValue();
                 }
             }
+        }
+        
+        int totalOrders = summary.getTotalOrders();
+        double completionRate = 0.0;
+        if (totalOrders > 0) {
+            completionRate = ((double) successOrders / totalOrders) * 100.0;
         }
 
         List<RevenueRow> revenueList = dao.getRevenueStatistics(startDate, endDate, type);
@@ -78,9 +83,10 @@ public class RevenueServlet extends HttpServlet {
         data.append("]");
 
         request.setAttribute("totalRevenue", DashboardViewHelper.formatCurrency(summary.getTotalRevenue()));
-        request.setAttribute("totalOrders", summary.getTotalOrders());
+        request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("successOrders", successOrders);
-        request.setAttribute("totalCustomers", accountSummary.getCustomers());
+        request.setAttribute("totalCustomers", summary.getPurchasingCustomers());
+        request.setAttribute("completionRate", String.format("%.2f", completionRate));
         
         request.setAttribute("revenueList", revenueList);
         request.setAttribute("chartLabels", labels.toString());

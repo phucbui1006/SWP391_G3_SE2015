@@ -33,4 +33,14 @@ public class DashboardSummary {
     public void setImportedBatches(int importedBatches) {
         this.importedBatches = importedBatches;
     }
+
+    private int purchasingCustomers;
+
+    public int getPurchasingCustomers() {
+        return purchasingCustomers;
+    }
+
+    public void setPurchasingCustomers(int purchasingCustomers) {
+        this.purchasingCustomers = purchasingCustomers;
+    }
 }

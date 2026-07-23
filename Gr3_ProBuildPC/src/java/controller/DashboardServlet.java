@@ -208,25 +208,15 @@ public class DashboardServlet extends HttpServlet {
     private List<EmployeeDashboardView.SummaryCard> buildEmployeeSummaryCards(
             EmployeeDashboardView dashboard) {
         List<EmployeeDashboardView.SummaryCard> cards = new ArrayList<>();
-      
         cards.add(new EmployeeDashboardView.SummaryCard(
-                "delivered", "fa-solid fa-circle-check", "Đơn hàng đã giao",
-                dashboard.getDeliveredOrderCount(), "đơn"));
+                "waiting", "fa-regular fa-clock", "Đơn hàng chờ xác nhận",
+                dashboard.getOverallPendingOrderCount(), "đơn"));
         cards.add(new EmployeeDashboardView.SummaryCard(
-                "cancelled", "fa-solid fa-ban", "Đơn hàng đã hủy",
-                dashboard.getCancelledOrderCount(), "đơn"));
+                "rejected", "fa-solid fa-triangle-exclamation", "Đơn hàng giao hàng thất bại",
+                dashboard.getOverallFailedOrderCount(), "đơn"));
         cards.add(new EmployeeDashboardView.SummaryCard(
-                "rejected", "fa-solid fa-triangle-exclamation", "Giao hàng thất bại",
-                dashboard.getFailedOrderCount(), "đơn"));
-        cards.add(new EmployeeDashboardView.SummaryCard(
-                "waiting", "fa-regular fa-clock", "Bảo hành chờ tiếp nhận",
-                dashboard.getWaitingWarrantyCount(), "yêu cầu"));
-        cards.add(new EmployeeDashboardView.SummaryCard(
-                "received", "fa-solid fa-clipboard-check", "Bảo hành đã được chấp nhận",
-                dashboard.getAcceptedWarrantyCount(), "yêu cầu"));
-        cards.add(new EmployeeDashboardView.SummaryCard(
-                "warranty-rejected", "fa-solid fa-circle-xmark", "Bảo hành bị từ chối",
-                dashboard.getRejectedWarrantyCount(), "yêu cầu"));
+                "received", "fa-solid fa-clipboard-check", "Bảo hành chờ xác nhận",
+                dashboard.getOverallWaitingWarrantyCount(), "yêu cầu"));
         return cards;
     }
 

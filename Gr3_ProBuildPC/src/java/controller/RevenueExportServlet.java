@@ -46,9 +46,7 @@ public class RevenueExportServlet extends HttpServlet {
         }
 
         AdminDashboardDAO dao = new AdminDashboardDAO();
-        List<RevenueRow> revenueList = dao.getRevenueStatistics(startDate, endDate, type);
 
-        // Định dạng Tên File
         String currentDateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"));
         String fileName = "ProBuildPC_DoanhThu_" + currentDateStr + ".xls";
 
@@ -59,19 +57,18 @@ public class RevenueExportServlet extends HttpServlet {
             out.println("<html><head><meta charset=\"UTF-8\"></head><body>");
             out.println("<table border='1'>");
             
-            // Header
+            // Export Summary
+            List<RevenueRow> revenueList = dao.getRevenueStatistics(startDate, endDate, type);
             out.println("<tr style=\"background-color: #d1d5db;\">");
-            out.println("<th>STT</th><th>Thời gian</th><th>Số đơn</th><th>Tổng SP bán ra</th><th>Doanh thu</th><th>Trung bình/Đơn</th>");
+            out.println("<th>STT</th><th>Thời gian</th><th>Số đơn</th><th>Tổng SP bán ra</th><th>Doanh thu</th>");
             out.println("</tr>");
 
             long totalOrders = 0;
             BigDecimal totalRevenue = BigDecimal.ZERO;
             long totalProducts = 0;
 
-            // Data Rows
             int rowNum = 1;
             for (RevenueRow r : revenueList) {
-                // Bỏ qua những ngày không có đơn hàng / không có doanh thu
                 if (r.getOrderCount() == 0 && r.getRevenue().compareTo(BigDecimal.ZERO) <= 0) {
                     continue;
                 }
@@ -82,7 +79,6 @@ public class RevenueExportServlet extends HttpServlet {
                 out.printf("<td style=\"text-align: center;\">%d</td>", r.getOrderCount());
                 out.printf("<td style=\"text-align: center;\">%d</td>", r.getProductsSold());
                 out.printf("<td>%s</td>", r.getFormattedRevenue() != null ? r.getFormattedRevenue() : "0");
-                out.printf("<td>%s</td>", r.getFormattedAverage() != null ? r.getFormattedAverage() : "0");
                 out.println("</tr>");
 
                 totalOrders += r.getOrderCount();
@@ -90,14 +86,19 @@ public class RevenueExportServlet extends HttpServlet {
                 totalProducts += r.getProductsSold();
             }
 
-            // Total Row
             out.println("<tr>");
             out.println("<td></td>");
-            out.println("<td><b>Tổng Cộng</b></td>");
+            out.println("<td><b>Tổng Doanh Thu</b></td>");
             out.printf("<td style=\"text-align: center;\"><b>%d</b></td>", totalOrders);
             out.printf("<td style=\"text-align: center;\"><b>%d</b></td>", totalProducts);
             out.printf("<td><b>%s</b></td>", DashboardViewHelper.formatCurrency(totalRevenue));
-            out.println("<td></td>");
+            out.println("</tr>");
+
+            BigDecimal totalImportCost = dao.getTotalImportCost(startDate, endDate);
+
+            out.println("<tr>");
+            out.println("<td colspan='4'><b>Vốn Nhập Hàng</b></td>");
+            out.printf("<td><b>%s</b></td>", DashboardViewHelper.formatCurrency(totalImportCost));
             out.println("</tr>");
 
             out.println("</table>");

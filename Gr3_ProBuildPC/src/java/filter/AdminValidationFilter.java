@@ -156,7 +156,7 @@ public class AdminValidationFilter implements Filter {
 
     private boolean validateBatch(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         String action = req.getParameter("action");
-        if (!"addBatch".equalsIgnoreCase(action) && !"updateBatch".equalsIgnoreCase(action)) {
+        if (!"addBatch".equalsIgnoreCase(action)) {
             return true;
         }
 

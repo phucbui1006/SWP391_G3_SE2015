@@ -39,9 +39,6 @@ public final class DashboardViewHelper {
         if (value.contains("đang giao") || value.contains("dang giao")) {
             return "shipping";
         }
-        if (value.contains("chuẩn bị") || value.contains("chuan bi")) {
-            return "preparing";
-        }
         if (value.contains("xác nhận") || value.contains("xac nhan")) {
             return value.contains("chờ") || value.contains("cho ") ? "pending" : "confirmed";
         }
@@ -55,9 +52,6 @@ public final class DashboardViewHelper {
         }
         if ("confirmed".equals(cssClass) || "delivered".equals(cssClass)) {
             return "fa-solid fa-check";
-        }
-        if ("preparing".equals(cssClass)) {
-            return "fa-solid fa-box-open";
         }
         if ("shipping".equals(cssClass)) {
             return "fa-solid fa-truck-fast";

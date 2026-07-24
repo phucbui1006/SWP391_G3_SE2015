@@ -127,8 +127,7 @@ public class OrderHistoryServlet extends HttpServlet {
     }
 
     private boolean shouldHideStatus(String statusName) {
-        String normalized = normalizeVietnameseText(statusName);
-        return normalized.contains("dang chuan bi hang");
+        return false;
     }
 
     private String normalizeVietnameseText(String value) {
@@ -190,12 +189,6 @@ public class OrderHistoryServlet extends HttpServlet {
             HttpSession session,
             User account,
             Integer orderId) throws IOException {
-        if (!account.isCustomer()) {
-            session.setAttribute(ERROR_FLASH, "Chỉ khách hàng mới có thể hủy đơn hàng của mình.");
-            response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));
-            return;
-        }
-
         if (orderId == null) {
             session.setAttribute(ERROR_FLASH, "Đơn hàng cần hủy không hợp lệ.");
             response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, null));
@@ -203,11 +196,24 @@ public class OrderHistoryServlet extends HttpServlet {
         }
 
         OrderHistoryDAO orderHistoryDAO = new OrderHistoryDAO();
-        boolean cancelled = orderHistoryDAO.cancelWaitingOrder(orderId, account.getCustomerId());
-        if (cancelled) {
-            session.setAttribute(SUCCESS_FLASH, "Đã hủy đơn hàng thành công.");
+        boolean cancelled = false;
+
+        if (account.isCustomer()) {
+            cancelled = orderHistoryDAO.cancelWaitingOrder(orderId, account.getCustomerId());
+            if (cancelled) {
+                session.setAttribute(SUCCESS_FLASH, "Đã hủy đơn hàng thành công.");
+            } else {
+                session.setAttribute(ERROR_FLASH, "Chỉ có thể hủy đơn hàng đang ở trạng thái Chờ xác nhận hoặc Đã xác nhận.");
+            }
+        } else if (isEmployee(account) || isAdmin(account)) {
+            cancelled = orderHistoryDAO.cancelWaitingOrderByStaff(orderId);
+            if (cancelled) {
+                session.setAttribute(SUCCESS_FLASH, "Nhân viên đã hủy đơn hàng #" + orderId + " thành công.");
+            } else {
+                session.setAttribute(ERROR_FLASH, "Nhân viên chỉ có thể hủy đơn hàng đang ở trạng thái Chờ xác nhận.");
+            }
         } else {
-            session.setAttribute(ERROR_FLASH, "Chỉ có thể hủy đơn hàng đang ở trạng thái Chờ xác nhận hoặc Đã xác nhận.");
+            session.setAttribute(ERROR_FLASH, "Bạn không có quyền thực hiện chức năng hủy đơn hàng.");
         }
 
         response.sendRedirect(request.getContextPath() + "/order-history" + buildQueryString(request, orderId));

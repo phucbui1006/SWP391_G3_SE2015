@@ -342,6 +342,65 @@ public class OrderHistoryDAO extends DBContext {
         return false;
     }
 
+    public boolean cancelWaitingOrderByStaff(int orderId) {
+        if (orderId <= 0) {
+            return false;
+        }
+
+        try {
+            Integer waitingStatusId = 1; // Chờ xác nhận
+            Integer cancelledStatusId = 6; // Đã hủy
+
+            int currentStatusId = 0;
+            try (PreparedStatement psCheck = connection.prepareStatement(
+                    "SELECT status_id FROM orders WHERE order_id = ?")) {
+                psCheck.setInt(1, orderId);
+                try (ResultSet rs = psCheck.executeQuery()) {
+                    if (rs.next()) {
+                        currentStatusId = rs.getInt("status_id");
+                    }
+                }
+            }
+
+            if (currentStatusId != waitingStatusId) {
+                return false;
+            }
+
+            String sql = """
+                         UPDATE orders
+                         SET status_id = ?,
+                             payment_status = CASE
+                                 WHEN payment_status IS NULL
+                                      OR LOWER(payment_status) IN (LOWER('Chờ thanh toán'), LOWER('Chưa thanh toán'))
+                                 THEN 'Đã hủy'
+                                 ELSE payment_status
+                             END
+                         WHERE order_id = ?
+                           AND status_id = ?
+                         """;
+
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, cancelledStatusId);
+                ps.setInt(2, orderId);
+                ps.setInt(3, waitingStatusId);
+                boolean success = ps.executeUpdate() > 0;
+                if (success) {
+                    try (PreparedStatement psShipment = connection.prepareStatement(
+                            "UPDATE shipments SET shipment_status = ? WHERE order_id = ?")) {
+                        psShipment.setString(1, "Đã hủy");
+                        psShipment.setInt(2, orderId);
+                        psShipment.executeUpdate();
+                    }
+                }
+                return success;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     private String baseOrderSelect() {
         return """
                SELECT o.order_id,

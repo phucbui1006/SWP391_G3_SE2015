@@ -3,7 +3,20 @@
         return;
     }
 
-    const data = window.adminDashboardData || {};
+    function readDashboardData(elementId) {
+        const element = document.getElementById(elementId);
+        if (!element) {
+            return {};
+        }
+
+        try {
+            return JSON.parse(element.textContent);
+        } catch (error) {
+            return {};
+        }
+    }
+
+    const data = readDashboardData('adminDashboardData');
     const viNumber = new Intl.NumberFormat('vi-VN');
     const colors = ['#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#7c3aed', '#0891b2', '#db2777', '#65a30d', '#ea580c', '#475569'];
 
@@ -96,5 +109,18 @@
             context => unit('sản phẩm')(context.parsed.x), true);
     bar('orderStatusChart', data.orderStatusLabels, data.orderStatusValues, 'Số lượng đơn hàng',
             labels(data.orderStatusLabels).map((_, index) => colors[(index + 1) % colors.length]),
+            context => unit('đơn')(context.parsed.y), false);
+
+    const employeeData = readDashboardData('employeeDashboardData');
+    bar('employeeWarrantyChart', employeeData.warrantyLabels, employeeData.warrantyValues,
+            'Số yêu cầu bảo hành', ['#f59e0b', '#16a34a', '#dc2626'],
+            context => unit('yêu cầu')(context.parsed.y), false);
+    bar('employeeOrderChart', employeeData.orderLabels, employeeData.orderValues,
+            'Số lượng đơn hàng', ['#f59e0b', '#2563eb', '#64748b', '#dc2626'],
+            context => unit('đơn')(context.parsed.y), false);
+
+    const shipmentData = readDashboardData('shipmentDashboardData');
+    bar('shipmentStatusChart', shipmentData.statusLabels, shipmentData.statusValues,
+            'Số lượng đơn hàng', ['#2563eb', '#16a34a', '#dc2626'],
             context => unit('đơn')(context.parsed.y), false);
 })();

@@ -1,0 +1,134 @@
+"Test Case ID","Test Case Description","Test Case Procedure","Expected Results","Pre-conditions"
+"Scenario 1: Customer Management","","","",""
+"TC_CUST_01","Test accessing Customer Management page without logging in","1. Open browser.
+2. Navigate directly to /AccountManagement?type=user URL.","The system blocks access and automatically redirects the user to /Login page.","The user is not logged into the system."
+"TC_CUST_02","Test accessing Customer Management page with Customer role","1. Login to the system with a Customer account.
+2. Enter URL /AccountManagement?type=user in browser address bar.","The system denies access and redirects the user to /home page.","The user is logged in with a Customer role account."
+"TC_CUST_03","Test accessing Customer Management page with Staff role (Employee / Shipment)","1. Login to the system with a Staff account.
+2. Enter URL /AccountManagement?type=user in browser address bar.","The system denies access and redirects the user to /Dashboard page.","The user is logged in with an Employee or Shipment account."
+"TC_CUST_04","Test accessing Customer Management page with Admin role","1. Login to the system with an Admin account.
+2. Navigate to Dashboard.
+3. Click Account Management -> Select Customer Accounts tab.","Access is granted. Customer Accounts list page is displayed properly with all customer data and management tools.","The user is logged in with an Admin role account."
+"TC_CUST_05","Test viewing Customer Accounts list","1. Navigate to Account Management page as Admin.
+2. Ensure Customer Accounts tab (type=user) is active.","The Customer Accounts table is displayed:
+- Table columns: #, Customer Name, Email, Role, Status, Action.
+- + Create Staff button is hidden.
+- Role selection dropdown is disabled/read-only (displays static Customer text).","Logged in with Admin account on Customer Management tab."
+"TC_CUST_06","Test searching customer accounts by valid name","1. Go to Customer Management tab.
+2. Enter valid name keyword (e.g., 'Nguyen') in search box.
+3. Click Search button.","The table updates and displays only customer accounts whose full name contains 'Nguyen'.","Logged in with Admin account on Customer Management tab."
+"TC_CUST_07","Test searching customer accounts by valid email","1. Go to Customer Management tab.
+2. Enter email keyword (e.g., 'gmail.com') in search box.
+3. Click Search button.","The table updates and displays only customer accounts whose email address contains 'gmail.com'.","Logged in with Admin account on Customer Management tab."
+"TC_CUST_08","Test searching customer accounts with non-existent keyword","1. Go to Customer Management tab.
+2. Enter a non-existent keyword (e.g., 'xyz99999') in search box.
+3. Click Search button.","The table displays an empty state message: 'No matching accounts found.'","Logged in with Admin account on Customer Management tab."
+"TC_CUST_09","Test filtering customer accounts by Active status","1. Go to Customer Management tab.
+2. Select 'Active' from Status filter dropdown.
+3. Form auto-submits.","The table updates to show only customer accounts with ACTIVE status.","Logged in with Admin account on Customer Management tab."
+"TC_CUST_10","Test filtering customer accounts by Inactive status","1. Go to Customer Management tab.
+2. Select 'Inactive' from Status filter dropdown.
+3. Form auto-submits.","The table updates to show only customer accounts with INACTIVE status (grey badge).","Logged in with Admin account on Customer Management tab."
+"TC_CUST_11","Test customer accounts list pagination display","1. Go to Customer Management tab with > 5 total customer accounts.
+2. Inspect pagination control at table footer.","- Table displays a maximum of 5 customer accounts per page.
+- Footer shows pagination bar (e.g., 1 2 3 ... ›).","Logged in with Admin account, total customer accounts > 5."
+"TC_CUST_12","Test navigating between customer list pages","1. Click page number '2'.
+2. Click next page button (›).
+3. Click previous page button (‹).","The list correctly displays customer data corresponding to the selected page number while preserving active search keyword and filter selections.","Logged in with Admin account, total customer pages > 1."
+"TC_CUST_13","Test navigating to out-of-range page number in customer list","1. Enter URL with invalid page parameter (e.g., page=999).","The system automatically adjusts page number to the last valid page (totalPages) without crashing.","Logged in with Admin account on Customer Management tab."
+"TC_CUST_14","Test deactivating a Customer account (ACTIVE -> INACTIVE)","1. Go to Customer Management tab.
+2. Find an ACTIVE Customer row.
+3. Click Deactivate (Ngưng hoạt động) button in Action column.","- Account status changes to INACTIVE.
+- Status badge updates to grey 'Inactive'.
+- Action button label changes to 'Activate' (Hoạt động).","Logged in with Admin account, target Customer status is ACTIVE."
+"TC_CUST_15","Test activating a Customer account (INACTIVE -> ACTIVE)","1. Go to Customer Management tab.
+2. Find an INACTIVE Customer row.
+3. Click Activate (Hoạt động) button in Action column.","- Account status changes to ACTIVE.
+- Status badge updates to green 'Active'.
+- Action button label changes to 'Deactivate'.","Logged in with Admin account, target Customer status is INACTIVE."
+"TC_CUST_16","Test verifying Role editing is disabled for Customer accounts","1. Inspect Role column in Customer Accounts table.","Role column displays static label 'Customer'. No role select dropdown is provided. Backend rejects role modification requests for customer accounts.","Logged in with Admin account on Customer Management tab."
+"TC_CUST_17","Test verifying + Create Staff button is hidden in Customer tab","1. Inspect toolbar of Customer Accounts page (type=user).","The + Create Staff button is hidden from the UI.","Logged in with Admin account on Customer Management tab."
+"TC_CUST_18","Test verifying Reset Password button is hidden for Customer accounts","1. Inspect Action column for Customer rows.","Reset Password button is NOT present in Customer table rows. Backend rejects password reset attempts for Customer accounts.","Logged in with Admin account on Customer Management tab."
+"Scenario 2: Staff Management","","","",""
+"TC_STAFF_01","Test accessing Staff Management page with Admin role","1. Login to system with Admin account.
+2. Navigate to Dashboard.
+3. Click Account Management -> Select Staff Accounts tab (type=staff).","Access is granted. Staff Accounts list page is displayed with + Create Staff button, Role filter, and staff management controls.","The user is logged in with an Admin role account."
+"TC_STAFF_02","Test viewing Staff Accounts list","1. Navigate to Staff Accounts tab (type=staff).","The Staff Accounts table is displayed:
+- Table displays staff name, email, role, status.
+- + Create Staff button is visible.
+- Role filter dropdown is visible.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_03","Test searching staff accounts by valid name","1. Go to Staff Management tab.
+2. Enter valid name keyword (e.g., 'Phuc') in search box.
+3. Click Search button.","The table updates and displays only staff accounts whose full name contains 'Phuc'.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_04","Test searching staff accounts by valid email","1. Go to Staff Management tab.
+2. Enter email domain keyword (e.g., 'probuild.com') in search box.
+3. Click Search button.","The table updates and displays only staff accounts whose email address contains 'probuild.com'.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_05","Test searching staff accounts with non-existent keyword","1. Go to Staff Management tab.
+2. Enter non-existent keyword (e.g., 'xyz99999') in search box.
+3. Click Search button.","The table displays an empty state message: 'No matching accounts found.'","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_06","Test filtering staff accounts by Role","1. Go to Staff Management tab.
+2. Select 'Shipment' from Role filter dropdown.
+3. Form auto-submits.","The table updates to show only staff accounts assigned to the Shipment role.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_07","Test filtering staff accounts by Status","1. Go to Staff Management tab.
+2. Select 'Active' or 'Inactive' from Status filter dropdown.
+3. Form auto-submits.","The table updates to show only staff accounts matching selected status.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_08","Test combined search and filter criteria for staff","1. Go to Staff Management tab.
+2. Enter keyword 'Phuc' in search box.
+3. Select Role 'Employee'.
+4. Select Status 'Active'.
+5. Click Search button.","The table displays only staff accounts matching all three criteria simultaneously (Name/Email contains 'Phuc', Role is Employee, Status is Active).","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_09","Test staff accounts list pagination","1. Go to Staff Management tab.
+2. Inspect pagination control at table footer.","- Table displays a maximum of 5 staff accounts per page.
+- Footer shows pagination navigation buttons (1 2 3 ... ›).","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_10","Test creating a new staff account with valid data","1. Go to Staff Management tab.
+2. Click + Create Staff button.
+3. Enter valid Full Name: 'Nguyen Van An'.
+4. Enter unused Email: 'an.nv@probuild.com'.
+5. Select Role: 'Employee'.
+6. Click Save button.","- Staff account is created successfully in DB.
+- Initial random 8-char password (with !FIRST! prefix) is sent via SMTP.
+- Success banner is displayed.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_11","Test leaving required fields blank during staff creation","1. Click + Create Staff button.
+2. Leave Full Name or Email blank.
+3. Click Save button.","HTML5 / JS Validator prevents form submission and displays required field prompt.","Staff creation modal is open."
+"TC_STAFF_12","Test entering invalid Full Name during staff creation","1. Click + Create Staff button.
+2. Enter name containing numbers/special chars (e.g., 'An123@').
+3. Click Save button.","JS Validator displays error message: 'Full name must be 2-50 characters, no numbers or special characters.'","Staff creation modal is open."
+"TC_STAFF_13","Test entering invalid Email format during staff creation","1. Click + Create Staff button.
+2. Enter invalid email (e.g., 'an.nv@com').
+3. Click Save button.","JS Validator displays error message: 'Invalid email format.' and blocks submission.","Staff creation modal is open."
+"TC_STAFF_14","Test entering duplicate Email during staff creation","1. Click + Create Staff button.
+2. Enter an existing system email (e.g., 'admin@probuild.com').
+3. Click Save button.","Backend returns error banner: 'This email already exists in the system.' and creation is rejected.","Staff creation modal is open."
+"TC_STAFF_15","Test preventing selection of Admin role for new staff","1. Click + Create Staff button.
+2. Inspect Role select dropdown menu.","The 'Admin' (Quản trị viên) option is absent from role selection dropdown. Backend rejects roleId=1.","Staff creation modal is open."
+"TC_STAFF_16","Test staff creation rollback on SMTP delivery error","1. Click + Create Staff button.
+2. Enter email that fails SMTP server delivery.
+3. Click Save button.","- System displays error: 'Unable to send email to this address. Please check email!'
+- Account creation is rolled back (not saved to DB).","Staff creation modal is open, SMTP delivery fails."
+"TC_STAFF_17","Test changing staff role successfully","1. Go to Staff Management tab.
+2. Find target staff account row.
+3. Select a new role from Role dropdown (e.g., change from Employee to Shipment).","System submits update, role is updated in DB, success message 'Role updated successfully' is displayed.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_18","Test preventing change of staff role to ADMIN","1. Inspect Role dropdown on any staff row.","'Admin' role option is not listed in dropdown options. Backend rejects any POST request with roleId=1.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_19","Test preventing Admin from changing their own role","1. Find currently logged-in Admin's account row in staff list.","The Role select dropdown is disabled (disabled) for currently logged-in Admin row. Backend rejects request if userId == currentAdmin.userId.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_20","Test deactivating a Staff account (ACTIVE -> INACTIVE)","1. Go to Staff Management tab.
+2. Find an ACTIVE Staff row (Employee or Shipment).
+3. Click Deactivate button in Action column.","- Account status changes to INACTIVE.
+- Status badge updates to grey 'Inactive'.
+- Action button label changes to 'Activate'.","Logged in with Admin account, target Staff status is ACTIVE."
+"TC_STAFF_21","Test activating a Staff account (INACTIVE -> ACTIVE)","1. Go to Staff Management tab.
+2. Find an INACTIVE Staff row.
+3. Click Activate button in Action column.","- Account status changes to ACTIVE.
+- Status badge updates to green 'Active'.
+- Action button label changes to 'Deactivate'.","Logged in with Admin account, target Staff status is INACTIVE."
+"TC_STAFF_22","Test preventing Admin from deactivating their own account","1. Find currently logged-in Admin row in staff list.","Action column displays 'Cannot lock' note instead of Deactivate button. Backend blocks request with error banner.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_23","Test preventing deactivation of other Admin accounts","1. Find another Admin account row in staff list.
+2. Inspect Action column.","Action column displays 'Cannot lock' note. Backend blocks status update if target user role is ADMIN.","Logged in with Admin account, multiple Admin accounts exist."
+"TC_STAFF_24","Test resetting staff password successfully","1. Go to Staff Management tab.
+2. Click Reset Password button on a staff row.
+3. Click OK in browser confirm popup.","- Password updated in DB to a new random 8-char string with !FIRST! prefix.
+- New password email sent to staff.
+- Success message displayed.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_25","Test cancelling staff password reset","1. Click Reset Password button on a staff row.
+2. Click Cancel in browser confirm popup.","Confirmation modal closes. No password reset request is sent, and existing staff password remains unchanged.","Logged in with Admin account on Staff Management tab."
+"TC_STAFF_26","Test preventing Admin from resetting their own password","1. Find currently logged-in Admin row in staff list.","Reset Password button is hidden for current Admin account. Backend blocks reset if currentAdmin.userId == targetUserId.","Logged in with Admin account on Staff Management tab."

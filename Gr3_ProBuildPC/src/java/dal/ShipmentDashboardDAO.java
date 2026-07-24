@@ -16,8 +16,31 @@ public class ShipmentDashboardDAO extends DBContext {
         view.setStartDate(startDate);
         view.setEndDate(endDate);
 
+        loadOverallSummaryCounts(view);
         loadStatusCounts(view, startDate, endDate);
         return view;
+    }
+
+    private void loadOverallSummaryCounts(ShipmentDashboardView view) {
+        String sql = """
+                     SELECT
+                         COUNT(*) AS all_total,
+                         SUM(CASE WHEN o.status_id = 2 THEN 1 ELSE 0 END) AS confirmed_total,
+                         SUM(CASE WHEN o.status_id = 7 THEN 1 ELSE 0 END) AS failed_total,
+                         SUM(CASE WHEN o.status_id = 4 THEN 1 ELSE 0 END) AS shipping_total
+                     FROM orders o
+                     """;
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                view.setOverallOrderCount(rs.getInt("all_total"));
+                view.setOverallConfirmedOrderCount(rs.getInt("confirmed_total"));
+                view.setOverallFailedOrderCount(rs.getInt("failed_total"));
+                view.setOverallShippingOrderCount(rs.getInt("shipping_total"));
+            }
+        } catch (SQLException e) {
+        }
     }
 
     private void loadStatusCounts(ShipmentDashboardView view,

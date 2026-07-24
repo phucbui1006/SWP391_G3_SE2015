@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.time.DayOfWeek;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import jakarta.servlet.ServletException;
@@ -49,7 +50,6 @@ public class RevenueServlet extends HttpServlet {
         
         DashboardSummary summary = dao.getSummary(startDate, endDate);
         Map<String, Integer> orderStatusCounts = dao.getOrderStatusCounts(startDate, endDate);
-        AccountSummary accountSummary = dao.getAccountSummary();
         
         int successOrders = 0;
         if (orderStatusCounts != null) {
@@ -60,6 +60,8 @@ public class RevenueServlet extends HttpServlet {
                 }
             }
         }
+        
+        int totalOrders = summary.getTotalOrders();
 
         List<RevenueRow> revenueList = dao.getRevenueStatistics(startDate, endDate, type);
 
@@ -77,10 +79,12 @@ public class RevenueServlet extends HttpServlet {
         labels.append("]");
         data.append("]");
 
+        BigDecimal totalImportCost = dao.getTotalImportCost(startDate, endDate);
+
         request.setAttribute("totalRevenue", DashboardViewHelper.formatCurrency(summary.getTotalRevenue()));
-        request.setAttribute("totalOrders", summary.getTotalOrders());
+        request.setAttribute("totalImportCost", DashboardViewHelper.formatCurrency(totalImportCost));
+        request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("successOrders", successOrders);
-        request.setAttribute("totalCustomers", accountSummary.getCustomers());
         
         request.setAttribute("revenueList", revenueList);
         request.setAttribute("chartLabels", labels.toString());

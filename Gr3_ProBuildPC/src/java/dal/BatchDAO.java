@@ -127,28 +127,7 @@ public class BatchDAO extends DBContext {
         return false;
     }
 
-    public boolean updateBatch(Batch batch) {
-        String sql = """
-            UPDATE BATCH
-            SET batch_name = ?, date = ?
-            WHERE batch_id = ?
-        """;
 
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-
-            ps.setString(1, batch.getBatchName());
-            ps.setDate(2, batch.getDate());
-            ps.setInt(3, batch.getBatchId());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
 
 
 }

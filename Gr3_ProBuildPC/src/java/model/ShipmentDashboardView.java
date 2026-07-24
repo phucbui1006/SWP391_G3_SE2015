@@ -13,6 +13,10 @@ public class ShipmentDashboardView {
     private int shippingOrderCount;
     private int deliveredOrderCount;
     private int failedOrderCount;
+    private int overallOrderCount;
+    private int overallConfirmedOrderCount;
+    private int overallFailedOrderCount;
+    private int overallShippingOrderCount;
     private List<ChartPoint> orderStatusCounts = new ArrayList<>();
     private List<SummaryCard> summaryCards = new ArrayList<>();
 
@@ -70,6 +74,38 @@ public class ShipmentDashboardView {
 
     public void setFailedOrderCount(int failedOrderCount) {
         this.failedOrderCount = failedOrderCount;
+    }
+
+    public int getOverallOrderCount() {
+        return overallOrderCount;
+    }
+
+    public void setOverallOrderCount(int overallOrderCount) {
+        this.overallOrderCount = overallOrderCount;
+    }
+
+    public int getOverallConfirmedOrderCount() {
+        return overallConfirmedOrderCount;
+    }
+
+    public void setOverallConfirmedOrderCount(int overallConfirmedOrderCount) {
+        this.overallConfirmedOrderCount = overallConfirmedOrderCount;
+    }
+
+    public int getOverallFailedOrderCount() {
+        return overallFailedOrderCount;
+    }
+
+    public void setOverallFailedOrderCount(int overallFailedOrderCount) {
+        this.overallFailedOrderCount = overallFailedOrderCount;
+    }
+
+    public int getOverallShippingOrderCount() {
+        return overallShippingOrderCount;
+    }
+
+    public void setOverallShippingOrderCount(int overallShippingOrderCount) {
+        this.overallShippingOrderCount = overallShippingOrderCount;
     }
 
     public List<ChartPoint> getOrderStatusCounts() {

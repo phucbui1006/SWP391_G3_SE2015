@@ -203,9 +203,17 @@ public class WarrantyDAO extends DBContext {
                     INNER JOIN products p ON od.product_id = p.product_id
                     LEFT JOIN brands br ON p.brand_id = br.brand_id
                     LEFT JOIN categories ca ON p.category_id = ca.category_id
-                    LEFT JOIN warranties w ON w.order_id = o.order_id
-                                          AND w.product_id = od.product_id
-                                          AND w.customer_id = o.customer_id
+                    LEFT JOIN warranties w ON w.warranty_id = (
+                        SELECT latest_w.warranty_id
+                        FROM warranties latest_w
+                        WHERE latest_w.order_id = o.order_id
+                          AND latest_w.product_id = od.product_id
+                          AND latest_w.customer_id = o.customer_id
+                        ORDER BY (latest_w.status_id = 1) DESC,
+                                 latest_w.request_date DESC,
+                                 latest_w.warranty_id DESC
+                        LIMIT 1
+                    )
                     LEFT JOIN warranty_status ws ON w.status_id = ws.status_id
                     WHERE o.order_id = ?
                       AND o.customer_id = ?
@@ -307,7 +315,7 @@ public class WarrantyDAO extends DBContext {
         return "";
     }
 
-    public boolean isWarrantyPendingOrActive(int customerId, int orderId, int productId) {
+    public boolean hasPendingWarrantyRequest(int customerId, int orderId, int productId) {
         String sql = """
                     SELECT COUNT(*)
                     FROM warranties
@@ -326,6 +334,7 @@ public class WarrantyDAO extends DBContext {
                 }
             }
         } catch (SQLException e) {
+            logSqlError("hasPendingWarrantyRequest", e);
         }
         return false;
     }

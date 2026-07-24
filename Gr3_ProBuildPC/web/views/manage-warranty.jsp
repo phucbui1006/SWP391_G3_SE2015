@@ -102,7 +102,10 @@
                     <p>Theo dõi và xử lý các yêu cầu bảo hành của khách hàng</p>
                 </div>
                 <form class="order-history-filter" action="<%= ctx %>/ManageWarranty" method="get">
-                    <input type="search" id="searchKeyword" name="search" value="<%= h(searchQuery) %>" placeholder="Tìm mã YC, đơn hàng, SP..." maxlength="100">
+                    <input type="search" id="searchKeyword" name="search" value="<%= h(searchQuery) %>"
+                           placeholder="Tìm theo mã bảo hành (VD: WR3)"
+                           pattern="#?(?:[Ww][Rr])?[0-9]+"
+                           maxlength="20">
                     <select name="statusFilter">
                         <option value="">Tất cả trạng thái</option>
                         <option value="1" <%= statusFilterId != null && statusFilterId == 1 ? "selected" : "" %>>Chờ tiếp nhận</option>

@@ -151,9 +151,7 @@ public class DashboardServlet extends HttpServlet {
     private boolean isHiddenOrderStatusInChart(String status) {
         String value = status == null ? "" : status.toLowerCase();
         return value.contains("chờ xác nhận")
-                || value.contains("cho xac nhan")
-                || value.contains("đang chuẩn bị hàng")
-                || value.contains("dang chuan bi hang");
+                || value.contains("cho xac nhan");
     }
 
     private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary, String ctx) {

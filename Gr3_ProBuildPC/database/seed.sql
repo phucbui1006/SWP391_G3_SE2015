@@ -79,7 +79,6 @@ INSERT INTO ORDERS_STATUS (status_id, status_name)
 VALUES
 (1, 'Chờ xác nhận'),
 (2, 'Đã xác nhận'),
-(3, 'Đang chuẩn bị hàng'),
 (4, 'Đang giao hàng'),
 (5, 'Đã giao hàng'),
 (6, 'Đã hủy'),
@@ -791,9 +790,9 @@ VALUES
 'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Hà Nội',
 'VNPAY', 'Chờ thanh toán', 'Đơn hàng chờ xác nhận trong năm 2026', NULL),
 
-(10012, 1, 3, '2026-05-09 16:05:00', 19300000,
+(10012, 1, 2, '2026-05-09 16:05:00', 19300000,
 'Khu Công nghệ cao Hòa Lạc, Thạch Thất, Hà Nội',
-'COD', 'Chưa thanh toán', 'Đơn hàng đang chuẩn bị trong năm 2026', NULL),
+'COD', 'Chưa thanh toán', 'Đơn hàng đã xác nhận trong năm 2026', NULL),
 
 (10013, 2, 4, '2026-06-10 09:55:00', 14800000,
 'Đại học FPT Hà Nội, Khu Công nghệ cao Hòa Lạc, Hà Nội',

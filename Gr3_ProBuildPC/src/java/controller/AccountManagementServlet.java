@@ -136,7 +136,7 @@ public class AccountManagementServlet extends HttpServlet {
         }
 
         // Generate random 8-character password
-        String randomPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String randomPassword = "A1" + java.util.UUID.randomUUID().toString().substring(0, 6);
 
         // Add prefix to force password change on first login only for Employee (2) and Shipment (3)
         String initialPassword = randomPassword;
@@ -177,23 +177,23 @@ public class AccountManagementServlet extends HttpServlet {
             return;
         }
 
-        String randomPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String randomPassword = "A1" + java.util.UUID.randomUUID().toString().substring(0, 6);
         String initialPassword = randomPassword;
 
         if (targetUser.getRoleId() == 2 || targetUser.getRoleId() == 3) {
             initialPassword = "!FIRST!" + randomPassword;
         }
 
-        // Send the reset password email directly to the staff's email
-        boolean emailSent = util.EmailService.sendAdminResetPasswordEmail(targetUser.getEmail(), randomPassword);
+        // Send the reset password email to the Admin's email (so Admin can manage staff account credentials)
+        boolean emailSent = util.EmailService.sendResetPasswordToAdminEmail(currentAdmin.getEmail(), targetUser.getEmail(), randomPassword);
         
         if (!emailSent) {
-            session.setAttribute("accountError", "Không thể gửi email reset mật khẩu đến email của nhân viên.");
+            session.setAttribute("accountError", "Không thể gửi email reset mật khẩu đến email của quản trị viên.");
             return;
         }
 
         if (userDAO.updatePassword(targetUser.getEmail(), initialPassword)) {
-            session.setAttribute("accountSuccess", "Reset mật khẩu thành công. Mật khẩu mới của nhân viên đã được gửi đến email của họ.");
+            session.setAttribute("accountSuccess", "Reset mật khẩu thành công. Mật khẩu mới của nhân viên đã được gửi đến email quản trị viên (" + currentAdmin.getEmail() + ").");
         } else {
             session.setAttribute("accountError", "Reset mật khẩu thất bại do lỗi Database.");
         }

@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function() {
             },
             getErrorMsg: (val) => {
                 if (!val) return 'Vui lòng nhập mật khẩu mới!';
-                return 'Mật khẩu mới từ 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.';
+                return 'Mật khẩu mới từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.';
             }
         },
         {
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (!newPasswordInput.value) {
                     Validator.showFeedback(newPasswordInput, false, 'Vui lòng nhập mật khẩu mới!');
                 } else {
-                    Validator.showFeedback(newPasswordInput, pwdStrength, 'Mật khẩu mới từ 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
+                    Validator.showFeedback(newPasswordInput, pwdStrength, 'Mật khẩu mới từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
                 }
             }
 
@@ -126,7 +126,7 @@ function validateForm() {
             isPasswordValid = false;
         } else {
             const pwdStrength = Validator.validatePassword(newPwd);
-            Validator.showFeedback(newPasswordInput, pwdStrength, 'Mật khẩu mới từ 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
+            Validator.showFeedback(newPasswordInput, pwdStrength, 'Mật khẩu mới từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
             if (!pwdStrength) {
                 isPasswordValid = false;
             }

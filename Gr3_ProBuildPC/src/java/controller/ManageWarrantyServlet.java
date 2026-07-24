@@ -92,7 +92,6 @@ public class ManageWarrantyServlet extends HttpServlet {
             try {
                 selectedWarrantyId = Integer.parseInt(selRaw.trim());
             } catch (NumberFormatException e) {
-                // ignore
             }
         }
 
@@ -250,7 +249,6 @@ public class ManageWarrantyServlet extends HttpServlet {
                 session.setAttribute("errorMsg", "Không thể cập nhật yêu cầu bảo hành!");
             }
         } catch (NumberFormatException e) {
-            session.setAttribute("errorMsg", "Dữ liệu mã yêu cầu hoặc trạng thái không hợp lệ!");
         }
 
         redirectBack(request, response, search, statusFilter, pageRaw, selectedWarrantyIdRaw);

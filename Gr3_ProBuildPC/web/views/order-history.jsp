@@ -71,9 +71,6 @@
             return "shipping";
         }
 
-        if (value.contains("chuẩn") || value.contains("chuan")) {
-            return "preparing";
-        }
 
         if (value.contains("chờ") || value.contains("cho ")) {
             return "waiting";
@@ -218,18 +215,19 @@
     boolean canManageShipment = canManageShipmentValue != null && canManageShipmentValue;
     boolean isCustomerView = isCustomerViewValue != null && isCustomerViewValue;
     boolean isShipper = isShipperValue != null && isShipperValue;
+    boolean isEmployee = request.getAttribute("isEmployee") != null && (Boolean) request.getAttribute("isEmployee");
     boolean deliveryHistoryMode = deliveryHistoryModeValue != null && deliveryHistoryModeValue;
     Integer selectedOrderId = selectedOrder == null ? null : selectedOrder.getOrderId();
     List<OrderHistoryDetail> selectedDetails = selectedOrder == null
             ? Collections.emptyList()
             : selectedOrder.getDetails();
-    boolean selectedCanCancel = isCustomerView && canCancelOrder(selectedOrder);
+    boolean selectedCanCancel = (isCustomerView && canCancelOrder(selectedOrder))
+            || (isEmployee && selectedOrder != null && selectedOrder.getStatusId() == 1);
     boolean selectedCanRetryVnpay = isCustomerView && selectedOrder != null
             && "VNPAY".equalsIgnoreCase(selectedOrder.getPaymentMethod())
             && "Chờ thanh toán".equals(selectedOrder.getPaymentStatus())
             && selectedOrder.getStatusId() == 1;
 
-    boolean isEmployee = request.getAttribute("isEmployee") != null && (Boolean) request.getAttribute("isEmployee");
     boolean selectedCanConfirm = isEmployee && selectedOrder != null && selectedOrder.getStatusId() == 1;
     boolean selectedCanUpdateShipment = false;
     if (canManageShipment && selectedOrder != null) {

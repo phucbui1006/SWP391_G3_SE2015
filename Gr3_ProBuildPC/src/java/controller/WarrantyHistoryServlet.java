@@ -73,7 +73,7 @@ public class WarrantyHistoryServlet extends HttpServlet {
             try {
                 statusId = Integer.parseInt(statusRaw);
             } catch (NumberFormatException e) {
-                // ignore
+
             }
         }
 

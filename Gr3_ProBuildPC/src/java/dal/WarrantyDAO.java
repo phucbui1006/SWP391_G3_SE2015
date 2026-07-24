@@ -443,14 +443,12 @@ public class WarrantyDAO extends DBContext {
         List<Object> params = new ArrayList<>();
 
         if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-            String digits = searchKeyword.replaceAll("[^0-9]", "").trim();
-            if (!digits.isEmpty()) {
+            Integer warrantyId = parseWarrantySearchId(searchKeyword);
+            if (warrantyId != null) {
                 sql.append(" AND w.warranty_id = ? ");
-                params.add(Integer.parseInt(digits));
+                params.add(warrantyId);
             } else {
-                sql.append(" AND (p.product_name LIKE ? OR u.full_name LIKE ?) ");
-                params.add("%" + searchKeyword.trim() + "%");
-                params.add("%" + searchKeyword.trim() + "%");
+                sql.append(" AND 1 = 0 ");
             }
         }
 
@@ -501,14 +499,12 @@ public class WarrantyDAO extends DBContext {
         List<Object> params = new ArrayList<>();
 
         if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-            String digits = searchKeyword.replaceAll("[^0-9]", "").trim();
-            if (!digits.isEmpty()) {
+            Integer warrantyId = parseWarrantySearchId(searchKeyword);
+            if (warrantyId != null) {
                 sql.append(" AND w.warranty_id = ? ");
-                params.add(Integer.parseInt(digits));
+                params.add(warrantyId);
             } else {
-                sql.append(" AND (p.product_name LIKE ? OR u.full_name LIKE ?) ");
-                params.add("%" + searchKeyword.trim() + "%");
-                params.add("%" + searchKeyword.trim() + "%");
+                sql.append(" AND 1 = 0 ");
             }
         }
 
@@ -564,6 +560,25 @@ public class WarrantyDAO extends DBContext {
         } catch (SQLException e) {
         }
         return list;
+    }
+
+    private Integer parseWarrantySearchId(String searchKeyword) {
+        if (searchKeyword == null) {
+            return null;
+        }
+
+        String normalized = searchKeyword.trim().toUpperCase();
+        if (!normalized.matches("#?(WR)?\\d+")) {
+            return null;
+        }
+
+        String digits = normalized.replaceFirst("^#?(WR)?", "");
+        try {
+            int warrantyId = Integer.parseInt(digits);
+            return warrantyId > 0 ? warrantyId : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     public WarrantyRequest getWarrantyRequestById(int warrantyId) {

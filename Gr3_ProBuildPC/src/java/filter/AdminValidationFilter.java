@@ -156,7 +156,7 @@ public class AdminValidationFilter implements Filter {
 
     private boolean validateBatch(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         String action = req.getParameter("action");
-        if (!"addBatch".equalsIgnoreCase(action)) {
+        if (!"addBatch".equalsIgnoreCase(action) && !"updateBatch".equalsIgnoreCase(action)) {
             return true;
         }
 
@@ -185,7 +185,8 @@ public class AdminValidationFilter implements Filter {
             req.getSession().setAttribute("batchError", error);
             req.getSession().setAttribute("enteredBatchName", batchName);
             req.getSession().setAttribute("enteredDate", dateRaw);
-            res.sendRedirect(req.getContextPath() + "/BatchServlet#add-batch-modal");
+            String modalHash = "addBatch".equalsIgnoreCase(action) ? "#add-batch-modal" : "#edit-batch-modal";
+            res.sendRedirect(req.getContextPath() + "/BatchServlet" + modalHash);
             return false;
         }
 

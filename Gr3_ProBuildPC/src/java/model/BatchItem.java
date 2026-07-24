@@ -9,6 +9,7 @@ public class BatchItem {
     private int importQuantity;
     private int quantity;
     private BigDecimal price;
+    private boolean isEdited;
 
     public BatchItem() {
     }
@@ -21,6 +22,7 @@ public class BatchItem {
         this.importQuantity = importQuantity;
         this.quantity = quantity;
         this.price = price;
+        this.isEdited = false;
     }
 
     public int getBatchItemId() {
@@ -69,5 +71,13 @@ public class BatchItem {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public boolean isEdited() {
+        return isEdited;
+    }
+
+    public void setEdited(boolean isEdited) {
+        this.isEdited = isEdited;
     }
 }

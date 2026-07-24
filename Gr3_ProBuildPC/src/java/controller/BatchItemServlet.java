@@ -138,13 +138,62 @@ public class BatchItemServlet extends HttpServlet {
                     item.setQuantity(importQuantity);
                     item.setPrice(price);
 
+                    String page = request.getParameter("page");
+                    String pageParam = (page != null && !page.trim().isEmpty()) ? "&page=" + page : "";
+
                     boolean success = batchItemDAO.addItem(item);
 
                     if (success) {
                         response.sendRedirect(request.getContextPath()
-                                + "/BatchServlet?action=viewDetail&batchId=" + batchId);
+                                + "/BatchServlet?action=viewDetail&batchId=" + batchId + pageParam);
                     } else {
                         request.setAttribute("error", "Thêm sản phẩm vào lô thất bại.");
+                        forwardWithBatchDetail(request, response, batchId);
+                    }
+
+                    break;
+                }
+
+                case "updateItem": {
+                    int batchItemId = Integer.parseInt(request.getParameter("batchItemId"));
+                    int batchId = Integer.parseInt(request.getParameter("batchId"));
+                    int importQuantity = Integer.parseInt(request.getParameter("importQuantity"));
+                    BigDecimal price = new BigDecimal(request.getParameter("price"));
+                    String page = request.getParameter("page");
+                    String pageParam = (page != null && !page.trim().isEmpty()) ? "&page=" + page : "";
+
+                    if (importQuantity <= 0) {
+                        request.setAttribute("error", "Số lượng nhập phải lớn hơn 0.");
+                        forwardWithBatchDetail(request, response, batchId);
+                        return;
+                    }
+
+                    if (price.compareTo(BigDecimal.ZERO) < 0) {
+                        request.setAttribute("error", "Giá nhập không được âm.");
+                        forwardWithBatchDetail(request, response, batchId);
+                        return;
+                    }
+
+                    BatchItem existingItem = batchItemDAO.getItemById(batchItemId);
+                    if (existingItem == null) {
+                        request.setAttribute("error", "Không tìm thấy sản phẩm trong lô.");
+                        forwardWithBatchDetail(request, response, batchId);
+                        return;
+                    }
+
+                    if (existingItem.getQuantity() < existingItem.getImportQuantity()) {
+                        request.setAttribute("error", "Không thể chỉnh sửa sản phẩm này vì đã phát sinh giao dịch bán.");
+                        forwardWithBatchDetail(request, response, batchId);
+                        return;
+                    }
+
+                    boolean success = batchItemDAO.updateItem(batchItemId, importQuantity, price);
+
+                    if (success) {
+                        response.sendRedirect(request.getContextPath()
+                                + "/BatchServlet?action=viewDetail&batchId=" + batchId + "&success=updateItem" + pageParam);
+                    } else {
+                        request.setAttribute("error", "Cập nhật sản phẩm trong lô thất bại.");
                         forwardWithBatchDetail(request, response, batchId);
                     }
 

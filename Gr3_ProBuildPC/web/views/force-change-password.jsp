@@ -59,7 +59,7 @@
                     {
                         selector: '#newPassword',
                         validateFn: (val) => Validator.validatePassword(val),
-                        getErrorMsg: () => 'Mật khẩu 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.'
+                        getErrorMsg: () => 'Mật khẩu 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.'
                     }
                 ]);
             });
@@ -69,7 +69,7 @@
                 const confirmPasswordInput = document.getElementById("confirmPassword");
 
                 const isPasswordValid = Validator.validatePassword(newPasswordInput.value);
-                Validator.showFeedback(newPasswordInput, isPasswordValid, 'Mật khẩu 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
+                Validator.showFeedback(newPasswordInput, isPasswordValid, 'Mật khẩu 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
 
                 const isMatch = newPasswordInput.value === confirmPasswordInput.value;
                 Validator.showFeedback(confirmPasswordInput, isMatch, 'Mật khẩu xác nhận không khớp!');

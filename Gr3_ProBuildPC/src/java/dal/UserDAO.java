@@ -13,7 +13,7 @@ public class UserDAO {
 
     public User login(String email, String password) {
         String sql = baseUserSelect() + """
-                     WHERE u.email = ?
+                     WHERE LOWER(TRIM(u.email)) = LOWER(TRIM(?))
                        AND (
                            (UPPER(u.account_type) = 'CUSTOMER' AND c.customer_id IS NOT NULL)
                            OR
@@ -49,7 +49,7 @@ public class UserDAO {
     }
 
        public boolean checkEmailExist(String email) {
-        String sql = "SELECT user_id FROM users WHERE email = ?";
+        String sql = "SELECT user_id FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))";
 
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -126,7 +126,7 @@ public class UserDAO {
     }
 
     public boolean updatePassword(String email, String newPassword) {
-        String sql = "UPDATE users SET password = ? WHERE email = ?";
+        String sql = "UPDATE users SET password = ? WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))";
         String hashToStore;
         if (newPassword != null && newPassword.startsWith("!FIRST!")) {
             hashToStore = "!FIRST!" + util.PasswordUtil.hash(newPassword.substring("!FIRST!".length()));

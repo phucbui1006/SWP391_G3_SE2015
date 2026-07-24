@@ -10,20 +10,31 @@ public class DBContext {
 
     public DBContext() {
         try {
-            String url = "jdbc:mysql://localhost:3306/db1";
-            String username = "root";
-            String password = "123456";
+            String url = getConfig("DB_URL", "jdbc:mysql://localhost:3306/db1");
+            String username = getConfig("DB_USERNAME", "root");
+            String password = getConfig("DB_PASSWORD", "123456");
             Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(url, username, password);
-            System.out.println("Connect success!");
         } catch (ClassNotFoundException | SQLException e) {
-            System.out.println("Connect fail!");
-            e.printStackTrace();
+            throw new IllegalStateException(
+                    "Cannot connect to the database. Check that MySQL is running, "
+                    + "database 'db1' exists, the MySQL Connector/J JAR is deployed, "
+                    + "and DB_URL/DB_USERNAME/DB_PASSWORD are correct.",
+                    e
+            );
         }
     }
 
     public Connection getConnection() {
         return connection;
+    }
+
+    private static String getConfig(String name, String defaultValue) {
+        String value = System.getProperty(name);
+        if (value == null || value.isBlank()) {
+            value = System.getenv(name);
+        }
+        return value == null || value.isBlank() ? defaultValue : value;
     }
 
 }

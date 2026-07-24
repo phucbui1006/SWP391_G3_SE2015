@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 public class ValidatorUtil {
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     private static final Pattern PHONE_PATTERN = Pattern.compile("^(0[35789])[0-9]{8}$");
-    private static final Pattern PASSWORD_PATTERN = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,31}$");
+    private static final Pattern PASSWORD_PATTERN = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[\\x21-\\x7E]{8,31}$");
     private static final Pattern NAME_PATTERN = Pattern.compile("^[\\p{L}\\s]+$");
     private static final Pattern OTP_PATTERN = Pattern.compile("^\\d{6}$");
 

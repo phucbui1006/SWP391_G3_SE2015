@@ -91,7 +91,7 @@ public class AuthValidationFilter implements Filter {
         } else if (!ValidatorUtil.isValidEmail(email)) {
             error = "Định dạng email không hợp lệ (tối đa 100 ký tự).";
         } else if (!ValidatorUtil.isValidPassword(password)) {
-            error = "Mật khẩu 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.";
+            error = "Mật khẩu từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.";
         } else if (confirmPassword == null || !confirmPassword.equals(password)) {
             error = "Mật khẩu xác nhận không khớp!";
         }
@@ -133,7 +133,7 @@ public class AuthValidationFilter implements Filter {
 
         String error = null;
         if (!ValidatorUtil.isValidPassword(password)) {
-            error = "Mật khẩu từ 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.";
+            error = "Mật khẩu từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.";
         } else if (confirmPassword == null || !confirmPassword.equals(password)) {
             error = "Mật khẩu xác nhận không khớp!";
         }
@@ -152,7 +152,7 @@ public class AuthValidationFilter implements Filter {
 
         String error = null;
         if (!ValidatorUtil.isValidPassword(newPassword)) {
-            error = "Mật khẩu từ 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.";
+            error = "Mật khẩu từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.";
         } else if (confirmPassword == null || !confirmPassword.equals(newPassword)) {
             error = "Mật khẩu xác nhận không khớp!";
         }

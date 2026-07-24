@@ -69,7 +69,7 @@
                 searchAction = ctx + "/order-history";
                 searchParamName = "keyword";
             } else {
-                placeholder = "Tìm kiếm yêu cầu bảo hành...";
+                placeholder = "Tìm theo mã bảo hành...";
                 searchAction = ctx + "/ManageWarranty";
                 searchParamName = "search";
                 searchKeyword = request.getParameter("search");

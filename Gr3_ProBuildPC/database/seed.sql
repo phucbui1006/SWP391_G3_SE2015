@@ -914,9 +914,9 @@ VALUES
 INSERT INTO WARRANTIES
 (warranty_id, customer_id, order_id, product_id, status_id, request_date, request)
 VALUES
-(1, 1, 1000, 1, 2, '2026-03-01 10:30:00',
+(1, 1, 10000, 1, 2, '2026-03-01 10:30:00',
 'CPU có nhiệt độ cao hơn mong đợi khi chơi game, cần kiểm tra bảo hành.'),
 
-(2, 2, 1003,12, 1, '2026-06-01 16:45:00',
+(2, 2, 10003, 12, 1, '2026-06-01 16:45:00',
 'Cổng USB trên bo mạch chủ hoạt động không ổn định, cần kiểm tra.');
 

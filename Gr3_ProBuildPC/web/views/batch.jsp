@@ -96,7 +96,7 @@
             </div>
             <% } %>
 
-            <% if (error != null) { %>
+            <% if (error != null && !error.toLowerCase().contains("lô hàng")) { %>
             <div class="brand-alert error">
                 <%= error %>
             </div>
@@ -262,26 +262,30 @@
                     <a href="#" aria-label="Đóng" style="text-decoration: none; font-size: 24px; color: #6c757d;">×</a>
                 </div>
 
-                <form action="${pageContext.request.contextPath}/BatchServlet" method="post" class="brand-modal-form">
+                <form action="${pageContext.request.contextPath}/BatchServlet" method="post" class="brand-modal-form" id="addBatchForm">
                     <input type="hidden" name="action" value="addBatch">
 
                     <div class="batch-form-group">
-                        <label>Tên lô hàng</label>
+                        <label for="batchNameInput">Tên lô hàng <span>*</span></label>
                         <input 
                             type="text"
+                            id="batchNameInput"
                             name="batchName"
                             placeholder="Ví dụ: Lô nhập tháng 06"
                             required
-                            value="">
+                            value="${requestScope.enteredBatchName != null ? requestScope.enteredBatchName : ''}">
+                        <small id="batchNameErr" style="color: #dc3545; font-size: 13px; margin-top: 4px; display: none;"></small>
                     </div>
 
                     <div class="batch-form-group" style="margin-top: 12px;">
-                        <label>Ngày nhập</label>
+                        <label for="batchDateInput">Ngày nhập <span>*</span></label>
                         <input 
                             type="date"
+                            id="batchDateInput"
                             name="date"
                             required
-                            value="">
+                            value="${requestScope.enteredDate != null ? requestScope.enteredDate : ''}">
+                        <small id="batchDateErr" style="color: #dc3545; font-size: 13px; margin-top: 4px; display: none;"></small>
                     </div>
 
                     <div class="brand-form-actions" style="margin-top: 20px;">
@@ -374,6 +378,100 @@
 
 
         <jsp:include page="/includes/footer.jsp" />
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const batchNameInput = document.getElementById("batchNameInput");
+                const batchNameErr = document.getElementById("batchNameErr");
+                const batchDateInput = document.getElementById("batchDateInput");
+                const batchDateErr = document.getElementById("batchDateErr");
+                const addBatchForm = document.getElementById("addBatchForm");
+
+                // Biểu thức chính quy cho tên lô hàng: cho phép chữ cái, chữ số, khoảng trắng, và các dấu -, _, /, ()
+                const batchNameRegex = /^[\p{L}\p{N}\s\-_/()]+$/u;
+
+                function validateBatchName() {
+                    if (!batchNameInput) return true;
+                    const val = batchNameInput.value.trim();
+                    if (!val) {
+                        batchNameErr.textContent = "Vui lòng nhập tên lô hàng.";
+                        batchNameErr.style.display = "block";
+                        batchNameInput.style.borderColor = "#dc3545";
+                        return false;
+                    }
+                    if (!batchNameRegex.test(val)) {
+                        batchNameErr.textContent = "Tên lô hàng không được chứa ký tự đặc biệt.";
+                        batchNameErr.style.display = "block";
+                        batchNameInput.style.borderColor = "#dc3545";
+                        return false;
+                    }
+                    batchNameErr.style.display = "none";
+                    batchNameInput.style.borderColor = "";
+                    return true;
+                }
+
+                function validateBatchDate() {
+                    if (!batchDateInput) return true;
+                    const val = batchDateInput.value;
+                    if (!val) {
+                        batchDateErr.textContent = "Vui lòng chọn ngày nhập.";
+                        batchDateErr.style.display = "block";
+                        batchDateInput.style.borderColor = "#dc3545";
+                        return false;
+                    }
+                    const selectedDate = new Date(val);
+                    const today = new Date();
+                    today.setHours(23, 59, 59, 999);
+                    if (selectedDate > today) {
+                        batchDateErr.textContent = "Ngày nhập lô hàng không được lớn hơn ngày hiện tại.";
+                        batchDateErr.style.display = "block";
+                        batchDateInput.style.borderColor = "#dc3545";
+                        return false;
+                    }
+                    batchDateErr.style.display = "none";
+                    batchDateInput.style.borderColor = "";
+                    return true;
+                }
+
+                if (batchNameInput) {
+                    batchNameInput.addEventListener("input", validateBatchName);
+                    batchNameInput.addEventListener("blur", validateBatchName);
+                }
+                if (batchDateInput) {
+                    batchDateInput.addEventListener("input", validateBatchDate);
+                    batchDateInput.addEventListener("change", validateBatchDate);
+                }
+
+                if (addBatchForm) {
+                    addBatchForm.addEventListener("submit", function (e) {
+                        const isNameValid = validateBatchName();
+                        const isDateValid = validateBatchDate();
+                        if (!isNameValid || !isDateValid) {
+                            e.preventDefault();
+                        }
+                    });
+                }
+
+                <%-- Nếu Server trả về lỗi, hiển thị trực tiếp bên dưới ô input tương ứng bên trong Modal --%>
+                <% String serverBatchErr = (String) request.getAttribute("error"); %>
+                <% if (serverBatchErr != null && !serverBatchErr.trim().isEmpty()) { %>
+                    const serverErrText = "<%= serverBatchErr.replace("\"", "\\\"") %>";
+                    if (serverErrText.includes("Tên lô hàng") || serverErrText.includes("kí tự đặc biệt") || serverErrText.includes("ký tự đặc biệt")) {
+                        if (batchNameErr && batchNameInput) {
+                            batchNameErr.textContent = serverErrText;
+                            batchNameErr.style.display = "block";
+                            batchNameInput.style.borderColor = "#dc3545";
+                        }
+                    } else if (serverErrText.includes("Ngày nhập")) {
+                        if (batchDateErr && batchDateInput) {
+                            batchDateErr.textContent = serverErrText;
+                            batchDateErr.style.display = "block";
+                            batchDateInput.style.borderColor = "#dc3545";
+                        }
+                    }
+                <% } %>
+            });
+        </script>
 
     </body>
 </html>

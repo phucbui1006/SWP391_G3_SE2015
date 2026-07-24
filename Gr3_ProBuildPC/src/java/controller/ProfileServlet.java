@@ -70,6 +70,10 @@ public class ProfileServlet extends HttpServlet {
 
                 if (!PasswordUtil.verify(oldPassword, targetHash)) {
                     request.setAttribute("errorMsg", "Mật khẩu cũ không chính xác!");
+                    request.setAttribute("enteredFullName", fullName);
+                    request.setAttribute("enteredCurrentPassword", oldPassword);
+                    request.setAttribute("enteredNewPassword", newPassword);
+                    request.setAttribute("enteredConfirmPassword", confirmPassword);
                     request.getRequestDispatcher("/views/profile.jsp").forward(request, response);
                     return;
                 }
@@ -91,6 +95,10 @@ public class ProfileServlet extends HttpServlet {
                 request.setAttribute("successMsg", "Lưu thành công!");
             } else {
                 request.setAttribute("errorMsg", "Lưu thất bại! Đã xảy ra lỗi ở tầng cơ sở dữ liệu.");
+                request.setAttribute("enteredFullName", fullName);
+                request.setAttribute("enteredCurrentPassword", oldPassword);
+                request.setAttribute("enteredNewPassword", newPassword);
+                request.setAttribute("enteredConfirmPassword", confirmPassword);
             }
 
         } catch (Exception e) {

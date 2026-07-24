@@ -119,6 +119,16 @@ public class BatchServlet extends HttpServlet {
                     request.setAttribute("error", batchError);
                     session.removeAttribute("batchError");
                 }
+                String enteredBatchName = (String) session.getAttribute("enteredBatchName");
+                if (enteredBatchName != null) {
+                    request.setAttribute("enteredBatchName", enteredBatchName);
+                    session.removeAttribute("enteredBatchName");
+                }
+                String enteredDate = (String) session.getAttribute("enteredDate");
+                if (enteredDate != null) {
+                    request.setAttribute("enteredDate", enteredDate);
+                    session.removeAttribute("enteredDate");
+                }
             }
 
             if (action == null || action.trim().isEmpty()) {

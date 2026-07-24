@@ -328,9 +328,9 @@
                     <input type="hidden" name="filterStatus" value="<%= h(selectedStatus) %>">
                     <input type="hidden" name="page" value="<%= pageNumber %>">
 
-                    <label for="newStaffName">Họ và tên <span>*</span></label>
+                    <label for="newStaffName">Tên người dùng <span>*</span></label>
                     <input id="newStaffName" name="fullName" type="text" placeholder="Ví dụ: Nguyễn Văn A" required>
-                    <small id="newStaffNameErr" style="color: red; display: none;">Họ và tên từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.</small>
+                    <small id="newStaffNameErr" style="color: red; display: none;">Tên người dùng từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.</small>
 
                     <label for="newStaffEmail" style="margin-top: 10px;">Email <span>*</span></label>
                     <input id="newStaffEmail" name="email" type="email" placeholder="staff@example.com" autocomplete="off" required>
@@ -363,7 +363,7 @@
                         {
                             selector: '#newStaffName',
                             validateFn: (val) => Validator.validateName(val),
-                            getErrorMsg: () => 'Họ và tên từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.'
+                            getErrorMsg: () => 'Tên người dùng từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.'
                         },
                         {
                             selector: '#newStaffEmail',

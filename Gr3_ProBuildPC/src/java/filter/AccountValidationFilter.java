@@ -65,7 +65,7 @@ public class AccountValidationFilter implements Filter {
 
         String error = null;
         if (!ValidatorUtil.isValidName(fullName)) {
-            error = "Họ và tên từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.";
+            error = "Tên người dùng từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.";
         } else {
             boolean hasCurrent = currentPassword != null && !currentPassword.trim().isEmpty();
             boolean hasNew = newPassword != null && !newPassword.trim().isEmpty();
@@ -86,6 +86,10 @@ public class AccountValidationFilter implements Filter {
 
         if (error != null) {
             req.setAttribute("errorMsg", error);
+            req.setAttribute("enteredFullName", fullName);
+            req.setAttribute("enteredCurrentPassword", currentPassword);
+            req.setAttribute("enteredNewPassword", newPassword);
+            req.setAttribute("enteredConfirmPassword", confirmPassword);
             req.getRequestDispatcher("/views/profile.jsp").forward(req, res);
             return false;
         }

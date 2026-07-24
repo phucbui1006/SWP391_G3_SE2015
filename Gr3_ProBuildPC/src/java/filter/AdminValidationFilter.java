@@ -166,8 +166,8 @@ public class AdminValidationFilter implements Filter {
 
         if (batchName == null || batchName.trim().isEmpty() || dateRaw == null || dateRaw.trim().isEmpty()) {
             error = "Vui lòng nhập đầy đủ tên lô hàng và ngày nhập.";
-        } else if (!batchName.trim().matches("^[\\p{L}\\p{N}\\s]+$")) {
-            error = "Tên lô hàng không được chứa kí tự đặc biệt";
+        } else if (!batchName.trim().matches("^[\\p{L}\\p{N}\\s\\-_/()]+$")) {
+            error = "Tên lô hàng không được chứa ký tự đặc biệt.";
         } else {
             try {
                 java.sql.Date inputDate = java.sql.Date.valueOf(dateRaw);
@@ -182,11 +182,10 @@ public class AdminValidationFilter implements Filter {
 
         if (error != null) {
             req.setAttribute("error", error);
-            // Must forward to keep other data loaded in servlet, but this is a filter.
-            // Normally batch validation might forward back, but BatchServlet loads data before forwarding.
-            // We'll redirect with error in session or simply use session flash message.
             req.getSession().setAttribute("batchError", error);
-            res.sendRedirect(req.getContextPath() + "/BatchServlet");
+            req.getSession().setAttribute("enteredBatchName", batchName);
+            req.getSession().setAttribute("enteredDate", dateRaw);
+            res.sendRedirect(req.getContextPath() + "/BatchServlet#add-batch-modal");
             return false;
         }
 

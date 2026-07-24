@@ -8,7 +8,7 @@ const Validator = {
     patterns: {
         email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
         phone: /^(0[35789])[0-9]{8}$/,
-        password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[\x21-\x7E]{8,31}$/,
+        password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z0-9]{8,31}$/,
         otp: /^\d{6}$/,
         name: /^[\p{L}\s]+$/u,
         orderId: /^[pP]?[bB]?[0-9]+$/,

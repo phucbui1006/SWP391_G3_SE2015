@@ -143,10 +143,10 @@ public class WarrantyLookupServlet extends HttpServlet {
                 return;
             }
 
-            if (warrantyDAO.isWarrantyPendingOrActive(account.getCustomerId(), orderId, productId)) {
+            if (warrantyDAO.hasPendingWarrantyRequest(account.getCustomerId(), orderId, productId)) {
                 session.setAttribute(
                         "warrantyFailMessage",
-                        "Sản phẩm này đã có yêu cầu bảo hành đang được xử lý hoặc chờ tiếp nhận."
+                        "Sản phẩm này đã có yêu cầu bảo hành ở trạng thái Chờ tiếp nhận."
                 );
                 redirectBack(response, request, orderId);
                 return;

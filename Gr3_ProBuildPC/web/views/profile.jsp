@@ -84,10 +84,10 @@
                     </div>
 
                     <div class="profile-group">
-                        <label for="fullName">Họ tên</label>
+                        <label for="fullName">Tên người dùng</label>
                         <div class="profile-input-box">
                             <input type="text" id="fullName" name="fullName"
-                                   value="<%= fullNameDynamic %>">
+                                   value="${not empty requestScope.enteredFullName ? requestScope.enteredFullName : sessionScope.account.fullName}">
                             <i class="fa-solid fa-user"></i>
                         </div>
                     </div>
@@ -96,7 +96,8 @@
                         <label for="currentPassword">Mật khẩu cũ</label>
                         <div class="profile-input-box">
                             <input type="password" id="currentPassword" name="currentPassword"
-                                   placeholder="Nhập mật khẩu hiện tại">
+                                   placeholder="Nhập mật khẩu hiện tại"
+                                   value="${requestScope.enteredCurrentPassword}">
                             <i class="fa-regular fa-eye profile-eye"
                                onclick="toggleProfilePass('currentPassword', this)"></i>
                         </div>
@@ -107,7 +108,8 @@
                         <div class="profile-input-box">
                             <input type="password" id="newPassword" name="newPassword"
                                    placeholder="8-31 ký tự, có chữ hoa, thường và số"
-                                   autocomplete="new-password">
+                                   autocomplete="new-password"
+                                   value="${requestScope.enteredNewPassword}">
                             <i class="fa-regular fa-eye profile-eye"
                                onclick="toggleProfilePass('newPassword', this)"></i>
                         </div>
@@ -118,7 +120,8 @@
                         <div class="profile-input-box">
                             <input type="password" id="confirmPassword" name="confirmPassword"
                                    placeholder="Nhập lại mật khẩu mới"
-                                   autocomplete="new-password">
+                                   autocomplete="new-password"
+                                   value="${requestScope.enteredConfirmPassword}">
                             <i class="fa-regular fa-eye profile-eye"
                                onclick="toggleProfilePass('confirmPassword', this)"></i>
                         </div>

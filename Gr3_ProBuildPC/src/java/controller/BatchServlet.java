@@ -82,6 +82,12 @@ public class BatchServlet extends HttpServlet {
             case "add":
                 request.setAttribute("message", "Thêm lô hàng thành công.");
                 break;
+            case "updateBatch":
+                request.setAttribute("message", "Cập nhật thông tin lô hàng thành công.");
+                break;
+            case "updateItem":
+                request.setAttribute("message", "Cập nhật sản phẩm trong lô thành công.");
+                break;
             default:
                 break;
         }
@@ -118,6 +124,16 @@ public class BatchServlet extends HttpServlet {
                 if (batchError != null) {
                     request.setAttribute("error", batchError);
                     session.removeAttribute("batchError");
+                }
+                String enteredBatchName = (String) session.getAttribute("enteredBatchName");
+                if (enteredBatchName != null) {
+                    request.setAttribute("enteredBatchName", enteredBatchName);
+                    session.removeAttribute("enteredBatchName");
+                }
+                String enteredDate = (String) session.getAttribute("enteredDate");
+                if (enteredDate != null) {
+                    request.setAttribute("enteredDate", enteredDate);
+                    session.removeAttribute("enteredDate");
                 }
             }
 
@@ -191,6 +207,27 @@ public class BatchServlet extends HttpServlet {
                         response.sendRedirect(request.getContextPath() + "/BatchServlet?success=add");
                     } else {
                         request.setAttribute("error", "Thêm lô hàng thất bại.");
+                        forwardToBatchPage(request, response);
+                    }
+
+                    break;
+                }
+
+                case "updateBatch": {
+                    int batchId = Integer.parseInt(request.getParameter("batchId"));
+                    String batchName = request.getParameter("batchName");
+                    String dateRaw = request.getParameter("date");
+                    String page = request.getParameter("page");
+                    String pageParam = (page != null && !page.trim().isEmpty()) ? "?page=" + page + "&" : "?";
+
+                    Date inputDate = Date.valueOf(dateRaw);
+
+                    boolean success = batchDAO.updateBatch(batchId, batchName.trim(), inputDate);
+
+                    if (success) {
+                        response.sendRedirect(request.getContextPath() + "/BatchServlet" + pageParam + "success=updateBatch");
+                    } else {
+                        request.setAttribute("error", "Cập nhật thông tin lô hàng thất bại.");
                         forwardToBatchPage(request, response);
                     }
 

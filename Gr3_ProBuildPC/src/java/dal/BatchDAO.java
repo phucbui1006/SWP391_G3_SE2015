@@ -8,12 +8,37 @@ import model.Batch;
 
 public class BatchDAO extends DBContext {
 
+    public BatchDAO() {
+        super();
+        ensureIsEditedColumnExists();
+    }
+
+    private void ensureIsEditedColumnExists() {
+        try {
+            String checkSql = "SHOW COLUMNS FROM BATCH LIKE 'is_edited'";
+            PreparedStatement psCheck = connection.prepareStatement(checkSql);
+            ResultSet rs = psCheck.executeQuery();
+            if (!rs.next()) {
+                String alterSql = "ALTER TABLE BATCH ADD COLUMN is_edited TINYINT(1) DEFAULT 0";
+                PreparedStatement psAlter = connection.prepareStatement(alterSql);
+                psAlter.executeUpdate();
+            }
+        } catch (Exception e) {
+            // Column may already exist
+        }
+    }
+
     private Batch mapBatch(ResultSet rs) throws Exception {
         Batch b = new Batch();
 
         b.setBatchId(rs.getInt("batch_id"));
         b.setBatchName(rs.getString("batch_name"));
         b.setDate(rs.getDate("date"));
+        try {
+            b.setEdited(rs.getBoolean("is_edited"));
+        } catch (Exception e) {
+            b.setEdited(false);
+        }
 
         return b;
     }
@@ -22,7 +47,7 @@ public class BatchDAO extends DBContext {
         List<Batch> list = new ArrayList<>();
 
         String sql = """
-            SELECT batch_id, batch_name, date
+            SELECT batch_id, batch_name, date, is_edited
             FROM BATCH
             ORDER BY batch_id ASC
         """;
@@ -59,7 +84,7 @@ public class BatchDAO extends DBContext {
     public List<Batch> getBatches(int offset, int limit) {
         List<Batch> list = new ArrayList<>();
         String sql = """
-            SELECT batch_id, batch_name, date
+            SELECT batch_id, batch_name, date, is_edited
             FROM BATCH
             ORDER BY batch_id ASC
             LIMIT ? OFFSET ?
@@ -84,7 +109,7 @@ public class BatchDAO extends DBContext {
 
     public Batch getBatchById(int batchId) {
         String sql = """
-            SELECT batch_id, batch_name, date
+            SELECT batch_id, batch_name, date, is_edited
             FROM BATCH
             WHERE batch_id = ?
         """;
@@ -127,7 +152,23 @@ public class BatchDAO extends DBContext {
         return false;
     }
 
+    public boolean updateBatch(int batchId, String batchName, java.sql.Date date) {
+        String sql = """
+            UPDATE BATCH
+            SET batch_name = ?, date = ?, is_edited = 1
+            WHERE batch_id = ?
+        """;
 
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, batchName);
+            ps.setDate(2, date);
+            ps.setInt(3, batchId);
 
-
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

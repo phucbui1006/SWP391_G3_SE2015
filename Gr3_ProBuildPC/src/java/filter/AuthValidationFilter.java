@@ -73,6 +73,8 @@ public class AuthValidationFilter implements Filter {
         
         if (!ValidatorUtil.isValidEmail(email) || password == null || password.trim().isEmpty()) {
             req.setAttribute("error", "Email hoặc mật khẩu không hợp lệ!");
+            req.setAttribute("enteredEmail", email);
+            req.setAttribute("enteredPassword", password);
             req.getRequestDispatcher("/views/login.jsp").forward(req, res);
             return false;
         }
@@ -87,17 +89,19 @@ public class AuthValidationFilter implements Filter {
 
         String error = null;
         if (!ValidatorUtil.isValidName(fullName)) {
-            error = "Họ và tên từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.";
+            error = "Tên người dùng từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.";
         } else if (!ValidatorUtil.isValidEmail(email)) {
             error = "Định dạng email không hợp lệ (tối đa 100 ký tự).";
         } else if (!ValidatorUtil.isValidPassword(password)) {
-            error = "Mật khẩu từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.";
+            error = "Mật khẩu từ 8-31 ký tự, chỉ gồm chữ cái và số (chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số).";
         } else if (confirmPassword == null || !confirmPassword.equals(password)) {
             error = "Mật khẩu xác nhận không khớp!";
         }
 
         if (error != null) {
             req.setAttribute("error", error);
+            req.setAttribute("enteredFullName", fullName);
+            req.setAttribute("enteredEmail", email);
             req.getRequestDispatcher("/views/register.jsp").forward(req, res);
             return false;
         }
@@ -109,6 +113,7 @@ public class AuthValidationFilter implements Filter {
 
         if (!ValidatorUtil.isValidEmail(email)) {
             req.setAttribute("error", "Định dạng email không hợp lệ (tối đa 100 ký tự).");
+            req.setAttribute("enteredEmail", email);
             req.getRequestDispatcher("/views/forget-password.jsp").forward(req, res);
             return false;
         }
@@ -133,7 +138,7 @@ public class AuthValidationFilter implements Filter {
 
         String error = null;
         if (!ValidatorUtil.isValidPassword(password)) {
-            error = "Mật khẩu từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.";
+            error = "Mật khẩu từ 8-31 ký tự, chỉ gồm chữ cái và số (chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số).";
         } else if (confirmPassword == null || !confirmPassword.equals(password)) {
             error = "Mật khẩu xác nhận không khớp!";
         }
@@ -152,7 +157,7 @@ public class AuthValidationFilter implements Filter {
 
         String error = null;
         if (!ValidatorUtil.isValidPassword(newPassword)) {
-            error = "Mật khẩu từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.";
+            error = "Mật khẩu từ 8-31 ký tự, chỉ gồm chữ cái và số (chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số).";
         } else if (confirmPassword == null || !confirmPassword.equals(newPassword)) {
             error = "Mật khẩu xác nhận không khớp!";
         }

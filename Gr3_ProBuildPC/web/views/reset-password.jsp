@@ -1,24 +1,28 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<!DOCTYPE html>
-<html>
+    <!DOCTYPE html>
+    <html>
+
     <head>
         <meta charset="UTF-8">
         <title>Đặt lại mật khẩu</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
         <script src="${pageContext.request.contextPath}/js/validator.js"></script>
     </head>
+
     <body>
 
         <div class="card-container">
             <h2 class="card-title">Đặt lại mật khẩu</h2>
 
-            <form action="${pageContext.request.contextPath}/ResetPassword" method="post" onsubmit="return validateForm()">
+            <form action="${pageContext.request.contextPath}/ResetPassword" method="post"
+                onsubmit="return validateForm()">
                 <div class="form-group">
                     <label for="password">Mật khẩu mới</label>
 
                     <div class="input-group">
-                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu mới (8-31 ký tự, có hoa, thường và số)">
+                        <input type="password" id="password" name="password"
+                            placeholder="Nhập mật khẩu mới (8-31 ký tự, có hoa, thường và số)">
                         <i class="fa-regular fa-eye toggle-password" onclick="togglePass('password', this)"></i>
                     </div>
                 </div>
@@ -27,7 +31,8 @@
                     <label for="confirmPassword">Xác nhận mật khẩu</label>
 
                     <div class="input-group">
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Xác nhận mật khẩu">
+                        <input type="password" id="confirmPassword" name="confirmPassword"
+                            placeholder="Xác nhận mật khẩu">
                         <i class="fa-regular fa-eye toggle-password" onclick="togglePass('confirmPassword', this)"></i>
                     </div>
                 </div>
@@ -35,24 +40,20 @@
                 <button type="submit" class="btn-submit">Cập nhật mật khẩu</button>
             </form>
 
-            <%
-                String error = (String) request.getAttribute("error");
-
-                if (error != null) {
-            %>
-            <div style="color:red; text-align:center; margin-top:15px;"><%= error %></div>
-            <%
-                }
-            %>
+            <% String error=(String) request.getAttribute("error"); if (error !=null) { %>
+                <div style="color:red; text-align:center; margin-top:15px;">
+                    <%= error %>
+                </div>
+                <% } %>
         </div>
 
         <script>
-            document.addEventListener("DOMContentLoaded", function() {
+            document.addEventListener("DOMContentLoaded", function () {
                 Validator.setupRealTimeValidation([
                     {
                         selector: '#password',
                         validateFn: (val) => Validator.validatePassword(val),
-                        getErrorMsg: () => 'Mật khẩu từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.'
+                        getErrorMsg: () => 'Mật khẩu từ 8-31 ký tự, chỉ gồm chữ cái và số (chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số).'
                     }
                 ]);
             });
@@ -62,7 +63,7 @@
                 const confirmPasswordInput = document.getElementById("confirmPassword");
 
                 const isPasswordValid = Validator.validatePassword(passwordInput.value);
-                Validator.showFeedback(passwordInput, isPasswordValid, 'Mật khẩu từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
+                Validator.showFeedback(passwordInput, isPasswordValid, 'Mật khẩu từ 8-31 ký tự, chỉ gồm chữ cái và số (chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số).');
 
                 const isMatch = passwordInput.value === confirmPasswordInput.value;
                 Validator.showFeedback(confirmPasswordInput, isMatch, 'Mật khẩu xác nhận không khớp!');
@@ -71,4 +72,5 @@
             }
         </script>
     </body>
-</html>
+
+    </html>

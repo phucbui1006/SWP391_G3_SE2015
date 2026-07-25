@@ -8,6 +8,7 @@ public class Batch {
     private int brandId;
     private String batchName;
     private Date date;
+    private boolean isEdited;
 
     public Batch() {
     }
@@ -17,12 +18,14 @@ public class Batch {
         this.categoryId = categoryId;
         this.brandId = brandId;
         this.batchName = batchName;
+        this.isEdited = false;
     }
 
     public Batch(int batchId, String batchName, Date date) {
         this.batchId = batchId;
         this.batchName = batchName;
         this.date = date;
+        this.isEdited = false;
     }
 
     public int getBatchId() {
@@ -63,5 +66,13 @@ public class Batch {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public boolean isEdited() {
+        return isEdited;
+    }
+
+    public void setEdited(boolean isEdited) {
+        this.isEdited = isEdited;
     }
 }

@@ -1,10 +1,10 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     // Setup real-time validation for Profile Fields
     Validator.setupRealTimeValidation([
         {
             selector: '#fullName',
             validateFn: (val) => Validator.validateName(val),
-            getErrorMsg: () => 'Họ và tên từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.'
+            getErrorMsg: () => 'Tên người dùng từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.'
         },
         {
             selector: '#currentPassword',
@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function() {
             },
             getErrorMsg: (val) => {
                 if (!val) return 'Vui lòng nhập mật khẩu mới!';
-                return 'Mật khẩu mới từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.';
+                return 'Mật khẩu mới từ 8-31 ký tự, chỉ gồm chữ cái và số (chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số).';
             }
         },
         {
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (!newPasswordInput.value) {
                     Validator.showFeedback(newPasswordInput, false, 'Vui lòng nhập mật khẩu mới!');
                 } else {
-                    Validator.showFeedback(newPasswordInput, pwdStrength, 'Mật khẩu mới từ 8-31 ký tự, không chứa tiếng Việt có dấu, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.');
+                    Validator.showFeedback(newPasswordInput, pwdStrength, 'Mật khẩu mới từ 8-31 ký tự, chỉ gồm chữ cái và số (chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số).');
                 }
             }
 
@@ -105,7 +105,7 @@ function validateForm() {
     Validator.clearFeedback(confirmPasswordInput);
 
     const isNameValid = Validator.validateName(nameInput.value);
-    Validator.showFeedback(nameInput, isNameValid, 'Họ và tên từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.');
+    Validator.showFeedback(nameInput, isNameValid, 'Tên người dùng từ 2 đến 50 ký tự, không chứa số hay ký tự đặc biệt.');
 
     const newPwd = newPasswordInput.value;
     const confPwd = confirmPasswordInput.value;

@@ -136,7 +136,7 @@ public class AccountManagementServlet extends HttpServlet {
         }
 
         // Generate random 8-character password
-        String randomPassword = "A1" + java.util.UUID.randomUUID().toString().substring(0, 6);
+        String randomPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
 
         // Add prefix to force password change on first login only for Employee (2) and Shipment (3)
         String initialPassword = randomPassword;
@@ -177,7 +177,7 @@ public class AccountManagementServlet extends HttpServlet {
             return;
         }
 
-        String randomPassword = "A1" + java.util.UUID.randomUUID().toString().substring(0, 6);
+        String randomPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
         String initialPassword = randomPassword;
 
         if (targetUser.getRoleId() == 2 || targetUser.getRoleId() == 3) {

@@ -204,7 +204,7 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
 
     // BỔ SUNG ĐIỀU KIỆN: Chặn không cho phép đổi vai trò nhân viên thành Customer (-1)
     if (roleId == null || roleId == -1) {
-        session.setAttribute("accountError", "Vai tro cap nhat khong hop le.");
+        session.setAttribute("accountError", "Vai trò cập nhật không hợp lệ.");
         return;
     }
 
@@ -215,7 +215,7 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
 
     User targetUser = userDAO.getUserById(userId);
     if (targetUser == null) {
-        session.setAttribute("accountError", "Khong tim thay tai khoan can cap nhat.");
+        session.setAttribute("accountError", "Không tìm thấy tài khoản.");
         return;
     }
 
@@ -225,14 +225,14 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
     }
 
     if (currentAdmin != null && currentAdmin.getUserId() == userId) {
-        session.setAttribute("accountError", "Khong the doi vai tro cua chinh tai khoan dang dang nhap.");
+        session.setAttribute("accountError", "Đang đăng nhập, không thể đổi vai trò.");
         return;
     }
 
     if (userDAO.updateUserRole(userId, roleId)) {
-        session.setAttribute("accountSuccess", "Cap nhat vai tro tai khoan thanh cong.");
+        session.setAttribute("accountSuccess", "Cập nhật vai trò thành công.");
     } else {
-        session.setAttribute("accountError", "Khong the cap nhat vai tro tai khoan.");
+        session.setAttribute("accountError", "Không thể cập nhật.");
     }
 }
 
@@ -240,13 +240,13 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
         String status = normalizeStatus(request.getParameter("status"));
 
         if (status == null) {
-            session.setAttribute("accountError", "Trang thai cap nhat khong hop le.");
+            session.setAttribute("accountError", "Trạng thái cập nhật không hợp lệ.");
             return;
         }
 
         User targetUser = userDAO.getUserById(userId);
         if (targetUser == null) {
-            session.setAttribute("accountError", "Khong tim thay tai khoan can cap nhat.");
+            session.setAttribute("accountError", "Không tìm thấy tài khoản.");
             return;
         }
 
@@ -261,9 +261,9 @@ private void updateRole(HttpServletRequest request, HttpSession session, User cu
         }
 
         if (userDAO.updateUserStatus(userId, status)) {
-            session.setAttribute("accountSuccess", "Cap nhat trang thai tai khoan thanh cong.");
+            session.setAttribute("accountSuccess", "Cập nhật trạng thái thành công.");
         } else {
-            session.setAttribute("accountError", "Khong the cap nhat trang thai tai khoan.");
+            session.setAttribute("accountError", "Không thể cập nhật trạng thái.");
         }
     }
 

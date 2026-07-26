@@ -53,9 +53,7 @@ public class BuildPCDAO extends DBContext {
         return products;
     }
 
-    /**
-     * Lấy các sản phẩm cho một slot hiện đang có sẵn và tương thích với các linh kiện Build PC đã chọn.
-     */
+    // lấy sản phẩm thuộc một category nhưng phải tương thích với cấu hình đã chọn.
     public List<Product> getProductsByCategoryCompatibleWithBuild(int categoryId,
             Map<String, Integer> selectedBuild, String currentSlot) {
         List<Product> compatibleProducts = new ArrayList<>();
@@ -70,9 +68,7 @@ public class BuildPCDAO extends DBContext {
         return compatibleProducts;
     }
 
-    /**
-     * Kiểm tra xem một sản phẩm đề cử có tương thích với các sản phẩm đã được chọn trong cấu hình Build PC hay không.
-     */
+    // Kiểm tra một sản phẩm có tương thích với toàn bộ linh kiện đã chọn hay không
     public boolean isProductCompatibleWithSelectedBuild(int productId,
             Map<String, Integer> selectedBuild, String currentSlot) {
         Product candidate = getProductById(productId);
@@ -95,8 +91,7 @@ public class BuildPCDAO extends DBContext {
                 continue;
             }
 
-            // Kiểm tra hai chiều để người dùng có thể chọn Mainboard/RAM/GPU trước CPU
-            // nhưng các rule trong COMPATIBILITY_RULES vẫn được áp dụng đầy đủ.
+            // Kiểm tra hai chiều 
             if (!areProductsCompatible(candidate.getProductId(), selectedProduct.getProductId())
                     || !areProductsCompatible(selectedProduct.getProductId(), candidate.getProductId())) {
                 return false;
@@ -106,9 +101,7 @@ public class BuildPCDAO extends DBContext {
         return true;
     }
 
-    /**
-     * Chuyển bản đồ slot -> id sản phẩm đã chọn thành bản đồ slot -> object sản phẩm.
-     */
+    //id sản phẩm đã chọn slot -> object sản phẩm
     public Map<String, Product> getSelectedBuild(Map<String, Integer> selectedBuild) {
         Map<String, Product> selectedProducts = new LinkedHashMap<>();
 
@@ -126,9 +119,7 @@ public class BuildPCDAO extends DBContext {
         return selectedProducts;
     }
 
-    /**
-     * Lấy tổng tồn kho có sẵn của một sản phẩm từ batch_items.
-     */
+    // Lấy tổng tồn kho của một sản phẩm 
     public int getAvailableQuantity(int productId) {
         String sql = "SELECT COALESCE(SUM(bi.quantity), 0) AS available_quantity "
                 + "FROM batch_items bi "
@@ -153,9 +144,7 @@ public class BuildPCDAO extends DBContext {
         return 0;
     }
 
-    /**
-     * Lấy sản phẩm đang hoạt động theo id khi sản phẩm vẫn còn hàng và có thể bán.
-     */
+    //Lấy sản phẩm đang hoạt động theo id, sản phẩm còn hàng
     public Product getProductById(int productId) {
         String sql = PRODUCT_SELECT
                 + "WHERE p.product_id = ? AND " + ACTIVE_IN_STOCK_CONDITION;
@@ -175,9 +164,7 @@ public class BuildPCDAO extends DBContext {
         return null;
     }
 
-    /**
-     * Áp dụng các quy tắc tương thích giữa hai sản phẩm bằng bảng product_specifications.
-     */
+    // Áp dụng các quy tắc tương thích giữa hai sản phẩm bằng bảng 
     private boolean areProductsCompatible(int sourceProductId, int targetProductId) {
         String sql = "SELECT COUNT(*) AS invalid_rules "
                 + "FROM compatibility_rules cr "

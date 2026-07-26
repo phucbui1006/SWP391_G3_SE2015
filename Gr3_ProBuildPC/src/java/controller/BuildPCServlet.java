@@ -330,9 +330,7 @@ public class BuildPCServlet extends HttpServlet {
         return new LinkedHashMap<>();
     }
 
-    /**
-     * Đọc các số lượng đã chọn từ session.
-     */
+    // Đọc các số lượng đã chọn từ session.
     @SuppressWarnings("unchecked")
     private Map<String, Integer> getSelectedQuantities(HttpSession session) {
         Object value = session.getAttribute(SESSION_SELECTED_BUILD_QUANTITIES);
@@ -345,7 +343,7 @@ public class BuildPCServlet extends HttpServlet {
     }
 
     /**
-     * Tính tổng giá trị của cấu hình Build PC hiện tại.
+     * Tính tổng tiền 
      */
     private BigDecimal calculateBuildTotal(Map<String, Product> selectedProducts, Map<String, Integer> selectedQuantities) {
         BigDecimal total = BigDecimal.ZERO;

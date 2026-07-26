@@ -49,20 +49,21 @@ public class AccountManagementServlet extends HttpServlet {
         }
 
         List<User> users = userDAO.getUsers(keyword, roleId, status, accountType, page, PAGE_SIZE);
-        List<User> filterList = new ArrayList<>();
-        for (User user : users) {
-            if(user.isStaff()){
-                if(user.getStaffId() % 2 != 0){
-                    filterList.add(user);
-                }
-                    
-                }else if(user.isCustomer()){
-                    if(user.getCustomerId() % 2 != 0){
-                        filterList.add(user);
-                    }
-            }
-            
-        } users = filterList;
+        
+//        List<User> filterList = new ArrayList<>();
+//        for (User user : users) {
+//            if(user.isStaff()){
+//                if(user.getStaffId() % 2 != 0){
+//                    filterList.add(user);
+//                }
+//                    
+//                }else if(user.isCustomer()){
+//                    if(user.getCustomerId() % 2 != 0){
+//                        filterList.add(user);
+//                    }
+//            }
+//            
+//        } users = filterList;
         List<Role> roles = userDAO.getRoles();
 
         int offset = (page - 1) * PAGE_SIZE;

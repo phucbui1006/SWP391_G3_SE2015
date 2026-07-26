@@ -180,7 +180,7 @@
                                     String status = user.getStatus() == null ? "" : user.getStatus().trim().toUpperCase();
                                 %>
                                 <tr>
-                                    <td><%= startItem + i %></td>
+                                    <td><%= isStaffType ? user.getStaffId() : user.getCustomerId() %></td>
                                     <td>
                                         <div class="account-user-cell">
                                             <strong><%= h(user.getFullName()) %></strong>

@@ -93,34 +93,13 @@
             </section>
 
             <section class="brand-layout">
-                <aside class="brand-sidebar" aria-label="Bộ lọc thương hiệu">
+                <aside class="brand-sidebar" aria-label="Bộ lọc khoảng giá">
                     <form class="brand-filter-form" action="<%= ctx %>/brands" method="get">
+                        <% if (selectedBrandId != null) { %>
+                        <input type="hidden" name="brandId" value="<%= selectedBrandId %>">
+                        <% } %>
                         <input type="hidden" name="sort" value="<%= h(selectedSort) %>">
                         <input type="hidden" name="keyword" value="<%= h(keyword) %>">
-
-                        <div class="filter-panel">
-                            <div class="filter-title">
-                                <h2>Thương hiệu</h2>
-                                <span>−</span>
-                            </div>
-
-                            <label>
-                                <input type="radio" name="brandId" value="" <%= selectedBrandId == null ? "checked" : "" %>>
-                                Tất cả
-                            </label>
-
-                            <% if (brands != null) {
-                                for (Brand brand : brands) {
-                            %>
-                            <label>
-                                <input type="radio"
-                                       name="brandId"
-                                       value="<%= brand.getBrandId() %>"
-                                       <%= selectedBrandId != null && selectedBrandId == brand.getBrandId() ? "checked" : "" %>>
-                                <%= h(brand.getBrandName()) %> (<%= brand.getProductCount() %>)
-                            </label>
-                            <% }} %>
-                        </div>
 
                         <div class="filter-panel">
                             <div class="filter-title">

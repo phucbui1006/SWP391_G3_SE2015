@@ -1,5 +1,6 @@
 package listener;
 
+import dal.DBContext;
 import dal.OrderDAO;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -33,6 +34,8 @@ public class VnPayExpiryListener implements ServletContextListener {
                 }
             } catch (Exception e) {
                 System.err.println("[VnPayExpiry] Error during expiry check: " + e.getMessage());
+            } finally {
+                DBContext.closeRequestConnection();
             }
         }, 0, CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
 

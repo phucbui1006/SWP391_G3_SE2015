@@ -16,7 +16,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import model.BuildPCSlot;
-import model.CartItem;
 import model.Product;
 import model.ProductSpecification;
 import model.User;
@@ -27,7 +26,6 @@ public class BuildPCServlet extends HttpServlet {
     private static final String SESSION_SELECTED_BUILD = "selectedBuild";
     private static final String SESSION_SELECTED_BUILD_QUANTITIES = "selectedBuildQuantities";
     private static final String SESSION_BUILD_CHECKOUT_ITEMS = "buildCheckoutItems";
-    private static final String SESSION_CART_ITEM_COUNT = "sessionCartItemCount";
     private static final String BUILD_MESSAGE = "buildPcMessage";
     private static final String BUILD_MESSAGE_TYPE = "buildPcMessageType";
     private static final int MAX_BUILD_QUANTITY_DIGITS = 9;
@@ -77,9 +75,6 @@ public class BuildPCServlet extends HttpServlet {
                 break;
             case "clear":
                 handleClear(request, response);
-                break;
-            case "addToCart":
-                handleAddToCart(request, response);
                 break;
             case "buyNow":
                 handleBuyNow(request, response);
@@ -204,17 +199,16 @@ public class BuildPCServlet extends HttpServlet {
         String slot = normalizeSlot(request.getParameter("slot"));
         String quantityRaw = request.getParameter("quantity");
         Integer quantity = parseBuildQuantity(quantityRaw);
-        boolean ajaxRequest = isAjaxRequest(request);
 
         if (slot == null || quantity == null) {
-            respondQuantityError(request, response, session, ajaxRequest,
+            respondQuantityError(request, response, session,
                     "Số lượng phải là số nguyên từ 1 trở lên.");
             return;
         }
 
         Map<String, Integer> selectedBuild = getSelectedBuild(session);
         if (!selectedBuild.containsKey(slot)) {
-            respondQuantityError(request, response, session, ajaxRequest,
+            respondQuantityError(request, response, session,
                     "Vui lòng chọn linh kiện trước khi chỉnh số lượng.");
             return;
         }
@@ -225,25 +219,19 @@ public class BuildPCServlet extends HttpServlet {
         int availableQuantity = buildPCDAO.getAvailableQuantity(productId);
 
         if (availableQuantity <= 0) {
-            respondQuantityError(request, response, session, ajaxRequest,
+            respondQuantityError(request, response, session,
                     "Linh kiện này đã hết hàng.");
             return;
         }
 
         if (quantity > availableQuantity) {
-            respondQuantityError(request, response, session, ajaxRequest,
+            respondQuantityError(request, response, session,
                     "Số lượng không được lớn hơn số lượng trong kho (" + availableQuantity + ").");
             return;
         }
 
         selectedQuantities.put(slot, quantity);
         session.setAttribute(SESSION_SELECTED_BUILD_QUANTITIES, selectedQuantities);
-
-        if (ajaxRequest) {
-            writeQuantityJson(response, HttpServletResponse.SC_OK, true,
-                    "Đã cập nhật số lượng.", quantity);
-            return;
-        }
 
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
@@ -279,151 +267,15 @@ public class BuildPCServlet extends HttpServlet {
 
         Map<String, Integer> selectedBuild = getSelectedBuild(session);
         Map<String, Integer> selectedQuantities = getSelectedQuantities(session);
-        BuildValidationResult validation = validateBuildForPurchase(selectedBuild, selectedQuantities);
+        Map<Integer, Integer> checkoutItems = new LinkedHashMap<>();
 
-        if (!validation.isValid()) {
-            setFlash(session, validation.getMessage(), "error");
-            response.sendRedirect(request.getContextPath() + "/build-pc");
-            return;
+        for (Map.Entry<String, Integer> entry : selectedBuild.entrySet()) {
+            checkoutItems.put(entry.getValue(),
+                    getSelectedQuantity(selectedQuantities, entry.getKey()));
         }
 
-        session.setAttribute(SESSION_BUILD_CHECKOUT_ITEMS, validation.getProductQuantities());
+        session.setAttribute(SESSION_BUILD_CHECKOUT_ITEMS, checkoutItems);
         response.sendRedirect(request.getContextPath() + "/checkout?checkoutMode=build");
-    }
-
-    /**
-     * Thêm cấu hình Build PC hiện tại vào giỏ hàng của khách sau khi kiểm tra tồn kho và tính tương thích.
-     */
-    private void handleAddToCart(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session = request.getSession();
-        User account = (User) session.getAttribute("account");
-        boolean ajaxRequest = isAjaxRequest(request);
-
-        if (account == null) {
-            String message = "Bạn cần đăng nhập để thêm cấu hình vào giỏ hàng.";
-            if (ajaxRequest) {
-                writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false, message, getCartItemCount(session));
-            } else {
-                setFlash(session, message, "error");
-                response.sendRedirect(request.getContextPath() + "/Login");
-            }
-            return;
-        }
-
-        if (!account.isCustomer()) {
-            String message = "Tài khoản nhân viên không thể thêm sản phẩm vào giỏ hàng.";
-            respondAddToCartError(request, response, session, ajaxRequest, message);
-            return;
-        }
-
-        Map<String, Integer> selectedBuild = getSelectedBuild(session);
-        Map<String, Integer> selectedQuantities = getSelectedQuantities(session);
-        if (selectedBuild.isEmpty()) {
-            String message = "Bạn chưa chọn linh kiện nào để thêm vào giỏ hàng.";
-            respondAddToCartError(request, response, session, ajaxRequest, message);
-            return;
-        }
-
-        BuildPCDAO buildPCDAO = new BuildPCDAO();
-        CartDAO cartDAO = new CartDAO();
-        int customerId = account.getCustomerId();
-        List<CartItem> currentCartItems = cartDAO.getCartItemsByCustomerId(customerId);
-
-        for (Map.Entry<String, Integer> entry : selectedBuild.entrySet()) {
-            Product product = buildPCDAO.getProductById(entry.getValue());
-            int availableQuantity = buildPCDAO.getAvailableQuantity(entry.getValue());
-            int currentQuantity = getCurrentCartQuantity(currentCartItems, entry.getValue());
-            int requestedQuantity = getSelectedQuantity(selectedQuantities, entry.getKey());
-
-            if (product == null || availableQuantity <= 0) {
-                String message = "Một linh kiện trong cấu hình đã hết hàng hoặc ngừng kinh doanh.";
-                respondAddToCartError(request, response, session, ajaxRequest, message);
-                return;
-            }
-
-            if (!isValidSelectedQuantity(selectedQuantities, entry.getKey(), availableQuantity)) {
-                String message = "Số lượng linh kiện không hợp lệ. Vui lòng kiểm tra lại cấu hình.";
-                respondAddToCartError(request, response, session, ajaxRequest, message);
-                return;
-            }
-
-            if (!buildPCDAO.isProductCompatibleWithSelectedBuild(entry.getValue(), selectedBuild, entry.getKey())) {
-                String message = "Cấu hình hiện tại có linh kiện không tương thích. Vui lòng kiểm tra lại.";
-                respondAddToCartError(request, response, session, ajaxRequest, message);
-                return;
-            }
-
-            if (currentQuantity + requestedQuantity > availableQuantity) {
-                String message = product.getProductName() + " đã đạt số lượng tối đa trong giỏ hàng.";
-                respondAddToCartError(request, response, session, ajaxRequest, message);
-                return;
-            }
-        }
-
-        for (Map.Entry<String, Integer> entry : selectedBuild.entrySet()) {
-            int productId = entry.getValue();
-            int requestedQuantity = getSelectedQuantity(selectedQuantities, entry.getKey());
-            CartItem existingItem = findCartItemByProductId(currentCartItems, productId);
-            boolean success;
-
-            if (existingItem != null) {
-                success = cartDAO.updateCartItemQuantity(existingItem.getCartItemId(), existingItem.getQuantity() + requestedQuantity);
-                existingItem.setQuantity(existingItem.getQuantity() + requestedQuantity);
-            } else {
-                success = cartDAO.addCartItemForCustomer(customerId, productId, requestedQuantity) > 0;
-            }
-
-            if (!success) {
-                String message = "Không thể thêm cấu hình vào giỏ hàng lúc này.";
-                respondAddToCartError(request, response, session, ajaxRequest, message);
-                return;
-            }
-        }
-
-        List<CartItem> refreshedCartItems = cartDAO.getCartItemsByCustomerId(customerId);
-        int cartItemCount = calculateCartItemCount(refreshedCartItems);
-        session.setAttribute(SESSION_CART_ITEM_COUNT, cartItemCount);
-
-        String message = "Đã thêm cấu hình Build PC vào giỏ hàng.";
-        if (ajaxRequest) {
-            writeJson(response, HttpServletResponse.SC_OK, true, message, cartItemCount);
-        } else {
-            setFlash(session, message, "success");
-            response.sendRedirect(request.getContextPath() + "/cart");
-        }
-    }
-
-    private BuildValidationResult validateBuildForPurchase(Map<String, Integer> selectedBuild,
-            Map<String, Integer> selectedQuantities) {
-        if (selectedBuild.isEmpty()) {
-            return BuildValidationResult.error("Bạn chưa chọn linh kiện nào để thanh toán.");
-        }
-
-        BuildPCDAO buildPCDAO = new BuildPCDAO();
-        Map<Integer, Integer> productQuantities = new LinkedHashMap<>();
-
-        for (Map.Entry<String, Integer> entry : selectedBuild.entrySet()) {
-            String slot = entry.getKey();
-            int productId = entry.getValue();
-            Product product = buildPCDAO.getProductById(productId);
-            int availableQuantity = buildPCDAO.getAvailableQuantity(productId);
-            int quantity = getSelectedQuantity(selectedQuantities, slot);
-
-            if (product == null || availableQuantity <= 0) {
-                return BuildValidationResult.error("Một linh kiện trong cấu hình đã hết hàng hoặc ngừng kinh doanh.");
-            }
-            if (!isValidSelectedQuantity(selectedQuantities, slot, availableQuantity)) {
-                return BuildValidationResult.error("Số lượng của " + product.getProductName() + " không hợp lệ.");
-            }
-            if (!buildPCDAO.isProductCompatibleWithSelectedBuild(productId, selectedBuild, slot)) {
-                return BuildValidationResult.error("Cấu hình hiện tại có linh kiện không tương thích.");
-            }
-
-            productQuantities.put(productId, quantity);
-        }
-
-        return BuildValidationResult.success(productQuantities);
     }
 
     /**
@@ -517,17 +369,6 @@ public class BuildPCServlet extends HttpServlet {
     }
 
     /**
-     * Xác nhận rằng số lượng đã lưu là dương và không vượt quá tồn kho.
-     */
-    private boolean isValidSelectedQuantity(Map<String, Integer> selectedQuantities, String slot, int availableQuantity) {
-        Integer quantity = selectedQuantities.get(slot);
-        if (quantity == null) {
-            quantity = 1;
-        }
-        return quantity >= 1 && quantity <= availableQuantity;
-    }
-
-    /**
      * Ánh xạ key slot trên giao diện với category id tương ứng.
      */
     private int getCategoryIdBySlot(String slot) {
@@ -613,40 +454,6 @@ public class BuildPCServlet extends HttpServlet {
     }
 
     /**
-     * Tìm mục giỏ hàng tương ứng với sản phẩm trong giỏ hiện tại.
-     */
-    private CartItem findCartItemByProductId(List<CartItem> cartItems, int productId) {
-        for (CartItem item : cartItems) {
-            if (item.getProductId() == productId) {
-                return item;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Lấy số lượng sản phẩm đã có trong giỏ hàng.
-     */
-    private int getCurrentCartQuantity(List<CartItem> cartItems, int productId) {
-        CartItem item = findCartItemByProductId(cartItems, productId);
-        return item == null ? 0 : item.getQuantity();
-    }
-
-    /**
-     * Tính tổng số lượng trong giỏ để lấy số lượng mục giỏ hàng.
-     */
-    private int calculateCartItemCount(List<CartItem> cartItems) {
-        int count = 0;
-
-        for (CartItem item : cartItems) {
-            count += item.getQuantity();
-        }
-
-        return count;
-    }
-
-    /**
      * Lấy số lượng mục giỏ hàng của khách hàng đang đăng nhập.
      */
     private int getCartItemCount(HttpSession session) {
@@ -679,97 +486,10 @@ public class BuildPCServlet extends HttpServlet {
         session.setAttribute(BUILD_MESSAGE_TYPE, type);
     }
 
-    /**
-     * Xử lý lỗi thêm vào giỏ hàng thống nhất cho cả request thường và AJAX.
-     */
-    private void respondAddToCartError(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, boolean ajaxRequest, String message) throws IOException {
-        if (ajaxRequest) {
-            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false, message, getCartItemCount(session));
-            return;
-        }
-
-        setFlash(session, message, "error");
-        response.sendRedirect(request.getContextPath() + "/build-pc");
-    }
-
     private void respondQuantityError(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, boolean ajaxRequest, String message) throws IOException {
-        if (ajaxRequest) {
-            writeQuantityJson(response, HttpServletResponse.SC_BAD_REQUEST, false, message, null);
-            return;
-        }
-
+            HttpSession session, String message) throws IOException {
         setFlash(session, message, "error");
         response.sendRedirect(request.getContextPath() + "/build-pc");
     }
 
-    /**
-     * Kiểm tra xem request có phải là AJAX hay không.
-     */
-    private boolean isAjaxRequest(HttpServletRequest request) {
-        return "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
-    }
-
-    /**
-     * Ghi một phản hồi JSON đơn giản cho hành động thêm vào giỏ hàng bằng AJAX.
-     */
-    private void writeJson(HttpServletResponse response, int status, boolean success, String message, int cartItemCount)
-            throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"success\":" + success
-                + ",\"message\":\"" + escapeJson(message)
-                + "\",\"cartItemCount\":" + cartItemCount + "}");
-    }
-
-    private void writeQuantityJson(HttpServletResponse response, int status, boolean success,
-            String message, Integer quantity) throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"success\":" + success
-                + ",\"message\":\"" + escapeJson(message) + "\""
-                + (quantity == null ? "" : ",\"quantity\":" + quantity) + "}");
-    }
-
-    private String escapeJson(String value) {
-        if (value == null) {
-            return "";
-        }
-
-        return value.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\r", "\\r")
-                .replace("\n", "\\n");
-    }
-
-    private static final class BuildValidationResult {
-        private final Map<Integer, Integer> productQuantities;
-        private final String message;
-
-        private BuildValidationResult(Map<Integer, Integer> productQuantities, String message) {
-            this.productQuantities = productQuantities;
-            this.message = message;
-        }
-
-        private static BuildValidationResult success(Map<Integer, Integer> productQuantities) {
-            return new BuildValidationResult(productQuantities, null);
-        }
-
-        private static BuildValidationResult error(String message) {
-            return new BuildValidationResult(null, message);
-        }
-
-        private boolean isValid() {
-            return productQuantities != null && !productQuantities.isEmpty();
-        }
-
-        private Map<Integer, Integer> getProductQuantities() {
-            return productQuantities;
-        }
-
-        private String getMessage() {
-            return message;
-        }
-    }
 }

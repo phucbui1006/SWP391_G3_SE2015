@@ -119,7 +119,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Build PC - ProBuild PC</title>
-        <link rel="stylesheet" href="<%= ctx %>/css/style.css?v=20260720-4">
+        <link rel="stylesheet" href="<%= ctx %>/css/style.css?v=20260727-2">
     </head>
 
     <body class="build-pc-page" data-context-path="<%= ctx %>" style="padding-bottom: 0px; padding-left: 0px; padding-right: 0px; padding-top: 0px">
@@ -194,17 +194,14 @@
                             <form class="build-quantity" action="<%= ctx %>/build-pc" method="post">
                                 <input type="hidden" name="action" value="updateQuantity">
                                 <input type="hidden" name="slot" value="<%= escapeHtml(slot.getKey()) %>">
-                                <input class="build-qty-input"
-                                       type="number"
-                                       name="quantity"
-                                       value="<%= slot.getQuantity() %>"
-                                       min="1"
-                                       max="<%= selectedProduct.getQuantity() %>"
-                                       step="1"
-                                       inputmode="numeric"
-                                       autocomplete="off"
-                                       data-unit-price="<%= selectedProduct.getPrice().toPlainString() %>"
-                                       data-max-quantity="<%= selectedProduct.getQuantity() %>">
+                                <button class="build-qty-btn" type="submit" name="quantity"
+                                        value="<%= slot.getQuantity() - 1 %>"
+                                        aria-label="Giảm số lượng" <%= slot.getQuantity() <= 1 ? "disabled" : "" %>>−</button>
+                                <output class="build-qty-input" aria-label="Số lượng đã chọn"><%= slot.getQuantity() %></output>
+                                <button class="build-qty-btn" type="submit" name="quantity"
+                                        value="<%= slot.getQuantity() + 1 %>"
+                                        aria-label="Tăng số lượng"
+                                        <%= slot.getQuantity() >= selectedProduct.getQuantity() ? "disabled" : "" %>>+</button>
                             </form>
                             <small><%= slot.getAvailableProducts().size() %> sản phẩm phù hợp</small>
                         </div>
@@ -367,9 +364,9 @@
                                 Mua ngay
                             </button>
                         </form>
-                        <form class="build-add-cart-form cart-form" action="<%= ctx %>/build-pc" method="post">
-                            <input type="hidden" name="action" value="addToCart">
-                            <button class="build-cart-btn" type="submit" data-add-to-cart-btn data-product-name="Cấu hình Build PC">
+                        <form class="build-add-cart-form" action="<%= ctx %>/cart" method="post">
+                            <input type="hidden" name="action" value="addBuildToCart">
+                            <button class="build-cart-btn" type="submit">
                                 <span aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></span>
                                 Thêm cấu hình vào giỏ hàng
                             </button>
@@ -387,7 +384,6 @@
         </div>
 
         <script src="<%= ctx %>/js/validator.js"></script>
-        <script src="<%= ctx %>/js/build-pc.js?v=20260720-5"></script>
-        <script src="<%= ctx %>/js/cart.js"></script>
+        <script src="<%= ctx %>/js/build-pc.js?v=20260727-2"></script>
     </body>
 </html>

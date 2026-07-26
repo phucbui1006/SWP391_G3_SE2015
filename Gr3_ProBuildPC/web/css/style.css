@@ -9288,48 +9288,62 @@ body.admin-brand-body .site-footer {
 }
 
 .build-quantity {
-    width: 100%;
+    width: 92px;
+    height: 34px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
+    gap: 0;
     padding: 0;
+    border: 1px solid #dfe3ea;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+    overflow: hidden;
 }
 
 .build-qty-input {
-    width: 92px;
-    height: 48px;
+    width: 30px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 0;
-    border: 1px solid #c8ccd3;
-    border-radius: 8px;
-    background: #ffffff;
-    color: #111111;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #063bdf;
     font-family: inherit;
-    font-size: 17px;
-    font-weight: 400;
+    font-size: 16px;
+    font-weight: 700;
     text-align: center;
     outline: none;
 }
 
-.build-qty-input.is-invalid {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+.build-qty-btn {
+    width: 30px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #063bdf;
+    font: inherit;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
 }
 
-.build-quantity .error-feedback {
-    max-width: 190px;
-    text-align: center;
-    line-height: 1.35;
+.build-qty-btn:hover:not(:disabled) {
+    background: #f3f6ff;
+    color: #002db8;
 }
 
-.build-qty-input:focus {
-    border-color: #9fb0c8;
-    box-shadow: 0 0 0 3px rgba(159, 176, 200, 0.18);
-}
-
-.build-qty-input.is-invalid:focus {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+.build-qty-btn:disabled {
+    cursor: not-allowed;
+    opacity: .4;
 }
 
 .build-part-actions {

@@ -11,7 +11,9 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import model.CartItem;
 import model.Product;
 import model.User;
@@ -26,6 +28,8 @@ public class CartServlet extends HttpServlet {
     private static final String CART_ERROR_FLASH = "cartErrorMsg";
     private static final String PRODUCT_DETAIL_CART_MESSAGE = "cartMessage";
     private static final String PRODUCT_DETAIL_CART_MESSAGE_TYPE = "cartMessageType";
+    private static final String SESSION_SELECTED_BUILD = "selectedBuild";
+    private static final String SESSION_SELECTED_BUILD_QUANTITIES = "selectedBuildQuantities";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -77,12 +81,90 @@ public class CartServlet extends HttpServlet {
             handleAddToCart(request, response);
             return;
         }
+        if ("addBuildToCart".equals(action)) {
+            handleAddBuildToCart(request, response);
+            return;
+        }
         if ("removeCartItem".equals(action)) {
             handleRemoveCartItem(request, response);
             return;
         }
 
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+    }
+
+    private void handleAddBuildToCart(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        HttpSession session = request.getSession();
+        User account = (User) session.getAttribute("account");
+
+        if (account == null) {
+            setBuildFlash(session, "Bạn cần đăng nhập để thêm cấu hình vào giỏ hàng.", "error");
+            response.sendRedirect(request.getContextPath() + "/Login");
+            return;
+        }
+
+        Integer customerId = getCustomerId(account);
+        if (customerId == null) {
+            setBuildFlash(session, "Tài khoản nhân viên không thể thêm sản phẩm vào giỏ hàng.", "error");
+            response.sendRedirect(request.getContextPath() + "/build-pc");
+            return;
+        }
+
+        Map<String, Integer> selectedBuild = getBuildMap(session, SESSION_SELECTED_BUILD);
+        Map<String, Integer> selectedQuantities = getBuildMap(session, SESSION_SELECTED_BUILD_QUANTITIES);
+
+        if (selectedBuild.isEmpty()) {
+            setBuildFlash(session, "Bạn chưa chọn linh kiện nào để thêm vào giỏ hàng.", "error");
+            response.sendRedirect(request.getContextPath() + "/build-pc");
+            return;
+        }
+
+        ProductDAO productDAO = new ProductDAO();
+        CartDAO cartDAO = new CartDAO();
+        List<CartItem> cartItems = cartDAO.getCartItemsByCustomerId(customerId);
+
+        for (Map.Entry<String, Integer> entry : selectedBuild.entrySet()) {
+            int productId = entry.getValue();
+            int quantity = selectedQuantities.getOrDefault(entry.getKey(), 1);
+            Product product = productDAO.getProductById(productId);
+            CartItem existingItem = findCartItemByProductId(cartItems, productId);
+            int currentQuantity = existingItem == null ? 0 : existingItem.getQuantity();
+
+            if (product == null || !product.isAvailableForSale()) {
+                setBuildFlash(session, "Một linh kiện trong cấu hình hiện không còn kinh doanh.", "error");
+                response.sendRedirect(request.getContextPath() + "/build-pc");
+                return;
+            }
+
+            if (quantity < 1 || currentQuantity + quantity > product.getQuantity()) {
+                setBuildFlash(session,
+                        "Số lượng hoặc tồn kho của cấu hình đã thay đổi. Vui lòng kiểm tra lại.", "error");
+                response.sendRedirect(request.getContextPath() + "/build-pc");
+                return;
+            }
+        }
+
+        for (Map.Entry<String, Integer> entry : selectedBuild.entrySet()) {
+            int productId = entry.getValue();
+            int quantity = selectedQuantities.getOrDefault(entry.getKey(), 1);
+            CartItem existingItem = findCartItemByProductId(cartItems, productId);
+            boolean success = existingItem == null
+                    ? cartDAO.addCartItemForCustomer(customerId, productId, quantity) > 0
+                    : cartDAO.updateCartItemQuantity(
+                            existingItem.getCartItemId(), existingItem.getQuantity() + quantity);
+
+            if (!success) {
+                setBuildFlash(session, "Không thể thêm cấu hình vào giỏ hàng lúc này.", "error");
+                response.sendRedirect(request.getContextPath() + "/build-pc");
+                return;
+            }
+        }
+
+        List<CartItem> refreshedCartItems = cartDAO.getCartItemsByCustomerId(customerId);
+        session.setAttribute(SESSION_CART_ITEM_COUNT, calculateCartItemCount(refreshedCartItems));
+        session.setAttribute(CART_SUCCESS_FLASH, "Đã thêm cấu hình Build PC vào giỏ hàng.");
+        response.sendRedirect(request.getContextPath() + "/cart");
     }
 
     private void handleCartQuantityUpdate(HttpServletRequest request, HttpServletResponse response)
@@ -415,6 +497,20 @@ public class CartServlet extends HttpServlet {
 
     private Integer getCustomerId(User account) {
         return account != null && account.isCustomer() ? account.getCustomerId() : null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Integer> getBuildMap(HttpSession session, String key) {
+        Object value = session.getAttribute(key);
+        if (value instanceof Map<?, ?>) {
+            return new LinkedHashMap<>((Map<String, Integer>) value);
+        }
+        return new LinkedHashMap<>();
+    }
+
+    private void setBuildFlash(HttpSession session, String message, String type) {
+        session.setAttribute("buildPcMessage", message);
+        session.setAttribute("buildPcMessageType", type);
     }
 
     private CartItem findCartItemByProductId(List<CartItem> cartItems, int productId) {

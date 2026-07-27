@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import model.AccountSummary;
 import model.DashboardProduct;
 import model.DashboardSummary;
 import model.RevenueRow;
@@ -46,16 +45,10 @@ public class AdminDashboardDAO extends DBContext {
                 WHERE date >= ?
                   AND date < DATE_ADD(?, INTERVAL 1 DAY)
                 """, startDate, endDate));
-        summary.setPurchasingCustomers(queryInt("""
-                SELECT COUNT(DISTINCT o.customer_id) AS value
-                FROM orders o
-                LEFT JOIN orders_status os ON os.status_id = o.status_id
-                WHERE o.order_date >= ?
-                  AND o.order_date < DATE_ADD(?, INTERVAL 1 DAY)
-                """ + COMPLETED_ORDER_CONDITION, startDate, endDate));
         return summary;
     }
 
+    //Châm
     public BigDecimal getTotalImportCost(LocalDate startDate, LocalDate endDate) {
         String sql = """
                 SELECT COALESCE(SUM(bi.import_quantity * bi.price), 0) AS value
@@ -100,6 +93,7 @@ public class AdminDashboardDAO extends DBContext {
         return revenueByDay;
     }
 
+    //Cham
     public List<RevenueRow> getRevenueStatistics(LocalDate startDate, LocalDate endDate, String groupBy) {
         List<RevenueRow> list = new ArrayList<>();
         String dateFormat;
@@ -179,6 +173,7 @@ public class AdminDashboardDAO extends DBContext {
         return list;
     }
 
+    //lấy số sản phẩm bán ra theo cate
     public Map<String, Integer> getCategorySoldQuantities(LocalDate startDate, LocalDate endDate) {
         Map<String, Integer> soldQuantitiesByCategory = new LinkedHashMap<>();
         String sql = """
@@ -275,44 +270,11 @@ public class AdminDashboardDAO extends DBContext {
         return counts;
     }
 
-    public AccountSummary getAccountSummary() {
-        AccountSummary summary = new AccountSummary();
-        summary.setCustomers(queryInt("SELECT COUNT(*) AS value FROM users WHERE UPPER(account_type) = 'CUSTOMER'"));
-        summary.setEmployees(queryInt("""
-                SELECT COUNT(*) AS value
-                FROM users u
-                INNER JOIN staffs s ON s.user_id = u.user_id
-                INNER JOIN roles r ON r.role_id = s.role_id
-                WHERE UPPER(r.role_name) = 'EMPLOYEE'
-                """));
-        summary.setTransports(queryInt("""
-                SELECT COUNT(*) AS value
-                FROM users u
-                INNER JOIN staffs s ON s.user_id = u.user_id
-                INNER JOIN roles r ON r.role_id = s.role_id
-                WHERE UPPER(r.role_name) IN ('SHIPMENT', 'TRANSPORT')
-                """));
-        summary.setLocked(queryInt("SELECT COUNT(*) AS value FROM users WHERE UPPER(COALESCE(status, '')) <> 'ACTIVE'"));
-        summary.setActive(queryInt("SELECT COUNT(*) AS value FROM users WHERE UPPER(COALESCE(status, 'ACTIVE')) = 'ACTIVE'"));
-        return summary;
-    }
-
     private DashboardProduct mapBestSellingProduct(ResultSet rs) throws SQLException {
         DashboardProduct product = new DashboardProduct();
         product.setProductName(rs.getString("product_name"));
         product.setSoldQuantity(rs.getInt("sold_quantity"));
         return product;
-    }
-
-    private int queryInt(String sql) {
-        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt("value");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
     }
 
     private int queryInt(String sql, LocalDate startDate, LocalDate endDate) {

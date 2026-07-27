@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.List;
 import model.AdminDashboardView;
+import model.DashboardProduct;
 
 public final class DashboardViewHelper {
 
@@ -116,7 +117,7 @@ public final class DashboardViewHelper {
         return result.append("]").toString();
     }
 
-    public static String productNamesToJson(List<AdminDashboardView.ProductRow> products) {
+    public static String productNamesToJson(List<DashboardProduct> products) {
         StringBuilder result = new StringBuilder("[");
         if (products != null) {
             for (int i = 0; i < products.size(); i++) {
@@ -129,7 +130,7 @@ public final class DashboardViewHelper {
         return result.append("]").toString();
     }
 
-    public static String productSoldQuantitiesToJson(List<AdminDashboardView.ProductRow> products) {
+    public static String productSoldQuantitiesToJson(List<DashboardProduct> products) {
         StringBuilder result = new StringBuilder("[");
         if (products != null) {
             for (int i = 0; i < products.size(); i++) {

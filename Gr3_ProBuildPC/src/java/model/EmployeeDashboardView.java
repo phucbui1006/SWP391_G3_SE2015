@@ -8,12 +8,6 @@ public class EmployeeDashboardView {
     private String formAction;
     private LocalDate startDate;
     private LocalDate endDate;
-    private int waitingWarrantyCount;
-    private int rejectedWarrantyCount;
-    private int acceptedWarrantyCount;
-    private int failedOrderCount;
-    private int cancelledOrderCount;
-    private int deliveredOrderCount;
     private int overallPendingOrderCount;
     private int overallFailedOrderCount;
     private int overallWaitingWarrantyCount;
@@ -45,64 +39,12 @@ public class EmployeeDashboardView {
         this.endDate = endDate;
     }
 
-
-
-    public int getWaitingWarrantyCount() {
-        return waitingWarrantyCount;
-    }
-
-    public void setWaitingWarrantyCount(int waitingWarrantyCount) {
-        this.waitingWarrantyCount = waitingWarrantyCount;
-    }
-
-    public int getRejectedWarrantyCount() {
-        return rejectedWarrantyCount;
-    }
-
-    public void setRejectedWarrantyCount(int rejectedWarrantyCount) {
-        this.rejectedWarrantyCount = rejectedWarrantyCount;
-    }
-
-    public int getAcceptedWarrantyCount() {
-        return acceptedWarrantyCount;
-    }
-
-    public void setAcceptedWarrantyCount(int acceptedWarrantyCount) {
-        this.acceptedWarrantyCount = acceptedWarrantyCount;
-    }
-
-    public int getFailedOrderCount() {
-        return failedOrderCount;
-    }
-
-    public void setFailedOrderCount(int failedOrderCount) {
-        this.failedOrderCount = failedOrderCount;
-    }
-
-    public int getCancelledOrderCount() {
-        return cancelledOrderCount;
-    }
-
-    public void setCancelledOrderCount(int cancelledOrderCount) {
-        this.cancelledOrderCount = cancelledOrderCount;
-    }
-
     public List<SummaryCard> getSummaryCards() {
         return summaryCards;
     }
 
     public void setSummaryCards(List<SummaryCard> summaryCards) {
         this.summaryCards = summaryCards == null ? new ArrayList<>() : summaryCards;
-    }
-
-
-
-    public int getDeliveredOrderCount() {
-        return deliveredOrderCount;
-    }
-
-    public void setDeliveredOrderCount(int deliveredOrderCount) {
-        this.deliveredOrderCount = deliveredOrderCount;
     }
 
     public int getOverallPendingOrderCount() {

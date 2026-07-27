@@ -8,7 +8,7 @@ import java.util.List;
 public class AdminDashboardView {
     private String formAction;
     private List<StatCard> statCards = new ArrayList<>();
-    private List<ProductRow> bestSellingProducts = new ArrayList<>();
+    private List<DashboardProduct> bestSellingProducts = new ArrayList<>();
     private List<ChartPoint> revenueTimeline = new ArrayList<>();
     private List<ChartPoint> categorySoldProducts = new ArrayList<>();
     private List<ChartPoint> orderStatusCounts = new ArrayList<>();
@@ -32,11 +32,11 @@ public class AdminDashboardView {
         this.statCards = statCards == null ? new ArrayList<>() : statCards;
     }
 
-    public List<ProductRow> getBestSellingProducts() {
+    public List<DashboardProduct> getBestSellingProducts() {
         return bestSellingProducts;
     }
 
-    public void setBestSellingProducts(List<ProductRow> bestSellingProducts) {
+    public void setBestSellingProducts(List<DashboardProduct> bestSellingProducts) {
         this.bestSellingProducts = bestSellingProducts == null ? new ArrayList<>() : bestSellingProducts;
     }
 
@@ -121,24 +121,6 @@ public class AdminDashboardView {
 
         public String getUrl() {
             return url;
-        }
-    }
-
-    public static class ProductRow {
-        private final String productName;
-        private final int soldQuantity;
-
-        public ProductRow(String productName, int soldQuantity) {
-            this.productName = productName;
-            this.soldQuantity = soldQuantity;
-        }
-
-        public String getProductName() {
-            return productName;
-        }
-
-        public int getSoldQuantity() {
-            return soldQuantity;
         }
     }
 

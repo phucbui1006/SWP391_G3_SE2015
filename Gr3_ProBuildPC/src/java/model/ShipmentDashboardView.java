@@ -10,9 +10,6 @@ public class ShipmentDashboardView {
     private LocalDate startDate;
     private LocalDate endDate;
     private int totalOrderCount;
-    private int shippingOrderCount;
-    private int deliveredOrderCount;
-    private int failedOrderCount;
     private int overallOrderCount;
     private int overallConfirmedOrderCount;
     private int overallFailedOrderCount;
@@ -50,30 +47,6 @@ public class ShipmentDashboardView {
 
     public void setTotalOrderCount(int totalOrderCount) {
         this.totalOrderCount = totalOrderCount;
-    }
-
-    public int getShippingOrderCount() {
-        return shippingOrderCount;
-    }
-
-    public void setShippingOrderCount(int shippingOrderCount) {
-        this.shippingOrderCount = shippingOrderCount;
-    }
-
-    public int getDeliveredOrderCount() {
-        return deliveredOrderCount;
-    }
-
-    public void setDeliveredOrderCount(int deliveredOrderCount) {
-        this.deliveredOrderCount = deliveredOrderCount;
-    }
-
-    public int getFailedOrderCount() {
-        return failedOrderCount;
-    }
-
-    public void setFailedOrderCount(int failedOrderCount) {
-        this.failedOrderCount = failedOrderCount;
     }
 
     public int getOverallOrderCount() {
@@ -176,94 +149,4 @@ public class ShipmentDashboardView {
         }
     }
 
-    public static class FilterTab {
-        private final String label;
-        private final String url;
-        private final boolean active;
-
-        public FilterTab(String label, String url, boolean active) {
-            this.label = label;
-            this.url = url;
-            this.active = active;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public boolean isActive() {
-            return active;
-        }
-    }
-
-    public static class OrderRow {
-        private final String orderCode;
-        private final String customerName;
-        private final String shippingAddress;
-        private final String status;
-        private final String statusClass;
-
-        public OrderRow(String orderCode, String customerName, String shippingAddress,
-                String status, String statusClass) {
-            this.orderCode = orderCode;
-            this.customerName = customerName;
-            this.shippingAddress = shippingAddress;
-            this.status = status;
-            this.statusClass = statusClass;
-        }
-
-        public String getOrderCode() {
-            return orderCode;
-        }
-
-        public String getCustomerName() {
-            return customerName;
-        }
-
-        public String getShippingAddress() {
-            return shippingAddress;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public String getStatusClass() {
-            return statusClass;
-        }
-    }
-
-    public static class PageLink {
-        private final String label;
-        private final String url;
-        private final boolean active;
-        private final boolean clickable;
-
-        public PageLink(String label, String url, boolean active, boolean clickable) {
-            this.label = label;
-            this.url = url;
-            this.active = active;
-            this.clickable = clickable;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public boolean isActive() {
-            return active;
-        }
-
-        public boolean isClickable() {
-            return clickable;
-        }
-    }
 }

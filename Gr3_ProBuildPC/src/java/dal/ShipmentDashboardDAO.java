@@ -45,6 +45,9 @@ public class ShipmentDashboardDAO extends DBContext {
 
     private void loadStatusCounts(ShipmentDashboardView view,
             LocalDate startDate, LocalDate endDate) {
+        int shippingOrderCount = 0;
+        int deliveredOrderCount = 0;
+        int failedOrderCount = 0;
         String sql = """
                      SELECT o.status_id, COUNT(*) AS total
                      FROM orders o
@@ -61,29 +64,27 @@ public class ShipmentDashboardDAO extends DBContext {
                     int statusId = rs.getInt("status_id");
                     int total = rs.getInt("total");
                     if (statusId == 4) {
-                        view.setShippingOrderCount(total);
+                        shippingOrderCount = total;
                     } else if (statusId == 5) {
-                        view.setDeliveredOrderCount(total);
+                        deliveredOrderCount = total;
                     } else if (statusId == 7) {
-                        view.setFailedOrderCount(total);
+                        failedOrderCount = total;
                     }
                 }
             }
         } catch (SQLException e) {
         }
 
-        int totalOrders = view.getShippingOrderCount()
-                + view.getDeliveredOrderCount()
-                + view.getFailedOrderCount();
+        int totalOrders = shippingOrderCount + deliveredOrderCount + failedOrderCount;
         view.setTotalOrderCount(totalOrders);
 
         List<ShipmentDashboardView.ChartPoint> points = new ArrayList<>();
         points.add(new ShipmentDashboardView.ChartPoint(
-                "Đang giao hàng", view.getShippingOrderCount()));
+                "Đang giao hàng", shippingOrderCount));
         points.add(new ShipmentDashboardView.ChartPoint(
-                "Đã giao hàng", view.getDeliveredOrderCount()));
+                "Đã giao hàng", deliveredOrderCount));
         points.add(new ShipmentDashboardView.ChartPoint(
-                "Giao hàng thất bại", view.getFailedOrderCount()));
+                "Giao hàng thất bại", failedOrderCount));
         view.setOrderStatusCounts(points);
     }
 

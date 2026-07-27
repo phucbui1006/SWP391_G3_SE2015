@@ -102,7 +102,7 @@ public class DashboardServlet extends HttpServlet {
 
         view.setFormAction(ctx + "/Dashboard");
         view.setStatCards(buildAdminStatCards(safeSummary, ctx));
-        view.setBestSellingProducts(buildProductRows(bestSellingProducts));
+        view.setBestSellingProducts(bestSellingProducts);
         view.setOrderStatusCounts(buildOrderStatusChartPoints(orderStatusCounts));
 
         return view;
@@ -163,21 +163,6 @@ public class DashboardServlet extends HttpServlet {
         cards.add(new AdminDashboardView.StatCard("purple", "fa-solid fa-truck-ramp-box", "Lô hàng đã nhập",
                 String.valueOf(summary.getImportedBatches()), ctx + "/BatchServlet"));
         return cards;
-    }
-
-    private List<AdminDashboardView.ProductRow> buildProductRows(List<DashboardProduct> products) {
-        List<AdminDashboardView.ProductRow> rows = new ArrayList<>();
-        if (products == null) {
-            return rows;
-        }
-
-        for (DashboardProduct product : products) {
-            rows.add(new AdminDashboardView.ProductRow(
-                    DashboardViewHelper.h(product.getProductName()),
-                    product.getSoldQuantity()
-            ));
-        }
-        return rows;
     }
 
     //Employee

@@ -295,7 +295,7 @@
 
                                     <p class="wl-footnote">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                                        Thời gian bảo hành được tính từ ngày nhận hàng. Nếu chưa có ngày nhận, hệ thống sử dụng ngày đặt hàng để tính toán.
+                                        Thời gian bảo hành được tính từ ngày nhận hàng. Nếu chưa có ngày nhận, thời hạn bảo hành chưa bắt đầu.
                                     </p>
                                 </section>
                             </c:when>

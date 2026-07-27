@@ -10,6 +10,7 @@ import model.CategorySpecTemplate;
 
 public class CategoryDAO extends DBContext {
 
+    //Lấy toàn bộ danh mục sản phẩm.
     public List<Category> getAllCategories() {
         List<Category> list = new ArrayList<>();
 
@@ -36,7 +37,6 @@ public class CategoryDAO extends DBContext {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -46,6 +46,7 @@ public class CategoryDAO extends DBContext {
         return getCategories(null, "ALL", "oldest", 1, Integer.MAX_VALUE);
     }
 
+    //Lấy danh mục sản phẩm theo id.
     public Category getCategoryById(int categoryId) {
         String sql = """
             SELECT category_id, category_name, status
@@ -73,6 +74,7 @@ public class CategoryDAO extends DBContext {
         return null;
     }
 
+    //Filter danh mục sản phẩm.
     public List<Category> getCategories(String keyword, String status, String sort, int page, int pageSize) {
         List<Category> list = new ArrayList<>();
 
@@ -100,6 +102,8 @@ public class CategoryDAO extends DBContext {
         }
 
         sql += "GROUP BY c.category_id, c.category_name, c.status ";
+        
+        //Dùng để phân trang dữ liệu.
         sql += "ORDER BY " + orderBy + " LIMIT ? OFFSET ?";
 
         try {
@@ -134,7 +138,6 @@ public class CategoryDAO extends DBContext {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -190,7 +193,6 @@ public class CategoryDAO extends DBContext {
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         return false;
@@ -214,7 +216,7 @@ public class CategoryDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
             return rs.next();
         } catch (SQLException e) {
-            e.printStackTrace();
+           
         }
 
         return false;
@@ -280,12 +282,12 @@ public class CategoryDAO extends DBContext {
                 connection.setAutoCommit(originalAutoCommit);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
 
         return false;
     }
 
+    //Hiển thị thông số kĩ thuật theo id của danh mục sản phẩm.
     public List<CategorySpecTemplate> getTemplatesByCategoryId(int categoryId) {
         List<CategorySpecTemplate> list = new ArrayList<>();
         String sql = """
@@ -310,11 +312,11 @@ public class CategoryDAO extends DBContext {
                 list.add(t);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return list;
     }
 
+    //Hiển thị thông số kĩ thuật của sản phẩm theo id của danh mục và id của sản phẩm.
     public List<CategorySpecTemplate> getTemplatesWithValues(int categoryId, Integer productId) {
         List<CategorySpecTemplate> list = new ArrayList<>();
         String sql;
@@ -357,7 +359,6 @@ public class CategoryDAO extends DBContext {
                 list.add(t);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return list;
     }

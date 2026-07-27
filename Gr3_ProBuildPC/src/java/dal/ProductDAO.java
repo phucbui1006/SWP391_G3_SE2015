@@ -11,6 +11,7 @@ import model.ProductSpecification;
 
 public class ProductDAO extends DBContext {
 
+    //Câu SELECT nền.
     private static final String PRODUCT_SELECT = """
             SELECT p.product_id,
                    p.product_name,
@@ -863,9 +864,7 @@ public class ProductDAO extends DBContext {
     }
 
     /**
-     * Products that already have delivered sales may only change their selling
-     * price and warranty period. Keeping this as a separate UPDATE prevents
-     * crafted requests from modifying historical product identity/spec data.
+     * Cập nhật sản phẩm khi sản phẩm đã đc bán ra.
      */
     public boolean updateSoldProductPricing(int productId, BigDecimal price, int warrantyMonths) {
         String sql = """
@@ -891,6 +890,7 @@ public class ProductDAO extends DBContext {
         }
     }
 
+   
     public List<ProductSpecification> getSpecificationsByProductId(int productId) {
         List<ProductSpecification> list = new ArrayList<>();
         String sql = "SELECT spec_id, product_id, specification_name, specification_value FROM PRODUCT_SPECIFICATIONS WHERE product_id = ?";

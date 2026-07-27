@@ -14,7 +14,7 @@ public class WarrantyDAO extends DBContext {
     //Kiểm tra còn thời hạn bảo hành đối một sản phẩm hay không.
     public boolean isWarrantyRequestValid(int customerId, int orderId, int productId) {
         String sql = """
-                    SELECT COALESCE(o.received_date, o.order_date) AS warranty_start,
+                    SELECT o.received_date AS warranty_start,
                            od.warranty_months
                     FROM orders o
                     INNER JOIN order_details od ON o.order_id = od.order_id
@@ -120,11 +120,11 @@ public class WarrantyDAO extends DBContext {
                            o.order_id,
                            o.order_date,
                            o.received_date,
-                           COALESCE(o.received_date, o.order_date) AS warranty_start_date,
+                           o.received_date AS warranty_start_date,
                            u.full_name AS customer_name,
                            COALESCE(NULLIF(od.warranty_months, 0), p.warranty_months, 0) AS warranty_months,
-                           DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL COALESCE(NULLIF(od.warranty_months, 0), p.warranty_months, 0) MONTH) AS warranty_end_date,
-                           DATEDIFF(DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL COALESCE(NULLIF(od.warranty_months, 0), p.warranty_months, 0) MONTH), CURDATE()) AS remaining_days
+                           DATE_ADD(o.received_date, INTERVAL COALESCE(NULLIF(od.warranty_months, 0), p.warranty_months, 0) MONTH) AS warranty_end_date,
+                           DATEDIFF(DATE_ADD(o.received_date, INTERVAL COALESCE(NULLIF(od.warranty_months, 0), p.warranty_months, 0) MONTH), CURDATE()) AS remaining_days
                     FROM order_details od
                     INNER JOIN orders o ON od.order_id = o.order_id
                     INNER JOIN customers cust ON o.customer_id = cust.customer_id
@@ -194,8 +194,8 @@ public class WarrantyDAO extends DBContext {
                            od.warranty_months AS warranty_months,
                            br.brand_name,
                            ca.category_name,
-                           DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL od.warranty_months MONTH) AS warranty_end_date,
-                           DATEDIFF(DATE_ADD(COALESCE(o.received_date, o.order_date), INTERVAL od.warranty_months MONTH), CURDATE()) AS remaining_days
+                           DATE_ADD(o.received_date, INTERVAL od.warranty_months MONTH) AS warranty_end_date,
+                           DATEDIFF(DATE_ADD(o.received_date, INTERVAL od.warranty_months MONTH), CURDATE()) AS remaining_days
                     FROM orders o
                     INNER JOIN orders_status os ON o.status_id = os.status_id
                     LEFT JOIN shipments sh ON sh.order_id = o.order_id
@@ -315,6 +315,7 @@ public class WarrantyDAO extends DBContext {
         return "";
     }
 
+    //Yêu cầu đang xử lí.
     public boolean hasPendingWarrantyRequest(int customerId, int orderId, int productId) {
         String sql = """
                     SELECT COUNT(*)
@@ -435,8 +436,6 @@ public class WarrantyDAO extends DBContext {
         }
         return list;
     }
-
-   
 
     public int countAllWarrantyRequestsForAdmin(String searchKeyword, Integer statusId) {
         StringBuilder sql = new StringBuilder("""

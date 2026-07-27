@@ -63,7 +63,6 @@ public class WarrantyValidationFilter implements Filter {
         HttpSession session = req.getSession();
         String action = req.getParameter("action");
 
-        // We only validate the request creation action
         if (!"createRequest".equals(action)) {
             return true;
         }

@@ -133,7 +133,7 @@
                                     <input type="hidden" name="sort" value="${selectedSort}">
 
                                     <input type="text" name="contentKeyword" value="${contentKeyword}"
-                                        placeholder="Tìm sản phẩm theo tên/loại...">
+                                        placeholder="Tìm sản phẩm theo tên sản phẩm.">
 
                                     <button type="submit">Tìm kiếm</button>
                                 </form>

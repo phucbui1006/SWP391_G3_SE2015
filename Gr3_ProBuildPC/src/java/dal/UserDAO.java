@@ -395,6 +395,10 @@ public class UserDAO {
             sql.append(" AND UPPER(u.status) = ? ");
             params.add(status.trim().toUpperCase());
         }
+        //Lọc staff account active
+//        else if ("STAFF".equalsIgnoreCase(accountType)) {
+//            sql.append(" AND UPPER(u.status) = 'ACTIVE' ");
+//        }
     }
 
     private void setParameters(PreparedStatement ps, List<Object> params) throws Exception {

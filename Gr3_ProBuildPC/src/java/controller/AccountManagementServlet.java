@@ -49,21 +49,6 @@ public class AccountManagementServlet extends HttpServlet {
         }
 
         List<User> users = userDAO.getUsers(keyword, roleId, status, accountType, page, PAGE_SIZE);
-        
-//        List<User> filterList = new ArrayList<>();
-//        for (User user : users) {
-//            if(user.isStaff()){
-//                if(user.getStaffId() % 2 != 0){
-//                    filterList.add(user);
-//                }
-//                    
-//                }else if(user.isCustomer()){
-//                    if(user.getCustomerId() % 2 != 0){
-//                        filterList.add(user);
-//                    }
-//            }
-//            
-//        } users = filterList;
         List<Role> roles = userDAO.getRoles();
 
         int offset = (page - 1) * PAGE_SIZE;
@@ -163,7 +148,7 @@ public class AccountManagementServlet extends HttpServlet {
         // Send email first to verify email exists (if SMTP fails, we don't create account)
         // Note: This relies on SMTP throwing an error if email is malformed or rejected synchronously.
         boolean emailSent = util.EmailService.sendStaffWelcomeEmail(email, randomPassword);
-        
+
         if (!emailSent) {
             session.setAttribute("accountError", "Không thể gửi email đến địa chỉ này. Vui lòng kiểm tra lại email!");
             return;
@@ -202,7 +187,7 @@ public class AccountManagementServlet extends HttpServlet {
 
         // Send the reset password email to the Admin's email (so Admin can manage staff account credentials)
         boolean emailSent = util.EmailService.sendResetPasswordToAdminEmail(currentAdmin.getEmail(), targetUser.getEmail(), randomPassword);
-        
+
         if (!emailSent) {
             session.setAttribute("accountError", "Không thể gửi email reset mật khẩu đến email của quản trị viên.");
             return;
@@ -215,42 +200,42 @@ public class AccountManagementServlet extends HttpServlet {
         }
     }
 
-private void updateRole(HttpServletRequest request, HttpSession session, User currentAdmin, int userId) {
-    Integer roleId = parseId(request.getParameter("roleId"));
+    private void updateRole(HttpServletRequest request, HttpSession session, User currentAdmin, int userId) {
+        Integer roleId = parseId(request.getParameter("roleId"));
 
-    // BỔ SUNG ĐIỀU KIỆN: Chặn không cho phép đổi vai trò nhân viên thành Customer (-1)
-    if (roleId == null || roleId == -1) {
-        session.setAttribute("accountError", "Vai trò cập nhật không hợp lệ.");
-        return;
-    }
+        // BỔ SUNG ĐIỀU KIỆN: Chặn không cho phép đổi vai trò nhân viên thành Customer (-1)
+        if (roleId == null || roleId == -1) {
+            session.setAttribute("accountError", "Vai trò cập nhật không hợp lệ.");
+            return;
+        }
 
-    if (roleId == 1) {
-        session.setAttribute("accountError", "Không thể thay đổi vai trò thành quản trị viên.");
-        return;
-    }
+        if (roleId == 1) {
+            session.setAttribute("accountError", "Không thể thay đổi vai trò thành quản trị viên.");
+            return;
+        }
 
-    User targetUser = userDAO.getUserById(userId);
-    if (targetUser == null) {
-        session.setAttribute("accountError", "Không tìm thấy tài khoản.");
-        return;
-    }
+        User targetUser = userDAO.getUserById(userId);
+        if (targetUser == null) {
+            session.setAttribute("accountError", "Không tìm thấy tài khoản.");
+            return;
+        }
 
-    if (!targetUser.isStaff()) {
-        session.setAttribute("accountError", "Khach hang khong su dung vai tro nhan vien.");
-        return;
-    }
+        if (!targetUser.isStaff()) {
+            session.setAttribute("accountError", "Khach hang khong su dung vai tro nhan vien.");
+            return;
+        }
 
-    if (currentAdmin != null && currentAdmin.getUserId() == userId) {
-        session.setAttribute("accountError", "Đang đăng nhập, không thể đổi vai trò.");
-        return;
-    }
+        if (currentAdmin != null && currentAdmin.getUserId() == userId) {
+            session.setAttribute("accountError", "Đang đăng nhập, không thể đổi vai trò.");
+            return;
+        }
 
-    if (userDAO.updateUserRole(userId, roleId)) {
-        session.setAttribute("accountSuccess", "Cập nhật vai trò thành công.");
-    } else {
-        session.setAttribute("accountError", "Không thể cập nhật.");
+        if (userDAO.updateUserRole(userId, roleId)) {
+            session.setAttribute("accountSuccess", "Cập nhật vai trò thành công.");
+        } else {
+            session.setAttribute("accountError", "Không thể cập nhật.");
+        }
     }
-}
 
     private void updateStatus(HttpServletRequest request, HttpSession session, User currentAdmin, int userId) {
         String status = normalizeStatus(request.getParameter("status"));

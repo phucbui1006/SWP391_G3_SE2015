@@ -153,11 +153,14 @@ public class BuildPCServlet extends HttpServlet {
             return;
         }
 
+        Integer previousProductId = selectedBuild.get(slot);
+        boolean productChanged = previousProductId == null || previousProductId.intValue() != productId.intValue();
+
         selectedBuild.put(slot, productId);
         session.setAttribute(SESSION_SELECTED_BUILD, selectedBuild);
 
         Map<String, Integer> selectedQuantities = getSelectedQuantities(session);
-        if (!selectedQuantities.containsKey(slot)) {
+        if (productChanged || !selectedQuantities.containsKey(slot)) {
             selectedQuantities.put(slot, 1);
             session.setAttribute(SESSION_SELECTED_BUILD_QUANTITIES, selectedQuantities);
         }

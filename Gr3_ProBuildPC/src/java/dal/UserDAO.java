@@ -11,6 +11,14 @@ import model.User;
 
 public class UserDAO {
 
+    /**
+     * Xác thực thông tin đăng nhập của người dùng theo email và mật khẩu.
+     * Kiểm tra tài khoản tồn tại, kiểm tra khớp mật khẩu đã được mã hóa.
+     * 
+     * @param email Email đăng nhập của người dùng.
+     * @param password Mật khẩu đăng nhập dạng thô.
+     * @return Đối tượng User nếu đăng nhập thành công, ngược lại trả về null.
+     */
     public User login(String email, String password) {
         String sql = baseUserSelect() + """
                      WHERE LOWER(TRIM(u.email)) = LOWER(TRIM(?))
@@ -48,7 +56,13 @@ public class UserDAO {
         return null;
     }
 
-       public boolean checkEmailExist(String email) {
+    /**
+     * Kiểm tra xem địa chỉ email đã tồn tại trong hệ thống (bảng users) hay chưa.
+     * 
+     * @param email Địa chỉ email cần kiểm tra.
+     * @return true nếu email đã tồn tại, false nếu chưa tồn tại.
+     */
+    public boolean checkEmailExist(String email) {
         String sql = "SELECT user_id FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))";
 
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -66,6 +80,15 @@ public class UserDAO {
         return false;
     }
 
+    /**
+     * Đăng ký tài khoản mới cho khách hàng (Customer).
+     * Tạo thông tin người dùng trong bảng users và thông tin khách hàng trong bảng customers.
+     * 
+     * @param fullName Họ và tên khách hàng.
+     * @param email Email đăng ký.
+     * @param password Mật khẩu chưa mã hóa.
+     * @return true nếu đăng ký thành công, false nếu thất bại.
+     */
     public boolean registerCustomer(String fullName, String email, String password) {
         String insertCustomerSql = "INSERT INTO customers(user_id) VALUES (?)";
 
@@ -93,6 +116,16 @@ public class UserDAO {
         return false;
     }
 
+    /**
+     * Tạo mới tài khoản nhân viên (Staff) với vai trò cụ thể.
+     * Thêm thông tin vào bảng users và phân quyền nhân viên trong bảng staffs.
+     * 
+     * @param fullName Họ và tên nhân viên.
+     * @param email Email nhân viên.
+     * @param password Mật khẩu ban đầu.
+     * @param roleId Mã vai trò của nhân viên (1: Admin, 2: Employee, 3: Shipment...).
+     * @return true nếu tạo thành công, false nếu thất bại hoặc vai trò không tồn tại.
+     */
     public boolean createStaff(String fullName, String email, String password, int roleId) {
         String insertStaffSql = "INSERT INTO staffs(user_id, role_id) VALUES (?, ?)";
 
@@ -125,6 +158,14 @@ public class UserDAO {
         return false;
     }
 
+    /**
+     * Cập nhật mật khẩu mới cho tài khoản người dùng theo email.
+     * Mật khẩu mới sẽ được mã hóa trước khi lưu vào cơ sở dữ liệu.
+     * 
+     * @param email Email của tài khoản cần đổi mật khẩu.
+     * @param newPassword Mật khẩu mới.
+     * @return true nếu cập nhật thành công, false nếu thất bại.
+     */
     public boolean updatePassword(String email, String newPassword) {
         String sql = "UPDATE users SET password = ? WHERE email = ?";
         String hashToStore;
@@ -148,6 +189,14 @@ public class UserDAO {
         return false;
     }
 
+    /**
+     * Cập nhật thông tin hồ sơ cá nhân của người dùng (họ tên và mật khẩu) theo email.
+     * 
+     * @param email Email tài khoản cần cập nhật.
+     * @param fullName Họ tên mới.
+     * @param password Mật khẩu mới (hoặc đã mã hóa sẵn).
+     * @return true nếu cập nhật thành công, false nếu thất bại.
+     */
     public boolean updateProfile(String email, String fullName, String password) {
         String sql = "UPDATE users SET full_name = ?, password = ? WHERE email = ?";
         String hashToStore;
@@ -172,6 +221,17 @@ public class UserDAO {
         return false;
     }
 
+    /**
+     * Lấy danh sách tài khoản người dùng dựa theo các bộ lọc và có hỗ trợ phân trang.
+     * 
+     * @param keyword Từ khóa tìm kiếm theo tên hoặc email.
+     * @param roleId Mã vai trò (-1 đối với Khách hàng, >0 đối với Nhân viên).
+     * @param status Trạng thái tài khoản (ACTIVE, INACTIVE...).
+     * @param accountType Loại tài khoản (CUSTOMER hoặc STAFF).
+     * @param page Số trang hiện tại.
+     * @param pageSize Số lượng bản ghi trên một trang.
+     * @return Danh sách các đối tượng User phù hợp.
+     */
     public List<User> getUsers(String keyword, Integer roleId, String status, String accountType, int page, int pageSize) {
         List<User> users = new ArrayList<>();
         StringBuilder sql = new StringBuilder(baseUserSelect());
@@ -200,6 +260,16 @@ public class UserDAO {
         return users;
     }
 
+    /**
+     * Đếm tổng số lượng người dùng phù hợp với các bộ lọc tìm kiếm.
+     * Phục vụ cho việc tính toán tổng số trang trong phân trang.
+     * 
+     * @param keyword Từ khóa tìm kiếm theo tên hoặc email.
+     * @param roleId Mã vai trò.
+     * @param status Trạng thái tài khoản.
+     * @param accountType Loại tài khoản.
+     * @return Tổng số lượng người dùng thỏa mãn điều kiện.
+     */
     public int countUsers(String keyword, Integer roleId, String status, String accountType) {
         StringBuilder sql = new StringBuilder("""
                      SELECT COUNT(*) AS total
@@ -230,6 +300,11 @@ public class UserDAO {
         return 0;
     }
 
+    /**
+     * Lấy danh sách tất cả các vai trò (Role) có trong hệ thống từ bảng roles.
+     * 
+     * @return Danh sách các đối tượng Role.
+     */
     public List<Role> getRoles() {
         List<Role> roles = new ArrayList<>();
         String sql = "SELECT role_id, role_name FROM roles ORDER BY role_id ASC";
@@ -247,6 +322,12 @@ public class UserDAO {
         return roles;
     }
 
+    /**
+     * Lấy thông tin chi tiết của một người dùng dựa theo ID tài khoản.
+     * 
+     * @param userId Mã ID người dùng (user_id).
+     * @return Đối tượng User nếu tìm thấy, null nếu không tồn tại.
+     */
     public User getUserById(int userId) {
         String sql = baseUserSelect() + " WHERE u.user_id = ?";
 
@@ -267,6 +348,13 @@ public class UserDAO {
         return null;
     }
 
+    /**
+     * Cập nhật vai trò công việc cho nhân viên theo user_id.
+     * 
+     * @param userId Mã ID của nhân viên.
+     * @param roleId Mã vai trò mới cần gán.
+     * @return true nếu cập nhật thành công, false nếu thất bại.
+     */
     public boolean updateUserRole(int userId, int roleId) {
         String sql = """
                      UPDATE staffs s
@@ -290,6 +378,13 @@ public class UserDAO {
         return false;
     }
 
+    /**
+     * Cập nhật trạng thái hoạt động (ACTIVE, INACTIVE...) của tài khoản người dùng theo user_id.
+     * 
+     * @param userId Mã ID người dùng.
+     * @param status Trạng thái mới cần cập nhật.
+     * @return true nếu cập nhật thành công, false nếu thất bại.
+     */
     public boolean updateUserStatus(int userId, String status) {
         String sql = "UPDATE users SET status = ? WHERE user_id = ?";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -306,6 +401,17 @@ public class UserDAO {
         return false;
     }
 
+    /**
+     * Thêm mới thông tin người dùng cơ bản vào bảng users (Hàm private hỗ trợ).
+     * 
+     * @param conn Thao tác kết nối DB đang mở.
+     * @param fullName Họ và tên.
+     * @param email Địa chỉ email.
+     * @param password Mật khẩu thô (sẽ mã hóa trước khi thêm).
+     * @param accountType Loại tài khoản (CUSTOMER / STAFF).
+     * @return user_id vừa được sinh ra tự động trong DB, hoặc -1 nếu thất bại.
+     * @throws Exception Các lỗi truy vấn SQL hoặc kết nối DB.
+     */
     private int insertUser(Connection conn, String fullName, String email, String password, String accountType)
             throws Exception {
         String sql = """
@@ -340,6 +446,14 @@ public class UserDAO {
         return -1;
     }
     
+    /**
+     * Kiểm tra xem một vai trò (role_id) có tồn tại trong bảng roles hay không (Hàm private hỗ trợ).
+     * 
+     * @param conn Thao tác kết nối DB đang mở.
+     * @param roleId Mã vai trò cần kiểm tra.
+     * @return true nếu vai trò tồn tại, false nếu không tồn tại.
+     * @throws Exception Lỗi thao tác cơ sở dữ liệu.
+     */
     private boolean roleExists(Connection conn, int roleId) throws Exception {
         String sql = "SELECT role_id FROM roles WHERE role_id = ?";
 
@@ -352,6 +466,11 @@ public class UserDAO {
         }
     }
 
+    /**
+     * Tạo câu lệnh truy vấn SQL SELECT cơ bản để lấy thông tin người dùng kết hợp bảng customers, staffs và roles (Hàm private hỗ trợ).
+     * 
+     * @return Chuỗi SQL SELECT hoàn chỉnh.
+     */
     private String baseUserSelect() {
         return """
                SELECT u.user_id, u.full_name, u.status, u.email, u.password, u.account_type,
@@ -369,6 +488,16 @@ public class UserDAO {
                """;
     }
 
+    /**
+     * Bổ sung các điều kiện lọc linh hoạt vào chuỗi SQL và danh sách tham số (Hàm private hỗ trợ).
+     * 
+     * @param sql Đối tượng StringBuilder chứa câu SQL.
+     * @param params Danh sách chứa các giá trị tham số tương ứng.
+     * @param keyword Từ khóa tìm kiếm.
+     * @param roleId Mã vai trò lọc.
+     * @param status Trạng thái lọc.
+     * @param accountType Loại tài khoản lọc.
+     */
     private void appendUserFilters(StringBuilder sql, List<Object> params, String keyword, Integer roleId, String status, String accountType) {
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (LOWER(u.full_name) LIKE ? OR LOWER(u.email) LIKE ?) ");
@@ -401,6 +530,13 @@ public class UserDAO {
 //        }
     }
 
+    /**
+     * Gán động các tham số từ danh sách vào PreparedStatement (Hàm private hỗ trợ).
+     * 
+     * @param ps PreparedStatement đang chuẩn bị thi hành.
+     * @param params Danh sách các tham số truyền vào.
+     * @throws Exception Lỗi kiểu dữ liệu hoặc gán tham số.
+     */
     private void setParameters(PreparedStatement ps, List<Object> params) throws Exception {
         for (int i = 0; i < params.size(); i++) {
             Object value = params.get(i);
@@ -412,6 +548,13 @@ public class UserDAO {
         }
     }
 
+    /**
+     * Ánh xạ (Map) dữ liệu từ ResultSet sang đối tượng User (Hàm private hỗ trợ).
+     * 
+     * @param rs ResultSet từ kết quả truy vấn SQL.
+     * @return Đối tượng User với các thông tin đã được gán.
+     * @throws Exception Lỗi truy xuất cột dữ liệu.
+     */
     private User mapUser(ResultSet rs) throws Exception {
         User u = new User();
 
@@ -437,6 +580,14 @@ public class UserDAO {
         return u;
     }
 
+    /**
+     * Chuẩn hóa tên vai trò của nhân viên dựa trên role_id (Hàm private hỗ trợ).
+     * (1: ADMIN, 2: EMPLOYEE, 3: SHIPMENT).
+     * 
+     * @param roleId Mã vai trò.
+     * @param roleName Tên vai trò mặc định từ DB.
+     * @return Tên vai trò đã chuẩn hóa.
+     */
     private String normalizeStaffRoleName(int roleId, String roleName) {
         switch (roleId) {
             case 1:
@@ -450,8 +601,17 @@ public class UserDAO {
         }
     }
 
+    /**
+     * Trích xuất giá trị int từ ResultSet, xử lý trường hợp giá trị trong DB là NULL (Hàm private hỗ trợ).
+     * 
+     * @param rs ResultSet từ truy vấn.
+     * @param columnName Tên cột cần lấy dữ liệu.
+     * @return Giá trị số nguyên, hoặc 0 nếu dữ liệu là NULL.
+     * @throws Exception Lỗi đọc ResultSet.
+     */
     private int getNullableInt(ResultSet rs, String columnName) throws Exception {
         int value = rs.getInt(columnName);
         return rs.wasNull() ? 0 : value;
     }
 }
+

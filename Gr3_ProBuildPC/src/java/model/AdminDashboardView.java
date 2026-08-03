@@ -93,14 +93,12 @@ public class AdminDashboardView {
         private final String icon;
         private final String label;
         private final String value;
-        private final String url;
 
-        public StatCard(String iconClass, String icon, String label, String value, String url) {
+        public StatCard(String iconClass, String icon, String label, String value) {
             this.iconClass = iconClass;
             this.icon = icon;
             this.label = label;
             this.value = value;
-            this.url = url;
         }
 
         public String getIconClass() {
@@ -119,9 +117,6 @@ public class AdminDashboardView {
             return value;
         }
 
-        public String getUrl() {
-            return url;
-        }
     }
 
     public static class ChartPoint {

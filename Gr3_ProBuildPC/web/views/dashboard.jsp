@@ -43,7 +43,7 @@
                 %>
 
                 <div class="admin-dashboard">
-                    <form id="adminChartFilter" class="admin-chart-filter" action="<%= adminDashboard.getFormAction() %>" method="get">
+                    <form class="admin-chart-filter" action="<%= adminDashboard.getFormAction() %>" method="get">
                         <label>
                             <input type="date" name="chartFrom" value="<%= adminDashboard.getChartStartDate() %>" required> -
                             <input type="date" name="chartTo" value="<%= adminDashboard.getChartEndDate() %>" required>
@@ -53,7 +53,6 @@
 
                     <div class="admin-stat-grid" >
                         <% for (AdminDashboardView.StatCard stat : adminDashboard.getStatCards()) { %>
-                        <% if (stat.getUrl() == null || stat.getUrl().trim().isEmpty()) { %>
                         <div class="admin-stat-card">
                             <span class="admin-stat-icon <%= stat.getIconClass() %>"><i class="<%= stat.getIcon() %>"></i></span>
                             <span>
@@ -61,19 +60,10 @@
                                 <strong><%= stat.getValue() %></strong>
                             </span>
                         </div>
-                        <% } else { %>
-                        <a class="admin-stat-card" href="<%= stat.getUrl() %>">
-                            <span class="admin-stat-icon <%= stat.getIconClass() %>"><i class="<%= stat.getIcon() %>"></i></span>
-                            <span>
-                                <small><%= stat.getLabel() %></small>
-                                <strong><%= stat.getValue() %></strong>
-                            </span>
-                        </a>
-                        <% } %>
                         <% } %>
                     </div>
 
-                    <div id="revenueCharts" class="admin-dashboard-grid admin-chart-grid">
+                    <div class="admin-dashboard-grid admin-chart-grid">
                         <section class="admin-panel admin-chart-panel">
                             <div class="admin-panel-header">
                                 <div>
@@ -109,8 +99,6 @@
 
                             <div class="admin-chart-body">
                                 <canvas id="bestSellingProductsChart" aria-label="Biểu đồ thanh ngang top 5 sản phẩm bán chạy nhất"></canvas>
-                            </div>
-                            <div class="admin-panel-footer">
                             </div>
                         </section>
 

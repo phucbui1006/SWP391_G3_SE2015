@@ -5844,12 +5844,6 @@ body.dashboard-body {
 /* ==========================================================================
    3. LAYOUT CONTAINER & FILTER SECTION
    ========================================================================== */
-.dashboard-container {
-    max-width: 1300px;
-    margin: 35px auto 0 auto;
-    padding: 0 20px;
-}
-
 .filter-section {
     display: flex;
     justify-content: space-between;
@@ -9745,45 +9739,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     gap: 18px;
 }
 
-.dashboard-page-heading {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 18px;
-    margin-bottom: 2px;
-}
-
-.dashboard-page-heading > div {
-    min-width: 0;
-}
-
-.dashboard-page-heading p {
-    margin: 0 0 6px;
-    color: #e11d2e;
-    font-size: 12px;
-    font-weight: 900;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.dashboard-page-heading h1 {
-    margin: 0;
-    color: #0f172a;
-    font-size: 28px;
-    line-height: 1.2;
-    font-weight: 900;
-    letter-spacing: 0;
-}
-
-.dashboard-page-heading span {
-    display: block;
-    margin-top: 8px;
-    color: #64748b;
-    font-size: 14px;
-    line-height: 1.45;
-    font-weight: 650;
-}
-
 .admin-chart-filter {
     display: flex;
     flex-wrap: nowrap;
@@ -9993,10 +9948,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     flex-direction: column;
 }
 
-.admin-bottom-grid .admin-panel-footer {
-    margin-top: auto;
-}
-
 .admin-chart-grid {
     grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
 }
@@ -10152,7 +10103,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     display: none;
 }
 
-.admin-dashboard-table,
 .employee-request-table {
     width: 100%;
     min-width: 760px;
@@ -10169,13 +10119,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     min-width: 0;
 }
 
-.admin-dashboard-table {
-    min-width: 0;
-    table-layout: fixed;
-}
-
-.admin-dashboard-table th,
-.admin-dashboard-table td,
 .employee-request-table th,
 .employee-request-table td {
     padding: 14px 16px;
@@ -10184,7 +10127,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     vertical-align: middle;
 }
 
-.admin-dashboard-table td,
 .employee-request-table td {
     color: black;
     font-family: inherit;
@@ -10192,20 +10134,11 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-weight: 400;
 }
 
-.admin-dashboard-table th:last-child,
-.admin-dashboard-table td:last-child,
 .employee-request-table th:last-child,
 .employee-request-table td:last-child {
     border-right: 0;
 }
 
-.admin-dashboard-table th,
-.admin-dashboard-table td {
-    overflow-wrap: anywhere;
-    word-break: normal;
-}
-
-.admin-dashboard-table th,
 .employee-request-table th {
     background: #fafbfe;
     color: #252932;
@@ -10215,18 +10148,15 @@ body.dashboard-body .dashboard-card.shipment-shell {
     white-space: nowrap;
 }
 
-.admin-dashboard-table tbody tr:hover,
 .employee-request-table tbody tr:hover {
     background: #fbfcff;
 }
 
-.admin-dashboard-table td:first-child,
 .employee-request-table td:first-child {
     color: black;
     font-weight: 400;
 }
 
-.admin-dashboard-table td strong,
 .employee-request-table td strong {
     color: inherit;
     font-family: inherit;
@@ -10234,7 +10164,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-weight: 400;
 }
 
-.admin-dashboard-table .shipment-status,
 .employee-request-table .request-status,
 .shipment-order-table .shipment-status {
     color: black !important;
@@ -10247,35 +10176,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     font-size: 14px;
     line-height: 1.45;
     font-weight: 400;
-}
-
-.admin-panel-footer {
-    min-height: 46px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 16px;
-    border-top: 1px solid #eceff4;
-    background: #fafbfe;
-}
-
-.admin-panel-footer span {
-    color: #64748b;
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.admin-panel-footer a {
-    color: #e11d2e;
-    font-size: 12px;
-    font-weight: 900;
-}
-
-.admin-dashboard-table .admin-empty-message {
-    color: black !important;
-    font-size: 14px !important;
-    font-weight: 400 !important;
 }
 
 .admin-status,
@@ -10293,8 +10193,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
     white-space: nowrap;
 }
 
-.admin-dashboard-table .admin-status,
-.admin-dashboard-table .shipment-status,
 .employee-request-table .request-status,
 .shipment-order-table .shipment-status {
     color: black !important;
@@ -10393,15 +10291,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
         padding: 18px 0 42px;
     }
 
-    .dashboard-page-heading {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    .dashboard-page-heading h1 {
-        font-size: 24px;
-    }
-
     .admin-chart-filter {
         gap: 8px;
         padding: 12px;
@@ -10448,10 +10337,6 @@ body.dashboard-body .dashboard-card.shipment-shell {
 
     .employee-request-table {
         min-width: 680px;
-    }
-
-    .admin-dashboard-table {
-        min-width: 0;
     }
 
 }

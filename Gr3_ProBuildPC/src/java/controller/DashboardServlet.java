@@ -69,11 +69,15 @@ public class DashboardServlet extends HttpServlet {
 
         AdminDashboardDAO dashboardDAO = new AdminDashboardDAO();
         DashboardSummary summary = dashboardDAO.getSummary(chartStartDate, chartEndDate);
+        
         List<DashboardProduct> bestSellingProducts = dashboardDAO.getBestSellingProducts(
                 chartStartDate, chartEndDate, 5);
+        
         Map<String, Integer> orderStatusCounts = dashboardDAO.getOrderStatusCounts(
                 chartStartDate, chartEndDate);
+        
         Map<LocalDate, BigDecimal> revenueTimeline = dashboardDAO.getRevenueByDay(chartStartDate, chartEndDate);
+        
         Map<String, Integer> categorySoldQuantities = dashboardDAO.getCategorySoldQuantities(chartStartDate, chartEndDate);
 
         AdminDashboardView adminDashboard = buildAdminDashboardView(
@@ -101,7 +105,7 @@ public class DashboardServlet extends HttpServlet {
         DashboardSummary safeSummary = summary == null ? new DashboardSummary() : summary;
 
         view.setFormAction(ctx + "/Dashboard");
-        view.setStatCards(buildAdminStatCards(safeSummary, ctx));
+        view.setStatCards(buildAdminStatCards(safeSummary));
         view.setBestSellingProducts(bestSellingProducts);
         view.setOrderStatusCounts(buildOrderStatusChartPoints(orderStatusCounts));
 
@@ -154,14 +158,14 @@ public class DashboardServlet extends HttpServlet {
                 || value.contains("cho xac nhan");
     }
 
-    private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary, String ctx) {
+    private List<AdminDashboardView.StatCard> buildAdminStatCards(DashboardSummary summary) {
         List<AdminDashboardView.StatCard> cards = new ArrayList<>();
         cards.add(new AdminDashboardView.StatCard("red", "fa-solid fa-coins", "Tổng doanh thu",
-                DashboardViewHelper.formatCurrency(summary.getTotalRevenue()), ""));
+                DashboardViewHelper.formatCurrency(summary.getTotalRevenue())));
         cards.add(new AdminDashboardView.StatCard("dark", "fa-solid fa-receipt", "Đơn hàng giao thành công",
-                String.valueOf(summary.getTotalOrders()), ctx + "/order-history"));
+                String.valueOf(summary.getTotalOrders())));
         cards.add(new AdminDashboardView.StatCard("purple", "fa-solid fa-truck-ramp-box", "Lô hàng đã nhập",
-                String.valueOf(summary.getImportedBatches()), ctx + "/BatchServlet"));
+                String.valueOf(summary.getImportedBatches())));
         return cards;
     }
 

@@ -78,7 +78,9 @@ public class AccountValidationFilter implements Filter {
                     error = "Vui lòng nhập mật khẩu mới!";
                 } else if (!ValidatorUtil.isValidPassword(newPassword)) {
                     error = "Mật khẩu mới từ 8-31 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.";
-                } else if (confirmPassword == null || !confirmPassword.equals(newPassword)) {
+                } 
+                //Trường hợp lỗi new pwd != confirm new pwd
+                else if (confirmPassword == null || !confirmPassword.equals(newPassword)) {
                     error = "Xác nhận mật khẩu mới không khớp!";
                 }
             }

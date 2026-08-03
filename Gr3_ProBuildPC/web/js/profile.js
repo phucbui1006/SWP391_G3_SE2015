@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     Validator.showFeedback(newPasswordInput, pwdStrength, 'Mật khẩu mới từ 8-31 ký tự, chỉ gồm chữ cái và số (chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số).');
                 }
             }
+            //So sánh new password có khớp confirm new password hay không
 
             if (confirmPasswordInput.classList.contains('is-invalid') || (!isInput && confirmPasswordInput.value)) {
                 const isMatch = confirmPasswordInput.value === newPasswordInput.value;
@@ -131,7 +132,7 @@ function validateForm() {
                 isPasswordValid = false;
             }
         }
-
+        //Kiểm tra khi bấm nút submit form
         if (newPwd !== confPwd) {
             Validator.showFeedback(confirmPasswordInput, false, 'Xác nhận mật khẩu mới không khớp!');
             isPasswordValid = false;

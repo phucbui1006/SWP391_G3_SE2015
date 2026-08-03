@@ -69,7 +69,7 @@ public class PasswordUtil {
             return hash(password).equalsIgnoreCase(storedHash);
         }
 
-        // 3. Fallback for plaintext (legacy accounts or simple test passwords)
+        // 3. So sánh mật khẩu cũ và mật khẩu nhập vào có trùng khớp hay không
         return password.equals(storedHash);
     }
 

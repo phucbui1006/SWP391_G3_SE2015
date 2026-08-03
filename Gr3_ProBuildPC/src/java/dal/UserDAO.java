@@ -485,6 +485,7 @@ public class UserDAO {
                LEFT JOIN customers c ON c.user_id = u.user_id
                LEFT JOIN staffs s ON s.user_id = u.user_id
                LEFT JOIN roles r ON r.role_id = s.role_id
+               
                """;
     }
 
@@ -509,14 +510,14 @@ public class UserDAO {
         if (roleId != null) {
             if (roleId == -1) {
                 // Nếu chọn lọc Customer (mã -1 định nghĩa trên JSP), lọc theo account_type
-                sql.append(" AND UPPER(u.account_type) = 'CUSTOMER' ");
+                sql.append(" AND UPPER(u.account_type) = 'CUSTOMER'");
             } else {
                 // Nếu chọn lọc các vai trò nhân viên thông thường (1, 2, 3...)
-                sql.append(" AND UPPER(u.account_type) = 'STAFF' AND s.role_id = ? ");
+                sql.append(" AND UPPER(u.account_type) = 'STAFF' AND s.role_id = ?  ");
                 params.add(roleId);
             }
         } else if (accountType != null && !accountType.isEmpty()) {
-            sql.append(" AND UPPER(u.account_type) = ? ");
+            sql.append(" AND UPPER(u.account_type) = ?");
             params.add(accountType.trim().toUpperCase());
         }
 
@@ -524,6 +525,13 @@ public class UserDAO {
             sql.append(" AND UPPER(u.status) = ? ");
             params.add(status.trim().toUpperCase());
         }
+//        else if("CUSTOMER".equalsIgnoreCase(accountType)){
+//            sql.append(" AND UPPER(u.status) = 'ACTIVE'");
+//        }
+        //Ẩn trạng thái inactive khi mới select ra
+//        else{
+//            sql.append(" AND UPPER(u.status) = 'ACTIVE' ");
+//        }
         //Lọc staff account active
 //        else if ("STAFF".equalsIgnoreCase(accountType)) {
 //            sql.append(" AND UPPER(u.status) = 'ACTIVE' ");

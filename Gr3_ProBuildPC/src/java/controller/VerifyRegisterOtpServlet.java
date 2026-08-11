@@ -43,7 +43,7 @@ public class VerifyRegisterOtpServlet extends HttpServlet {
             return;
         }
 
-        // OTP is correct, process registration
+        // OTP is correct, process registrationnnnnnnnnnnn
         String fullName = (String) session.getAttribute("regFullName");
         String email = (String) session.getAttribute("regEmail");
         String password = (String) session.getAttribute("regPassword");

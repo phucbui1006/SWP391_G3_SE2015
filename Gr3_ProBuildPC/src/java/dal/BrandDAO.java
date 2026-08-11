@@ -199,7 +199,7 @@ public class BrandDAO extends DBContext {
     }
 
     
-    //Hàm tanwgg ID của brand mới khi add mới
+    //Hàm tanwgg ID của brand mới khi add mớiiiiiii
     private int getNextBrandId() {
         String sql = "SELECT COALESCE(MAX(brand_id), 0) + 1 AS next_id FROM brands";
         try {
